@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include <cstdint>
-#include <vector>
 
 #include "../Types.h"
 #include "../contiguousMap.h"

@@ -1,5 +1,4 @@
 ﻿#pragma once
-#include <ostream>
 
 namespace ecss {
 	//todo sort and binary search
