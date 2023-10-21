@@ -27,7 +27,7 @@ namespace ecss {
 				}
 			}
 
-			static constexpr std::size_t count() {//todo check it works
+			static constexpr std::size_t count() {
 				return sizeof...(Ts);
 			}
 		};

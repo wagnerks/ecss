@@ -108,11 +108,14 @@ namespace ecss::Memory {
 
 	Sector* SectorsArray::emplaceSector(size_t pos, const SectorId sectorId) {
 		if (pos < size()) {
+			++mSize;
 			shiftDataRight(pos);
 		}
-
-		++mSize;
+		else {
+			++mSize;
+		}
 		
+
 		const auto sector = new ((*this)[pos])Sector(sectorId, mSectorMeta.membersLayout);
 		mSectorsMap[sectorId] = static_cast<SectorId>(pos);
 
@@ -160,7 +163,7 @@ namespace ecss::Memory {
 
 		sector->setAlive(getTypeOffset(typeId), false);
 
-		ReflectionHelper::functionTables[typeId].destructor(sector->getObjectPtr(getTypeOffset(typeId)));
+		ReflectionHelper::functionsTable[typeId].destructor(sector->getObjectPtr(getTypeOffset(typeId)));
 	}
 
 	void SectorsArray::destroyObjects(ECSType componentTypeId, std::vector<SectorId> sectorIds) {
@@ -245,9 +248,10 @@ namespace ecss::Memory {
 	}
 
 	void SectorsArray::shiftDataRight(size_t from, size_t count) {
-		for (auto i = size() - count; i >= from; i--) {
-			auto prevAdr = (*this)[i];
-			auto newAdr = (*this)[i + count];
+		for (auto i = size() - 1; i >= from + count; i--) {
+			auto prevAdr = (*this)[i - count];
+			auto newAdr = (*this)[i];
+
 
 			for (auto& [typeId, offset] : mSectorMeta.membersLayout) {
 				if (!prevAdr->isAlive(offset)) {
@@ -257,17 +261,13 @@ namespace ecss::Memory {
 				
 				const auto oldPlace = prevAdr->getObjectPtr(offset);
 				const auto newPlace = newAdr->getObjectPtr(offset);
-				ReflectionHelper::functionTables[typeId].move(newPlace, oldPlace);
+				ReflectionHelper::functionsTable[typeId].move(newPlace, oldPlace);
 
 				newAdr->setAlive(offset, true);
 			}
 
 			new (newAdr)Sector(std::move(*prevAdr));
-			mSectorsMap[newAdr->id] = static_cast<SectorId>(i + count);
-
-			if (i == 0) {
-				break;
-			}
+			mSectorsMap[newAdr->id] = static_cast<SectorId>(i);
 		}
 	}
 
@@ -284,7 +284,7 @@ namespace ecss::Memory {
 
 				const auto oldPlace = prevAdr->getObjectPtr(offset);
 				const auto newPlace = newAdr->getObjectPtr(offset);
-				ReflectionHelper::functionTables[typeId].move(newPlace, oldPlace);
+				ReflectionHelper::functionsTable[typeId].move(newPlace, oldPlace);
 				
 				newAdr->setAlive(offset, true);
 			}

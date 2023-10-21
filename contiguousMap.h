@@ -3,7 +3,6 @@
 #include <utility>
 
 namespace ecss {
-	//todo sort and binary search
 	template<typename Key, typename Value>
 	class ContiguousMap {
 	public:
@@ -48,89 +47,68 @@ namespace ecss {
 		}
 
 		Value& operator[](Key key) {
-			for (auto i = 0u; i < mSize; i++) {
-				if (mData[i].first == key) {
-					return mData[i].second;
-				}
-			}
-
-			if (mSize >= mCapacity) {
-				if (mCapacity == 0) {
-					mCapacity = 1;
-					mData = new std::pair<Key,Value>[mCapacity];
-				}
-				else {
-					mCapacity *= 2;
-					auto newData = new std::pair<Key, Value>[mCapacity];
-					for (auto i = 0u; i < mSize; i++) {
-						newData[i] = std::move(mData[i]);
-					}
-
-					delete[] mData;
-					mData = newData;
-				}
-			}
-
-			mData[mSize].first = key;
-			return mData[mSize++].second;
-		}
-
-		Value& insert(Key key, Value value) {
-			for (auto i = 0u; i < mSize; i++) {
-				if (mData[i].first == key) {
-					mData[i].second = std::move(value);
-					return mData[i].second;
-				}
+			size_t idx = 0;
+			const auto pair = search(key, idx);
+			if (pair) {
+				return pair->second;
 			}
 
 			if (mCapacity <= mSize) {
-				if (mCapacity == 0) {
-					mCapacity = 1;
-					mData = new std::pair<Key, Value>[mCapacity];
-				}
-				else {
-					mCapacity *= 2;
-					auto newData = new std::pair<Key, Value>[mCapacity];
-					for (auto i = 0u; i < mSize; i++) {
-						newData[i] = std::move(mData[i]);
-					}
-
-					delete[] mData;
-					mData = newData;
-				}
+				setCapacity(mCapacity ? mCapacity * 2 : 1);
 			}
 
-			mData[mSize].first = key;
-			mData[mSize].second = std::move(value);
+			mSize++;
 
-			return mData[mSize++].second;
+			shiftDataRight(idx);
+
+			mData[idx].first = key;
+
+			return mData[idx].second;
+		}
+
+		Value& insert(Key key, Value value) {
+			size_t idx = 0;
+			const auto pair = search(key, idx);
+			if (pair) {
+				pair->second = std::move(value);
+				return pair->second;
+			}
+
+			if (mCapacity <= mSize) {
+				setCapacity(mCapacity ? mCapacity * 2 : 1);
+			}
+
+			mSize++;
+
+			shiftDataRight(idx);
+
+			mData[idx].first = key;
+			mData[idx].second = std::move(value);
+
+			return mData[idx].second;
 		}
 
 		const std::pair<Key,Value>& find(Key key) {
-			for (auto i = 0u; i < mSize; i++) {
-				if (mData[i].first == key) {
-					return mData[i];
-				}
+			size_t idx = 0;
+			if (auto pair = search(key, idx)) {
+				return *pair;
 			}
-
 			return {};
 		}
 
 		bool contains(Key key) const {
-			for (auto i = 0u; i < mSize; i++) {
-				if (mData[i].first == key) {
-					return true;
-				}
+			size_t idx = 0;
+			if (search(key, idx)) {
+				return true;
 			}
 
 			return false;
 		}
 
 		Value at(Key key) const {
-			for (auto i = 0u; i < mSize; i++) {
-				if (mData[i].first == key) {
-					return mData[i].second;
-				}
+			size_t idx = 0;
+			if (auto pair = search(key, idx)) {
+				return pair->second;
 			}
 
 			return {};
@@ -163,22 +141,89 @@ namespace ecss {
 		}
 
 		void shrinkToFit() {
-			if (mCapacity == mSize) {
-				return;
-			}
-
-			mCapacity = mSize;
-
-			auto newData = new std::pair<Key, Value>[mCapacity];
-			for (auto i = 0u; i < mSize; i++) {
-				newData[i] = std::move(mData[i]);
-			}
-
-			delete[] mData;
-			mData = newData;
+			setCapacity(mSize);
 		}
 
 	private:
+		void shiftDataRight(size_t begin) {
+			if (!mData) {
+				return;
+			}
+			
+			for(auto i = mSize - 1; i > begin; i--) {
+				mData[i] = std::move(mData[i - 1]);
+			}
+		}
+
+		void setCapacity(size_t capacity) {
+			if (capacity == mCapacity) {
+				return;
+			}
+
+			if (mCapacity == 0) {
+				mCapacity = capacity;
+				mData = new std::pair<Key, Value>[mCapacity];
+			}
+			else {
+				mCapacity = capacity;
+				auto newData = new std::pair<Key, Value>[mCapacity];
+				for (auto i = 0u; i < mSize; i++) {
+					newData[i] = std::move(mData[i]);
+				}
+
+				delete[] mData;
+				mData = newData;
+			}
+		}
+
+		std::pair<Key, Value>* search(Key key, size_t& idx) const {
+			auto right = mSize;
+
+			if (right == 0 || mData[0].first > key) {
+				idx = 0;
+				return nullptr;
+			}
+
+			if (mData[right - 1].first < key) {
+				idx = right;
+				return nullptr;
+			}
+
+			size_t left = 0u;
+			std::pair<Key, Value>* result = nullptr;
+
+			while (true) {
+				if (mData[left].first == key) {
+					idx = left;
+					result = &mData[left];
+					break;
+				}
+
+				const auto dist = right - left;
+				if (dist == 1) {
+					idx = left + 1;
+					break;
+				}
+
+				const auto mid = left + dist / 2;
+
+				if (mData[mid].first > key) {
+					right = mid;
+					continue;
+				}
+
+				if (mData[mid].first == key) {
+					idx = mid;
+					result = &mData[mid];
+					break;
+				}
+
+				left = mid;
+			}
+
+			return result;
+		}
+
 		size_t mSize = 0;
 		size_t mCapacity = 0;
 		std::pair<Key,Value>* mData = nullptr;

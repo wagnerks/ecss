@@ -21,7 +21,7 @@ namespace ecss {
 		Registry& operator=(Registry&& other) noexcept = delete;
 
 	public:
-		Registry();
+		Registry() = default;
 		~Registry();
 
 		void clear();

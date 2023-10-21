@@ -3,8 +3,6 @@
 #include <map>
 
 namespace ecss {
-	Registry::Registry() {}
-
 	Registry::~Registry() {
 		clear();
 

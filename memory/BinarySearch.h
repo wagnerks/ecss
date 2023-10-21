@@ -21,18 +21,18 @@ namespace ecss::Memory::Utils {
 		void* result = nullptr;
 
 		while(true) {
-			const auto dist = right - left;
-			if (dist == 1) {
-				idx = left + 1;
-				break;
-			}
-
 			if ((*sectors)[left]->id == sectorId) {
 				idx = left;
 				result = (*sectors)[left];
 				break;
 			}
 
+			const auto dist = right - left;
+			if (dist == 1) {
+				idx = left + 1;
+				break;
+			}
+			
 			const auto mid = left + dist / 2;
 
 			if ((*sectors)[mid]->id > sectorId) {
