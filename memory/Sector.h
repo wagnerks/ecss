@@ -26,6 +26,12 @@ namespace ecss::Memory {
 	*--------------------------------------------------------------------------------------------
 	*/
 	struct Sector {
+		Sector(SectorId id, const ContiguousMap<ECSType, uint16_t>& membersLayout) : id(id) {
+			for (auto& [typeId, offset] : membersLayout) {
+				setAlive(offset, false);
+			}
+		}
+
 		SectorId id;
 
 		inline constexpr void setAlive(size_t offset, bool value) {

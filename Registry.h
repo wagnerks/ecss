@@ -175,13 +175,13 @@ so better, if you want to merge multiple types in one sector, always create all 
 			inline Iterator(const std::array<Memory::SectorsArray*, sizeof...(ComponentTypes) + 1>& arrays, size_t idx) : mCurIdx(idx), mCurrentSector((*arrays[sizeof...(ComponentTypes)])[idx]){
 				constexpr auto mainIdx = sizeof...(ComponentTypes);
 				mGetInfo[mainIdx].array = arrays[mainIdx];
-				mGetInfo[mainIdx].offset = arrays[mainIdx]->getSectorData().membersLayout.at(Memory::ReflectionHelper::getTypeId<T>());
+				mGetInfo[mainIdx].offset = arrays[mainIdx]->template getTypeOffset<T>();
 				mGetInfo[mainIdx].isMain = true;
 
 				((
 					mGetInfo[types::getIndex<ComponentTypes, ComponentTypes...>()].array = arrays[types::getIndex<ComponentTypes, ComponentTypes...>()]
 					,
-					mGetInfo[types::getIndex<ComponentTypes, ComponentTypes...>()].offset = arrays[types::getIndex<ComponentTypes, ComponentTypes...>()]->getSectorData().membersLayout.at(Memory::ReflectionHelper::getTypeId<ComponentTypes>())
+					mGetInfo[types::getIndex<ComponentTypes, ComponentTypes...>()].offset = arrays[types::getIndex<ComponentTypes, ComponentTypes...>()]->template getTypeOffset<ComponentTypes>()
 					,
 					mGetInfo[types::getIndex<ComponentTypes, ComponentTypes...>()].isMain = arrays[mainIdx] == arrays[types::getIndex<ComponentTypes, ComponentTypes...>()]
 					)

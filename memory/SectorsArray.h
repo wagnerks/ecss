@@ -137,25 +137,25 @@ namespace ecss::Memory {
 		inline const SectorMetadata& getSectorData() { return mSectorMeta; }
 
 	private:
-		void* initSectorMember(void* sectorPtr, ECSType componentTypeId) const;
+		void* initSectorMember(Sector* sector, ECSType componentTypeId) const;
 
 		void setCapacity(uint32_t newCap);
 
-		void* createSector(size_t pos, SectorId sectorId);
-		void destroyObject(void* sectorPtr, ECSType typeId) const;
-		void destroySector(void* sectorPtr) const;
+		Sector* emplaceSector(size_t pos, SectorId sectorId);
+		void destroyObject(Sector* sector, ECSType typeId) const;
+		void destroySector(Sector* sector);
+		void destroySectors(size_t begin, size_t count = 1);
 
-		void erase(size_t pos);
-		void erase(size_t from, size_t to);
+		void erase(size_t begin, size_t count = 1);
 
 		//shifts chunk data right
 		//[][][][from][][][]   -> [][][] [empty] [from][][][]
-		void shiftDataRight(size_t from, size_t offset = 1);
+		void shiftDataRight(size_t from, size_t count = 1);
 
 		//shifts chunk data left
 		//[][][][from][][][]   -> [][][from][][][]
 		//caution - shifting on alive data will produce memory leak
-		void shiftDataLeft(size_t from, size_t offset = 1);
+		void shiftDataLeft(size_t from, size_t count = 1);
 
 		template <typename... Types>
 		void fillSectorData(uint32_t capacity) {

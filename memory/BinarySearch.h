@@ -16,32 +16,37 @@ namespace ecss::Memory::Utils {
 			idx = right;
 			return nullptr;
 		}
-		
-		if ((*sectors)[0]->id == sectorId) {
-			idx = 0;
-			return (*sectors)[0];
-		}
 
 		uint32_t left = 0u;
 		void* result = nullptr;
 
-		while (true) {
+		while(true) {
 			const auto dist = right - left;
 			if (dist == 1) {
 				idx = left + 1;
 				break;
 			}
 
-			left += dist / 2;
-
-			if ((*sectors)[left]->id > sectorId) {
-				right = left;
-			}
-			else if ((*sectors)[left]->id == sectorId) {
+			if ((*sectors)[left]->id == sectorId) {
 				idx = left;
 				result = (*sectors)[left];
 				break;
 			}
+
+			const auto mid = left + dist / 2;
+
+			if ((*sectors)[mid]->id > sectorId) {
+				right = mid;
+				continue;
+			}
+
+			if ((*sectors)[mid]->id == sectorId) {
+				idx = mid;
+				result = (*sectors)[mid];
+				break;
+			}
+
+			left = mid;
 		}
 
 		return result;
