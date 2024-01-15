@@ -1,42 +1,33 @@
 ﻿#pragma once
 
 #include <cassert>
+#include <map>
+#include <shared_mutex>
 
 #include "Sector.h"
 #include "Reflection.h"
 
 namespace ecss::Memory {
-	
-	/**
-	 * data container with sectors of custom data in it
-	 *
-	 * the Sector is object in memory which includes Sector {uint32_t(by default) sectorId;}
-	 *
-	 * sector stores data for any custom type in theory, offset to type stores in SectorMetadata struct
-	 *--------------------------------------------------------------------------------------------
-	 *                                          [SECTOR]
-	 * 0x 00                                                       {SectorId}
-	 * 0x sizeof(Sector)                                           {SomeObject}
-	 * 0x sizeof(Sector + SomeObject)                              {SomeObject1}
-	 * 0x sizeof(Sector + SomeObject + SomeObject1)                {SomeObject2}
-	 * ...
-	 * 0x sizeof(Sector... + ...SomeObjectN-1 + SomeObjectN)       {SomeObjectN}
-	 *
-	 *--------------------------------------------------------------------------------------------
-	 *
-	 * objects from sector can be pulled as void*, and then casted to desired type, as long as the information about offsets for every object stored according to their type ids
-	 * you can't get object without knowing it's type
-	 *
-	 */
+
+	/// <summary>
+	/// data container with sectors of custom data in it
+	///	
+	///	the Sector is object in memory which includes Sector{ uint32_t(by default) sectorId; }
+	///	
+	///	members from sector can be pulled as void*, and then casted to desired type, as long as the information about offsets for every member stored according to their type ids
+	///
+	///	you can't get member without knowing it's type
+	/// </summary>
+	///
 	class SectorsArray final {
 	private:
 		SectorsArray(const SectorsArray&) = delete;
 		SectorsArray& operator=(SectorsArray&) = delete;
-		SectorsArray(uint32_t chunkSize = 1024) : mChunkSize(chunkSize){}
+		SectorsArray(uint32_t chunkSize = 10240) : mChunkSize(chunkSize){}
 	
 	public:
 		template <typename... Types>
-		static inline constexpr SectorsArray* createSectorsArray(uint32_t capacity = 0, uint32_t chunkSize = 1024) {
+		static inline constexpr SectorsArray* createSectorsArray(uint32_t capacity = 0, uint32_t chunkSize = 10240) {
 			const auto array = new SectorsArray(chunkSize);
 			array->fillSectorData<Types...>(capacity);
 
@@ -46,11 +37,13 @@ namespace ecss::Memory {
 		~SectorsArray();
 		
 		inline Sector* operator[](size_t i) const {
-			return mChunks.size() <= i / mChunkSize ? nullptr : static_cast<Sector*>(static_cast<void*>(static_cast<char*>(mChunks[i / mChunkSize]) + (i % mChunkSize) * mSectorMeta.sectorSize));
+			return getSectorByIdx(i);
 		}
 
 		uint32_t size() const;
 		bool empty() const;
+
+		//clear will delete all sectors with members and destroy chunks
 		void clear();
 
 		uint32_t capacity() const;
@@ -61,16 +54,24 @@ namespace ecss::Memory {
 
 		void* acquireSector(ECSType componentTypeId, SectorId sectorId);
 
-		void destroyObject(ECSType componentTypeId, SectorId sectorId);
-		void destroyObjects(ECSType componentTypeId, std::vector<SectorId> sectorIds);
+		void destroyMember(ECSType componentTypeId, SectorId sectorId);
+		void destroyMembers(ECSType componentTypeId, std::vector<SectorId>& sectorIds, bool sort = true);
 		void destroySector(SectorId sectorId);
 
 		inline Sector* tryGetSector(SectorId sectorId) const {
-			return sectorId >= mSectorsMap.size() || mSectorsMap[sectorId] >= size() ? nullptr : getSector(sectorId);
+			return sectorId >= mSectorsMap.size() || mSectorsMap[sectorId] == INVALID_ID ? nullptr : getSector(sectorId);
 		}
 
 		inline Sector* getSector(SectorId sectorId) const {
-			return (*this)[mSectorsMap[sectorId]];
+			return getSectorByIdx(getSectorIdx(sectorId));
+		}
+
+		inline Sector* getSectorByIdx(size_t idx) const {
+			return idx / mChunkSize < mChunks.size() ? static_cast<Sector*>(static_cast<void*>(static_cast<char*>(mChunks.at(idx / mChunkSize)) + (idx % mChunkSize) * mSectorMeta.sectorSize)) : nullptr;
+		}
+
+		inline SectorId getSectorIdx(SectorId sectorId) const {
+			return mSectorsMap[sectorId];
 		}
 
 		template<typename T>
@@ -81,7 +82,7 @@ namespace ecss::Memory {
 		template<typename T>
 		inline T* getComponent(SectorId sectorId, uint16_t offset) {
 			auto info = tryGetSector(sectorId);
-			return info ? info->getObject<T>(offset) : nullptr;
+			return info ? info->getMember<T>(offset) : nullptr;
 		}
 
 		template<typename T>
@@ -136,13 +137,15 @@ namespace ecss::Memory {
 
 		inline const SectorMetadata& getSectorData() { return mSectorMeta; }
 
+		void removeEmptySectors();
+
 	private:
 		void* initSectorMember(Sector* sector, ECSType componentTypeId) const;
 
-		void setCapacity(uint32_t newCap);
+		void incrementCapacity();
 
 		Sector* emplaceSector(size_t pos, SectorId sectorId);
-		void destroyObject(Sector* sector, ECSType typeId) const;
+		void destroyMember(Sector* sector, ECSType typeId) const;
 		void destroySector(Sector* sector);
 		void destroySectors(size_t begin, size_t count = 1);
 
@@ -178,10 +181,8 @@ namespace ecss::Memory {
 		std::vector<void*> mChunks;//split whole data to chunks to make it more memory fragmentation friendly ( but less memory friendly, whole chunk will be allocated)
 
 		SectorMetadata mSectorMeta;
-
 		uint32_t mSize = 0;
-		uint32_t mCapacity = 0;
-
-		const uint32_t mChunkSize = 1024;
+		
+		const uint32_t mChunkSize;
 	};
 }

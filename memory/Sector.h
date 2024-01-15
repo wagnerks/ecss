@@ -17,11 +17,11 @@ namespace ecss::Memory {
 	* --------------------------------------------------------------------------------------------
 	*                                       [SECTOR]
 	* 0x 00                                                         { SectorId  }
-	* 0x sizeof(Sector)                                         { SomeObject  }
-	* 0x sizeof(Sector + SomeObject)                            { SomeObject1 }
-	* 0x sizeof(Sector + SomeObject + SomeObject1)              { SomeObject2 }
+	* 0x sizeof(Sector)                                         { SomeMember  }
+	* 0x sizeof(Sector + SomeMember)                            { SomeMember1 }
+	* 0x sizeof(Sector + SomeMember + SomeMember1)              { SomeMember2 }
 	* ...
-	* 0x sizeof(Sector... + ...SomeObjectN - 1 + SomeObjectN)   { SomeObjectN }
+	* 0x sizeof(Sector... + ...SomeMemberN - 1 + SomeMemberN)   { SomeMemberN }
 	*
 	*--------------------------------------------------------------------------------------------
 	*/
@@ -43,12 +43,12 @@ namespace ecss::Memory {
 		}
 
 		template<typename T>
-		inline constexpr T* getObject(size_t offset) {
+		inline constexpr T* getMember(size_t offset) {
 			const auto alive = static_cast<bool*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(this)) + offset));
 			return *alive ? static_cast<T*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(alive)) + 1)) : nullptr;
 		}
 
-		inline constexpr void* getObjectPtr(size_t offset) {
+		inline constexpr void* getMemberPtr(size_t offset) {
 			return static_cast<bool*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(this)) + offset + 1));
 		}
 

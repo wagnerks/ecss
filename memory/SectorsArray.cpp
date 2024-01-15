@@ -8,16 +8,7 @@
 
 namespace ecss::Memory {
 	SectorsArray::~SectorsArray() {
-		if (mChunks.empty()) {
-			return;
-		}
-
 		clear();
-
-		for (auto data : mChunks) {
-			std::free(data);
-		}
-		mChunks.clear();
 	}
 
 	uint32_t SectorsArray::size() const {
@@ -29,19 +20,13 @@ namespace ecss::Memory {
 	}
 
 	void SectorsArray::clear() {
-		if (!mSize) {
-			return;
-		}
-
 		destroySectors(0, size());
 
-		mSize = 0;
 		mSectorsMap.clear();
-		mSectorsMap.resize(mCapacity, INVALID_ID);
 	}
 
 	uint32_t SectorsArray::capacity() const {
-		return mCapacity;
+		return mChunkSize * mChunks.size();
 	}
 
 	size_t SectorsArray::entitiesCapacity() const {
@@ -49,37 +34,30 @@ namespace ecss::Memory {
 	}
 
 	void SectorsArray::reserve(uint32_t newCapacity) {
-		if (newCapacity <= mCapacity) {
+		if (newCapacity <= capacity()) {
 			return;
 		}
-
-		const auto diff = newCapacity - mCapacity;
+		const auto diff = newCapacity - capacity();
 		for (auto i = 0u; i <= diff / mChunkSize; i++) {
-			setCapacity(static_cast<uint32_t>(mCapacity + mChunkSize));
+			incrementCapacity();
 		}
 	}
 
 	void SectorsArray::shrinkToFit() {
 		auto last = static_cast<uint32_t>(std::ceil(size() / static_cast<float>(mChunkSize)));
-		for (auto i = last; i < mChunks.size(); i++) {
-			std::free(mChunks[i]);
+		const auto size = mChunks.size();
+		for (auto i = last; i < size; i++) {
+			std::free(mChunks.at(i));
 		}
-		mChunks.resize(last);
+		mChunks.erase(mChunks.begin() + last, mChunks.end());
 		mChunks.shrink_to_fit();
-		mCapacity = static_cast<uint32_t>(mChunks.size() * mChunkSize);
 	}
 
-	void SectorsArray::setCapacity(uint32_t newCap) {
-		if (mCapacity == newCap) {
-			return;
-		}
-
-		mCapacity = newCap;
-
-		mChunks.push_back(calloc(mChunkSize, mSectorMeta.sectorSize));
-
-		if (mCapacity > mSectorsMap.size()) {
-			mSectorsMap.resize(mCapacity, INVALID_ID);
+	void SectorsArray::incrementCapacity() {
+		mChunks.emplace_back(calloc(mChunkSize, mSectorMeta.sectorSize));
+		mChunks.shrink_to_fit();
+		if (capacity() > entitiesCapacity()) {
+			mSectorsMap.resize(capacity(), INVALID_ID);
 		}
 	}
 
@@ -89,7 +67,7 @@ namespace ecss::Memory {
 		}
 
 		for (auto i = begin; i < begin + count; i++) {
-			const auto sectorInfo = (*this)[i];
+			const auto sectorInfo = getSectorByIdx(i);
 			mSectorsMap[sectorInfo->id] = INVALID_ID;
 		}
 
@@ -100,10 +78,10 @@ namespace ecss::Memory {
 	}
 
 	void* SectorsArray::initSectorMember(Sector* sector, const ECSType componentTypeId) const {
-		destroyObject(sector, componentTypeId);
+		destroyMember(sector, componentTypeId);
 		
 		sector->setAlive(getTypeOffset(componentTypeId), true);
-		return sector->getObjectPtr(getTypeOffset(componentTypeId));
+		return sector->getMemberPtr(getTypeOffset(componentTypeId));
 	}
 
 	Sector* SectorsArray::emplaceSector(size_t pos, const SectorId sectorId) {
@@ -116,117 +94,148 @@ namespace ecss::Memory {
 		}
 		
 
-		const auto sector = new ((*this)[pos])Sector(sectorId, mSectorMeta.membersLayout);
+		const auto sector = new (getSectorByIdx(pos))Sector(sectorId, mSectorMeta.membersLayout);
 		mSectorsMap[sectorId] = static_cast<SectorId>(pos);
 
 		return sector;
 	}
 
 	void* SectorsArray::acquireSector(const ECSType componentTypeId, const SectorId sectorId) {
-		if (size() >= mCapacity) {
-			setCapacity(static_cast<uint32_t>(mCapacity + mChunkSize));
+		if (size() >= capacity()) {
+			incrementCapacity();
 		}
 
-		if (mSectorsMap.size() <= sectorId) {
+		if (entitiesCapacity() <= sectorId) {
 			mSectorsMap.resize(sectorId + 1, INVALID_ID);
 		}
 		else {
-			if (mSectorsMap[sectorId] < size()) {
+			if (getSectorIdx(sectorId) < size()) {
 				return initSectorMember(getSector(sectorId), componentTypeId);
 			}
 		}
 
+		
 		size_t idx = 0;
 		Utils::binarySearch(sectorId, idx, this); //find the place where to insert sector
 
 		return initSectorMember(emplaceSector(idx, sectorId), componentTypeId);
 	}
 
-	void SectorsArray::destroyObject(const ECSType componentTypeId, const SectorId sectorId) {
-		if (mSectorsMap[sectorId] >= size()) {
+	void SectorsArray::destroyMember(const ECSType componentTypeId, const SectorId sectorId) {
+		if (getSectorIdx(sectorId) >= size()) {
 			return;
 		}
 
 		const auto sector = getSector(sectorId);
 		
-		destroyObject(sector, componentTypeId);
+		destroyMember(sector, componentTypeId);
 
 		if (!sector->isSectorAlive(mSectorMeta.membersLayout)) {
 			destroySector(sector);
 		}
 	}
 
-	void SectorsArray::destroyObject(Sector* sector, ECSType typeId) const {
+	void SectorsArray::destroyMember(Sector* sector, ECSType typeId) const {
 		if (!sector->isAlive(getTypeOffset(typeId))) {
 			return;
 		}
 
 		sector->setAlive(getTypeOffset(typeId), false);
 
-		ReflectionHelper::functionsTable[typeId].destructor(sector->getObjectPtr(getTypeOffset(typeId)));
+		ReflectionHelper::functionsTable[typeId].destructor(sector->getMemberPtr(getTypeOffset(typeId)));
 	}
 
-	void SectorsArray::destroyObjects(ECSType componentTypeId, std::vector<SectorId> sectorIds) {
+	void SectorsArray::destroyMembers(ECSType componentTypeId, std::vector<SectorId>& sectorIds, bool sort) {
 		if (sectorIds.empty()) {
 			return;
 		}
 
-		std::sort(sectorIds.begin(), sectorIds.end());
-		if (sectorIds.front() >= size()) {
-			return;
+		if (sort) {
+			std::sort(sectorIds.begin(), sectorIds.end());
 		}
 
-		auto lastPos = mSectorsMap[sectorIds.front()];
-		auto curPos = mSectorsMap[sectorIds.front()];
-		auto destroy = [&]() {
-			destroySectors(lastPos, curPos - lastPos);
-			lastPos = curPos;
-		};
-
-		for (auto i = 0u; i < sectorIds.size(); i++) {
-			const auto sectorId = sectorIds[i];
-			if (sectorId == INVALID_ID) {
+		const auto sectorsSize = entitiesCapacity();
+		for (const auto sectorId : sectorIds) {
+			if (sectorId >= sectorsSize) {
 				break; //all valid entities destroyed
 			}
 
-			if (mSectorsMap[sectorId] >= size()) {
+			const auto idx = getSectorIdx(sectorId);
+			if (idx >= size()) {
 				continue;//there is no such entity in container
 			}
-
-			const auto sector = getSector(sectorId);
-			destroyObject(sector, componentTypeId);
 			
-			if (!sector->isSectorAlive(mSectorMeta.membersLayout)) {
-				curPos = mSectorsMap[sectorId];
-
-				const bool isLast = i == sectorIds.size() - 1;
-				if (isLast || ((sectorIds[i + 1] - sectorId) > 1)) {
-					destroy();
-				}
-				//continue iterations till not found some nod dead sector
-				continue;
-			}
-
-			destroy();
+			destroyMember(getSectorByIdx(idx), componentTypeId);
 		}
 	}
 
 	void SectorsArray::destroySectors(size_t begin, size_t count) {
-		if (begin >= size() || count <= 0) {
+		if (count <= 0 || begin >= size()) {
 			return;
 		}
 
 		count = std::min(size() - begin, count);
 
 		for (auto i = begin; i < begin + count; i++) {
-			const auto sector = (*this)[i];
+			const auto sector = getSectorByIdx(i);
 			for (auto& [typeId, typeIdx] : mSectorMeta.membersLayout) {
-				destroyObject(sector, typeId);
+				destroyMember(sector, typeId);
 			}
 			sector->~Sector();
 		}
 
 		erase(begin, count);
+	}
+
+	void SectorsArray::removeEmptySectors() {
+		if (empty()) {
+			return;
+		}
+		//algorithm which will not shift all sectors left every time, but shift only alive sectors to left border till not found empty place
+		//OOOOxOxxxOOxxxxOOxOOOO   0 - start
+		//OOOOx<-OxxxOOxxxxOOxOOOO 0
+		//OOOOOxxxxOOxxxxOOxOOOO   1
+		//OOOOOxxxx<-OOxxxxOOxOOOO 1
+		//OOOOOOOxxxxxxxxOOxOOOO   2
+		//OOOOOOOxxxxxxxx<-OOxOOOO 2
+		//OOOOOOOOOxxxxxxxxxOOOO   3
+		//OOOOOOOOOxxxxxxxxx<-OOOO 3
+		//OOOOOOOOOOOOOxxxxxxxxx   4 - end
+
+		uint32_t deleted = 0;
+		size_t emptyPos = 0;
+		for (auto i = 0u; i < size(); i++) {
+			auto sector = getSectorByIdx(i);
+			if (!sector->isSectorAlive(mSectorMeta.membersLayout)) {
+				mSectorsMap[sector->id] = INVALID_ID;
+				sector->~Sector();
+				deleted++;
+			}
+			else {
+				if (emptyPos == i) {
+					emptyPos++;
+					continue;
+				}
+				//move
+				auto emptyPlace = getSectorByIdx(emptyPos);
+				for (auto& [typeId, offset] : mSectorMeta.membersLayout) {
+					if (!sector->isAlive(offset)) {
+						emptyPlace->setAlive(offset, false);
+						continue;
+					}
+
+					ReflectionHelper::functionsTable[typeId].move(emptyPlace->getMemberPtr(offset), sector->getMemberPtr(offset));
+
+					emptyPlace->setAlive(offset, true);
+				}
+
+				new (emptyPlace)Sector(std::move(*sector));
+				mSectorsMap[emptyPlace->id] = static_cast<SectorId>(emptyPos++);
+			}
+		}
+
+		mSize -= deleted;
+		shrinkToFit();
 	}
 
 	void SectorsArray::destroySector(const SectorId sectorId) {
@@ -240,7 +249,7 @@ namespace ecss::Memory {
 
 	void SectorsArray::destroySector(Sector* sector) {
 		for (auto& [typeId, offset] : mSectorMeta.membersLayout) {
-			destroyObject(sector, typeId);
+			destroyMember(sector, typeId);
 		}
 
 		sector->~Sector();
@@ -249,8 +258,8 @@ namespace ecss::Memory {
 
 	void SectorsArray::shiftDataRight(size_t from, size_t count) {
 		for (auto i = size() - 1; i >= from + count; i--) {
-			auto prevAdr = (*this)[i - count];
-			auto newAdr = (*this)[i];
+			auto prevAdr = getSectorByIdx(i - count);
+			auto newAdr = getSectorByIdx(i);
 
 
 			for (auto& [typeId, offset] : mSectorMeta.membersLayout) {
@@ -259,8 +268,8 @@ namespace ecss::Memory {
 					continue;
 				}
 				
-				const auto oldPlace = prevAdr->getObjectPtr(offset);
-				const auto newPlace = newAdr->getObjectPtr(offset);
+				const auto oldPlace = prevAdr->getMemberPtr(offset);
+				const auto newPlace = newAdr->getMemberPtr(offset);
 				ReflectionHelper::functionsTable[typeId].move(newPlace, oldPlace);
 
 				newAdr->setAlive(offset, true);
@@ -273,8 +282,8 @@ namespace ecss::Memory {
 
 	void SectorsArray::shiftDataLeft(size_t from, size_t count) {
 		for (auto i = from; i < size() - count; i++) {
-			auto newAdr = (*this)[i];
-			auto prevAdr = (*this)[i + count];
+			auto newAdr = getSectorByIdx(i);
+			auto prevAdr = getSectorByIdx(i + count);
 
 			for (auto& [typeId, offset] : mSectorMeta.membersLayout) {
 				if (!prevAdr->isAlive(offset)) {
@@ -282,8 +291,8 @@ namespace ecss::Memory {
 					continue;
 				}
 
-				const auto oldPlace = prevAdr->getObjectPtr(offset);
-				const auto newPlace = newAdr->getObjectPtr(offset);
+				const auto oldPlace = prevAdr->getMemberPtr(offset);
+				const auto newPlace = newAdr->getMemberPtr(offset);
 				ReflectionHelper::functionsTable[typeId].move(newPlace, oldPlace);
 				
 				newAdr->setAlive(offset, true);
