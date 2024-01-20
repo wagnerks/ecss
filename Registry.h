@@ -153,21 +153,10 @@ so better, if you want to merge multiple types in one sector, always create all 
 				return;
 			}
 
-			auto lock = containersReadLock<Components...>();
 			for (auto entity : entities) {
+				auto lock = containersReadLock<Components...>();
 				func(entity, getComponentForce<Components>(entity)...);
 			}
-		}
-
-		template<typename Component, typename Func>
-		inline void forOne(SectorId entity, Func&& func) {
-			auto lock = containerReadLock<Component>();
-			auto comp = getComponentForce<Component>(entity);
-			if (!comp) {
-				return;
-			}
-
-			func(entity, comp);
 		}
 
 		template<typename... Components>
@@ -211,6 +200,7 @@ so better, if you want to merge multiple types in one sector, always create all 
 
 		EntityHandle takeEntity();
 		EntityHandle getEntity(SectorId entityId) const;
+		bool isEntity(SectorId entityId) const;
 
 		void destroyEntity(const EntityHandle& entityId);
 		void destroyEntities(std::vector<SectorId>& entities);

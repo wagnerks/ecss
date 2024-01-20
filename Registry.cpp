@@ -27,7 +27,7 @@ namespace ecss {
 				continue;
 			}
 			
-			auto lock = containerWriteLock(i);
+			auto lock = containerWriteLock(static_cast<ECSType>(i));
 			compContainer->clear();
 		}
 
@@ -43,7 +43,7 @@ namespace ecss {
 				continue;
 			}
 
-			auto lock = containerWriteLock(i);
+			auto lock = containerWriteLock(static_cast<ECSType>(i));
 			compContainer->destroySector(entity.getID());
 		}
 	}
@@ -65,6 +65,10 @@ namespace ecss {
 		return { entityId };
 	}
 
+	bool Registry::isEntity(SectorId entityId) const {
+		return entityId < mEntities.size() && !mFreeEntities.contains(entityId);
+	}
+
 	void Registry::destroyEntity(const EntityHandle& entity) {
 		if (!entity) {
 			return;
@@ -84,6 +88,9 @@ namespace ecss {
 	}
 
 	void Registry::destroyEntities(std::vector<SectorId>& entities) {
+		if (entities.empty()) {
+			return;
+		}
 		std::sort(entities.begin(), entities.end());
 
 		for (size_t i = 0; i < mComponentsArraysMap.size(); i++) {
@@ -93,8 +100,8 @@ namespace ecss {
 			}
 			//todo thread for every con
 			
-			auto lock2 = containerWriteLock(i);
-			compContainer->destroyMembers(i, entities, false);
+			auto lock2 = containerWriteLock(static_cast<ECSType>(i));
+			compContainer->destroyMembers(static_cast<ECSType>(i), entities, false);
 		}
 
 		std::unique_lock lock(mEntitiesMutex);
@@ -133,7 +140,7 @@ namespace ecss {
 				continue;
 			}
 
-			auto lock = containerWriteLock(i);
+			auto lock = containerWriteLock(static_cast<ECSType>(i));
 			compContainer->removeEmptySectors();
 		}
 	}

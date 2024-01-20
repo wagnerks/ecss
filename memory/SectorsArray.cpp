@@ -26,7 +26,7 @@ namespace ecss::Memory {
 	}
 
 	uint32_t SectorsArray::capacity() const {
-		return mChunkSize * mChunks.size();
+		return mChunkSize * static_cast<uint32_t>(mChunks.size());
 	}
 
 	size_t SectorsArray::entitiesCapacity() const {
@@ -79,9 +79,10 @@ namespace ecss::Memory {
 
 	void* SectorsArray::initSectorMember(Sector* sector, const ECSType componentTypeId) const {
 		destroyMember(sector, componentTypeId);
-		
-		sector->setAlive(getTypeOffset(componentTypeId), true);
-		return sector->getMemberPtr(getTypeOffset(componentTypeId));
+
+		const auto typeOffset = getTypeOffset(componentTypeId);
+		sector->setAlive(typeOffset, true);
+		return sector->getMemberPtr(typeOffset);
 	}
 
 	Sector* SectorsArray::emplaceSector(size_t pos, const SectorId sectorId) {
@@ -136,13 +137,14 @@ namespace ecss::Memory {
 	}
 
 	void SectorsArray::destroyMember(Sector* sector, ECSType typeId) const {
-		if (!sector->isAlive(getTypeOffset(typeId))) {
+		const auto typeOffset = getTypeOffset(typeId);
+		if (!sector->isAlive(typeOffset)) {
 			return;
 		}
 
-		sector->setAlive(getTypeOffset(typeId), false);
+		sector->setAlive(typeOffset, false);
 
-		ReflectionHelper::functionsTable[typeId].destructor(sector->getMemberPtr(getTypeOffset(typeId)));
+		ReflectionHelper::functionsTable[typeId].destructor(sector->getMemberPtr(typeOffset));
 	}
 
 	void SectorsArray::destroyMembers(ECSType componentTypeId, std::vector<SectorId>& sectorIds, bool sort) {
