@@ -13,6 +13,9 @@
 #include "memory/SectorsArray.h"
 
 namespace ecss {
+	template <typename T, typename ...ComponentTypes>
+	class ComponentsArrayHandle;
+
 	class Registry final {
 		template <typename T, typename ...ComponentTypes>
 		friend class ComponentsArrayHandle;
@@ -31,11 +34,11 @@ namespace ecss {
 		template <class T>
 		T* getComponent(const EntityHandle& entity) {
 			auto lock = containersReadLock<T>();
-			return entity ? getComponentContainer<T>()->getComponent<T>(entity.getID()) : nullptr;
+			return entity ? getComponentContainer<T>()->template getComponent<T>(entity.getID()) : nullptr;
 		}
 		template <class T>
 		T* getComponentForce(const EntityHandle& entity) {
-			return entity ? getComponentContainer<T>()->getComponent<T>(entity.getID()) : nullptr;
+			return entity ? getComponentContainer<T>()->template getComponent<T>(entity.getID()) : nullptr;
 		}
 		template <class T, class ...Args>
 		T* addComponent(const EntityHandle& entity, Args&&... args) {
@@ -71,12 +74,12 @@ namespace ecss {
 		//you can create component somewhere in another thread and move it into container here
 		template <class T>
 		void moveComponentToEntity(const EntityHandle& entity, T* component) {
-			getComponentContainer<T>()->move<T>(entity.getID(), component);
+			getComponentContainer<T>()->template move<T>(entity.getID(), component);
 		}
 
 		template <class T>
 		void copyComponentToEntity(const EntityHandle& entity, T* component) {
-			getComponentContainer<T>()->insert<T>(entity.getID(), component);
+			getComponentContainer<T>()->template insert<T>(entity.getID(), component);
 		}
 
 		template <class T>
@@ -329,7 +332,7 @@ so better, if you want to merge multiple types in one sector, always create all 
 
 		class Iterator {
 		public:
-			inline Iterator(const std::array<Memory::SectorsArray*, sizeof...(ComponentTypes) + 1>& arrays, size_t idx, const std::deque<std::pair<SectorId, SectorId>>& ranges) : mCurIdx(idx), mRanges(ranges) {
+			inline Iterator(const std::array<Memory::SectorsArray*, sizeof...(ComponentTypes) + 1>& arrays, size_t idx, const std::deque<std::pair<SectorId, SectorId>>& ranges) : mRanges(ranges), mCurIdx(idx) {
 				if (!mRanges.empty()) {
 					mCurIdx = arrays[sizeof...(ComponentTypes)]->getSectorIdx(mRanges.front().first);
 				}
