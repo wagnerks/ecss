@@ -164,13 +164,14 @@ namespace ecss::Memory {
 		void fillSectorData(uint32_t capacity) {
 			static_assert(types::areUnique<Types...>(), "Duplicates detected in types");
 
-			mSectorMeta.sectorSize = static_cast<uint16_t>(sizeof(Sector));
+			mSectorMeta.sectorSize = static_cast<uint16_t>((sizeof(Sector) + 8 - 1) / 8 * 8);
 			((
 				mSectorMeta.membersLayout[Memory::ReflectionHelper::getTypeId<Types>()] = mSectorMeta.sectorSize,
-				mSectorMeta.sectorSize += static_cast<uint16_t>(sizeof(Types)) + 1 //+1 for is alive bool
+				mSectorMeta.sectorSize += static_cast<uint16_t>(8 + (sizeof(Types) + alignof(Types) - 1) / alignof(Types) * alignof(Types)) //+8 for is alive bool
 			)
 			, ...);
 
+			mSectorMeta.sectorSize = (mSectorMeta.sectorSize + alignof(Sector) - 1) / alignof(Sector) * alignof(Sector);
 			mSectorMeta.membersLayout.shrinkToFit();
 
 			reserve(capacity);

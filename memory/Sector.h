@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <cstdint>
+#include "stdint.h"
 
 #include "../Types.h"
 #include "../contiguousMap.h"
@@ -35,21 +36,21 @@ namespace ecss::Memory {
 		SectorId id;
 
 		inline constexpr void setAlive(size_t offset, bool value) {
-			*static_cast<bool*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(this)) + offset)) = value;//use first byte which is also reserved for align - to store if object alive
+			*static_cast<uint8_t*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(this)) + offset)) = value;//use first byte which is also reserved for align - to store if object alive
 		}
 
 		inline constexpr bool isAlive(size_t offset) {
-			return *static_cast<bool*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(this)) + offset));
+			return *static_cast<uint8_t*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(this)) + offset));
 		}
 
 		template<typename T>
 		inline constexpr T* getMember(size_t offset) {
-			const auto alive = static_cast<bool*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(this)) + offset));
-			return *alive ? static_cast<T*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(alive)) + 1)) : nullptr;
+			const auto alive = static_cast<uint8_t*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(this)) + offset));
+			return *alive ? static_cast<T*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(alive)) + 8)) : nullptr;
 		}
 
 		inline constexpr void* getMemberPtr(size_t offset) {
-			return static_cast<bool*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(this)) + offset + 1));
+			return static_cast<uint8_t*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(this)) + offset + 8));
 		}
 
 		inline bool isSectorAlive(const ContiguousMap<ECSType, uint16_t>& membersLayout) {
