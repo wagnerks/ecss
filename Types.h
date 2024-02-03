@@ -7,6 +7,7 @@
 
 namespace ecss {
 	using SectorId = uint32_t;
+	using EntityId = SectorId;
 	using ECSType = uint16_t;
 
 	constexpr SectorId INVALID_ID = std::numeric_limits<SectorId>::max();
