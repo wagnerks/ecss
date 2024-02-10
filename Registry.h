@@ -235,18 +235,14 @@ so better, if you want to merge multiple types in one sector, always create all 
 
 		template <class T>
 		std::shared_mutex* getComponentMutex() {
-			mutex.lock_shared();
-
 			const ECSType compId = Memory::ReflectionHelper::getTypeId<T>();
 
+			std::shared_lock lock(mutex);
 			if (mComponentsArraysMutexes.size() <= compId || !mComponentsArraysMutexes[compId]) {
-				mutex.unlock_shared();
+				lock.unlock();
 				initCustomComponentsContainer<T>();
+				lock.lock();
 			}
-			else {
-				mutex.unlock_shared();
-			}
-
 			return mComponentsArraysMutexes[compId];
 		}
 
@@ -368,9 +364,9 @@ so better, if you want to merge multiple types in one sector, always create all 
 				return getterInfo.isMain ? mCurrentSector->getMember<ComponentType>(getterInfo.offset) : getterInfo.array->template getComponent<ComponentType>(sectorId, getterInfo.offset);
 			}
 			
-			inline std::tuple<SectorId, T&, ComponentTypes&...> operator*() {
+			inline std::tuple<SectorId, T*, ComponentTypes*...> operator*() {
 				auto id = mCurrentSector->id;
-				return std::forward_as_tuple(id, *(mCurrentSector->getMember<T>(mGetInfo[sizeof...(ComponentTypes)].offset)), *getComponent<ComponentTypes>(id)...);
+				return std::forward_as_tuple(id, (mCurrentSector->getMember<T>(mGetInfo[sizeof...(ComponentTypes)].offset)), getComponent<ComponentTypes>(id)...);
 			}
 
 			inline Iterator& operator++() {//todo bug - if ids 1 5 7 but its idxs in array 0 1 2 it will skip it
