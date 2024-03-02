@@ -34,11 +34,11 @@ namespace ecss {
 		template <class T>
 		T* getComponent(const EntityHandle& entity) {
 			auto lock = containersReadLock<T>();
-			return entity ? getComponentContainer<T>()->template getComponent<T>(entity.getID()) : nullptr;
+			return entity ? getComponentContainer<T>()->template getComponent<T>(entity.getID(), mReflectionHelper.getTypeId<T>()) : nullptr;
 		}
 		template <class T>
 		T* getComponentForce(const EntityHandle& entity) {
-			return entity ? getComponentContainer<T>()->template getComponent<T>(entity.getID()) : nullptr;
+			return entity ? getComponentContainer<T>()->template getComponent<T>(entity.getID(), mReflectionHelper.getTypeId<T>()) : nullptr;
 		}
 		template <class T, class ...Args>
 		T* addComponent(const EntityHandle& entity, Args&&... args) {
@@ -48,7 +48,7 @@ namespace ecss {
 			
 			auto container = getComponentContainer<T>();
 			auto lock = containerWriteLock<T>();
-			auto comp = static_cast<T*>(new(container->acquireSector(Memory::ReflectionHelper::getTypeId<T>(), entity.getID()))T(std::forward<Args>(args)...));
+			auto comp = static_cast<T*>(new(container->acquireSector(mReflectionHelper.getTypeId<T>(), entity.getID()))T(std::forward<Args>(args)...));
 			
 			return comp;
 		}
@@ -62,7 +62,7 @@ namespace ecss {
 
 			auto container = getComponentContainer<T>();
 			auto lock = containerWriteLock<T>();
-			auto comp = static_cast<T*>(new(container->acquireSector(Memory::ReflectionHelper::getTypeId<T>(), entity.getID()))T(std::forward<Args>(args)...));
+			auto comp = static_cast<T*>(new(container->acquireSector(mReflectionHelper.getTypeId<T>(), entity.getID()))T(std::forward<Args>(args)...));
 
 			if (initFunc) {
 				initFunc(comp);
@@ -74,22 +74,22 @@ namespace ecss {
 		//you can create component somewhere in another thread and move it into container here
 		template <class T>
 		void moveComponentToEntity(const EntityHandle& entity, T* component) {
-			getComponentContainer<T>()->template move<T>(entity.getID(), component);
+			getComponentContainer<T>()->template move<T>(entity.getID(), component, mReflectionHelper.getTypeId<T>());
 		}
 
 		template <class T>
 		void copyComponentToEntity(const EntityHandle& entity, T* component) {
-			getComponentContainer<T>()->template insert<T>(entity.getID(), component);
+			getComponentContainer<T>()->template insert<T>(entity.getID(), component, mReflectionHelper.getTypeId<T>());
 		}
 
 		template <class T>
 		void removeComponent(const EntityHandle& entity) {
-			getComponentContainer<T>()->destroyMember(Memory::ReflectionHelper::getTypeId<T>(), entity.getID());
+			getComponentContainer<T>()->destroyMember(mReflectionHelper.getTypeId<T>(), entity.getID());
 		}
 
 		template <class T>
 		void removeComponent(std::vector<SectorId>& entities) {
-			getComponentContainer<T>()->destroyMembers(Memory::ReflectionHelper::getTypeId<T>(), entities);
+			getComponentContainer<T>()->destroyMembers(mReflectionHelper.getTypeId<T>(), entities);
 		}
 
 		void destroyComponents(const EntityHandle& entityId) const;
@@ -111,17 +111,17 @@ namespace ecss {
 			((added |= prepareForContainer<Components>()), ...);
 			assert(!added);
 
-			auto container = Memory::SectorsArray::createSectorsArray<Components...>();
+			auto container = Memory::SectorsArray::createSectorsArray<Components...>(mReflectionHelper);
 
 			auto containerMutex = new std::shared_mutex();
 			
-			((mComponentsArraysMap[Memory::ReflectionHelper::getTypeId<Components>()] = container), ...);
-			((mComponentsArraysMutexes[Memory::ReflectionHelper::getTypeId<Components>()] = containerMutex), ...);
+			((mComponentsArraysMap[mReflectionHelper.getTypeId<Components>()] = container), ...);
+			((mComponentsArraysMutexes[mReflectionHelper.getTypeId<Components>()] = containerMutex), ...);
 		}
 
 		template <typename T>
 		bool prepareForContainer() {
-			auto compId = Memory::ReflectionHelper::getTypeId<T>();
+			auto compId = mReflectionHelper.getTypeId<T>();
 			if (mComponentsArraysMap.size() <= compId) {
 				mComponentsArraysMap.resize(compId + 1, nullptr);
 				mComponentsArraysMutexes.resize(compId + 1, nullptr);
@@ -215,7 +215,7 @@ so better, if you want to merge multiple types in one sector, always create all 
 		Memory::SectorsArray* getComponentContainer() {
 			mutex.lock_shared();
 
-			const ECSType compId = Memory::ReflectionHelper::getTypeId<T>();
+			const ECSType compId = mReflectionHelper.getTypeId<T>();
 			
 			if (mComponentsArraysMap.size() <= compId) {
 				mComponentsArraysMap.resize(compId + 1);
@@ -235,7 +235,7 @@ so better, if you want to merge multiple types in one sector, always create all 
 
 		template <class T>
 		std::shared_mutex* getComponentMutex() {
-			const ECSType compId = Memory::ReflectionHelper::getTypeId<T>();
+			const ECSType compId = mReflectionHelper.getTypeId<T>();
 
 			std::shared_lock lock(mutex);
 			if (mComponentsArraysMutexes.size() <= compId || !mComponentsArraysMutexes[compId]) {
@@ -298,6 +298,9 @@ so better, if you want to merge multiple types in one sector, always create all 
 		std::vector<SectorId> mEntities;
 		std::set<SectorId> mFreeEntities;
 		std::shared_mutex mutex;
+
+		Memory::ReflectionHelper mReflectionHelper;
+
 		mutable std::shared_mutex mEntitiesMutex;
 
 		SectorId getNewId();
@@ -319,6 +322,8 @@ so better, if you want to merge multiple types in one sector, always create all 
 			mLocks = manager->containersReadLock<T, ComponentTypes...>();
 
 			mRanges = std::move(ranges);
+
+			mReflectionHelper = &manager->mReflectionHelper;
 		}
 
 		inline size_t size() const { return mArrays[sizeof...(ComponentTypes)]->size(); }
@@ -328,7 +333,7 @@ so better, if you want to merge multiple types in one sector, always create all 
 
 		class Iterator {
 		public:
-			inline Iterator(const std::array<Memory::SectorsArray*, sizeof...(ComponentTypes) + 1>& arrays, size_t idx, const std::deque<std::pair<SectorId, SectorId>>& ranges) : mRanges(ranges), mCurIdx(idx) {
+			inline Iterator(const std::array<Memory::SectorsArray*, sizeof...(ComponentTypes) + 1>& arrays, size_t idx, const std::deque<std::pair<SectorId, SectorId>>& ranges, Memory::ReflectionHelper* reflectionHelper) : mRanges(ranges), mCurIdx(idx) {
 				if (!mRanges.empty()) {
 					mCurIdx = arrays[sizeof...(ComponentTypes)]->getSectorIdx(mRanges.front().first);
 				}
@@ -341,14 +346,14 @@ so better, if you want to merge multiple types in one sector, always create all 
 
 				constexpr auto mainIdx = sizeof...(ComponentTypes);
 				mGetInfo[mainIdx].array = arrays[mainIdx];
-				mGetInfo[mainIdx].offset = arrays[mainIdx]->template getTypeOffset<T>();
+				mGetInfo[mainIdx].offset = arrays[mainIdx]->getTypeOffset(reflectionHelper->getTypeId<T>());
 				mGetInfo[mainIdx].isMain = true;
 				mGetInfo[mainIdx].size = arrays[mainIdx]->size();
 
 				((
 					mGetInfo[types::getIndex<ComponentTypes, ComponentTypes...>()].array = arrays[types::getIndex<ComponentTypes, ComponentTypes...>()]
 					,
-					mGetInfo[types::getIndex<ComponentTypes, ComponentTypes...>()].offset = arrays[types::getIndex<ComponentTypes, ComponentTypes...>()]->template getTypeOffset<ComponentTypes>()
+					mGetInfo[types::getIndex<ComponentTypes, ComponentTypes...>()].offset = arrays[types::getIndex<ComponentTypes, ComponentTypes...>()]->getTypeOffset(reflectionHelper->getTypeId<ComponentTypes>())
 					,
 					mGetInfo[types::getIndex<ComponentTypes, ComponentTypes...>()].isMain = arrays[mainIdx] == arrays[types::getIndex<ComponentTypes, ComponentTypes...>()]
 					,
@@ -361,7 +366,7 @@ so better, if you want to merge multiple types in one sector, always create all 
 			template<typename ComponentType>
 			inline ComponentType* getComponent(const SectorId sectorId) {
 				auto& getterInfo = mGetInfo[types::getIndex<ComponentType, ComponentTypes...>()];
-				return getterInfo.isMain ? mCurrentSector->getMember<ComponentType>(getterInfo.offset) : getterInfo.array->template getComponent<ComponentType>(sectorId, getterInfo.offset);
+				return getterInfo.isMain ? mCurrentSector->getMember<ComponentType>(getterInfo.offset) : getterInfo.array->template getComponentByOffset<ComponentType>(sectorId, getterInfo.offset);
 			}
 			
 			inline std::tuple<SectorId, T*, ComponentTypes*...> operator*() {
@@ -419,13 +424,15 @@ so better, if you want to merge multiple types in one sector, always create all 
 			Memory::Sector* mCurrentSector = nullptr;
 		};
 
-		inline Iterator begin() { return {  mArrays, 0, mRanges }; }
-		inline Iterator end() {	return {  mArrays, mArrays[sizeof...(ComponentTypes)]->size(), {} }; }
+		inline Iterator begin() { return {  mArrays, 0, mRanges, mReflectionHelper }; }
+		inline Iterator end() {	return {  mArrays, mArrays[sizeof...(ComponentTypes)]->size(), {}, mReflectionHelper }; }
 
 	private:
 		std::array<Memory::SectorsArray*, sizeof...(ComponentTypes) + 1> mArrays;
 		std::vector<std::shared_lock<std::shared_mutex>> mLocks;
 
 		std::deque<std::pair<SectorId, SectorId>> mRanges;
+
+		Memory::ReflectionHelper* mReflectionHelper = nullptr;
 	};
 }

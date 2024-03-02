@@ -143,8 +143,8 @@ namespace ecss::Memory {
 		}
 
 		sector->setAlive(typeOffset, false);
-
-		ReflectionHelper::functionsTable[typeId].destructor(sector->getMemberPtr(typeOffset));
+		
+		mSectorMeta.typeFunctionsTable.at(typeId).destructor(sector->getMemberPtr(typeOffset));
 	}
 
 	void SectorsArray::destroyMembers(ECSType componentTypeId, std::vector<SectorId>& sectorIds, bool sort) {
@@ -226,7 +226,7 @@ namespace ecss::Memory {
 						continue;
 					}
 
-					ReflectionHelper::functionsTable[typeId].move(emptyPlace->getMemberPtr(offset), sector->getMemberPtr(offset));
+					mSectorMeta.typeFunctionsTable.at(typeId).move(emptyPlace->getMemberPtr(offset), sector->getMemberPtr(offset));
 
 					emptyPlace->setAlive(offset, true);
 				}
@@ -272,7 +272,7 @@ namespace ecss::Memory {
 				
 				const auto oldPlace = prevAdr->getMemberPtr(offset);
 				const auto newPlace = newAdr->getMemberPtr(offset);
-				ReflectionHelper::functionsTable[typeId].move(newPlace, oldPlace);
+				mSectorMeta.typeFunctionsTable.at(typeId).move(newPlace, oldPlace);
 
 				newAdr->setAlive(offset, true);
 			}
@@ -295,7 +295,7 @@ namespace ecss::Memory {
 
 				const auto oldPlace = prevAdr->getMemberPtr(offset);
 				const auto newPlace = newAdr->getMemberPtr(offset);
-				ReflectionHelper::functionsTable[typeId].move(newPlace, oldPlace);
+				mSectorMeta.typeFunctionsTable.at(typeId).move(newPlace, oldPlace);
 				
 				newAdr->setAlive(offset, true);
 			}

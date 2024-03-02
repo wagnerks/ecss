@@ -27,9 +27,9 @@ namespace ecss::Memory {
 	
 	public:
 		template <typename... Types>
-		static inline constexpr SectorsArray* createSectorsArray(uint32_t capacity = 0, uint32_t chunkSize = 10240) {
+		static inline constexpr SectorsArray* createSectorsArray(ReflectionHelper& reflectionHelper, uint32_t capacity = 0, uint32_t chunkSize = 10240) {
 			const auto array = new SectorsArray(chunkSize);
-			array->fillSectorData<Types...>(capacity);
+			array->fillSectorData<Types...>(reflectionHelper, capacity);
 
 			return array;
 		}
@@ -75,24 +75,24 @@ namespace ecss::Memory {
 		}
 
 		template<typename T>
-		inline T* getComponent(SectorId sectorId) {
-			return getComponent<T>(sectorId, getTypeOffset(ReflectionHelper::getTypeId<T>()));
+		inline T* getComponent(SectorId sectorId, ECSType typeId) {
+			return getComponentByOffset<T>(sectorId, getTypeOffset(typeId));
 		}
 
 		template<typename T>
-		inline T* getComponent(SectorId sectorId, uint16_t offset) {
+		inline T* getComponentByOffset(SectorId sectorId, uint16_t offset) {
 			auto info = tryGetSector(sectorId);
 			return info ? info->getMember<T>(offset) : nullptr;
 		}
 
 		template<typename T>
-		void insert(SectorId sectorId, T* data) {
-			if (!data || !hasType<T>()) {
+		void insert(SectorId sectorId, T* data, ECSType typeID) {
+			if (!data || !hasType(typeID)) {
 				assert(false);
 				return;
 			}
 
-			auto sector = acquireSector(Memory::ReflectionHelper::getTypeId<T>(), sectorId);
+			auto sector = acquireSector(typeID, sectorId);
 			if (!sector) {
 				assert(false);
 				return;
@@ -102,13 +102,13 @@ namespace ecss::Memory {
 		}
 
 		template<typename T>
-		void move(SectorId sectorId, T* data) {
-			if (!data || !hasType<T>()) {
+		void move(SectorId sectorId, T* data, ECSType typeID) {
+			if (!data || !hasType(typeID)) {
 				assert(false);
 				return;
 			}
 
-			auto sector = acquireSector(Memory::ReflectionHelper::getTypeId<T>(), sectorId);
+			auto sector = acquireSector(typeID, sectorId);
 			if (!sector) {
 				assert(false);
 				return;
@@ -117,18 +117,8 @@ namespace ecss::Memory {
 			new (sector) T(std::move(*data));
 		}
 
-		template<typename T>
-		inline bool hasType() const {
-			return hasType(ReflectionHelper::getTypeId<T>());
-		}
-
 		inline bool hasType(ECSType typeId) const {
 			return mSectorMeta.membersLayout.contains(typeId);
-		}
-
-		template<typename T>
-		inline uint16_t getTypeOffset() const {
-			return getTypeOffset(ReflectionHelper::getTypeId<T>());
 		}
 
 		inline uint16_t getTypeOffset(ECSType typeId) const {
@@ -161,13 +151,14 @@ namespace ecss::Memory {
 		void shiftDataLeft(size_t from, size_t count = 1);
 
 		template <typename... Types>
-		void fillSectorData(uint32_t capacity) {
+		void fillSectorData(ReflectionHelper& reflectionHelper, uint32_t capacity) {
 			static_assert(types::areUnique<Types...>(), "Duplicates detected in types");
 
 			mSectorMeta.sectorSize = static_cast<uint16_t>((sizeof(Sector) + 8 - 1) / 8 * 8);
 			((
-				mSectorMeta.membersLayout[Memory::ReflectionHelper::getTypeId<Types>()] = mSectorMeta.sectorSize,
-				mSectorMeta.sectorSize += static_cast<uint16_t>(8 + (sizeof(Types) + alignof(Types) - 1) / alignof(Types) * alignof(Types)) //+8 for is alive bool
+				mSectorMeta.membersLayout[reflectionHelper.getTypeId<Types>()] = mSectorMeta.sectorSize,
+				mSectorMeta.sectorSize += static_cast<uint16_t>(8 + (sizeof(Types) + alignof(Types) - 1) / alignof(Types) * alignof(Types)), //+8 for is alive bool
+				mSectorMeta.typeFunctionsTable[reflectionHelper.getTypeId<Types>()] = reflectionHelper.functionsTable[reflectionHelper.getTypeId<Types>()]
 			)
 			, ...);
 

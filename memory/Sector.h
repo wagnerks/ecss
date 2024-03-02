@@ -1,6 +1,8 @@
 ﻿#pragma once
 
 #include <cstdint>
+
+#include "Reflection.h"
 #include "stdint.h"
 
 #include "../Types.h"
@@ -11,6 +13,8 @@ namespace ecss::Memory {
 		uint16_t sectorSize = 0;
 
 		ContiguousMap<ECSType, uint16_t> membersLayout;//type and offset from start (can not be 0)
+
+		ContiguousMap<ECSType, ReflectionHelper::FunctionTable> typeFunctionsTable;
 	};
 	
 	/*

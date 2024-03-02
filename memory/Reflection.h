@@ -13,18 +13,20 @@ namespace ecss::Memory {
 			std::function<void(void* src)> destructor;
 		};
 
-		inline static ContiguousMap<ECSType, FunctionTable> functionsTable;
-		inline static std::shared_mutex mtx;
+		ContiguousMap<ECSType, FunctionTable> functionsTable;
+
 		template<typename T>
-		static ECSType getTypeId() {
+		ECSType getTypeId() {
 			return getTypeIdIml<std::remove_const_t<std::remove_pointer_t<T>>>();
 		}
 
 	private:
-		inline static ECSType mTypes = 0;
+		ECSType mTypes = 0;
+
+		std::shared_mutex mtx;
 
 		template<typename T>
-		static ECSType initType() {
+		ECSType initType() {
 			mtx.lock();
 			const ECSType id = mTypes++;
 
@@ -36,7 +38,7 @@ namespace ecss::Memory {
 		}
 
 		template<typename T>
-		static ECSType getTypeIdIml() {
+		ECSType getTypeIdIml() {
 			static ECSType id = initType<T>();
 			return id;
 		}
