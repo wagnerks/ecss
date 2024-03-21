@@ -6,6 +6,14 @@ namespace ecss {
 	template<typename Key, typename Value>
 	class ContiguousMap {
 	public:
+		friend bool operator==(const ContiguousMap& lhs, const ContiguousMap& rhs) {
+			return lhs.mSize == rhs.mSize && lhs.mCapacity == rhs.mCapacity && lhs.mData == rhs.mData;
+		}
+
+		friend bool operator!=(const ContiguousMap& lhs, const ContiguousMap& rhs) {
+			return !(lhs == rhs);
+		}
+
 		ContiguousMap(const ContiguousMap& other)
 			: mSize(other.mSize),
 			mCapacity(other.mCapacity) {

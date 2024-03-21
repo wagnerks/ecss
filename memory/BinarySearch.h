@@ -4,7 +4,7 @@
 #include "../Types.h"
 
 namespace ecss::Memory::Utils {
-	inline void* binarySearch(SectorId sectorId, size_t& idx, SectorsArray* sectors) {
+	__forceinline void* binarySearch(SectorId sectorId, size_t& idx, SectorsArray* sectors) {
 		auto right = sectors->size();
 
 		if (right == 0 || (*sectors)[0]->id > sectorId) {

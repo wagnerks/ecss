@@ -2,7 +2,6 @@
 
 #include <cassert>
 #include <map>
-#include <shared_mutex>
 
 #include "Sector.h"
 #include "Reflection.h"
@@ -20,9 +19,90 @@ namespace ecss::Memory {
 	/// </summary>
 	///
 	class SectorsArray final {
+	public:
+		SectorsArray& operator=(const SectorsArray& other) {
+			const bool isSame = other.mSectorMeta.sectorSize == mSectorMeta.sectorSize;
+			if (!isSame) {
+				assert(isSame && "wrong source sectors array type");
+				return *this;
+			}
+			
+
+			if (this == &other) {
+				return *this;
+			}
+
+			if (mSize > other.mSize) {
+				destroySectors(other.mSize, mSize - other.mSize);
+			}
+
+			reserve(other.mSize);
+			mSectorsMap = other.mSectorsMap;
+			mSize = other.mSize;
+			for (auto i = 0u; i < other.mSize; i++) {
+				auto newAdr = getSectorByIdx(i);
+				auto prevAdr = other.getSectorByIdx(i);
+
+				for (auto& [typeId, offset] : mSectorMeta.membersLayout) {
+					if (!prevAdr->isAlive(offset)) {
+						newAdr->setAlive(offset, false);
+						continue;
+					}
+
+					const auto oldPlace = prevAdr->getMemberPtr(offset);
+					const auto newPlace = newAdr->getMemberPtr(offset);
+					mSectorMeta.typeFunctionsTable.at(typeId).copy(newPlace, oldPlace);
+
+					newAdr->setAlive(offset, true);
+				}
+
+				new (newAdr)Sector(*prevAdr);
+				//mSectorsMap[newAdr->id] = static_cast<SectorId>(i);
+			}
+
+			return *this;
+		}
+
+		SectorsArray& operator=(SectorsArray&& other) noexcept {
+			if (this == &other) {
+				return *this;
+			}
+
+			if (mSize > other.mSize) {
+				destroySectors(other.mSize, mSize - other.mSize);
+			}
+
+			reserve(other.mSize);
+			mSectorsMap = std::move(other.mSectorsMap);
+			mSize = other.mSize;
+			for (auto i = 0u; i < other.mSize; i++) {
+				auto newAdr = getSectorByIdx(i);
+				auto prevAdr = other.getSectorByIdx(i);
+
+				for (auto& [typeId, offset] : mSectorMeta.membersLayout) {
+					if (!prevAdr->isAlive(offset)) {
+						newAdr->setAlive(offset, false);
+						continue;
+					}
+
+					const auto oldPlace = prevAdr->getMemberPtr(offset);
+					const auto newPlace = newAdr->getMemberPtr(offset);
+					mSectorMeta.typeFunctionsTable.at(typeId).move(newPlace, oldPlace);
+
+					newAdr->setAlive(offset, true);
+				}
+
+				new (newAdr)Sector(std::move(*prevAdr));
+				mSectorsMap[newAdr->id] = static_cast<SectorId>(i);
+			}
+
+			return *this;
+		}
+
 	private:
 		SectorsArray(const SectorsArray&) = delete;
-		SectorsArray& operator=(SectorsArray&) = delete;
+		SectorsArray(SectorsArray&&) = delete;
+
 		SectorsArray(uint32_t chunkSize = 10240) : mChunkSize(chunkSize){}
 	
 	public:
@@ -74,20 +154,28 @@ namespace ecss::Memory {
 			return mSectorsMap[sectorId];
 		}
 
+		inline SectorId tryGetSectorIdx(SectorId sectorId) const {
+			return sectorId > mSectorsMap.size() ? INVALID_ID : mSectorsMap[sectorId];
+		}
+
 		template<typename T>
 		inline T* getComponent(SectorId sectorId, ECSType typeId) {
 			return getComponentByOffset<T>(sectorId, getTypeOffset(typeId));
 		}
 
 		template<typename T>
-		inline T* getComponentByOffset(SectorId sectorId, uint16_t offset) {
+		inline T* getComponentByOffset(SectorId sectorId, uint16_t offset) const {
 			auto info = tryGetSector(sectorId);
 			return info ? info->getMember<T>(offset) : nullptr;
 		}
 
 		template<typename T>
 		void insert(SectorId sectorId, T* data, ECSType typeID) {
-			if (!data || !hasType(typeID)) {
+			if (!data) {
+				return;
+			}
+
+			if (!hasType(typeID)) {
 				assert(false);
 				return;
 			}
@@ -103,7 +191,11 @@ namespace ecss::Memory {
 
 		template<typename T>
 		void move(SectorId sectorId, T* data, ECSType typeID) {
-			if (!data || !hasType(typeID)) {
+			if (!data) {
+				return;
+			}
+
+			if (!hasType(typeID)) {
 				assert(false);
 				return;
 			}
@@ -158,7 +250,7 @@ namespace ecss::Memory {
 			((
 				mSectorMeta.membersLayout[reflectionHelper.getTypeId<Types>()] = mSectorMeta.sectorSize,
 				mSectorMeta.sectorSize += static_cast<uint16_t>(8 + (sizeof(Types) + alignof(Types) - 1) / alignof(Types) * alignof(Types)), //+8 for is alive bool
-				mSectorMeta.typeFunctionsTable[reflectionHelper.getTypeId<Types>()] = reflectionHelper.functionsTable[reflectionHelper.getTypeId<Types>()]
+				mSectorMeta.typeFunctionsTable[reflectionHelper.getTypeId<Types>()] = reflectionHelper.functionsTable.at(reflectionHelper.getTypeId<Types>())
 			)
 			, ...);
 

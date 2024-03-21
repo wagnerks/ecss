@@ -10,6 +10,14 @@
 
 namespace ecss::Memory {
 	struct SectorMetadata {
+		friend bool operator==(const SectorMetadata& lhs, const SectorMetadata& rhs) {
+			return lhs.sectorSize == rhs.sectorSize && lhs.membersLayout == rhs.membersLayout;
+		}
+
+		friend bool operator!=(const SectorMetadata& lhs, const SectorMetadata& rhs) {
+			return !(lhs == rhs);
+		}
+
 		uint16_t sectorSize = 0;
 
 		ContiguousMap<ECSType, uint16_t> membersLayout;//type and offset from start (can not be 0)
@@ -39,25 +47,25 @@ namespace ecss::Memory {
 
 		SectorId id;
 
-		inline constexpr void setAlive(size_t offset, bool value) {
+		__forceinline constexpr void setAlive(size_t offset, bool value) {
 			*static_cast<uint8_t*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(this)) + offset)) = value;//use first byte which is also reserved for align - to store if object alive
 		}
 
-		inline constexpr bool isAlive(size_t offset) {
+		__forceinline constexpr bool isAlive(size_t offset) {
 			return *static_cast<uint8_t*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(this)) + offset));
 		}
 
 		template<typename T>
-		inline constexpr T* getMember(size_t offset) {
+		__forceinline constexpr T* getMember(size_t offset) {
 			const auto alive = static_cast<uint8_t*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(this)) + offset));
 			return *alive ? static_cast<T*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(alive)) + 8)) : nullptr;
 		}
 
-		inline constexpr void* getMemberPtr(size_t offset) {
+		__forceinline constexpr void* getMemberPtr(size_t offset) {
 			return static_cast<uint8_t*>(static_cast<void*>(static_cast<char*>(static_cast<void*>(this)) + offset + 8));
 		}
 
-		inline bool isSectorAlive(const ContiguousMap<ECSType, uint16_t>& membersLayout) {
+		__forceinline bool isSectorAlive(const ContiguousMap<ECSType, uint16_t>& membersLayout) {
 			for (const auto& [type, offset] : membersLayout) {
 				if (isAlive(offset)) {
 					return true;
