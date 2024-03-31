@@ -218,12 +218,21 @@ namespace ecss {
 		std::shared_mutex* getComponentMutex() {
 			const ECSType compId = mReflectionHelper.getTypeId<T>();
 
-			std::shared_lock lock(mutex);
-			if (mComponentsArraysMutexes.size() <= compId || !mComponentsArraysMutexes[compId]) {
-				lock.unlock();
-				initCustomComponentsContainer<T>();
-				lock.lock();
+			{
+				auto lock = std::shared_lock(mutex);
+				if (auto compMutex = mComponentsArraysMutexes.size() > compId ? mComponentsArraysMutexes[compId] : nullptr) {
+					return compMutex;
+				}
 			}
+
+			auto lock = std::unique_lock(mutex);
+
+			if (!prepareForContainer(compId)) {
+				auto container = Memory::SectorsArray::createSectorsArray<T>(mReflectionHelper);
+				mComponentsArraysMap[compId] = container;
+				mComponentsArraysMutexes[compId] = new std::shared_mutex();
+			}
+
 			return mComponentsArraysMutexes[compId];
 		}
 		
