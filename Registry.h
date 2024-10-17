@@ -70,7 +70,11 @@ namespace ecss {
 		Registry() = default;
 		~Registry();
 
-		
+		template<typename... ComponentTypes>
+		std::tuple<ComponentTypes*...> getComponents(EntityId entity) {
+			auto lock = containersReadLock<ComponentTypes...>();
+			return std::forward_as_tuple(getComponentNotSafe<ComponentTypes>(entity)...);
+		}
 
 		template <class T>
 		T* getComponent(EntityId entity) {
