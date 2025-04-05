@@ -1,4 +1,6 @@
 # Stellar Forge Engine - ECSS Architecture Overview
+![logo](https://github.com/user-attachments/assets/bb40a5e6-b923-4d11-9c30-4a4ac5a4dc5c)
+
 
 The **Stellar Forge Engine** uses a custom-built Entity Component System (ECS) framework called **ECSS** (Entity Component System with Sectors). It is designed for scalability, cache locality, and high-performance multithreaded game logic. This document provides an in-depth explanation of how ECSS is structured, how it differs from other ECS designs, and the rationale behind its implementation.
 
