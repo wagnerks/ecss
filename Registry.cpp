@@ -8,13 +8,13 @@ namespace ecss {
 		clear();
 
 		std::map<void*, bool> deleted;
-		for (auto i = 0; i < mComponentsArraysMap.size(); i++){
-			auto container = mComponentsArraysMap[i];
+		for (auto i = 0u; i < mComponentsArraysMap.size(); i++){
+			auto container = mComponentsArraysMap[i].sector;
 			if (!container || deleted[container]) {//skip not created and containers of multiple components
 				continue;
 			}
 
-			delete mComponentsArraysMutexes[i];
+			delete mComponentsArraysMap[i].mutex;
 			delete container;
 			deleted[container] = true;
 		}
@@ -22,7 +22,7 @@ namespace ecss {
 
 	void Registry::clear() {
 		for (size_t i = 0; i < mComponentsArraysMap.size(); i++) {
-			const auto compContainer = mComponentsArraysMap[i];
+			const auto compContainer = mComponentsArraysMap[i].sector;
 			if (!compContainer) {
 				continue;
 			}
@@ -37,13 +37,15 @@ namespace ecss {
 
 	void Registry::destroyComponents(EntityId entity) const {
 		for (size_t i = 0; i < mComponentsArraysMap.size(); i++) {
-			const auto compContainer = mComponentsArraysMap[i];
+			const auto compContainer = mComponentsArraysMap[i].sector;
 			if (!compContainer) {
 				continue;
 			}
 
 			auto lock = containerWriteLock(static_cast<ECSType>(i));
-			compContainer->destroySector(entity);
+			if (compContainer->containsSector(entity)) {
+				compContainer->erase(compContainer->getSectorIndex(entity));
+			}
 		}
 	}
 
@@ -73,14 +75,15 @@ namespace ecss {
 		std::sort(entities.begin(), entities.end());
 
 		for (size_t i = 0; i < mComponentsArraysMap.size(); i++) {
-			const auto compContainer = mComponentsArraysMap[i];
+			const auto compContainer = mComponentsArraysMap[i].sector;
 			if (!compContainer) {
 				continue;
 			}
 			//todo thread for every con
 			
 			auto lock2 = containerWriteLock(static_cast<ECSType>(i));
-			compContainer->destroyMembers(static_cast<ECSType>(i), entities, false);
+
+			Memory::SectorArrayUtils::destroyMembers(*compContainer, static_cast<ECSType>(i), entities, false);
 		}
 
 		std::unique_lock lock(mEntitiesMutex);
@@ -91,13 +94,13 @@ namespace ecss {
 
 	void Registry::removeEmptySectors() {
 		for (size_t i = 0; i < mComponentsArraysMap.size(); i++) {
-			const auto compContainer = mComponentsArraysMap[i];
+			const auto compContainer = mComponentsArraysMap[i].sector;
 			if (!compContainer) {
 				continue;
 			}
 
 			auto lock = containerWriteLock(static_cast<ECSType>(i));
-			compContainer->removeEmptySectors();
+			compContainer->defragmentSectors();
 		}
 	}
 
@@ -178,7 +181,7 @@ namespace ecss {
 	}
 
 	bool EntitiesRanges::contains(EntityId id) const {
-		if (id >= ranges.back().second) {
+		if (ranges.empty() || id >= ranges.back().second) {
 			return false;
 		}
 

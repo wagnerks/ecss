@@ -14,20 +14,17 @@ namespace ecss {
 			return !(lhs == rhs);
 		}
 
-		ContiguousMap(const ContiguousMap& other)
-			: mSize(other.mSize),
-			mCapacity(other.mCapacity) {
+		ContiguousMap(const ContiguousMap& other) : mSize(other.mSize), mCapacity(other.mCapacity) {
 			mData = new std::pair<Key, Value>[mCapacity];
 			for (auto i = 0; i < mSize; i++) {
 				mData[i] = other.mData[i];
 			}
 		}
-		ContiguousMap(ContiguousMap&& other) noexcept
-			: mSize(other.mSize),
-			mCapacity(other.mCapacity),
-			mData(other.mData) {
+
+		ContiguousMap(ContiguousMap&& other) noexcept : mData(other.mData), mSize(other.mSize), mCapacity(other.mCapacity) {
 			other.mData = nullptr;
 		}
+
 		ContiguousMap& operator=(const ContiguousMap& other) {
 			if (this == &other)
 				return *this;
@@ -39,6 +36,7 @@ namespace ecss {
 			}
 			return *this;
 		}
+
 		ContiguousMap& operator=(ContiguousMap&& other) noexcept {
 			if (this == &other)
 				return *this;
@@ -50,9 +48,7 @@ namespace ecss {
 		}
 
 		ContiguousMap() = default;
-		~ContiguousMap() {
-			delete[] mData;
-		}
+		~ContiguousMap() { delete[] mData; }
 
 		Value& operator[](Key key) {
 			size_t idx = 0;
@@ -113,44 +109,55 @@ namespace ecss {
 			return false;
 		}
 
-		Value at(Key key) const {
+		const Value& at(Key key) const {
 			size_t idx = 0;
 			if (auto pair = search(key, idx)) {
 				return pair->second;
 			}
 
-			return {};
+			throw std::out_of_range("Key not found");
 		}
 
 		class Iterator {
 		public:
-			std::pair<Key, Value>* ptr;
-			Iterator(std::pair<Key, Value>* ptr) : ptr(ptr) {}
+			using iterator_category = std::random_access_iterator_tag;
+			using value_type = std::pair<Key, Value>;
+			using difference_type = std::ptrdiff_t;
+			using pointer = value_type*;
+			using reference = value_type&;
 
-			std::pair<Key, Value>& operator*() const {
-				return *ptr;
-			}
+			Iterator(pointer ptr) : mPtr(ptr) {}
 
-			bool operator!=(Iterator& other) const {
-				return ptr != other.ptr;
-			}
-
-			Iterator& operator++() {
-				return ++ptr, *this;
-			}
+			reference operator*() const { return *mPtr; }
+			pointer operator->() const { return mPtr; }
+			Iterator& operator++() { ++mPtr; return *this; }
+			Iterator operator++(int) { Iterator tmp = *this; ++(*this); return tmp; }
+			Iterator& operator--() { --mPtr; return *this; }
+			Iterator operator--(int) { Iterator tmp = *this; --(*this); return tmp; }
+			Iterator& operator+=(difference_type n) { mPtr += n; return *this; }
+			Iterator& operator-=(difference_type n) { mPtr -= n; return *this; }
+			reference operator[](difference_type n) const { return *(mPtr + n); }
+			friend bool operator==(const Iterator& a, const Iterator& b) { return a.mPtr == b.mPtr; }
+			friend bool operator!=(const Iterator& a, const Iterator& b) { return a.mPtr != b.mPtr; }
+			friend bool operator<(const Iterator& a, const Iterator& b) { return a.mPtr < b.mPtr; }
+			friend bool operator>(const Iterator& a, const Iterator& b) { return a.mPtr > b.mPtr; }
+			friend bool operator<=(const Iterator& a, const Iterator& b) { return a.mPtr <= b.mPtr; }
+			friend bool operator>=(const Iterator& a, const Iterator& b) { return a.mPtr >= b.mPtr; }
+			difference_type operator-(const Iterator& other) const { return mPtr - other.mPtr; }
+		private:
+			pointer mPtr;
 		};
 
-		Iterator begin() const {
-			return { mData };
-		}
+		Iterator begin() const { return { mData }; }
 
-		Iterator end() const {
-			return { mData + mSize };
-		}
+		Iterator end() const { return { mData + mSize }; }
 
-		void shrinkToFit() {
-			setCapacity(mSize);
-		}
+		void shrinkToFit() { setCapacity(mSize); }
+
+		void reserve(size_t capacity) {	setCapacity(capacity);	}
+
+		size_t size() const { return mSize; }
+		std::pair<Key, Value>* data() const { return mData; }
 
 	private:
 		void shiftDataRight(size_t begin) {
@@ -174,7 +181,7 @@ namespace ecss {
 			}
 			else {
 				mCapacity = capacity;
-				auto newData = new std::pair<Key, Value>[mCapacity];
+				std::pair<Key, Value>* newData = new std::pair<Key, Value>[mCapacity];
 				for (auto i = 0u; i < mSize; i++) {
 					newData[i] = std::move(mData[i]);
 				}
@@ -232,8 +239,9 @@ namespace ecss {
 			return result;
 		}
 
+	private:
+		std::pair<Key, Value>* mData = nullptr;
 		size_t mSize = 0;
 		size_t mCapacity = 0;
-		std::pair<Key,Value>* mData = nullptr;
 	};
 }
