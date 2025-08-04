@@ -405,9 +405,7 @@ namespace RegistryTests {
 	{
 		TEST(Registry_STRESS, StressTestCreatingAndIteratingNotOneSector) {
 			ecss::Registry registry;
-			constexpr size_t size = 10000000;
-			constexpr size_t itCount = 10;
-
+			constexpr size_t size = 60000000;
 			registry.reserve<Health>(size);
 			registry.reserve<Velocity>(size);
 
@@ -421,14 +419,14 @@ namespace RegistryTests {
 
 			int counter = 0;
 			auto t2 = std::chrono::high_resolution_clock::now();
-			for (auto i = 0; i < itCount; i++) {
-				for (auto [e, hel, vel] : registry.forEach<Health, Velocity>()) {
-					hel->value += e;
-					vel->dx += e;
-					vel->dy += hel->value;
-					counter++;
-				}
+			
+			for (auto [e, hel, vel] : registry.forEach<Health, Velocity>()) {
+				hel->value += e;
+				vel->dx += e;
+				vel->dy += hel->value;
+				counter++;
 			}
+
 			auto t3 = std::chrono::high_resolution_clock::now();
 
 			auto create_us = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
@@ -437,7 +435,7 @@ namespace RegistryTests {
 			std::cout << "[StressTest] Create time: " << create_us << " ms\n";
 			std::cout << "[StressTest] Iterate time: " << iterate_us << " ms\n";
 
-			EXPECT_EQ(size * itCount, counter);
+			EXPECT_EQ(size, counter);
 		}
 
 		TEST(Registry_STRESS, StressTestCreatingAndIteratingOneSector) {

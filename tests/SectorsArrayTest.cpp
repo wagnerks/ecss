@@ -161,11 +161,13 @@ TEST(SectorsArray, IteratorBasic) {
 }
 
 TEST(SectorsArray, IteratorBasicStress) {
+    constexpr size_t count = 100000000;
+
     auto t0 = std::chrono::high_resolution_clock::now();
-    auto* arr = SA_T::create<Trivial>(GetReflection());
-    constexpr size_t count = 60000000;
+    auto* arr = SA_T::create<Trivial>(GetReflection(), count, count);
+    
     arr->reserve(count);
-    for (int i = 0; i < count; ++i) arr->emplace<Trivial>(i, Trivial{ i });
+    for (int i = 0; i < count; ++i) arr->emplace<Trivial>(i,i);
 
     unsigned long long sum = 0;
     auto t1 = std::chrono::high_resolution_clock::now();
@@ -179,6 +181,25 @@ TEST(SectorsArray, IteratorBasicStress) {
     std::cout << "[StressTest] Create time: " << create_us << " ms\n";
     std::cout << "[StressTest] Iterate time: " << iterate_us << " ms\n";
     delete arr;
+
+    t0 = std::chrono::high_resolution_clock::now();
+
+    std::vector<Trivial> vector;
+    vector.reserve(count);
+    for (int i = 0; i < count; ++i) vector.emplace_back<Trivial>(Trivial{ i });
+    t1 = std::chrono::high_resolution_clock::now();
+    volatile int sink = 0;
+    sum = 0;
+    for (auto it = vector.begin(); it != vector.end(); ++it) {
+        sum += (*it).a;
+    }
+    sink = sum;
+    t2 = std::chrono::high_resolution_clock::now();
+
+    create_us = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+    iterate_us = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+    std::cout << "[StressTest] std::vector Create time: " << create_us << " ms\n";
+    std::cout << "[StressTest] std::vector Iterate time: " << iterate_us << " ms\n";
 }
 
 TEST(SectorsArray, InsertMove) {
@@ -597,7 +618,7 @@ TEST(SectorsArray, ThreadedSimultaneousDefragment) {
     auto* arr = SA_T::create<Trivial>(GetReflection());
     for (int i = 0; i < 1000; ++i) arr->insertSafe<Trivial>(i, Trivial{ i });
     std::thread defrag([&] { for (int i = 0; i < 10; ++i) arr->defragment(); });
-    std::thread eraser([&] { for (int i = 0; i < 1000; ++i) arr->erase(i); });
+    std::thread eraser([&] { for (int i = 0; i < 1000; ++i) arr->eraseSafe(i, 1, false); });
     defrag.join(); eraser.join();
     SUCCEED();
     delete arr;
@@ -773,7 +794,7 @@ TEST(SectorsArray_STRESS_light, MassiveConcurrentInsertEraseAndDefrag) {
             while (!stop) {
                 int i = rng() % N;
                 arr->insertSafe<Health>(i, Health{ t * 10 });
-                if (rng() % 7 == 0) arr->erase(i);
+                if (rng() % 7 == 0) arr->eraseSafe(i);
                 if (rng() % 15 == 0) arr->defragment();
                 if (rng() % 100 == 0) arr->reserveSafe(N + (rng() % 100));
                 std::this_thread::sleep_for(std::chrono::microseconds(rng() % 30));
@@ -819,7 +840,7 @@ TEST(SectorsArray_STRESS_light, ThreadedRandomEraseClear) {
         std::mt19937 rng(t + 43);
         while (!stop) {
             int i = rng() % N;
-            arr->erase(i);
+            arr->eraseSafe(i);
             if (rng() % 500 == 0) arr->clear();
             std::this_thread::sleep_for(std::chrono::microseconds(rng() % 200));
         }
@@ -852,8 +873,8 @@ TEST(SectorsArray_STRESS_light, AllApiBrutalMix) {
                 int i = rng() % N;
                 arr->insertSafe<Health>(i, Health{ t });
                 arr->insertSafe<Velocity>(i, Velocity{ (float)i, (float)t });
-                if (rng() % 10 == 0) arr->erase(i);
-                if (rng() % 200 == 0) arr->reserve(N + (rng() % 500));
+                if (rng() % 10 == 0) arr->eraseSafe(i);
+                if (rng() % 200 == 0) arr->reserveSafe(N + (rng() % 500));
                 if (rng() % 300 == 0) arr->defragment();
                 if (rng() % 900 == 0) arr->clear();
                 std::this_thread::sleep_for(std::chrono::microseconds(rng() % 100));

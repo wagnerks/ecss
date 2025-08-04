@@ -10,6 +10,7 @@
 #include <map>
 #include <shared_mutex>
 #include <set>
+#include <stdbool.h>
 #include <unordered_set>
 
 #include "EntitiesRanges.h"
@@ -38,6 +39,35 @@ namespace ecss {
 		}
 
 	public:
+		/*
+		 * this function allows to preinit container
+		 * if you want container which stores multiple components in one memory sector
+		 * 0x..[sector info]
+		 * 0x..[component 1]
+		 * 0x..[component 2]
+		 * 0x..[    ...    ]
+		 * it should be called before any getContainer calls
+		*/
+		template<typename... ComponentTypes>
+		void registerArray(uint32_t capacity = 0, uint32_t chunkSize = 8192) {
+			std::unique_lock lock(componentsArrayMapMutex);
+			bool isCreated = true;
+			((isCreated = isCreated && mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()]), ...);
+			if (isCreated) {
+				return;
+			}
+
+			ECSType maxId = 0;
+			((maxId = std::max(maxId, componentTypeId<ComponentTypes>())), ...);
+			if (maxId >= mComponentsArraysMap.size()) {
+				mComponentsArraysMap.resize(maxId + 1);
+			}
+
+			auto sectorArray = Memory::SectorsArray::create<ComponentTypes...>(mReflectionHelper, capacity, chunkSize);
+			mComponentsArrays.push_back(sectorArray);
+			((mComponentsArraysMap[componentTypeId<ComponentTypes>()] = sectorArray), ...);
+		}
+
 		template<typename T>
 		ECSType componentTypeId() {	return mReflectionHelper.getTypeId<T>(); }
 
@@ -110,35 +140,10 @@ namespace ecss {
 			}
 		}
 
-		/*
-		 * this function allows to preinit container
-		 * if you want container which stores multiple components in one memory sector
-		 * 0x..[sector info]
-		 * 0x..[component 1]
-		 * 0x..[component 2]
-		 * 0x..[    ...    ]
-		 * it should be called before any getContainer calls
-		*/
-		template<typename... ComponentTypes>
-		void registerArray(uint32_t capacity = 0, uint32_t chunkSize = 8192) {
-			std::unique_lock lock(componentsArrayMapMutex);
-			ECSType maxId = 0;
-			((maxId = std::max(maxId, componentTypeId<ComponentTypes>())), ...);
-			if (maxId >= mComponentsArraysMap.size()) {
-				mComponentsArraysMap.resize(maxId + 1);
-			}
-
-			auto sectorArray = Memory::SectorsArray::create<ComponentTypes...>(mReflectionHelper, capacity, chunkSize);
-			mComponentsArrays.push_back(sectorArray);
-			((mComponentsArraysMap[componentTypeId<ComponentTypes>()] = sectorArray), ...);
-		}
-
+	public:
+		// iterator helpers
 		template<typename... Components, typename Func>
 		inline void forEachAsync(const std::vector<EntityId>& entities, const Func& func) {
-			if (entities.empty()) {
-				return;
-			}
-
 			for (auto entity : entities) {
 				auto lock = containersLock<Components...>();
 				func(entity, getComponentNotSafe<Components>(entity)...);
@@ -151,56 +156,21 @@ namespace ecss {
 		template<typename... Components>
 		ComponentArraysEntry<false, Components...> forEach(bool lock = true) { return ComponentArraysEntry<false, Components...>{this, lock}; }
 
+	public:
+		// container handles
 		template <class... Components>
 		void reserve(uint32_t newCapacity) { (getComponentContainer<Components>()->reserveSafe(newCapacity), ...); }
 
 		void clear() {
-			for (auto* array : mComponentsArrays) {
-				array->clear();
-			}
-
-			std::unique_lock lock(mEntitiesMutex);
-			mEntities.clear();
-		}
-
-		bool contains(EntityId entityId) const { return mEntities.contains(entityId); }
-
-		EntityId takeEntity() {
-			std::unique_lock lock(mEntitiesMutex);
-			return mEntities.take();
-		}
-
-		void destroyEntity(EntityId entityId) {
-			std::unique_lock lock(mEntitiesMutex);
-			if (!contains(entityId)) {
-				return;
-			}
-
-			mEntities.erase(entityId);
-			destroyComponents(entityId);
-		}
-
-		void destroyEntities(std::vector<EntityId>& entities) {
-			if (entities.empty()) {
-				return;
-			}
-			std::ranges::sort(entities);
-			std::vector<std::thread> destroyThreads;
 			{
 				std::shared_lock lock(componentsArrayMapMutex);
 				for (auto* array : mComponentsArrays) {
-					destroyThreads.emplace_back(std::thread([&, array = array](){ Memory::SectorArrayUtils::destroyAllMembers(*array, entities, false); }));
+					array->clear();
 				}
 			}
 
 			std::unique_lock lock(mEntitiesMutex);
-			for (auto id : entities) {
-				mEntities.erase(id);
-			}
-
-			for (auto& thread : destroyThreads) {
-				thread.join();
-			}
+			mEntities.clear();
 		}
 
 		void defragment() {
@@ -208,11 +178,6 @@ namespace ecss {
 			for (auto* array : mComponentsArrays) {
 				array->defragment();
 			}
-		}
-
-		std::vector<EntityId> getAllEntities() const {
-			std::shared_lock lock(mEntitiesMutex);
-			return mEntities.getAll();
 		}
 
 		template <class T>
@@ -230,35 +195,81 @@ namespace ecss {
 			return registerArray<T>(), getComponentContainer<T>();
 		}
 
-		template <class T>
-		std::shared_mutex* getComponentMutex() { return &getComponentContainer<T>()->getMutex(); }
+	public:
+		// entities
+		bool contains(EntityId entityId) const { std::shared_lock lock(mEntitiesMutex); return mEntities.contains(entityId); }
 
-		struct Lock
-		{
-			Lock(std::shared_mutex* mutex, bool shared)
+		EntityId takeEntity() {
+			std::unique_lock lock(mEntitiesMutex);
+			return mEntities.take();
+		}
+
+		std::vector<EntityId> getAllEntities() const {
+			std::shared_lock lock(mEntitiesMutex);
+			return mEntities.getAll();
+		}
+
+		void destroyEntity(EntityId entityId) {
+			if (!contains(entityId)) {
+				return;
+			}
+
 			{
-				if (shared) {
-					sharedLock = new std::shared_lock(*mutex);
-				}
-				else {
-					uniqueLock = new std::unique_lock(*mutex);
+				std::unique_lock lock(mEntitiesMutex);
+				mEntities.erase(entityId);
+			}
+
+			destroyComponents(entityId);
+		}
+
+		void destroyEntities(std::vector<EntityId>& entities) {
+			if (entities.empty()) {
+				return;
+			}
+			std::ranges::sort(entities);
+			std::vector<std::thread> destroyThreads;
+			{
+				std::shared_lock lock(componentsArrayMapMutex);
+				for (auto* array : mComponentsArrays) {
+					destroyThreads.emplace_back(std::thread([&, array = array]() { Memory::SectorArrayUtils::destroyAllMembers(*array, entities, false); }));
 				}
 			}
 
-			~Lock()
 			{
+				std::unique_lock lock(mEntitiesMutex);
+				for (auto id : entities) {
+					mEntities.erase(id);
+				}
+			}
+
+			for (auto& thread : destroyThreads) {
+				thread.join();
+			}
+		}
+
+	public:
+		// thread safety helpers
+
+		template <class T>
+		std::shared_mutex* getSectorsArrayMutex() { return &getComponentContainer<T>()->getMutex(); }
+
+	
+		struct Lock {
+			Lock(std::shared_mutex* mutex)	{
+				sharedLock = new std::shared_lock(*mutex);
+			}
+
+			~Lock() {
 				delete sharedLock;
-				delete uniqueLock;
 			}
 
 			std::shared_lock<std::shared_mutex>* sharedLock = nullptr;
-			std::unique_lock<std::shared_mutex>* uniqueLock = nullptr;
 		};
 
 
 		template<typename T>
 		void addMutex(std::unordered_map<std::shared_mutex*, bool>& mutexes) {
-			mutexes[getComponentMutex<T>()] |= std::is_const_v<T>;
+			mutexes[getSectorsArrayMutex<T>()] |= std::is_const_v<T>;
 		}
 
 		template <class... T>
@@ -270,15 +281,16 @@ namespace ecss {
 
 			locks.reserve(mutexes.size());
 			for (auto& [mtxPtr, constness] : mutexes) {
-				locks.emplace_back(mtxPtr, constness);
+				locks.emplace_back(mtxPtr);
 			}
 
 			return locks;
 		}
 
+		//todo separate locks for components, container lock provided safety of container structure, not component data
 		template <class T>
 		Lock containerLock() {
-			return {getComponentMutex<T>(), std::is_const_v<T> };
+			return {getSectorsArrayMutex<T>()/*, std::is_const_v<T>*/ };
 		}
 
 	private:
@@ -293,6 +305,36 @@ namespace ecss {
 		mutable std::shared_mutex mEntitiesMutex;
 		std::shared_mutex componentsArrayMapMutex;
 	};
+
+	template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
+	struct ComponentResult10{ EntityId id; T0* c0; T1* c1; T2* c2; T3* c3; T4* c4; T5* c5; T6* c6; T7* c7; T8* c8; T9* c9; };
+
+	template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
+	struct ComponentResult9 { EntityId id; T0* c0; T1* c1; T2* c2; T3* c3; T4* c4; T5* c5; T6* c6; T7* c7; T8* c8; };
+
+	template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
+	struct ComponentResult8 { EntityId id; T0* c0; T1* c1; T2* c2; T3* c3; T4* c4; T5* c5; T6* c6; T7* c7; };
+
+	template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
+	struct ComponentResult7 { EntityId id; T0* c0; T1* c1; T2* c2; T3* c3; T4* c4; T5* c5; T6* c6; };
+
+	template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
+	struct ComponentResult6 { EntityId id; T0* c0; T1* c1; T2* c2; T3* c3; T4* c4; T5* c5; };
+
+	template <typename T0, typename T1, typename T2, typename T3, typename T4>
+	struct ComponentResult5 { EntityId id; T0* c0; T1* c1; T2* c2; T3* c3; T4* c4; };
+
+	template <typename T0, typename T1, typename T2, typename T3>
+	struct ComponentResult4 { EntityId id; T0* c0; T1* c1; T2* c2; T3* c3; };
+
+	template <typename T0, typename T1, typename T2>
+	struct ComponentResult3 { EntityId id; T0* c0; T1* c1; T2* c2; };
+
+	template <typename T0, typename T1>
+	struct ComponentResult2 { EntityId id; T0* c0; T1* c1; };
+
+	template <typename T0>
+	struct ComponentResult1 { EntityId id; T0* c0; };
 
 	/*
 		an object with selected components, which provided ability to iterate through entities like it is the container of tuple<component1,component2,component3>
@@ -318,6 +360,7 @@ namespace ecss {
 		struct TypeAccessInfo {
 			Memory::SectorsArray* array = nullptr;
 			uint8_t typeIndexInSector = 0;
+			uint32_t typeAliveMask = 0;
 			size_t typeOffsetInSector = 0;
 			bool isMain = false;
 		};
@@ -377,45 +420,101 @@ namespace ecss {
 		public:
 			using SectorArrays = std::array<Memory::SectorsArray*, sizeof...(ComponentTypes) + 1>;
 
-			Iterator(const SectorArrays& arrays, size_t index, size_t endIndex) requires (!Ranged) {
+			Iterator(const SectorArrays& arrays, size_t index, size_t endIndex) noexcept requires (!Ranged) {
 				initTypeAccessInfo<T, ComponentTypes...>(arrays);
-
-				mCurrentIt = Memory::SectorsArray::Iterator(mTypeAccessInfo[getIndex<T>()].array, index);
-				mEndIterator = Memory::SectorsArray::Iterator(mTypeAccessInfo[getIndex<T>()].array, endIndex);
-				advanceToAlive(mCurrentIt, mEndIterator);
+				
+				mCurrentIt = Memory::SectorsArray::Iterator(getTypeAccessInfo<T>().array, index);
+				mEndIterator = Memory::SectorsArray::Iterator(getTypeAccessInfo<T>().array, endIndex);
+				advanceToAlive(mCurrentIt, mEndIterator, getTypeAccessInfo<T>().typeAliveMask);
 			}
 
-			Iterator(const SectorArrays& arrays, EntitiesRanges ranges) requires (Ranged) {
+			Iterator(const SectorArrays& arrays, EntitiesRanges ranges) noexcept requires (Ranged) {
 				initTypeAccessInfo<T, ComponentTypes...>(arrays);
 				
 				initIterators(ranges);
 			}
 
-			value_type operator*() {
+			inline auto operator*() {
 				auto sector = *mCurrentIt;
-				EntityId id = sector->id;
-				
-				return { id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
+				if constexpr (sizeof...(ComponentTypes) + 1 == 1) {
+					return ComponentResult1{ sector->id, reinterpret_cast<T*>(reinterpret_cast<char*>(sector) + getTypeAccessInfo<T>().typeOffsetInSector)};
+				}
+				else {
+					EntityId id = sector->id;
+					if constexpr (sizeof...(ComponentTypes) + 1 == 2) {
+						return ComponentResult2{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
+					}
+					else if constexpr (sizeof...(ComponentTypes) + 1 == 3) {
+						return ComponentResult3{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
+					}
+					else if constexpr (sizeof...(ComponentTypes) + 1 == 4) {
+						return ComponentResult4{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
+					}
+					else if constexpr (sizeof...(ComponentTypes) + 1 == 5) {
+						return ComponentResult5{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
+					}
+					else if constexpr (sizeof...(ComponentTypes) + 1 == 6) {
+						return ComponentResult6{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
+					}
+					else if constexpr (sizeof...(ComponentTypes) + 1 == 7) {
+						return ComponentResult7{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
+					}
+					else if constexpr (sizeof...(ComponentTypes) + 1 == 8) {
+						return ComponentResult8{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
+					}
+					else if constexpr (sizeof...(ComponentTypes) + 1 == 9) {
+						return ComponentResult9{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
+					}
+					else if constexpr (sizeof...(ComponentTypes) + 1 == 10) {
+						return ComponentResult10{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
+					}
+					else {
+						return std::tuple{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
+					}
+				}
 			}
 
-			Iterator& operator++() {
+			inline Iterator& operator++() {
 				++mCurrentIt;
+				auto aliveMask = std::get<getIndex<T>()>(mTypeAccessInfo).typeAliveMask;
 				if constexpr(Ranged) {
-					if (advanceToAlive(mCurrentIt, mIterators.back().second)) {
+					if (mIterators.empty()) {
 						return *this;
+					}
+
+					while (mCurrentIt != mIterators.back().second) {
+						auto sector = *mCurrentIt;
+						if (sector->isAliveData & aliveMask) {
+							return *this;
+						}
+
+						++mCurrentIt;
 					}
 
 					mIterators.pop_back();
 					while (!mIterators.empty()) {
 						mCurrentIt = std::move(mIterators.back().first);
-						if (advanceToAlive(mCurrentIt, mIterators.back().second)) {
-							return *this;
+						while (mCurrentIt != mIterators.back().second) {
+							auto sector = *mCurrentIt;
+							if (sector->isAliveData & aliveMask) {
+								return *this;
+							}
+
+							++mCurrentIt;
 						}
+
 						mIterators.pop_back();
 					}
 				}
 				else {
-					advanceToAlive(mCurrentIt, mEndIterator);
+					while (mCurrentIt != mEndIterator) {
+						auto sector = *mCurrentIt;
+						if (sector->isAliveData & aliveMask) {
+							break;
+						}
+
+						++mCurrentIt;
+					}
 				}
 
 				return *this;
@@ -425,11 +524,13 @@ namespace ecss {
 		private:
 			template<typename ComponentType>
 			inline void initTypeAccessInfoImpl(Memory::SectorsArray* sectorArray) {
-				auto& info = mTypeAccessInfo[getIndex<ComponentType>()];
+				auto& info = std::get<getIndex<ComponentType>()>(mTypeAccessInfo);
 				info.array = sectorArray;
 				info.typeIndexInSector = static_cast<uint8_t>(sectorArray->getLayoutData<ComponentType>().index);
+				info.typeAliveMask = 1 << info.typeIndexInSector;
 				info.typeOffsetInSector = sectorArray->getLayoutData<ComponentType>().offset;
-				info.isMain = sectorArray == mTypeAccessInfo[getIndex<T>()].array;
+				info.isMain = sectorArray == std::get<getIndex<ComponentType>()>(mTypeAccessInfo).array;
+
 			}
 
 			template<typename... Types>
@@ -438,60 +539,68 @@ namespace ecss {
 			}
 
 			template <typename ComponentType>
-			inline const TypeAccessInfo& getTypeAccessInfo() {
-				return mTypeAccessInfo[getIndex<ComponentType>()];
-			}
+			inline constexpr TypeAccessInfo& getTypeAccessInfo() { return std::get<getIndex<ComponentType>()>(mTypeAccessInfo); }
 
 			template<typename ComponentType>
 			inline ComponentType* getComponent(EntityId sectorId) {
 				const auto& info = getTypeAccessInfo<ComponentType>();
 
-				return info.isMain ? Iterator::getComponent<ComponentType, true>(*mCurrentIt, info) : Iterator::getComponent<ComponentType>(info.array->findSector(sectorId), info);
+				return info.isMain ? Iterator::getComponent<ComponentType, true, true>(*mCurrentIt, info) : Iterator::getComponent<ComponentType>(info.array->findSector(sectorId), info);
 			}
 
 			inline void initIterators(EntitiesRanges& ranges) requires(Ranged) {
 				assert(!ranges.ranges.empty());
-
-				auto sectorArray = getTypeAccessInfo<T>().array;
+				
+				auto sectorArray = std::get<getIndex<T>()>(mTypeAccessInfo).array;
 
 				mIterators.reserve(ranges.size());
+				auto aliveMask = std::get<getIndex<T>()>(mTypeAccessInfo).typeAliveMask;
 				while (!ranges.empty()) {
 					mCurrentIt = { sectorArray, ranges.back().first };
 					mEndIterator = { sectorArray, ranges.back().second };
 					ranges.pop_back();
 
-					advanceToAlive(mCurrentIt, mEndIterator);
+					advanceToAlive(mCurrentIt, mEndIterator, aliveMask);
 
 					mIterators.emplace_back(mCurrentIt, mEndIterator);
 				}
 				mIterators.shrink_to_fit();
 			}
 
-			inline bool advanceToAlive(Memory::SectorsArray::Iterator& iterator, const Memory::SectorsArray::Iterator& endIterator) {
+			inline bool advanceToAlive(Memory::SectorsArray::Iterator& iterator, const Memory::SectorsArray::Iterator& endIterator, size_t aliveMask) {
+				bool res = false;
 				while (iterator != endIterator) {
-					if (auto sector = *iterator; sector->isSectorAlive() && sector->isAlive(getTypeAccessInfo<T>().typeIndexInSector)) {
-						return true;
+					auto sector = *iterator;
+					if (sector->isAliveData & aliveMask) {
+						res = true;
+						break;
 					}
 
 					++iterator;
 				}
 
-				return false;
+				return res;
 			}
 
-			template<typename ComponentType, bool Main = false>
+			template<typename ComponentType, bool Main = false, bool CheckIsAlive = false>
 			static inline ComponentType* getComponent(Memory::Sector* sector, const TypeAccessInfo& meta) {
 				if constexpr (Main) {
-					return sector->getMember<ComponentType>(meta.typeOffsetInSector, meta.typeIndexInSector);
+					if constexpr (CheckIsAlive) {
+						return sector->isAliveData & meta.typeAliveMask ? reinterpret_cast<ComponentType*>(reinterpret_cast<char*>(sector) + meta.typeOffsetInSector) : nullptr;
+					}
+					else {
+						return reinterpret_cast<ComponentType*>(reinterpret_cast<char*>(sector) + meta.typeOffsetInSector);
+					}
 				}
 				else {
-					return sector ? sector->getMember<ComponentType>(meta.typeOffsetInSector, meta.typeIndexInSector) : nullptr;
+					return sector && (sector->isAliveData & meta.typeAliveMask) ? reinterpret_cast<ComponentType*>(reinterpret_cast<char*>(sector) + meta.typeOffsetInSector) : nullptr;
 				}
 			}
 
 		private:
 			Memory::SectorsArray::Iterator mCurrentIt;
-			std::array<TypeAccessInfo, sizeof...(ComponentTypes) + 1> mTypeAccessInfo;
+
+			std::tuple<TypeAccessInfo, decltype((void)sizeof(ComponentTypes), TypeAccessInfo{})... > mTypeAccessInfo;
 
 			std::conditional_t<Ranged, std::vector<std::pair<Memory::SectorsArray::Iterator, Memory::SectorsArray::Iterator>>, Dummy> mIterators;
 			Memory::SectorsArray::Iterator mEndIterator;
@@ -518,7 +627,7 @@ namespace ecss {
 	private:
 
 		template<typename ComponentType>
-		static size_t constexpr getIndex() {
+		static inline size_t constexpr getIndex() {
 			if constexpr (std::is_same_v<T, ComponentType>) {
 				return sizeof...(ComponentTypes);
 			}

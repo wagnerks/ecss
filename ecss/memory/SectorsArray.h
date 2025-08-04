@@ -21,6 +21,145 @@ namespace ecss::Memory {
 	/// </summary>
 	///
 	class SectorsArray final {
+		struct ChunksManager {
+			ChunksManager(const ChunksManager& other) {
+				
+				std::shared_lock otherLock(other.mtx);
+				allocateChunks(other.mChunks.size() - mChunks.size());
+				std::unique_lock lock(mtx);
+				mChunkCapacity = other.mChunkCapacity;
+				mSectorSize = other.mSectorSize;
+				mIsChunkSizePowerOfTwo = isPowerOfTwo(mChunkCapacity);
+				for (auto i = 0u; i < other.mChunks.size(); i++) {
+					memcpy(mChunks[i], other.mChunks[i], mChunkCapacity * static_cast<size_t>(mSectorSize));
+				}
+			}
+
+			ChunksManager& operator=(const ChunksManager& other) {
+				if (this == &other)
+					return *this;
+
+				std::shared_lock otherLock(other.mtx);
+				clear();
+				allocateChunks(other.mChunks.size() - mChunks.size());
+				std::unique_lock lock(mtx);
+				mChunkCapacity = other.mChunkCapacity;
+				mSectorSize = other.mSectorSize;
+				mIsChunkSizePowerOfTwo = isPowerOfTwo(mChunkCapacity);
+
+				for (auto i = 0u; i < other.mChunks.size(); i++) {
+					memcpy(mChunks[i], other.mChunks[i], mChunkCapacity * static_cast<size_t>(mSectorSize));
+				}
+
+				return *this;
+			}
+
+			ChunksManager(ChunksManager&& other) noexcept
+			{
+				std::unique_lock otherLock(other.mtx);
+				clear();
+				std::unique_lock lock(mtx);
+				mChunkCapacity = other.mChunkCapacity;
+				mIsChunkSizePowerOfTwo = isPowerOfTwo(mChunkCapacity);
+				mSectorSize = other.mSectorSize;
+				mChunks = std::move(other.mChunks);
+			}
+
+			ChunksManager& operator=(ChunksManager&& other) noexcept {
+				if (this == &other)
+					return *this;
+
+				std::unique_lock otherLock(other.mtx);
+				clear();
+
+				std::unique_lock lock(mtx);
+				mChunkCapacity = other.mChunkCapacity;
+				mIsChunkSizePowerOfTwo = isPowerOfTwo(mChunkCapacity);
+				mSectorSize = other.mSectorSize;
+				mChunks = std::move(other.mChunks);
+
+				return *this;
+			}
+
+			ChunksManager(uint32_t chunkSize) : mChunkCapacity(chunkSize), mIsChunkSizePowerOfTwo(isPowerOfTwo(mChunkCapacity)) {}
+
+			void allocateChunks(size_t count = 1) {
+				if (count == 0) {
+					return;
+				}
+				std::unique_lock lock(mtx);
+
+				mChunks.reserve(mChunks.size() + count);
+				for (auto i = 0u; i < count; i++) {
+					void* ptr = calloc(mChunkCapacity, mSectorSize);
+					if (!ptr) throw std::bad_alloc();
+					mChunks.emplace_back(ptr);
+				}
+			}
+
+			void clear() {
+				std::unique_lock lock(mtx);
+				for (auto chunk : mChunks) {
+					std::free(chunk);
+				}
+				mChunks.clear();
+				mChunks.shrink_to_fit();
+			}
+
+			void shrinkToFit(size_t sectorsSize) {
+				size_t last = calcChunkIndex(sectorsSize + mChunkCapacity - 1);
+				std::unique_lock lock(mtx);
+				const auto size = mChunks.size();
+				for (auto i = last; i < size; i++) {
+					std::free(mChunks.at(i));
+				}
+
+				mChunks.erase(mChunks.begin() + static_cast<int64_t>(last), mChunks.end());
+				mChunks.shrink_to_fit();
+			}
+
+			uint32_t capacity() const { std::shared_lock lock(mtx); return mChunkCapacity * static_cast<uint32_t>(mChunks.size()); }
+			size_t calcInChunkIndex(size_t sectorIdx) const { return mIsChunkSizePowerOfTwo ? (sectorIdx & (mChunkCapacity - 1)) * mSectorSize : (sectorIdx % mChunkCapacity) * mSectorSize; }
+			size_t calcChunkIndex(size_t sectorIdx) const { return mIsChunkSizePowerOfTwo ? sectorIdx >> std::countr_zero(mChunkCapacity) : sectorIdx / mChunkCapacity; }
+
+			Sector* getSector(size_t sectorIndex) const {
+				std::shared_lock containerLock(mtx);
+				auto chunkIndex = calcChunkIndex(sectorIndex);
+				auto inChunkIndex = calcInChunkIndex(sectorIndex);
+
+				return reinterpret_cast<Sector*>(static_cast<char*>(getChunk(chunkIndex)) + inChunkIndex);
+			}
+
+			void* getChunk(size_t index) const { std::shared_lock lock(mtx); return mChunks[index]; }
+
+			static constexpr bool isPowerOfTwo(uint64_t x) noexcept {
+				return x != 0 && (x & (x - 1)) == 0;
+			}
+
+			size_t calcSectorIndex(Sector* sectorPtr) const {
+				const uint8_t* ptr = reinterpret_cast<const uint8_t*>(sectorPtr);
+
+				for (size_t chunkIdx = 0; chunkIdx < mChunks.size(); ++chunkIdx) {
+					const uint8_t* chunk = reinterpret_cast<const uint8_t*>(mChunks[chunkIdx]);
+					if (ptr >= chunk && ptr < chunk + mChunkCapacity * mSectorSize) {
+						const size_t localOffset = static_cast<size_t>(ptr - chunk);
+						const size_t localIndex = localOffset / mSectorSize;
+						return chunkIdx * mChunkCapacity + localIndex;
+					}
+				}
+
+				return static_cast<size_t>(INVALID_ID);
+			}
+
+		public:
+			std::vector<void*> mChunks;
+			uint32_t mChunkCapacity = 0;
+			bool mIsChunkSizePowerOfTwo = false;
+			uint16_t mSectorSize = 0;
+
+			mutable std::shared_mutex mtx;
+		};
+
 	public:
 		class Iterator {
 		public:
@@ -35,34 +174,34 @@ namespace ecss::Memory {
 			Iterator(const SectorsArray* array, size_t idx)
 			: mArray(array)
 			, mIdx(idx)
-			, mChunkSize(mArray->mChunksManager.mChunkSize)
+			, mChunkCapacity(mArray->mChunksManager.mChunkCapacity)
 			, sectorSize(mArray->mChunksManager.mSectorSize)
 			{
 				auto sectorsSize = mArray->size();
 				if (mIdx < sectorsSize) {
 					mSector = mArray->at(mIdx);
-					mInChunkIndex = mIdx % mChunkSize;
+					mInChunkIndex = mIdx % mChunkCapacity;
 				}
 				else {
 					mIdx = sectorsSize;
-					mInChunkIndex = mIdx % mChunkSize;
+					mInChunkIndex = mIdx % mChunkCapacity;
 				}
 			}
 
-			Iterator& operator++()
+			inline Iterator& operator++()
 			{
 				mIdx++;
 				mInChunkIndex++;
 				mSector = reinterpret_cast<Sector*>(reinterpret_cast<char*>(mSector) + sectorSize);
-				updateSector = mInChunkIndex == mChunkSize;
+				updateSector = mInChunkIndex == mChunkCapacity;
 				return *this;
 			}
-			Iterator operator++(int) { Iterator tmp = *this; ++(*this); return tmp; }
+			inline Iterator operator++(int) { Iterator tmp = *this; ++(*this); return tmp; }
 
-			bool operator==(const Iterator& other) const { return mIdx == other.mIdx; }
-			bool operator!=(const Iterator& other) const { return !(*this == other); }
+			inline bool operator==(const Iterator& other) const { return mIdx == other.mIdx; }
+			inline bool operator!=(const Iterator& other) const { return !(*this == other); }
 
-			Sector* operator*() const
+			inline Sector* operator*() const
 			{
 				if (updateSector) {
 					mInChunkIndex = 0;
@@ -72,7 +211,7 @@ namespace ecss::Memory {
 				return mSector;
 			}
 
-			Sector* operator->() const
+			inline Sector* operator->() const
 			{
 				if (updateSector) {
 					mInChunkIndex = 0;
@@ -82,14 +221,14 @@ namespace ecss::Memory {
 				return mSector;
 			}
 
-			size_t getIndex() { return mIdx; }
+			inline size_t getIndex() { return mIdx; }
 		private:
 			mutable bool updateSector = false; 
 			const SectorsArray* mArray = nullptr;
 			size_t mIdx{};
 			mutable size_t mInChunkIndex{};
 			mutable Sector* mSector = nullptr;
-			size_t mChunkSize{};
+			size_t mChunkCapacity{};
 			uint16_t sectorSize{};
 		};
 
@@ -99,8 +238,8 @@ namespace ecss::Memory {
 	public:
 		~SectorsArray() { clear(); }
 
-		SectorsArray(const SectorsArray& other) noexcept : mChunksManager(other.mChunksManager.mChunkSize) {
-			mChunksManager.mChunkSize = other.mChunksManager.mChunkSize;
+		SectorsArray(const SectorsArray& other) noexcept : mChunksManager(other.mChunksManager.mChunkCapacity) {
+			mChunksManager.mChunkCapacity = other.mChunksManager.mChunkCapacity;
 			mChunksManager.mSectorSize = other.mChunksManager.mSectorSize;
 			mLayoutMap = other.mLayoutMap;
 			mSectorLayout = other.mSectorLayout;
@@ -109,17 +248,25 @@ namespace ecss::Memory {
 			auto lock = writeLock();
 			auto otherLock = other.readLock();
 
+			mSize = other.mSize;
+
+			mSectorsMap.resize(other.mSectorsMap.size());
 			if (mIsSectorTrivial) {
 				mChunksManager = other.mChunksManager;
+				for (auto it = begin(), endIt = end(); it != endIt; ++it) {
+					auto sector = *it;
+					mSectorsMap[sector->id] = sector;
+				}
 			}
 			else {
 				reserve(other.mSize);
 				for (auto i = 0u; i < other.mSize; i++) {
-					Sector::copySector(other.at(i), at(i), mSectorLayout);
+					auto sector = at(i);
+					Sector::copySector(other.at(i), sector, mSectorLayout);
+					mSectorsMap[sector->id] = sector;
 				}
 			}
-			mSize = other.mSize;
-			mSectorsMap = other.mSectorsMap;
+			
 		}
 
 		SectorsArray& operator=(const SectorsArray& other) noexcept {
@@ -129,7 +276,7 @@ namespace ecss::Memory {
 				return *this;
 			}
 
-			mChunksManager.mChunkSize = other.mChunksManager.mChunkSize;
+			mChunksManager.mChunkCapacity = other.mChunksManager.mChunkCapacity;
 			mChunksManager.mSectorSize = other.mChunksManager.mSectorSize;
 			mLayoutMap = other.mLayoutMap;
 			mSectorLayout = other.mSectorLayout;
@@ -138,23 +285,30 @@ namespace ecss::Memory {
 			auto lock = writeLock();
 			auto otherLock = other.readLock();
 
+			mSize = other.mSize;
+			mSectorsMap.resize(other.mSectorsMap.size());
 			if (mIsSectorTrivial) {
 				mChunksManager = other.mChunksManager;
+				for (auto it = begin(), endIt = end(); it != endIt; ++it) {
+					auto sector = *it;
+					mSectorsMap[sector->id] = sector;
+				}
 			}
 			else {
 				erase(other.mSize, mSize - other.mSize);
-				reserveSafe(other.mSize);
+				reserve(other.mSize);
 				for (auto i = 0u; i < other.mSize; i++) {
-					Sector::copySector(other.at(i), at(i), mSectorLayout);
+					auto sector = at(i);
+					Sector::copySector(other.at(i), sector, mSectorLayout);
+					mSectorsMap[sector->id] = sector;
 				}
 			}
-			mSize = other.mSize;
-			mSectorsMap = other.mSectorsMap;
+			
 
 			return *this;
 		}
 
-		SectorsArray(SectorsArray&& other) noexcept : mChunksManager(other.mChunksManager.mChunkSize) {
+		SectorsArray(SectorsArray&& other) noexcept : mChunksManager(other.mChunksManager.mChunkCapacity) {
 			mLayoutMap = other.mLayoutMap;
 			mSectorLayout = other.mSectorLayout;
 			mIsSectorTrivial = other.mIsSectorTrivial;
@@ -178,7 +332,7 @@ namespace ecss::Memory {
 				return *this;
 			}
 
-			mChunksManager.mChunkSize = other.mChunksManager.mChunkSize;
+			mChunksManager.mChunkCapacity = other.mChunksManager.mChunkCapacity;
 			mChunksManager.mSectorSize = other.mChunksManager.mSectorSize;
 			mLayoutMap = other.mLayoutMap;
 			mSectorLayout = other.mSectorLayout;
@@ -204,8 +358,8 @@ namespace ecss::Memory {
 		template <typename... Types>
 		void initializeSector(ReflectionHelper& reflectionHelper, uint32_t capacity) {
 			static_assert(types::areUnique<Types...>(), "Duplicates detected in types");
-			static SectorLayoutMeta<Types...> layoutMeta;
-			mSectorLayout = &layoutMeta;
+			static SectorLayoutMeta* meta = SectorLayoutMeta::create<Types...>();
+			mSectorLayout = meta;
 
 			mChunksManager.mSectorSize = mSectorLayout->getTotalSize();
 			mLayoutMap.reserve(sizeof...(Types));
@@ -231,49 +385,39 @@ namespace ecss::Memory {
 		}
 
 	public: // sector helpers
-		ISectorLayoutMeta* getLayout() const { return mSectorLayout; }
+		SectorLayoutMeta* getLayout() const { return mSectorLayout; }
+
 		template<typename T>
 		const LayoutData& getLayoutData() const { return mSectorLayout->getLayoutData<T>(); }
-		const LayoutData& getLayoutData(ECSType typeId) const {	return mSectorLayout->getLayoutData(mLayoutMap.at(typeId)); }
+		const LayoutData& getLayoutData(ECSType typeId) const {	return mLayoutMap.size() == 1 ? mSectorLayout->getLayoutData(0) : mSectorLayout->getLayoutData(mLayoutMap.at(typeId)); }
 
-		Sector* findSector(SectorId sectorId) const { return containsSector(sectorId) ? at(getSectorIndex(sectorId)) : nullptr;	}
-		Sector* getSector(SectorId sectorId) const { return at(getSectorIndex(sectorId)); }
+		Sector* findSector(SectorId sectorId) const { return sectorId < mSectorsMap.size() ? mSectorsMap[sectorId] : nullptr;	}
+		Sector* getSector(SectorId sectorId) const { return mSectorsMap[sectorId]; }
+
+		size_t sectorsCapacity() const { return mSectorsMap.size(); }
+		size_t getSectorIndex(SectorId sectorId) const { return mChunksManager.calcSectorIndex(mSectorsMap.at(sectorId)); }
+
+		void setSectorPointer(SectorId sectorId, Sector* newPos) { mSectorsMap[sectorId] = newPos; }
+		bool containsSector(SectorId id) const { return findSector(id); }
+
+		// Inserts a sector at position 'pos' with a given sectorId.
+		// If a sector with that id exists, returns it.
+		// Shifts data right if needed. Ensures mapping is updated.
+		// Returns pointer to the newly constructed sector.
 		Sector* acquireSector(SectorId sectorId) {
 			if (auto sector = findSector(sectorId)) {
 				return sector;
 			}
-
-			return emplaceSector(sectorId);
-		}
-
-		size_t sectorsCapacity() const { return mSectorsMap.size(); }
-		SectorId getSectorIndex(SectorId sectorId) const { return mSectorsMap.at(sectorId); }
-		void setSectorIndex(SectorId sectorId, SectorId newPos) { mSectorsMap[sectorId] = newPos; }
-		bool containsSector(SectorId id) const { return id < sectorsCapacity() && getSectorIndex(id) < size(); }
-		const std::vector<SectorId>& getSectorsMap() const { return mSectorsMap; }
-		Sector* emplaceSectorSafe(SectorId sectorId) {
-			auto lock = writeLock();
-			return emplaceSector(sectorId);
-		}
-
-		// Inserts a sector at position 'pos' with a given sectorId.
-		// If a sector with that id exists, destroys it first.
-		// Shifts data right if needed. Ensures mapping is updated.
-		// Returns pointer to the newly constructed sector.
-		Sector* emplaceSector(SectorId sectorId) {
-			if (auto found = findSector(sectorId)) {
-				Sector::destroyMembers(found, mSectorLayout);
-				return found;
+			
+			size_t pos = findInsertPosition(sectorId);
+			if (size() + 1 > capacity()) {
+				reserve(size() + 1);
 			}
 
 			if (sectorId >= sectorsCapacity()) {
-				if (sectorId >= sectorsCapacity()) {
-					mSectorsMap.resize(sectorId + 1, INVALID_ID);
-				}
+				mSectorsMap.resize(sectorId + 1, nullptr);
 			}
 
-			reserve(size() + 1);
-			auto pos = findInsertPosition(sectorId);
 			if (pos < size()) {
 				++mSize;
 				shiftDataRight(pos);
@@ -281,11 +425,15 @@ namespace ecss::Memory {
 			else {
 				++mSize;
 			}
-			
 
-			setSectorIndex(sectorId, static_cast<SectorId>(pos));
+			mSectorsMap[sectorId] = at(pos);
 
-			return new (at(pos))Sector(sectorId, 0);
+			return new (mSectorsMap[sectorId])Sector(sectorId, 0);
+		}
+
+		Sector* acquireSectorSafe(SectorId sectorId) {
+			auto lock = writeLock();
+			return acquireSector(sectorId);
 		}
 
 	public: // container methods
@@ -320,43 +468,26 @@ namespace ecss::Memory {
 
 		void reserve(uint32_t newCapacity) {
 			if (newCapacity > capacity()) {
-				auto newChunksCount = (newCapacity + mChunksManager.mChunkSize - 1) / mChunksManager.mChunkSize;
+				auto newChunksCount = (newCapacity + mChunksManager.mChunkCapacity - 1) / mChunksManager.mChunkCapacity;
 				mChunksManager.allocateChunks(newChunksCount);
 
 				if (capacity() > sectorsCapacity()) {
-					mSectorsMap.resize(capacity(), INVALID_ID);
+					mSectorsMap.resize(capacity(), nullptr);
 				}
 			}
 		}
 
 		void shrinkToFit() { mChunksManager.shrinkToFit(size()); }
+
 		template<typename T>
 		std::remove_reference_t<T>* insertSafe(SectorId sectorId, T&& data) {
-			using U = std::remove_reference_t<T>;
 			auto lock = writeLock();
-			Sector* sector = acquireSector(sectorId);
-
-			if constexpr (std::is_same_v<std::remove_cvref_t<T>, Sector>) {
-				if constexpr (std::is_lvalue_reference_v<T>) {
-					return Sector::copySector(std::addressof(data), sector, mSectorLayout);
-				}
-				else {
-					return Sector::moveSector(std::addressof(data), sector, mSectorLayout);
-				}
-			}
-			else {
-				if constexpr (std::is_lvalue_reference_v<T>) {
-					return Sector::copyMember<U>(std::forward<T>(data), sector, getLayoutData<T>());
-				}
-				else {
-					return Sector::moveMember<U>(std::forward<T>(data), sector, getLayoutData<T>());
-				}
-			}
+			return insert(sectorId, std::forward<T>(data));
 		}
 
 		template<typename T>
 		std::remove_reference_t<T>* insert(SectorId sectorId, T&& data) {
-			using U = std::remove_reference_t<T>;\
+			using U = std::remove_reference_t<T>;
 			Sector* sector = acquireSector(sectorId);
 
 			if constexpr (std::is_same_v<std::remove_cvref_t<T>, Sector>) {
@@ -408,7 +539,7 @@ namespace ecss::Memory {
 			
 			for (auto i = begin; i < begin + count; i++) {
 				auto sector = at(i);
-				setSectorIndex(sector->id, INVALID_ID);
+				mSectorsMap[sector->id] = nullptr;
 				Sector::destroySector(sector, mSectorLayout);
 			}
 
@@ -444,7 +575,7 @@ namespace ecss::Memory {
 			for (auto i = 0u; i < size(); i++) {
 				auto sector = at(i);
 				if (!sector->isSectorAlive()) {
-					setSectorIndex(sector->id, INVALID_ID);
+					mSectorsMap[sector->id] = nullptr;
 					Sector::destroySector(sector, mSectorLayout);
 					deleted++;
 				}
@@ -455,7 +586,8 @@ namespace ecss::Memory {
 					}
 
 					auto newSector = Sector::moveSector(sector, at(emptyPos), mSectorLayout);
-					setSectorIndex(newSector->id, static_cast<SectorId>(emptyPos++));
+					mSectorsMap[newSector->id] = newSector;
+					emptyPos++;
 				}
 			}
 
@@ -464,114 +596,13 @@ namespace ecss::Memory {
 			shrinkToFit();
 		}
 
-		std::shared_lock<std::shared_mutex> readLock() const { return std::shared_lock(mMutex); }
-		std::unique_lock<std::shared_mutex> writeLock() const { return std::unique_lock(mMutex); }
-		std::shared_mutex& getMutex() const { return mMutex; }
+	public:
+		// thread safe helpers
+		std::shared_lock<std::shared_mutex> readLock() const { return std::shared_lock(mArrayStructureMutex); }
+		std::unique_lock<std::shared_mutex> writeLock() const { return std::unique_lock(mArrayStructureMutex); }
+		std::shared_mutex& getMutex() const { return mArrayStructureMutex; }
 
 	private:
-		struct ChunksManager {
-			ChunksManager(const ChunksManager& other) : mChunkSize(other.mChunkSize), mIsChunkSizePowerOfTwo(isPowerOfTwo(mChunkSize)), mSectorSize(other.mSectorSize) {
-				allocateChunks(other.mChunks.size());
-				for (auto i = 0u; i < other.mChunks.size(); i++) {
-					memcpy(mChunks[i], other.mChunks[i], mChunkSize * static_cast<size_t>(mSectorSize));
-				}
-			}
-
-			ChunksManager(ChunksManager&& other) noexcept : mChunkSize(other.mChunkSize), mIsChunkSizePowerOfTwo(isPowerOfTwo(mChunkSize)), mSectorSize(other.mSectorSize), mChunks(std::move(other.mChunks)) {}
-
-			ChunksManager& operator=(const ChunksManager& other) {
-				if (this == &other)
-					return *this;
-
-				mChunkSize = other.mChunkSize;
-				mSectorSize = other.mSectorSize;
-				mIsChunkSizePowerOfTwo = isPowerOfTwo(mChunkSize);
-				clear();
-				allocateChunks(other.mChunks.size());
-				for (auto i = 0u; i < other.mChunks.size(); i++) {
-					memcpy(mChunks[i], other.mChunks[i], mChunkSize * static_cast<size_t>(mSectorSize));
-				}
-
-				return *this;
-			}
-
-			ChunksManager& operator=(ChunksManager&& other) noexcept {
-				if (this == &other)
-					return *this;
-
-				clear();
-				mChunkSize = other.mChunkSize;
-				mIsChunkSizePowerOfTwo = isPowerOfTwo(mChunkSize);
-				mSectorSize = other.mSectorSize;
-				mChunks = std::move(other.mChunks);
-
-				return *this;
-			}
-
-			ChunksManager(uint32_t chunkSize) : mChunkSize(chunkSize), mIsChunkSizePowerOfTwo(isPowerOfTwo(mChunkSize)) {}
-
-			void allocateChunks(size_t count = 1) {
-				if (count == 0) {
-					return;
-				}
-				std::unique_lock lock(mtx);
-
-				mChunks.reserve(mChunks.size() + count);
-				for (auto i = 0u; i < count; i++) {
-					void* ptr = calloc(mChunkSize, mSectorSize);
-					if (!ptr) throw std::bad_alloc();
-					mChunks.emplace_back(ptr);
-				}
-			}
-
-			void clear() {
-				std::unique_lock lock(mtx);
-				for (auto chunk : mChunks) {
-					std::free(chunk);
-				}
-				mChunks.clear();
-				mChunks.shrink_to_fit();
-			}
-
-			void shrinkToFit(size_t sectorsSize) {
-				size_t last = calcChunkIndex(sectorsSize + mChunkSize - 1);
-				std::unique_lock lock(mtx);
-				const auto size = mChunks.size();
-				for (auto i = last; i < size; i++) {
-					std::free(mChunks.at(i));
-				}
-
-				mChunks.erase(mChunks.begin() + static_cast<int64_t>(last), mChunks.end());
-				mChunks.shrink_to_fit();
-			}
-
-			uint32_t capacity() const { std::shared_lock lock(mtx); return mChunkSize * static_cast<uint32_t>(mChunks.size()); }
-			size_t calcInChunkIndex(size_t sectorIdx) const { return mIsChunkSizePowerOfTwo ? (sectorIdx & (mChunkSize - 1)) * mSectorSize : (sectorIdx % mChunkSize) * mSectorSize; }
-			size_t calcChunkIndex(size_t sectorIdx) const {	return mIsChunkSizePowerOfTwo ? sectorIdx >> std::countr_zero(mChunkSize) : sectorIdx / mChunkSize; }
-			
-			Sector* getSector(size_t sectorIndex) const {
-				std::shared_lock containerLock(mtx);
-				auto chunkIndex = calcChunkIndex(sectorIndex);
-				auto inChunkIndex = calcInChunkIndex(sectorIndex);
-
-				return reinterpret_cast<Sector*>(static_cast<char*>(getChunk(chunkIndex)) + inChunkIndex);
-			}
-
-			void* getChunk(size_t index) const { return mChunks[index]; }
-
-			static constexpr bool isPowerOfTwo(uint64_t x) noexcept {
-				return x != 0 && (x & (x - 1)) == 0;
-			}
-
-		public:
-			std::vector<void*> mChunks;
-			uint32_t mChunkSize = 0;
-			bool mIsChunkSizePowerOfTwo = false;
-			uint16_t mSectorSize = 0;
-
-			mutable std::shared_mutex mtx;
-		};
-
 		//shifts chunk data right
 		//[][][][from][][][]   -> [][][] [empty] [from][][][]
 		void shiftDataRight(size_t from, size_t count = 1) {
@@ -580,7 +611,7 @@ namespace ecss::Memory {
 			}
 			for (size_t i = size(); i-- > from + count;) {
 				auto sector = Sector::moveSector(at(i - count), at(i), mSectorLayout);
-				setSectorIndex(sector->id, static_cast<SectorId>(i));
+				mSectorsMap[sector->id] = sector;
 			}
 		}
 
@@ -592,19 +623,29 @@ namespace ecss::Memory {
 			}
 			for (auto i = from; i < size() - count; i++) {
 				auto sector = Sector::moveSector(at(i + count), at(i), mSectorLayout);
-				setSectorIndex(sector->id, static_cast<SectorId>(i));
+				mSectorsMap[sector->id] = sector;
 			}
 		}
 
 		//fast binary search to find sector insert position
 		__forceinline size_t findInsertPosition(SectorId sectorId) const {
 			size_t right = mSize;
-			if (right == 0 || at(0)->id > sectorId) {
+			if (sectorId >= sectorsCapacity()) {
+				return right;
+			}
+
+			if (right == 0) {
 				return 0;
 			}
+
 			if (at(right - 1)->id < sectorId) {
 				return right;
 			}
+
+			if (at(0)->id > sectorId) {
+				return 0;
+			}
+
 			size_t left = 0;
 			while (right - left > 1) {
 				size_t mid = left + (right - left) / 2;
@@ -621,24 +662,24 @@ namespace ecss::Memory {
 		}
 
 	private:
-		std::vector<SectorId> mSectorsMap;
+		std::vector<Sector*> mSectorsMap;
 		ChunksManager mChunksManager; //split whole data to chunks to make it more memory fragmentation friendly ( but less memory friendly, whole chunk will be allocated)
 
 		ContiguousMap<ECSType, uint8_t> mLayoutMap;
-		ISectorLayoutMeta* mSectorLayout = nullptr;
-
+		SectorLayoutMeta* mSectorLayout = nullptr;
+		//SectorLayoutMeta2* mLayout = nullptr;
 		uint32_t mSize = 0;
 
 		bool mIsSectorTrivial = std::is_trivial_v<Sector>;
 
-		mutable std::shared_mutex mMutex;
+		mutable std::shared_mutex mArrayStructureMutex;
 	};
 
 	namespace SectorArrayUtils
 	{
-		inline SectorId findRightNearestSectorIndex(const SectorsArray& array, SectorId sectorId) {
+		inline size_t findRightNearestSectorIndex(const SectorsArray& array, SectorId sectorId) {
 			while (sectorId < array.sectorsCapacity()) {
-				SectorId index = array.getSectorIndex(sectorId++);
+				size_t index = array.getSectorIndex(sectorId++);
 				if (index < array.size()) {
 					return index;
 				}
@@ -762,7 +803,7 @@ namespace ecss::Memory {
 					break; //all valid entities destroyed
 				}
 				Sector::destroySector(array.findSector(sectorId), layout);
-				array.setSectorIndex(sectorId, INVALID_ID);
+				array.setSectorPointer(sectorId, nullptr);
 			}
 		}
 	}
