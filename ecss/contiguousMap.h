@@ -6,15 +6,15 @@ namespace ecss {
 	template<typename Key, typename Value>
 	class ContiguousMap {
 	public:
-		friend bool operator==(const ContiguousMap& lhs, const ContiguousMap& rhs) {
+		friend bool operator==(const ContiguousMap& lhs, const ContiguousMap& rhs) noexcept {
 			return lhs.mSize == rhs.mSize && lhs.mCapacity == rhs.mCapacity && lhs.mData == rhs.mData;
 		}
 
-		friend bool operator!=(const ContiguousMap& lhs, const ContiguousMap& rhs) {
+		friend bool operator!=(const ContiguousMap& lhs, const ContiguousMap& rhs) noexcept {
 			return !(lhs == rhs);
 		}
 
-		ContiguousMap(const ContiguousMap& other) : mSize(other.mSize), mCapacity(other.mCapacity) {
+		ContiguousMap(const ContiguousMap& other) noexcept : mSize(other.mSize), mCapacity(other.mCapacity) {
 			mData = new std::pair<Key, Value>[mCapacity];
 			for (auto i = 0; i < mSize; i++) {
 				mData[i] = other.mData[i];
@@ -24,11 +24,12 @@ namespace ecss {
 		ContiguousMap(ContiguousMap&& other) noexcept : mData(other.mData), mSize(other.mSize), mCapacity(other.mCapacity) {
 			other.mData = nullptr;
 		}
-#pragma warning(push)
-#pragma warning(disable:6385)
-		ContiguousMap& operator=(const ContiguousMap& other) {
+
+		ContiguousMap& operator=(const ContiguousMap& other) noexcept {
 			if (this == &other)
 				return *this;
+
+			delete[] mData;
 			mSize = other.mSize;
 			mCapacity = other.mCapacity;
 			mData = new std::pair<Key, Value>[other.mCapacity];
@@ -39,7 +40,7 @@ namespace ecss {
 
 			return *this;
 		}
-#pragma warning(pop)
+
 		ContiguousMap& operator=(ContiguousMap&& other) noexcept {
 			if (this == &other)
 				return *this;
@@ -50,10 +51,10 @@ namespace ecss {
 			return *this;
 		}
 
-		ContiguousMap() = default;
-		~ContiguousMap() { delete[] mData; }
+		ContiguousMap() noexcept = default;
+		~ContiguousMap() noexcept { delete[] mData; }
 
-		Value& operator[](Key key) {
+		Value& operator[](Key key) noexcept {
 			size_t idx = 0;
 			const auto pair = search(key, idx);
 			if (pair) {
@@ -73,7 +74,7 @@ namespace ecss {
 			return mData[idx].second;
 		}
 
-		Value& insert(Key key, Value value) {
+		Value& insert(Key key, Value value) noexcept {
 			size_t idx = 0;
 			const auto pair = search(key, idx);
 			if (pair) {
@@ -95,7 +96,7 @@ namespace ecss {
 			return mData[idx].second;
 		}
 
-		const std::pair<Key,Value>& find(Key key) {
+		const std::pair<Key,Value>& find(Key key) noexcept {
 			size_t idx = 0;
 			if (auto pair = search(key, idx)) {
 				return *pair;
@@ -103,7 +104,7 @@ namespace ecss {
 			return {};
 		}
 
-		bool contains(Key key) const {
+		bool contains(Key key) const noexcept {
 			size_t idx = 0;
 			if (search(key, idx)) {
 				return true;
@@ -112,13 +113,14 @@ namespace ecss {
 			return false;
 		}
 
-		const Value& at(Key key) const {
+		const Value& at(Key key) const noexcept {
 			size_t idx = 0;
 			if (auto pair = search(key, idx)) {
 				return pair->second;
 			}
-
-			throw std::out_of_range("Key not found");
+			static Value dummy;
+			assert(false);
+			return dummy;
 		}
 
 		class Iterator {
@@ -129,41 +131,41 @@ namespace ecss {
 			using pointer = value_type*;
 			using reference = value_type&;
 
-			Iterator(pointer ptr) : mPtr(ptr) {}
+			Iterator(pointer ptr) noexcept : mPtr(ptr) {}
 
-			reference operator*() const { return *mPtr; }
-			pointer operator->() const { return mPtr; }
-			Iterator& operator++() { ++mPtr; return *this; }
-			Iterator operator++(int) { Iterator tmp = *this; ++(*this); return tmp; }
-			Iterator& operator--() { --mPtr; return *this; }
-			Iterator operator--(int) { Iterator tmp = *this; --(*this); return tmp; }
-			Iterator& operator+=(difference_type n) { mPtr += n; return *this; }
-			Iterator& operator-=(difference_type n) { mPtr -= n; return *this; }
-			reference operator[](difference_type n) const { return *(mPtr + n); }
-			friend bool operator==(const Iterator& a, const Iterator& b) { return a.mPtr == b.mPtr; }
-			friend bool operator!=(const Iterator& a, const Iterator& b) { return a.mPtr != b.mPtr; }
-			friend bool operator<(const Iterator& a, const Iterator& b) { return a.mPtr < b.mPtr; }
-			friend bool operator>(const Iterator& a, const Iterator& b) { return a.mPtr > b.mPtr; }
-			friend bool operator<=(const Iterator& a, const Iterator& b) { return a.mPtr <= b.mPtr; }
-			friend bool operator>=(const Iterator& a, const Iterator& b) { return a.mPtr >= b.mPtr; }
-			difference_type operator-(const Iterator& other) const { return mPtr - other.mPtr; }
+			reference operator*() const noexcept { return *mPtr; }
+			pointer operator->() const noexcept { return mPtr; }
+			Iterator& operator++() noexcept { ++mPtr; return *this; }
+			Iterator operator++(int) noexcept { Iterator tmp = *this; ++(*this); return tmp; }
+			Iterator& operator--() noexcept { --mPtr; return *this; }
+			Iterator operator--(int) noexcept { Iterator tmp = *this; --(*this); return tmp; }
+			Iterator& operator+=(difference_type n) noexcept { mPtr += n; return *this; }
+			Iterator& operator-=(difference_type n) noexcept { mPtr -= n; return *this; }
+			reference operator[](difference_type n) const noexcept { return *(mPtr + n); }
+			friend bool operator==(const Iterator& a, const Iterator& b) noexcept { return a.mPtr == b.mPtr; }
+			friend bool operator!=(const Iterator& a, const Iterator& b) noexcept { return a.mPtr != b.mPtr; }
+			friend bool operator<(const Iterator& a, const Iterator& b) noexcept { return a.mPtr < b.mPtr; }
+			friend bool operator>(const Iterator& a, const Iterator& b) noexcept { return a.mPtr > b.mPtr; }
+			friend bool operator<=(const Iterator& a, const Iterator& b) noexcept { return a.mPtr <= b.mPtr; }
+			friend bool operator>=(const Iterator& a, const Iterator& b) noexcept { return a.mPtr >= b.mPtr; }
+			difference_type operator-(const Iterator& other) const noexcept { return mPtr - other.mPtr; }
 		private:
 			pointer mPtr;
 		};
 
-		Iterator begin() const { return { mData }; }
+		Iterator begin() const noexcept { return { mData }; }
 
-		Iterator end() const { return { mData + mSize }; }
+		Iterator end() const noexcept { return { mData + mSize }; }
 
-		void shrinkToFit() { setCapacity(mSize); }
+		void shrinkToFit() noexcept { setCapacity(mSize); }
 
-		void reserve(size_t capacity) {	setCapacity(capacity);	}
+		void reserve(size_t capacity) noexcept { setCapacity(capacity);	}
 
-		size_t size() const { return mSize; }
-		std::pair<Key, Value>* data() const { return mData; }
+		size_t size() const noexcept { return mSize; }
+		std::pair<Key, Value>* data() const noexcept { return mData; }
 
 	private:
-		void shiftDataRight(size_t begin) {
+		void shiftDataRight(size_t begin) noexcept {
 			if (!mData) {
 				return;
 			}
@@ -173,10 +175,11 @@ namespace ecss {
 			}
 		}
 
-		void setCapacity(size_t capacity) {
+		void setCapacity(size_t capacity) noexcept {
 			if (capacity == mCapacity) {
 				return;
 			}
+			capacity = std::max(capacity, mSize);
 
 			if (mCapacity == 0) {
 				mCapacity = capacity;
@@ -194,52 +197,15 @@ namespace ecss {
 			}
 		}
 
-		std::pair<Key, Value>* search(Key key, size_t& idx) const {
-			auto right = mSize;
-
-			if (right == 0 || mData[0].first > key) {
-				idx = 0;
-				return nullptr;
+		std::pair<Key, Value>* search(const Key& key, size_t& idx) const noexcept {
+			const size_t n = mSize;
+			auto* p = mData;
+			for (size_t i = 0; i < n; ++i, ++p) {
+				if (p->first == key) { idx = i; return const_cast<std::pair<Key, Value>*>(p); }
+				if (p->first > key) { idx = i; return nullptr; }
 			}
-
-			if (mData[right - 1].first < key) {
-				idx = right;
-				return nullptr;
-			}
-
-			size_t left = 0u;
-			std::pair<Key, Value>* result = nullptr;
-
-			while (true) {
-				if (mData[left].first == key) {
-					idx = left;
-					result = &mData[left];
-					break;
-				}
-
-				const auto dist = right - left;
-				if (dist == 1) {
-					idx = left + 1;
-					break;
-				}
-
-				const auto mid = left + dist / 2;
-
-				if (mData[mid].first > key) {
-					right = mid;
-					continue;
-				}
-
-				if (mData[mid].first == key) {
-					idx = mid;
-					result = &mData[mid];
-					break;
-				}
-
-				left = mid;
-			}
-
-			return result;
+			idx = n;
+			return nullptr;
 		}
 
 	private:

@@ -2,12 +2,10 @@
 
 #include <cstdint>
 #include <typeindex>
-
-#include "Reflection.h"
 #include "stdint.h"
 
-#include "../Types.h"
-#include "../contiguousMap.h"
+#include <ecss/memory/Reflection.h>
+#include <ecss/Types.h>
 
 namespace ecss::Memory {
 	namespace Dummy
@@ -17,10 +15,18 @@ namespace ecss::Memory {
 	}
 
 	struct LayoutData {
-		ReflectionHelper::FunctionTable functionTable;
+		struct FunctionTable {
+			std::function<void(void* dest, void* src)> move;
+			std::function<void(void* dest, void* src)> copy;
+			std::function<void(void* src)> destructor;
+		};
+
+		FunctionTable functionTable;
 		size_t typeHash = 0;
 		uint32_t offset = 0;
 		uint16_t index = 0;
+		uint16_t isAliveMask = 0;
+		uint16_t isNotAliveMask = 0;
 		bool isTrivial = 0;
 	};
 
@@ -32,6 +38,8 @@ namespace ecss::Memory {
 			data.typeHash = SectorLayoutMeta::TypeId<U>();
 			data.offset = offset;
 			data.index = index++;
+			data.isAliveMask = 1u << data.index;
+			data.isNotAliveMask = ~(data.isAliveMask);
 			data.isTrivial = std::is_trivial_v<U>;
 
 			data.functionTable.move = [](void* dest, void* src)
@@ -162,19 +170,19 @@ namespace ecss::Memory {
 	*
 	*--------------------------------------------------------------------------------------------
 	*/
-	struct Sector final {
+	struct alignas(8) Sector final {
 		SectorId id;
 		uint32_t isAliveData; //bits for alive flags
 
-		inline constexpr void setAlive(size_t componentPosition, bool value) { value ? isAliveData |= (1u << componentPosition) : isAliveData &= ~(1u << componentPosition); }
+		inline constexpr void setAlive(size_t mask, bool value) { value ? isAliveData |= mask : isAliveData &= mask; }
 
-		inline constexpr bool isAlive(size_t componentPosition) const { return isAliveData & (1u << componentPosition); }
-
-		template<typename T>
-		inline constexpr T* getMember(size_t offset, size_t componentPosition) { return isAlive(componentPosition) ? static_cast<T*>(getMemberPtr(this, offset)) : nullptr; }
+		inline constexpr bool isAlive(size_t mask) const { return isAliveData & mask; }
 
 		template<typename T>
-		inline constexpr T* getMember(const LayoutData& layout) { return getMember<T>(layout.offset, layout.index); }
+		inline constexpr T* getMember(size_t offset, size_t mask) { return isAlive(mask) ? static_cast<T*>(getMemberPtr(this, offset)) : nullptr; }
+
+		template<typename T>
+		inline constexpr T* getMember(const LayoutData& layout) { return getMember<T>(layout.offset, layout.isAliveMask); }
 
 		inline static void* getMemberPtr(Sector* sectorAdr, size_t offset) { return reinterpret_cast<char*>(sectorAdr) + offset; }
 
@@ -186,12 +194,12 @@ namespace ecss::Memory {
 				return nullptr;
 			}
 			const auto& layout = sectorLayout->getLayoutData<T>();
-			return sector->getMember<T>(layout.offset, layout.index);
+			return sector->getMember<T>(layout.offset, layout.isAliveMask);
 		}
 
 		inline void destroyMember(const LayoutData& layout) {
-			if (isAlive(layout.index)) {
-				setAlive(layout.index, false);
+			if (isAlive(layout.isAliveMask)) {
+				setAlive(layout.isNotAliveMask, false);
 				layout.functionTable.destructor(getMemberPtr(this, layout.offset));
 			}
 		}
@@ -199,16 +207,24 @@ namespace ecss::Memory {
 		template<typename T, class ...Args>
 		inline static T* emplaceMember(Sector* sector, const LayoutData& layout, Args&&... args) {
 			assert(sector);
-			sector->destroyMember(layout);
-			sector->setAlive(layout.index, true);
-			return new(getMemberPtr(sector, layout.offset))T(std::forward<Args>(args)...);
+
+			void* memberPtr = getMemberPtr(sector, layout.offset);
+			if constexpr (!std::is_trivially_destructible_v<T>) {
+				if (sector->isAlive(layout.isAliveMask)) {
+					layout.functionTable.destructor(memberPtr);
+				}
+			}
+
+			sector->setAlive(layout.isAliveMask, true);
+
+			return new(memberPtr)T(std::forward<Args>(args)...);
 		}
 
 		template<typename T>
 		inline static T* copyMember(const T& from, Sector* to, const LayoutData& layout) {
 			assert(to);
 			to->destroyMember(layout);
-			to->setAlive(layout.index, true);
+			to->setAlive(layout.isAliveMask, true);
 			return new(getMemberPtr(to, layout.offset))T(from);
 		}
 
@@ -216,7 +232,7 @@ namespace ecss::Memory {
 		inline static T* moveMember(T&& from, Sector* to, const LayoutData& layout) {
 			assert(to);
 			to->destroyMember(layout);
-			to->setAlive(layout.index, true);
+			to->setAlive(layout.isAliveMask, true);
 			return new(getMemberPtr(to, layout.offset))T(std::move(from));
 		}
 
@@ -228,7 +244,7 @@ namespace ecss::Memory {
 				return ptr;
 			}
 			layout.functionTable.move(ptr, from);
-			to->setAlive(layout.index, !!from);
+			to->setAlive(!!from ? layout.isAliveMask : layout.isNotAliveMask, !!from);
 			layout.functionTable.destructor(from);
 			return ptr;
 		}
@@ -242,7 +258,7 @@ namespace ecss::Memory {
 				return ptr;
 			}
 			layout.functionTable.copy(ptr, const_cast<void*>(from));
-			to->setAlive(layout.index, !!from);
+			to->setAlive(!!from ? layout.isAliveMask : layout.isNotAliveMask, !!from);
 			return ptr;
 		}
 
@@ -253,13 +269,13 @@ namespace ecss::Memory {
 
 			new (to)Sector(std::move(*from));
 			for (const auto& layout : *layouts) {
-				if (!from->isAlive(layout.index)) {
+				if (!from->isAlive(layout.isAliveMask)) {
 					continue;
 				}
 
 				layout.functionTable.move(getMemberPtr(to, layout.offset), getMemberPtr(from, layout.offset));
 
-				to->setAlive(layout.index, true);
+				to->setAlive(layout.isAliveMask, true);
 			}
 			destroySector(from, layouts);
 			return to;
@@ -278,13 +294,11 @@ namespace ecss::Memory {
 			}
 			
 			for (const auto& layout : *layouts) {
-				if (!from->isAlive(layout.index)) {
+				if (!from->isAlive(layout.isAliveMask)) {
 					continue;
 				}
 
 				layout.functionTable.copy(getMemberPtr(to, layout.offset), getMemberPtr(from, layout.offset));
-
-				to->setAlive(layout.index, true);
 			}
 
 			return to;
@@ -293,7 +307,6 @@ namespace ecss::Memory {
 		inline static void destroySector(Sector* sector, const SectorLayoutMeta* layouts) {
 			if (sector) {
 				destroyMembers(sector, layouts);
-				sector->~Sector();
 			}
 		}
 
@@ -301,8 +314,11 @@ namespace ecss::Memory {
 			if (sector) {
 				if (sector->isSectorAlive()) {
 					for (const auto& layout : (*layouts)) {
-						sector->destroyMember(layout);
+						if (sector->isAlive(layout.isAliveMask)) {
+							layout.functionTable.destructor(sector->getMemberPtr(sector, layout.offset));
+						}
 					}
+					sector->isAliveData = 0;
 				}
 			}
 		}

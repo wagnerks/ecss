@@ -1,8 +1,9 @@
 ﻿#pragma once
 #include <deque>
 #include <vector>
+#include <numeric>
 
-#include "Types.h"
+#include <ecss/Types.h>
 
 namespace ecss {
 	struct EntitiesRanges {
@@ -178,22 +179,23 @@ namespace ecss {
 
 		void clear() { ranges.clear(); }
 		size_t size() const { return ranges.size(); }
-		range& front() { return ranges.front(); }
-		range& back() { return ranges.back(); }
+		const range& front() const { return ranges.front(); }
+		const range& back() const { return ranges.back(); }
 		void pop_back() { ranges.pop_back(); }
 		bool empty() const { return !size(); }
 		bool contains(ecss::EntityId id) const { return binarySearchInRanges(ranges, id) != -1; }
 		std::vector<EntityId> getAll() const {
+			size_t total = 0;
+			for (const auto& r : ranges) { total += static_cast<size_t>(r.second - r.first); }
+
 			std::vector<EntityId> res;
-			size_t size = 0;
-			for (auto& rangesRange : ranges) {
-				size += rangesRange.second - rangesRange.first;
-			}
-			res.reserve(size);
-			for (auto& rangesRange : ranges) {
-				for (auto i = rangesRange.first; i < rangesRange.second; i++) {
-					res.emplace_back(i);
-				}
+			res.resize(total);
+
+			EntityId* out = res.data();
+			for (const auto& r : ranges) {
+				const size_t len = static_cast<size_t>(r.second - r.first);
+				std::iota(out, out + len, r.first);
+				out += len;
 			}
 
 			return res;

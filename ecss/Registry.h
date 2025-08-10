@@ -5,16 +5,17 @@
 // Multiple components of different types can be stored in one memory location, which I've named a "sector."
 
 #include <algorithm>
-#include <deque>
 #include <array>
+#include <deque>
 #include <map>
-#include <shared_mutex>
 #include <set>
+#include <shared_mutex>
 #include <stdbool.h>
 #include <unordered_set>
 
-#include "EntitiesRanges.h"
-#include "memory/SectorsArray.h"
+#include <ecss/EntitiesRanges.h>
+#include <ecss/memory/SectorsArray.h>
+#include <ecss/threads/SyncManager.h>
 
 namespace ecss {
 	template <bool Ranged, typename T, typename ...ComponentTypes>
@@ -24,19 +25,14 @@ namespace ecss {
 		friend class ComponentArraysEntry;
 
 	public:
-		Registry(const Registry& other) = delete;
-		Registry& operator=(const Registry& other) = delete;
+		Registry(const Registry& other) noexcept = delete;
+		Registry& operator=(const Registry& other) noexcept = delete;
 		Registry(Registry&& other) noexcept = delete;
 		Registry& operator=(Registry&& other) noexcept = delete;
 
-		Registry() = default;
-		~Registry() {
-			clear();
-
-			for (auto array : mComponentsArrays) {
-				delete array;
-			}
-		}
+	public:
+		Registry() noexcept = default;
+		~Registry() noexcept { for (auto array : mComponentsArrays) delete array; }
 
 	public:
 		/*
@@ -49,7 +45,7 @@ namespace ecss {
 		 * it should be called before any getContainer calls
 		*/
 		template<typename... ComponentTypes>
-		void registerArray(uint32_t capacity = 0, uint32_t chunkSize = 8192) {
+		void registerArray(uint32_t capacity = 0, uint32_t chunkSize = 8192) noexcept {
 			std::unique_lock lock(componentsArrayMapMutex);
 			bool isCreated = true;
 			((isCreated = isCreated && mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()]), ...);
@@ -63,78 +59,90 @@ namespace ecss {
 				mComponentsArraysMap.resize(maxId + 1);
 			}
 
-			auto sectorArray = Memory::SectorsArray::create<ComponentTypes...>(mReflectionHelper, capacity, chunkSize);
+			auto sectorArray = Memory::SectorsArray<>::create<ComponentTypes...>(mReflectionHelper, capacity, chunkSize);
 			mComponentsArrays.push_back(sectorArray);
 			((mComponentsArraysMap[componentTypeId<ComponentTypes>()] = sectorArray), ...);
 		}
 
 		template<typename T>
-		ECSType componentTypeId() {	return mReflectionHelper.getTypeId<T>(); }
+		ECSType componentTypeId() noexcept {	return mReflectionHelper.getTypeId<T>(); }
 
 		template <class T>
-		bool hasComponent(EntityId entity) {
+		bool hasComponent(EntityId entity) noexcept {
 			if (auto container = getComponentContainer<T>()) {
 				auto lock = container->readLock();
-				if (auto sector = container->findSector(entity)) {
-					return sector->isAlive(container->getLayoutData<T>().index);
+				if (auto sector = container->findSector(entity, ecss::SyncType::NONE)) {
+					return sector->isAlive(container->getLayoutData<T>().isAliveMask);
 				}
 			}
 			return false;
 		}
 
 		template <class T>
-		T* getComponent(EntityId entity) {
+		T* getComponent(EntityId entity) noexcept {
 			auto container = getComponentContainer<T>();
 			auto lock = container->readLock();
-			return Memory::Sector::getComponentFromSector<T>(container->findSector(entity), container->getLayout());
+			return Memory::Sector::getComponentFromSector<T>(container->findSector(entity, ecss::SyncType::NONE), container->getLayout());
 		}
 
 		template <class T>
-		T* getComponentNotSafe(EntityId entity) {
+		T* getComponentNotSafe(EntityId entity) noexcept {
 			auto container = getComponentContainer<T>();
-			return Memory::Sector::getComponentFromSector<T>(container->findSector(entity), container->getLayout());
+			return Memory::Sector::getComponentFromSector<T>(container->findSector(entity, ecss::SyncType::NONE), container->getLayout());
 		}
 
 		// you can emplace component into sector using initializer list
 		template <class T, class ...Args>
-		T* addComponent(EntityId entity, Args&&... args) {
+		T* addComponent(EntityId entity, ecss::SyncType syncType, Args&&... args) noexcept {
 			auto container = getComponentContainer<T>();
 			if constexpr (sizeof...(Args) == 1 && (std::is_same_v<std::remove_cvref_t<Args>, T> && ...)) {
-				return const_cast<T*>(container->insertSafe(entity, std::forward<Args>(args)...));
+				return const_cast<T*>(container->insert(entity, std::forward<Args>(args)...), syncType);
 			}
 			else {
-				return container->emplaceSafe<T>(entity, std::forward<Args>(args)...);
+				return container->emplace<T>(entity, syncType, std::forward<Args>(args)...);
+			}
+		}
+
+		// you can emplace component into sector using initializer list
+		template <class T, class ...Args>
+		T* addComponent(EntityId entity, Args&&... args) noexcept {
+			auto container = getComponentContainer<T>();
+			if constexpr (sizeof...(Args) == 1 && (std::is_same_v<std::remove_cvref_t<Args>, T> && ...)) {
+				return const_cast<T*>(container->insert(entity, std::forward<Args>(args)...));
+			}
+			else {
+				return container->emplace<T>(entity, ecss::SyncType::UNIQUE, std::forward<Args>(args)...);
 			}			
 		}
 
 		// you can emplace component into sector using initializer list
 		template <class T>
-		T* addComponent(EntityId entity, T&& component) {
+		T* addComponent(EntityId entity, T&& component, ecss::SyncType syncType = ecss::SyncType::NONE) noexcept {
 			auto container = getComponentContainer<T>();
-			return container->insertSafe(entity, std::forward<T>(component));
+			return container->insert(entity, std::forward<T>(component), syncType);
 		}
 
 		template<typename T>
-		void copyComponentsArrayToRegistry(const Memory::SectorsArray& array) {
+		void copyComponentsArrayToRegistry(const Memory::SectorsArray<>& array) noexcept {
 			auto cont = getComponentContainer<T>();
 			*cont = array;
 		}
 
 		template <class T>
-		void destroyComponent(EntityId entity) {
+		void destroyComponent(EntityId entity) noexcept {
 			if (auto container = getComponentContainer<T>()) {
-				Memory::SectorArrayUtils::destroyMember<T>(*container, entity);
+				Memory::SectorArrayUtils::destroyMember<T>(container, entity);
 			}
 		}
 
 		template <class T>
-		void destroyComponent(std::vector<EntityId>& entities) {
+		void destroyComponent(std::vector<EntityId>& entities) noexcept {
 			if (auto container = getComponentContainer<T>()) {
-				Memory::SectorArrayUtils::destroyMembers<T>(*container, entities);
+				Memory::SectorArrayUtils::destroyMembers<T>(container, entities);
 			}
 		}
 
-		void destroyComponents(EntityId entityId) const {
+		void destroyComponents(EntityId entityId) const noexcept {
 			for (auto array : mComponentsArrays) {
 				Memory::Sector::destroyMembers(array->findSector(entityId), array->getLayout());
 			}
@@ -143,7 +151,7 @@ namespace ecss {
 	public:
 		// iterator helpers
 		template<typename... Components, typename Func>
-		inline void forEachAsync(const std::vector<EntityId>& entities, const Func& func) {
+		inline void forEachAsync(const std::vector<EntityId>& entities, const Func& func) noexcept {
 			for (auto entity : entities) {
 				auto lock = containersLock<Components...>();
 				func(entity, getComponentNotSafe<Components>(entity)...);
@@ -151,20 +159,25 @@ namespace ecss {
 		}
 
 		template<typename... Components>
-		ComponentArraysEntry<true, Components...> forEach(const EntitiesRanges& ranges, bool lock = true) { return ComponentArraysEntry<true, Components...>{ this, ranges, lock }; }
+		ComponentArraysEntry<true, Components...> forEach(const EntitiesRanges& ranges, bool lock = true) noexcept { return ComponentArraysEntry<true, Components...>{ this, ranges, lock }; }
 
 		template<typename... Components>
-		ComponentArraysEntry<false, Components...> forEach(bool lock = true) { return ComponentArraysEntry<false, Components...>{this, lock}; }
+		ComponentArraysEntry<false, Components...> forEach(bool lock = true) noexcept { return ComponentArraysEntry<false, Components...>{this, lock}; }
 
 	public:
 		// container handles
 		template <class... Components>
-		void reserve(uint32_t newCapacity) { (getComponentContainer<Components>()->reserveSafe(newCapacity), ...); }
+		void reserve(uint32_t newCapacity) noexcept { (getComponentContainer<Components>()->reserve(newCapacity), ...); }
 
-		void clear() {
+		void clear() noexcept {
 			{
-				std::shared_lock lock(componentsArrayMapMutex);
-				for (auto* array : mComponentsArrays) {
+				decltype(mComponentsArrays) arrays;
+				{
+					std::shared_lock lock(componentsArrayMapMutex);
+					arrays = mComponentsArrays;
+				}
+
+				for (auto* array : arrays) {
 					array->clear();
 				}
 			}
@@ -173,15 +186,20 @@ namespace ecss {
 			mEntities.clear();
 		}
 
-		void defragment() {
-			std::shared_lock lock(componentsArrayMapMutex);
-			for (auto* array : mComponentsArrays) {
+		void defragment() noexcept {
+			decltype(mComponentsArrays) arrays;
+			{
+				std::shared_lock lock(componentsArrayMapMutex);
+				arrays = mComponentsArrays;
+			}
+			
+			for (auto* array : arrays) {
 				array->defragment();
 			}
 		}
 
 		template <class T>
-		Memory::SectorsArray* getComponentContainer() {
+		Memory::SectorsArray<>* getComponentContainer() noexcept {
 			const ECSType componentType = componentTypeId<T>();
 			{
 				std::shared_lock readLock(componentsArrayMapMutex);
@@ -197,19 +215,13 @@ namespace ecss {
 
 	public:
 		// entities
-		bool contains(EntityId entityId) const { std::shared_lock lock(mEntitiesMutex); return mEntities.contains(entityId); }
+		bool contains(EntityId entityId) const noexcept { std::shared_lock lock(mEntitiesMutex); return mEntities.contains(entityId); }
 
-		EntityId takeEntity() {
-			std::unique_lock lock(mEntitiesMutex);
-			return mEntities.take();
-		}
+		EntityId takeEntity() noexcept { std::unique_lock lock(mEntitiesMutex); return mEntities.take(); }
 
-		std::vector<EntityId> getAllEntities() const {
-			std::shared_lock lock(mEntitiesMutex);
-			return mEntities.getAll();
-		}
+		std::vector<EntityId> getAllEntities() const noexcept { std::shared_lock lock(mEntitiesMutex); return mEntities.getAll(); }
 
-		void destroyEntity(EntityId entityId) {
+		void destroyEntity(EntityId entityId) noexcept {
 			if (!contains(entityId)) {
 				return;
 			}
@@ -222,7 +234,7 @@ namespace ecss {
 			destroyComponents(entityId);
 		}
 
-		void destroyEntities(std::vector<EntityId>& entities) {
+		void destroyEntities(std::vector<EntityId>& entities) noexcept {
 			if (entities.empty()) {
 				return;
 			}
@@ -231,7 +243,7 @@ namespace ecss {
 			{
 				std::shared_lock lock(componentsArrayMapMutex);
 				for (auto* array : mComponentsArrays) {
-					destroyThreads.emplace_back(std::thread([&, array = array]() { Memory::SectorArrayUtils::destroyAllMembers(*array, entities, false); }));
+					destroyThreads.emplace_back(std::thread([&, array = array]() { Memory::SectorArrayUtils::destroyAllMembers(array, entities, false); }));
 				}
 			}
 
@@ -251,15 +263,15 @@ namespace ecss {
 		// thread safety helpers
 
 		template <class T>
-		std::shared_mutex* getSectorsArrayMutex() { return &getComponentContainer<T>()->getMutex(); }
+		std::shared_mutex* getSectorsArrayMutex() noexcept { return &getComponentContainer<T>()->getMutex(); }
 
 	
 		struct Lock {
-			Lock(std::shared_mutex* mutex)	{
+			Lock(std::shared_mutex* mutex)	noexcept {
 				sharedLock = new std::shared_lock(*mutex);
 			}
 
-			~Lock() {
+			~Lock() noexcept {
 				delete sharedLock;
 			}
 
@@ -268,12 +280,12 @@ namespace ecss {
 
 
 		template<typename T>
-		void addMutex(std::unordered_map<std::shared_mutex*, bool>& mutexes) {
+		void addMutex(std::unordered_map<std::shared_mutex*, bool>& mutexes) noexcept {
 			mutexes[getSectorsArrayMutex<T>()] |= std::is_const_v<T>;
 		}
 
 		template <class... T>
-		std::vector<Lock> containersLock() {
+		std::vector<Lock> containersLock() noexcept {
 			std::unordered_map<std::shared_mutex*, bool> mutexes;
 			std::vector<Lock> locks;
 
@@ -289,8 +301,8 @@ namespace ecss {
 
 		//todo separate locks for components, container lock provided safety of container structure, not component data
 		template <class T>
-		Lock containerLock() {
-			return {getSectorsArrayMutex<T>()/*, std::is_const_v<T>*/ };
+		Lock containerLock() noexcept {
+			return {getSectorsArrayMutex<T>()};
 		}
 
 	private:
@@ -298,43 +310,13 @@ namespace ecss {
 
 		EntitiesRanges mEntities;
 
-		std::vector<Memory::SectorsArray*> mComponentsArraysMap;
-		std::vector<Memory::SectorsArray*> mComponentsArrays;
+		std::vector<Memory::SectorsArray<>*> mComponentsArraysMap;
+		std::vector<Memory::SectorsArray<>*> mComponentsArrays;
 
 		//non copyable
 		mutable std::shared_mutex mEntitiesMutex;
 		std::shared_mutex componentsArrayMapMutex;
 	};
-
-	template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8, typename T9>
-	struct ComponentResult10{ EntityId id; T0* c0; T1* c1; T2* c2; T3* c3; T4* c4; T5* c5; T6* c6; T7* c7; T8* c8; T9* c9; };
-
-	template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7, typename T8>
-	struct ComponentResult9 { EntityId id; T0* c0; T1* c1; T2* c2; T3* c3; T4* c4; T5* c5; T6* c6; T7* c7; T8* c8; };
-
-	template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6, typename T7>
-	struct ComponentResult8 { EntityId id; T0* c0; T1* c1; T2* c2; T3* c3; T4* c4; T5* c5; T6* c6; T7* c7; };
-
-	template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5, typename T6>
-	struct ComponentResult7 { EntityId id; T0* c0; T1* c1; T2* c2; T3* c3; T4* c4; T5* c5; T6* c6; };
-
-	template <typename T0, typename T1, typename T2, typename T3, typename T4, typename T5>
-	struct ComponentResult6 { EntityId id; T0* c0; T1* c1; T2* c2; T3* c3; T4* c4; T5* c5; };
-
-	template <typename T0, typename T1, typename T2, typename T3, typename T4>
-	struct ComponentResult5 { EntityId id; T0* c0; T1* c1; T2* c2; T3* c3; T4* c4; };
-
-	template <typename T0, typename T1, typename T2, typename T3>
-	struct ComponentResult4 { EntityId id; T0* c0; T1* c1; T2* c2; T3* c3; };
-
-	template <typename T0, typename T1, typename T2>
-	struct ComponentResult3 { EntityId id; T0* c0; T1* c1; T2* c2; };
-
-	template <typename T0, typename T1>
-	struct ComponentResult2 { EntityId id; T0* c0; T1* c1; };
-
-	template <typename T0>
-	struct ComponentResult1 { EntityId id; T0* c0; };
 
 	/*
 		an object with selected components, which provided ability to iterate through entities like it is the container of tuple<component1,component2,component3>
@@ -355,60 +337,17 @@ namespace ecss {
 		if componentContainer has multiple components in it, it will iterate through sectors, and may return nullptr for "main" component type
 		so better, if you want to merge multiple types in one sector, always create all components for sector
 	*/
+
+	struct TypeAccessInfo {
+		Memory::SectorsArray<>* array = nullptr;
+		uint32_t typeAliveMask = 0;
+		uint16_t typeOffsetInSector = 0;
+		bool isMain = false;
+	};
+
 	template <bool Ranged, typename T, typename ...ComponentTypes>
 	class ComponentArraysEntry final {
-		struct TypeAccessInfo {
-			Memory::SectorsArray* array = nullptr;
-			uint8_t typeIndexInSector = 0;
-			uint32_t typeAliveMask = 0;
-			size_t typeOffsetInSector = 0;
-			bool isMain = false;
-		};
-
 	public:
-		template<typename... Types>
-		void initArrays(Registry* manager) {
-			static_assert(types::areUnique<Types...>(), "Duplicates detected in types");
-			((mArrays[getIndex<Types>()] = manager->getComponentContainer<Types>()), ...);
-		}
-
-		explicit ComponentArraysEntry(Registry* manager, bool lock = true) requires (!Ranged) {
-			initArrays<ComponentTypes..., T>(manager);
-
-			if (lock) {
-				mLocks = manager->containersLock<T, ComponentTypes...>();
-			}
-		}
-
-		explicit ComponentArraysEntry(Registry* manager, const EntitiesRanges& ranges = {}, bool lock = true) requires (Ranged) : mRanges(ranges) {
-			initArrays<ComponentTypes..., T>(manager);
-
-			if (lock) {
-				mLocks = manager->containersLock<T, ComponentTypes...>();
-			}
-
-			if (!mRanges.empty()) {
-				auto sectorsArray = mArrays[getIndex<T>()];
-				for (auto& range : mRanges.ranges) {
-					range.first = Memory::SectorArrayUtils::findRightNearestSectorIndex(*sectorsArray, range.first);
-					range.second = Memory::SectorArrayUtils::findRightNearestSectorIndex(*sectorsArray, range.second);
-				}
-
-				mRanges.mergeIntersections();
-			}
-		}
-
-		bool valid() const {
-			if constexpr (Ranged) {
-				return !mRanges.empty();
-			}
-			else {
-				return !mArrays[getIndex<T>()]->empty();
-			}
-			
-		}
-
-		struct Dummy{};
 		class Iterator {
 		public:
 			using iterator_category = std::forward_iterator_tag;
@@ -418,226 +357,113 @@ namespace ecss {
 			using reference = value_type&;
 
 		public:
-			using SectorArrays = std::array<Memory::SectorsArray*, sizeof...(ComponentTypes) + 1>;
+			using SectorArrays = std::array<Memory::SectorsArray<>*, sizeof...(ComponentTypes) + 1>;
 
-			Iterator(const SectorArrays& arrays, size_t index, size_t endIndex) noexcept requires (!Ranged) {
-				initTypeAccessInfo<T, ComponentTypes...>(arrays);
-				
-				mCurrentIt = Memory::SectorsArray::Iterator(getTypeAccessInfo<T>().array, index);
-				mEndIterator = Memory::SectorsArray::Iterator(getTypeAccessInfo<T>().array, endIndex);
-				advanceToAlive(mCurrentIt, mEndIterator, getTypeAccessInfo<T>().typeAliveMask);
-			}
+			Iterator(const SectorArrays& arrays, Memory::SectorsArray<>::RangedIteratorAlive iterator) noexcept requires (Ranged) : mIterator(iterator) { initTypeAccessInfo<T, ComponentTypes...>(arrays); }
+			Iterator(const SectorArrays& arrays, Memory::SectorsArray<>::IteratorAlive iterator) noexcept requires (!Ranged) : mIterator(iterator) { initTypeAccessInfo<T, ComponentTypes...>(arrays); }
 
-			Iterator(const SectorArrays& arrays, EntitiesRanges ranges) noexcept requires (Ranged) {
-				initTypeAccessInfo<T, ComponentTypes...>(arrays);
-				
-				initIterators(ranges);
-			}
+			inline value_type operator*() noexcept { return { (*mIterator)->id, reinterpret_cast<T*>(reinterpret_cast<char*>(*mIterator) + getTypeAccessInfo<T>().typeOffsetInSector), getComponent<ComponentTypes>((*mIterator)->id)... }; }
 
-			inline auto operator*() {
-				auto sector = *mCurrentIt;
-				if constexpr (sizeof...(ComponentTypes) + 1 == 1) {
-					return ComponentResult1{ sector->id, reinterpret_cast<T*>(reinterpret_cast<char*>(sector) + getTypeAccessInfo<T>().typeOffsetInSector)};
-				}
-				else {
-					EntityId id = sector->id;
-					if constexpr (sizeof...(ComponentTypes) + 1 == 2) {
-						return ComponentResult2{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
-					}
-					else if constexpr (sizeof...(ComponentTypes) + 1 == 3) {
-						return ComponentResult3{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
-					}
-					else if constexpr (sizeof...(ComponentTypes) + 1 == 4) {
-						return ComponentResult4{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
-					}
-					else if constexpr (sizeof...(ComponentTypes) + 1 == 5) {
-						return ComponentResult5{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
-					}
-					else if constexpr (sizeof...(ComponentTypes) + 1 == 6) {
-						return ComponentResult6{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
-					}
-					else if constexpr (sizeof...(ComponentTypes) + 1 == 7) {
-						return ComponentResult7{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
-					}
-					else if constexpr (sizeof...(ComponentTypes) + 1 == 8) {
-						return ComponentResult8{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
-					}
-					else if constexpr (sizeof...(ComponentTypes) + 1 == 9) {
-						return ComponentResult9{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
-					}
-					else if constexpr (sizeof...(ComponentTypes) + 1 == 10) {
-						return ComponentResult10{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
-					}
-					else {
-						return std::tuple{ id, Iterator::getComponent<T, true>(sector, getTypeAccessInfo<T>()), getComponent<ComponentTypes>(id)... };
-					}
-				}
-			}
+			inline Iterator& operator++() noexcept { return ++mIterator, * this; }
 
-			inline Iterator& operator++() {
-				++mCurrentIt;
-				auto aliveMask = std::get<getIndex<T>()>(mTypeAccessInfo).typeAliveMask;
-				if constexpr(Ranged) {
-					if (mIterators.empty()) {
-						return *this;
-					}
-
-					while (mCurrentIt != mIterators.back().second) {
-						auto sector = *mCurrentIt;
-						if (sector->isAliveData & aliveMask) {
-							return *this;
-						}
-
-						++mCurrentIt;
-					}
-
-					mIterators.pop_back();
-					while (!mIterators.empty()) {
-						mCurrentIt = std::move(mIterators.back().first);
-						while (mCurrentIt != mIterators.back().second) {
-							auto sector = *mCurrentIt;
-							if (sector->isAliveData & aliveMask) {
-								return *this;
-							}
-
-							++mCurrentIt;
-						}
-
-						mIterators.pop_back();
-					}
-				}
-				else {
-					while (mCurrentIt != mEndIterator) {
-						auto sector = *mCurrentIt;
-						if (sector->isAliveData & aliveMask) {
-							break;
-						}
-
-						++mCurrentIt;
-					}
-				}
-
-				return *this;
-			}
-			bool operator!=(const Iterator& other) const{ return mCurrentIt != other.mCurrentIt; }
+			bool operator!=(const Iterator& other) const noexcept { return mIterator != other.mIterator; }
+			bool operator==(const Iterator& other) const noexcept { return mIterator == other.mIterator; }
 
 		private:
-			template<typename ComponentType>
-			inline void initTypeAccessInfoImpl(Memory::SectorsArray* sectorArray) {
-				auto& info = std::get<getIndex<ComponentType>()>(mTypeAccessInfo);
-				info.array = sectorArray;
-				info.typeIndexInSector = static_cast<uint8_t>(sectorArray->getLayoutData<ComponentType>().index);
-				info.typeAliveMask = 1 << info.typeIndexInSector;
-				info.typeOffsetInSector = sectorArray->getLayoutData<ComponentType>().offset;
-				info.isMain = sectorArray == std::get<getIndex<ComponentType>()>(mTypeAccessInfo).array;
-
-			}
+			template <typename ComponentType>
+			inline constexpr TypeAccessInfo& getTypeAccessInfo() noexcept { return std::get<getIndex<ComponentType>()>(mTypeAccessInfo); }
 
 			template<typename... Types>
-			inline void initTypeAccessInfo(const SectorArrays& arrays) {
-				(initTypeAccessInfoImpl<Types>(arrays[getIndex<Types>()]), ...);
-			}
-
-			template <typename ComponentType>
-			inline constexpr TypeAccessInfo& getTypeAccessInfo() { return std::get<getIndex<ComponentType>()>(mTypeAccessInfo); }
+			inline void initTypeAccessInfo(const SectorArrays& arrays) noexcept { (initTypeAccessInfoImpl<Types>(arrays[getIndex<Types>()]), ...); }
 
 			template<typename ComponentType>
-			inline ComponentType* getComponent(EntityId sectorId) {
-				const auto& info = getTypeAccessInfo<ComponentType>();
-
-				return info.isMain ? Iterator::getComponent<ComponentType, true, true>(*mCurrentIt, info) : Iterator::getComponent<ComponentType>(info.array->findSector(sectorId), info);
+			inline void initTypeAccessInfoImpl(Memory::SectorsArray<>* sectorArray) noexcept {
+				auto& info = getTypeAccessInfo<ComponentType>();
+				info.array = sectorArray;
+				info.typeAliveMask = sectorArray->getLayoutData<ComponentType>().isAliveMask;
+				info.typeOffsetInSector = sectorArray->getLayoutData<ComponentType>().offset;
+				info.isMain = sectorArray == getTypeAccessInfo<T>().array;
 			}
 
-			inline void initIterators(EntitiesRanges& ranges) requires(Ranged) {
-				assert(!ranges.ranges.empty());
-				
-				auto sectorArray = std::get<getIndex<T>()>(mTypeAccessInfo).array;
+			template<typename ComponentType>
+			inline ComponentType* getComponent(EntityId sectorId) noexcept { return Iterator::getComponent<ComponentType>((getTypeAccessInfo<ComponentType>().isMain ? *mIterator : getTypeAccessInfo<ComponentType>().array->findSector(sectorId, ecss::SyncType::NONE)), getTypeAccessInfo<ComponentType>()); }
 
-				mIterators.reserve(ranges.size());
-				auto aliveMask = std::get<getIndex<T>()>(mTypeAccessInfo).typeAliveMask;
-				while (!ranges.empty()) {
-					mCurrentIt = { sectorArray, ranges.back().first };
-					mEndIterator = { sectorArray, ranges.back().second };
-					ranges.pop_back();
-
-					advanceToAlive(mCurrentIt, mEndIterator, aliveMask);
-
-					mIterators.emplace_back(mCurrentIt, mEndIterator);
-				}
-				mIterators.shrink_to_fit();
-			}
-
-			inline bool advanceToAlive(Memory::SectorsArray::Iterator& iterator, const Memory::SectorsArray::Iterator& endIterator, size_t aliveMask) {
-				bool res = false;
-				while (iterator != endIterator) {
-					auto sector = *iterator;
-					if (sector->isAliveData & aliveMask) {
-						res = true;
-						break;
-					}
-
-					++iterator;
-				}
-
-				return res;
-			}
-
-			template<typename ComponentType, bool Main = false, bool CheckIsAlive = false>
-			static inline ComponentType* getComponent(Memory::Sector* sector, const TypeAccessInfo& meta) {
-				if constexpr (Main) {
-					if constexpr (CheckIsAlive) {
-						return sector->isAliveData & meta.typeAliveMask ? reinterpret_cast<ComponentType*>(reinterpret_cast<char*>(sector) + meta.typeOffsetInSector) : nullptr;
-					}
-					else {
-						return reinterpret_cast<ComponentType*>(reinterpret_cast<char*>(sector) + meta.typeOffsetInSector);
-					}
-				}
-				else {
-					return sector && (sector->isAliveData & meta.typeAliveMask) ? reinterpret_cast<ComponentType*>(reinterpret_cast<char*>(sector) + meta.typeOffsetInSector) : nullptr;
-				}
-			}
+			template<typename ComponentType>
+			inline ComponentType* getComponent(Memory::Sector* sector, const TypeAccessInfo& meta) noexcept { return sector && (sector->isAliveData & meta.typeAliveMask) ? reinterpret_cast<ComponentType*>(reinterpret_cast<char*>(sector) + meta.typeOffsetInSector) : nullptr; }
 
 		private:
-			Memory::SectorsArray::Iterator mCurrentIt;
+			std::conditional_t<Ranged, Memory::SectorsArray<>::RangedIteratorAlive, Memory::SectorsArray<>::IteratorAlive> mIterator;
 
-			std::tuple<TypeAccessInfo, decltype((void)sizeof(ComponentTypes), TypeAccessInfo{})... > mTypeAccessInfo;
-
-			std::conditional_t<Ranged, std::vector<std::pair<Memory::SectorsArray::Iterator, Memory::SectorsArray::Iterator>>, Dummy> mIterators;
-			Memory::SectorsArray::Iterator mEndIterator;
+			std::tuple<TypeAccessInfo, decltype((void)sizeof(ComponentTypes), TypeAccessInfo{})...> mTypeAccessInfo;
 		};
 
-		inline Iterator begin() {
+		inline Iterator begin() noexcept {
 			if constexpr (Ranged) {
-				return { mArrays, mRanges };
+				return Iterator{ mArrays, Memory::SectorsArray<>::RangedIteratorAlive(mArrays[getIndex<T>()], mRanges, mArrays[getIndex<T>()]->getLayoutData<T>().isAliveMask) };
 			}
 			else {
-				return { mArrays, 0, mArrays[getIndex<T>()]->size() };
+				return Iterator{ mArrays, Memory::SectorsArray<>::IteratorAlive(mArrays[getIndex<T>()], 0, mArrays[getIndex<T>()]->size(ecss::SyncType::NONE), mArrays[getIndex<T>()]->getLayoutData<T>().isAliveMask) };
 			}
 		}
-		
-		inline Iterator end() {
+
+		inline Iterator end() noexcept {
 			if constexpr (Ranged) {
-				return { mArrays, EntitiesRanges{{mRanges.back().second, mRanges.back().second}} };
+				return Iterator{ mArrays, Memory::SectorsArray<>::RangedIteratorAlive(mArrays[getIndex<T>()], mRanges.back().second) };
 			}
 			else {
-				return { mArrays, mArrays[getIndex<T>()]->size(), mArrays[getIndex<T>()]->size() };
+				return Iterator{ mArrays, Memory::SectorsArray<>::IteratorAlive(mArrays[getIndex<T>()], mArrays[getIndex<T>()]->size(ecss::SyncType::NONE)) };
+			}
+		}
+
+	public:
+		explicit ComponentArraysEntry(Registry* manager, bool lock = true) noexcept requires (!Ranged) {
+			initArrays<ComponentTypes..., T>(manager);
+
+			mLocks = lock ? manager->containersLock<T, ComponentTypes...>() : std::vector<Registry::Lock>{};
+		}
+
+		explicit ComponentArraysEntry(Registry* manager, const EntitiesRanges& ranges = {}, bool lock = true) noexcept requires (Ranged) : mRanges(ranges) {
+			initArrays<ComponentTypes..., T>(manager);
+
+			mLocks = lock ? manager->containersLock<T, ComponentTypes...>() : std::vector<Registry::Lock>{};
+
+			auto sectorsArray = mArrays[getIndex<T>()];
+			for (auto& range : mRanges.ranges) {
+				range.first = static_cast<EntityId>(Memory::SectorArrayUtils::findRightNearestSectorIndex(sectorsArray, range.first));
+				range.second = static_cast<EntityId>(Memory::SectorArrayUtils::findRightNearestSectorIndex(sectorsArray, range.second));
+			}
+
+			mRanges.mergeIntersections();
+		}
+
+		bool valid() const noexcept {
+			if constexpr (Ranged) {
+				return !mRanges.empty() || !mArrays[getIndex<T>()]->empty();
+			}
+			else {
+				return !mArrays[getIndex<T>()]->empty();
 			}
 		}
 
 	private:
-
 		template<typename ComponentType>
-		static inline size_t constexpr getIndex() {
+		static inline size_t constexpr getIndex() noexcept {
 			if constexpr (std::is_same_v<T, ComponentType>) {
-				return sizeof...(ComponentTypes);
+				return 0;
 			}
 			else {
-				return types::getIndex<ComponentType, ComponentTypes...>();
+				return types::getIndex<ComponentType, ComponentTypes...>() + 1;
 			}
 		}
 
+		template<typename... Types>
+		void initArrays(Registry* registry) noexcept {
+			static_assert(types::areUnique<Types...>(), "Duplicates detected in types");
+			((mArrays[getIndex<Types>()] = registry->getComponentContainer<Types>()), ...);
+		}
+
 	private:
-		std::array<Memory::SectorsArray*, sizeof...(ComponentTypes) + 1> mArrays;
+		std::array<Memory::SectorsArray<>*, sizeof...(ComponentTypes) + 1> mArrays;
 		std::vector<Registry::Lock> mLocks;
 
 		EntitiesRanges mRanges;

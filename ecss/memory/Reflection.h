@@ -8,13 +8,7 @@
 namespace ecss::Memory {
 	class ReflectionHelper {
 	public:
-		ReflectionHelper() : mCurrentInstance(mHelperInstances++) { mTypes.resize(mHelperInstances); }
-
-		struct FunctionTable {
-			std::function<void(void* dest, void* src)> move;
-			std::function<void(void* dest, void* src)> copy;
-			std::function<void(void* src)> destructor;
-		};
+		ReflectionHelper() : mCurrentInstance(mHelperInstances++) {}
 
 		template<typename T>
 		inline ECSType getTypeId() {
@@ -26,15 +20,15 @@ namespace ecss::Memory {
 		}
 
 	private:
-		static inline uint8_t mHelperInstances = 0;
-		static inline std::vector<ECSType> mTypes;
-		uint8_t mCurrentInstance = 0;
+		static inline uint16_t mHelperInstances = 0;
+		static inline std::array<ECSType, std::numeric_limits<decltype(mHelperInstances)>::max()> mTypes;
+		decltype(mHelperInstances) mCurrentInstance = 0;
 
 		static constexpr ECSType INVALID_TYPE = std::numeric_limits<ECSType>::max();
 
 		template<typename T>
 		inline ECSType getTypeIdImpl() {
-			static constexpr size_t maxInstancesCount = 256;
+			static constexpr size_t maxInstancesCount = std::numeric_limits<decltype(mHelperInstances)>::max();
 			static ECSType types[maxInstancesCount];
 			static std::once_flag flags[maxInstancesCount];
 
