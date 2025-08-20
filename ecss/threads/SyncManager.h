@@ -1,41 +1,30 @@
 ﻿#pragma once
 
-namespace ecss {
-	struct SyncManager {
-		enum class SyncType { NONE, SHARED, UNIQUE };
+#include <shared_mutex>
 
-		struct AnyLock {
-			std::shared_mutex* m = nullptr;
-			SyncType t = SyncType::NONE;
-			bool owns = false;
+namespace ecss::Threads {
+    template<class L>
+    class [[nodiscard]] MaybeLock {
+    public:
+        MaybeLock() noexcept = default;
 
-			AnyLock() = default;
-			explicit AnyLock(std::shared_mutex& mtx, SyncType type) noexcept : m(&mtx), t(type) {
-				switch (t) {
-				case SyncType::SHARED: m->lock_shared(); owns = true; break;
-				case SyncType::UNIQUE: m->lock();        owns = true; break;
-				default: break;
-				}
-			}
-			AnyLock(AnyLock&& o) noexcept { *this = std::move(o); }
-			AnyLock& operator=(AnyLock&& o) noexcept {
-				if (this != &o) { unlock(); m = o.m; t = o.t; owns = o.owns; o.m = nullptr; o.owns = false; }
-				return *this;
-			}
-			~AnyLock() { unlock(); }
+        MaybeLock(std::shared_mutex& m, bool do_lock) noexcept : mLock(m, std::defer_lock) { if (do_lock) { mLock.lock(); } }
 
-			void unlock() noexcept {
-				if (!owns || !m) return;
-				if (t == SyncType::SHARED) m->unlock_shared(); else m->unlock();
-				owns = false;
-			}
-		};
+        MaybeLock(const MaybeLock&) = delete;
+        MaybeLock& operator=(const MaybeLock&) = delete;
+        MaybeLock(MaybeLock&&) noexcept = default;
+        MaybeLock& operator=(MaybeLock&&) noexcept = default;
 
-		static AnyLock Lock(std::shared_mutex& mtx, SyncType syncType) {
-			return AnyLock(mtx, syncType);
-		}
-	};
+        explicit operator bool() const noexcept { return mLock.owns_lock(); }
+        L& getLock() { return mLock; }
+    private:
+        L mLock{};
+    };
 
-	using SM = SyncManager;
-	using SyncType = SyncManager::SyncType;
+    using SharedGuard = MaybeLock<std::shared_lock<std::shared_mutex>>;
+    using UniqueGuard = MaybeLock<std::unique_lock<std::shared_mutex>>;
+
+    inline SharedGuard [[nodiscard]] sharedLock(std::shared_mutex& mtx, bool sync = true) noexcept { return SharedGuard(mtx, sync); }
+
+    inline UniqueGuard [[nodiscard]] uniqueLock(std::shared_mutex& mtx, bool sync = true) noexcept { return UniqueGuard(mtx, sync); }
 }

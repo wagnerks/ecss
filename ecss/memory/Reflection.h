@@ -1,9 +1,9 @@
 ﻿#pragma once
 
 #include <functional>
-
-#include "../Types.h"
 #include <mutex>
+
+#include <ecss/Types.h>
 
 namespace ecss::Memory {
 	class ReflectionHelper {

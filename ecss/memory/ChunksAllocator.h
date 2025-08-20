@@ -15,12 +15,12 @@ namespace ecss::Memory {
             using reference = value_type&;
 
             Iterator() = default;
-            Iterator(size_t idx, const ChunksAllocator* chunks) : shift(chunks->mSectorSize), mSectorPtr(idx < chunks->capacity() ? chunks->at(idx) : nullptr) {
+            Iterator(size_t idx, const ChunksAllocator* chunks) : mSectorPtr(idx < chunks->capacity() ? chunks->at(std::min(idx, chunks->size())) : nullptr), shift(chunks->mSectorSize) {
                 if (mSectorPtr) {
                     auto chunkIdx = chunks->calcChunkIndex(idx);
                     pointersList.reserve((chunks->mChunks.size() - chunkIdx) * 2 - 1);
 
-                    const size_t stride = size_t(chunks->mSectorSize) * chunks->mChunkCapacity;
+                    const size_t stride = static_cast<size_t>(chunks->mSectorSize) * chunks->mChunkCapacity;
                     for (auto i = chunks->mChunks.size(); --i > chunkIdx;) {
                         auto base = static_cast<char*>(chunks->mChunks[i]);
                         pointersList.emplace_back(reinterpret_cast<Sector*>(base + stride));
@@ -93,12 +93,12 @@ namespace ecss::Memory {
         }
 
     public:
-        ~ChunksAllocator() noexcept { free(); };
+        ~ChunksAllocator() noexcept { free(); }
         ChunksAllocator() noexcept = default;
         ChunksAllocator(uint32_t chunkSize) noexcept : mChunkCapacity(nextPowerOfTwo(chunkSize)), mChunkShift(std::countr_zero(mChunkCapacity)) {}
 
     public:
-        void setLayoutMeta(SectorLayoutMeta* layoutMeta) noexcept {
+        void init(SectorLayoutMeta* layoutMeta) noexcept {
             assert(layoutMeta);
 
 	        mSectorLayout = layoutMeta;
@@ -110,6 +110,7 @@ namespace ecss::Memory {
                 }
             }
         }
+        SectorLayoutMeta* getSectorLayout() const { return mSectorLayout; }
 
         Sector* acquireSector(SectorId sectorId) noexcept {
 			if (sectorId >= mSectorsMap.size()) [[unlikely]] {
@@ -389,7 +390,7 @@ namespace ecss::Memory {
 
             shrinkToFit();
         }
-
+        
     private:
         void* getChunk(size_t index) const noexcept { return mChunks[index]; }
 

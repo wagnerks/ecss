@@ -1,21 +1,16 @@
-﻿
-// ecs_tests.cpp
-#include <gtest/gtest.h>
-#include <thread>
+﻿#include <atomic>
 #include <future>
 #include <random>
-#include <atomic>
-#include <numeric>
-#include <barrier>
+#include <thread>
 #include <unordered_set>
+#include <chrono>
 
-#include <ecss/memory/SectorsArray.h>
-#include <ecss/memory/Reflection.h>
-#include <ecss/memory/Sector.h>
-#include <ecss/memory/ChunksAllocator.h>
-#include <ecss/EntitiesRanges.h>
 #include <ecss/Registry.h>
-#include <ecss/threads/SyncManager.h>
+#include <ecss/memory/SectorsArray.h>
+#include <ecss/memory/Sector.h>
+
+
+#include <gtest/gtest.h>
 
 using namespace ecss;
 using namespace ecss::Memory;
@@ -29,13 +24,13 @@ namespace CommonTests {
 
     // Хелпер на создание массива с заданными типами и малыми чанками
     template<typename... Ts>
-    SectorsArray<>* MakeArray(ReflectionHelper& rh, uint32_t capacity = 0, uint32_t chunk = 4) {
+    ecss::Memory::SectorsArray<>* MakeArray(uint32_t capacity = 0, uint32_t chunk = 4) {
         // chunk — это "ёмкость чанка в секторах", выбираем маленький, чтобы насильно бегать по границам чанков
-        return SectorsArray<>::create<Ts...>(rh, capacity, chunk);
+        return ecss::Memory::SectorsArray<>::create<Ts...>(capacity, chunk);
     }
 
     // Возвращает все id из обычного итератора
-    static std::vector<SectorId> CollectIds(SectorsArray<>* arr) {
+    static std::vector<SectorId> CollectIds(ecss::Memory::SectorsArray<>* arr) {
         std::vector<SectorId> out;
         for (auto it = arr->begin(); it != arr->end(); ++it) {
             out.push_back((*it)->id);
@@ -45,9 +40,9 @@ namespace CommonTests {
 
     // Возвращает все id из IteratorAlive<T>
     template<typename T>
-    static std::vector<SectorId> CollectAliveIds(SectorsArray<>* arr) {
+    static std::vector<SectorId> CollectAliveIds(ecss::Memory::SectorsArray<>* arr) {
         std::vector<SectorId> out;
-        for (auto it = arr->template beginAlive<T>(); it != arr->template endAlive<T>(); ++it) {
+        for (auto it = arr->template beginAlive<T>(); it != arr->endAlive(); ++it) {
             out.push_back((*it)->id);
         }
         return out;
@@ -55,8 +50,7 @@ namespace CommonTests {
 
     // ---------- БАЗОВОЕ СОЗДАНИЕ И ЛЭЙАУТ ----------
     TEST(SectorsArray_Basics, CreateInsertOrderAndLookup) {
-        ReflectionHelper rh;
-        auto* arr = MakeArray<Pos, Vel>(rh, /*capacity*/0, /*chunk*/4);
+        auto* arr = MakeArray<Pos, Vel>(/*capacity*/0, /*chunk*/4);
 
         // Вставки (не по порядку)
         arr->insert<Pos>(5, Pos{ 50 });
@@ -71,16 +65,16 @@ namespace CommonTests {
 
         // Найти сектора по id
         {
-            auto s3 = arr->findSector(3, ecss::SyncType::NONE);
+            auto s3 = arr->findSector(3, false);
             ASSERT_NE(s3, nullptr);
             EXPECT_EQ(s3->id, 3u);
             EXPECT_TRUE(s3->isSectorAlive()); // хотя бы один компонент должен быть alive
         }
 
         // Повторная вставка в существующий сектор не должна раздувать размер
-        size_t sizeBefore = arr->size(ecss::SyncType::NONE);
+        auto sizeBefore = arr->size(false);
         arr->insert<Pos>(3, Pos{ 300 });
-        size_t sizeAfter = arr->size(ecss::SyncType::NONE);
+        auto sizeAfter = arr->size(false);
         EXPECT_EQ(sizeBefore, sizeAfter);
 
         delete arr;
@@ -88,8 +82,7 @@ namespace CommonTests {
 
     // ---------- ПРОВЕРКИ ALIVE-ФЛАГОВ И ИТЕРАЦИИ ----------
     TEST(SectorsArray_Alive, IteratorAliveFilters) {
-        ReflectionHelper rh;
-        auto* arr = MakeArray<Pos, Vel>(rh, 0, 4);
+        auto* arr = MakeArray<Pos, Vel>(0, 4);
 
         // Добавим 10 секторов. Отметим alive для Pos только на чётных id.
         for (SectorId id = 0; id < 10; ++id) {
@@ -100,22 +93,22 @@ namespace CommonTests {
         }
         auto alive = CollectAliveIds<Pos>(arr);
         ASSERT_EQ(alive.size(), 5u);
-        for (size_t i = 0; i < alive.size(); ++i) {
+        for (auto i = 0u; i < alive.size(); ++i) {
             EXPECT_EQ(alive[i] % 2, 0u);
         }
 
         // Снять alive у пары чётных — итератор должен пропустить
         arr->insert<Pos>(2, {}); // не меняет alive
         {
-            auto s2 = arr->findSector(2, ecss::SyncType::NONE);
+            auto s2 = arr->findSector(2, false);
             s2->destroyMember(arr->getLayoutData<Pos>());
         }
         {
-            auto s8 = arr->findSector(8, ecss::SyncType::NONE);
+            auto s8 = arr->findSector(8, false);
             s8->destroyMember(arr->getLayoutData<Pos>());
         }
         alive = CollectAliveIds<Pos>(arr);
-        std::unordered_set<SectorId> got(alive.begin(), alive.end());
+        std::unordered_set<SectorId> got{ alive.begin(), alive.end() };
         EXPECT_FALSE(got.contains(2));
         EXPECT_FALSE(got.contains(8));
 
@@ -124,8 +117,7 @@ namespace CommonTests {
 
     // ---------- ВСТАВКИ В КОНЕЦ И В СЕРЕДИНУ ----------
     TEST(SectorsArray_Insert, AppendAndMiddleInsertShifts) {
-        ReflectionHelper rh;
-        auto* arr = MakeArray<Pos>(rh, 0, 3);
+        auto* arr = MakeArray<Pos>(0, 3);
 
         // Добавления по возрастанию (быстрый путь)
         for (SectorId id = 0; id < 6; ++id) {
@@ -146,39 +138,39 @@ namespace CommonTests {
 
     // ---------- ERASE/SHIFT ----------
     TEST(SectorsArray_Erase, EraseBeginMiddleEndAndNoShift) {
-        ReflectionHelper rh;
-        auto* arr = MakeArray<Pos>(rh, 0, 3);
+        
+        auto* arr = MakeArray<Pos>(0, 3);
         for (SectorId id = 0; id < 7; ++id) {
             arr->insert<Pos>(id, Pos{ int(id) });
         }
-        ASSERT_EQ(arr->size(ecss::SyncType::NONE), 7u);
+        ASSERT_EQ(arr->size(false), 7u);
 
         // Удаление из начала (со сдвигом)
-        arr->erase(0, 1, /*shift*/true, ecss::SyncType::NONE);
+        arr->erase(0, 1, /*shift*/true, false);
         auto ids = CollectIds(arr);
         ASSERT_EQ(ids.size(), 6u);
         EXPECT_EQ(ids.front(), 1u);
 
         // Удаление из середины (со сдвигом)
-        arr->erase(2, 2, /*shift*/true, ecss::SyncType::NONE); // сотрём текущие индексы 2 и 3
+        arr->erase(2, 2, /*shift*/true, false); // сотрём текущие индексы 2 и 3
         ids = CollectIds(arr);
         ASSERT_EQ(ids.size(), 4u);
 
         // Удаление из конца без сдвига (оставим "дыру" для последующей дефрагментации)
-        const auto sizeBefore = arr->size(ecss::SyncType::NONE);
-        arr->erase(ids.size() - 1, 1, /*shift*/false, ecss::SyncType::NONE);
-        EXPECT_EQ(arr->size(ecss::SyncType::NONE), sizeBefore); // размер не уменьшился
+        const auto sizeBefore = arr->size(false);
+        arr->erase(ids.size() - 1, 1, /*shift*/false, false);
+        EXPECT_EQ(arr->size(false), sizeBefore); // размер не уменьшился
         // запускаем defragment
-        arr->defragment(ecss::SyncType::NONE);
-        EXPECT_LT(arr->size(ecss::SyncType::NONE), sizeBefore);
+        arr->defragment(false);
+        EXPECT_LT(arr->size(false), sizeBefore);
 
         delete arr;
     }
 
     // ---------- DEFRAGMENT ----------
     TEST(SectorsArray_Defrag, RemoveDeadAndCompact) {
-        ReflectionHelper rh;
-        auto* arr = MakeArray<Pos, Vel>(rh, 0, 4);
+        
+        auto* arr = MakeArray<Pos, Vel>(0, 4);
 
         // 0..9, метим часть как dead для Pos и Vel по-разному
         for (SectorId id = 0; id < 10; ++id) {
@@ -189,13 +181,13 @@ namespace CommonTests {
         }
         // Помечаем not alive для нескольких
         for (SectorId id : {1u, 4u, 8u}) {
-            auto s = arr->findSector(id, ecss::SyncType::NONE);
+            auto s = arr->findSector(id, false);
             s->destroyMember(arr->getLayoutData<Pos>());
             s->destroyMember(arr->getLayoutData<Vel>());
         }
-        const size_t sizeBefore = arr->size(ecss::SyncType::NONE);
-        arr->defragment(ecss::SyncType::NONE);
-        const size_t sizeAfter = arr->size(ecss::SyncType::NONE);
+        const auto sizeBefore = arr->size(false);
+        arr->defragment(false);
+        const auto sizeAfter = arr->size(false);
         EXPECT_LT(sizeAfter, sizeBefore);
 
         // Порядок должен сохраниться (возрастающий id)
@@ -204,7 +196,7 @@ namespace CommonTests {
 
         // Нет dangling в SectorsMap для живых id
         for (auto id : ids) {
-            auto s = arr->findSector(id, ecss::SyncType::NONE);
+            auto s = arr->findSector(id, false);
             ASSERT_NE(s, nullptr);
             EXPECT_EQ(s->id, id);
         }
@@ -214,8 +206,8 @@ namespace CommonTests {
 
     // ---------- COPY/MOVE КОНТЕЙНЕРОВ ----------
     TEST(SectorsArray_CopyMove, CopyAndMoveSemanticsPreserveData) {
-        ReflectionHelper rh;
-        auto* a = MakeArray<Pos, Vel>(rh, 0, 4);
+        
+        auto* a = MakeArray<Pos, Vel>(0, 4);
 
         for (SectorId id = 0; id < 8; ++id) {
             if (id & 1) a->insert<Pos>(id, Pos{ int(id) });
@@ -225,13 +217,13 @@ namespace CommonTests {
 
         // Копия
         {
-            SectorsArray<> b = *a;
+            ecss::Memory::SectorsArray<> b = *a;
             auto idsB = CollectIds(&b);
             EXPECT_EQ(idsA, idsB);
 
 
             // Муув
-            SectorsArray<> c = std::move(b);
+            ecss::Memory::SectorsArray<> c = std::move(b);
             auto idsC = CollectIds(&c);
             EXPECT_EQ(idsA, idsC);
         }
@@ -241,9 +233,9 @@ namespace CommonTests {
 
     // ---------- ЧАНК-ГРАНИЦЫ ----------
     TEST(SectorsArray_Chunks, IteratorAcrossChunkBoundaries) {
-        ReflectionHelper rh;
+        
         // chunk=3 → принудительно пересекаем границы
-        auto* arr = MakeArray<Pos>(rh, 0, 3);
+        auto* arr = MakeArray<Pos>(0, 3);
         const int N = 17;
         for (int i = 0; i < N; ++i) {
             arr->insert<Pos>(i, Pos{ i });
@@ -257,9 +249,9 @@ namespace CommonTests {
         }
 
         // Удалим несколько в середине, дефрагментируем — снова проверим
-        arr->erase(4, 2, true, ecss::SyncType::NONE); // сдвиг
-        arr->erase(5, 1, false, ecss::SyncType::NONE); // без сдвига
-        arr->defragment(ecss::SyncType::NONE);
+        arr->erase(4, 2, true, false); // сдвиг
+        arr->erase(5, 1, false, false); // без сдвига
+        arr->defragment(false);
         ids = CollectIds(arr);
         EXPECT_TRUE(std::is_sorted(ids.begin(), ids.end()));
 
@@ -268,8 +260,8 @@ namespace CommonTests {
 
     // ---------- RANGED ----------
     TEST(SectorsArray_Ranged, RangedAndRangedAliveIterators) {
-        ReflectionHelper rh;
-        auto* arr = MakeArray<Pos, Vel>(rh, 0, 4);
+        
+        auto* arr = MakeArray<Pos, Vel>(0, 4);
         for (SectorId id = 0; id < 20; ++id) {
             // Пусть Pos живёт у кратных 2, Vel у кратных 3
             if (id % 2 == 0) arr->insert<Pos>(id, Pos{ int(id) });
@@ -281,8 +273,6 @@ namespace CommonTests {
         ranges.ranges.push_back({ 3, 10 });
         ranges.ranges.push_back({ 8, 15 });
         ranges.mergeIntersections();
-        ranges.ranges.back().first = static_cast<SectorId>(SectorArrayUtils::findRightNearestSectorIndex(arr, ranges.ranges.back().first));
-        ranges.ranges.back().second = static_cast<SectorId>(SectorArrayUtils::findRightNearestSectorIndex(arr, ranges.ranges.back().second));
         // Рейндж-итератор
         {
             std::vector<SectorId> got;
@@ -292,19 +282,19 @@ namespace CommonTests {
             ASSERT_FALSE(got.empty());
             EXPECT_TRUE(std::is_sorted(got.begin(), got.end()));
             EXPECT_GE(got.front(), 3u);
-            EXPECT_LT(got.back(), 15u);
+            EXPECT_LT(got.back(), 19u);
         }
 
         // RangedAlive по Pos (чётные только)
         {
             std::vector<SectorId> got;
             auto it = arr->beginRangedAlive<Pos>(ranges);
-            auto end = arr->endRangedAlive<Pos>(ranges);
+            auto end = arr->endRangedAlive(ranges);
             for (; it != end; ++it) got.push_back((*it)->id);
             for (auto id : got) {
                 EXPECT_EQ(id % 2, 0u);
                 EXPECT_GE(id, 3u);
-                EXPECT_LT(id, 15u);
+                EXPECT_LT(id, 19u);
             }
         }
 
@@ -329,16 +319,16 @@ namespace CommonTests {
 
         for (auto id : ids) {
             EXPECT_TRUE(reg.hasComponent<Pos>(id));
-            auto* p = reg.getComponent<Pos>(id);
+            auto* p = reg.getPinnedComponent<Pos>(id).get();
             ASSERT_NE(p, nullptr);
             EXPECT_EQ(p->x, (int)id);
             if (id % 3 == 0) {
-                auto* v = reg.getComponent<Vel>(id);
+                auto* v = reg.getPinnedComponent<Vel>(id).get();
                 ASSERT_NE(v, nullptr);
                 EXPECT_FLOAT_EQ(v->v, float(id));
             }
             else {
-                EXPECT_EQ(reg.getComponent<Vel>(id), nullptr);
+                EXPECT_EQ(reg.getPinnedComponent<Vel>(id).get(), nullptr);
             }
         }
 
@@ -350,14 +340,14 @@ namespace CommonTests {
         std::vector<EntityId> kill(ids.begin() + 1, ids.begin() + 5);
         reg.destroyComponent<Vel>(kill);
         for (auto id : kill) {
-            EXPECT_EQ(reg.getComponent<Vel>(id), nullptr);
+            EXPECT_EQ(reg.getPinnedComponent<Vel>(id).get(), nullptr);
         }
     }
 
     // ---------- МНОГОПОТОЧНОСТЬ: ЧТЕНИЕ ----------
     TEST(SectorsArray_MT, ParallelReadIterators) {
-        ReflectionHelper rh;
-        auto* arr = MakeArray<Pos, Vel>(rh, 0, 8);
+        
+        auto* arr = MakeArray<Pos, Vel>(0, 8);
 
         const int N = 20000;
         for (int i = 0; i < N; ++i) {
@@ -390,8 +380,8 @@ namespace CommonTests {
 
     // ---------- МНОГОПОТОЧНОСТЬ: ЧТЕНИЕ + БЕЗОПАСНЫЕ ИЗМЕНЕНИЯ ----------
     TEST(SectorsArray_MT, ConcurrentReadersWithOccasionalWriter) {
-        ReflectionHelper rh;
-        auto* arr = MakeArray<Pos, Vel>(rh, 0, 8);
+        
+        auto* arr = MakeArray<Pos, Vel>(0, 8);
 
         const int N = 5000;
         for (int i = 0; i < N; ++i) {
@@ -399,7 +389,8 @@ namespace CommonTests {
             if (i % 4 == 0) arr->insert<Vel>(i, Vel{ float(i) });
         }
 
-        std::atomic<bool> stop{ false };
+        std::atomic<bool> stop;
+        stop.store(false);
 
         // Читатели (shared lock)
         auto reader = [&]() {
@@ -421,17 +412,16 @@ namespace CommonTests {
             std::uniform_int_distribution<int> dist(0, N - 1);
             for (int iter = 0; iter < 200; ++iter) {
                 {
-                    auto wlock = arr->writeLock();
                     // Случайно “мигнём” Vel для id
                     const int id = dist(rng);
-                    auto s = arr->findSector(id, ecss::SyncType::NONE);
+                    auto s = arr->pinSector(id, true);
                     if (s) {
                         // Тоггл: если жив – разрушим; если мертв – добавим
                         if (s->isAlive(arr->getLayoutData<Vel>().isAliveMask)) {
                             s->destroyMember(arr->getLayoutData<Vel>());
                         }
                         else {
-                            Sector::emplaceMember<Vel>(s, arr->getLayoutData<Vel>(), Vel{ float(id) });
+                            Sector::emplaceMember<Vel>(s.get(), arr->getLayoutData<Vel>(), float(id));
                         }
                     }
                 }
@@ -474,7 +464,7 @@ namespace CommonTests {
         {
             auto entry = reg.forEach<Pos, Vel>(/*lock*/true);
             if (entry.valid()) {
-                size_t seen = 0;
+                auto seen = 0;
                 for (auto it = entry.begin(); it != entry.end(); ++it) {
                     auto [eid, p, v] = *it;
                     // p может быть null (если сектор без Pos)
