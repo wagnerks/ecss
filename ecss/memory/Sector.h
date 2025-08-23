@@ -27,7 +27,7 @@ namespace ecss::Memory {
 		uint16_t index = 0;
 		uint16_t isAliveMask = 0;
 		uint16_t isNotAliveMask = 0;
-		bool isTrivial = 0;
+		bool isTrivial = false;
 	};
 
 	struct SectorLayoutMeta {
@@ -151,10 +151,10 @@ namespace ecss::Memory {
 		uint8_t getTypesCount() const { return count; };
 
 	private:
-		LayoutData* layout;
-		size_t* typeIds;
-		uint16_t totalSize;
-		uint8_t count;
+		LayoutData* layout = nullptr;
+		size_t* typeIds = nullptr;
+		uint16_t totalSize = 0;
+		uint8_t count = 0;
 	};
 
 	/*
@@ -179,14 +179,23 @@ namespace ecss::Memory {
 		inline constexpr bool isAlive(size_t mask) const { return isAliveData & mask; }
 
 		template<typename T>
-		inline constexpr T* getMember(size_t offset, size_t mask) { return isAlive(mask) ? static_cast<T*>(getMemberPtr(this, offset)) : nullptr; }
+		inline constexpr T* getMember(size_t offset, size_t mask) const { return isAlive(mask) ? static_cast<T*>(getMemberPtr(this, offset)) : nullptr; }
 
 		template<typename T>
-		inline constexpr T* getMember(const LayoutData& layout) { return getMember<T>(layout.offset, layout.isAliveMask); }
+		inline constexpr T* getMember(const LayoutData& layout) const { return getMember<T>(layout.offset, layout.isAliveMask); }
 
-		inline static void* getMemberPtr(Sector* sectorAdr, size_t offset) { return reinterpret_cast<char*>(sectorAdr) + offset; }
+		inline static void* getMemberPtr(const Sector* sectorAdr, size_t offset) { return const_cast<char*>(reinterpret_cast<const char*>(sectorAdr) + offset); }
 
 		inline constexpr bool isSectorAlive() const { return isAliveData != 0; }
+
+		template <typename T>
+		inline static const T* getComponentFromSector(const Sector* sector, SectorLayoutMeta* sectorLayout) {
+			if (!sector) {
+				return nullptr;
+			}
+			const auto& layout = sectorLayout->getLayoutData<T>();
+			return sector->getMember<T>(layout.offset, layout.isAliveMask);
+		}
 
 		template <typename T>
 		inline static T* getComponentFromSector(Sector* sector, SectorLayoutMeta* sectorLayout) {

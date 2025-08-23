@@ -23,14 +23,15 @@ namespace CommonTests {
     struct Tag { char c; };
 
     // Хелпер на создание массива с заданными типами и малыми чанками
-    template<typename... Ts>
-    ecss::Memory::SectorsArray<>* MakeArray(uint32_t capacity = 0, uint32_t chunk = 4) {
+    template<size_t chunk, typename... Ts>
+    ecss::Memory::SectorsArray<ChunksAllocator<chunk>>* MakeArray(uint32_t capacity = 0) {
         // chunk — это "ёмкость чанка в секторах", выбираем маленький, чтобы насильно бегать по границам чанков
-        return ecss::Memory::SectorsArray<>::create<Ts...>(capacity, chunk);
+        return ecss::Memory::SectorsArray<ChunksAllocator<chunk>>::template create<Ts...>(capacity);
     }
 
     // Возвращает все id из обычного итератора
-    static std::vector<SectorId> CollectIds(ecss::Memory::SectorsArray<>* arr) {
+    template<typename T>
+    static std::vector<SectorId> CollectIds(ecss::Memory::SectorsArray<T>* arr) {
         std::vector<SectorId> out;
         for (auto it = arr->begin(); it != arr->end(); ++it) {
             out.push_back((*it)->id);
@@ -39,8 +40,8 @@ namespace CommonTests {
     }
 
     // Возвращает все id из IteratorAlive<T>
-    template<typename T>
-    static std::vector<SectorId> CollectAliveIds(ecss::Memory::SectorsArray<>* arr) {
+    template<typename T, typename Alloc>
+    static std::vector<SectorId> CollectAliveIds(ecss::Memory::SectorsArray<Alloc>* arr) {
         std::vector<SectorId> out;
         for (auto it = arr->template beginAlive<T>(); it != arr->endAlive(); ++it) {
             out.push_back((*it)->id);
@@ -50,7 +51,7 @@ namespace CommonTests {
 
     // ---------- БАЗОВОЕ СОЗДАНИЕ И ЛЭЙАУТ ----------
     TEST(SectorsArray_Basics, CreateInsertOrderAndLookup) {
-        auto* arr = MakeArray<Pos, Vel>(/*capacity*/0, /*chunk*/4);
+        auto* arr = MakeArray<4, Pos, Vel>(/*capacity*/0);
 
         // Вставки (не по порядку)
         arr->insert<Pos>(5, Pos{ 50 });
@@ -82,7 +83,7 @@ namespace CommonTests {
 
     // ---------- ПРОВЕРКИ ALIVE-ФЛАГОВ И ИТЕРАЦИИ ----------
     TEST(SectorsArray_Alive, IteratorAliveFilters) {
-        auto* arr = MakeArray<Pos, Vel>(0, 4);
+        auto* arr = MakeArray<4, Pos, Vel>(0);
 
         // Добавим 10 секторов. Отметим alive для Pos только на чётных id.
         for (SectorId id = 0; id < 10; ++id) {
@@ -117,7 +118,7 @@ namespace CommonTests {
 
     // ---------- ВСТАВКИ В КОНЕЦ И В СЕРЕДИНУ ----------
     TEST(SectorsArray_Insert, AppendAndMiddleInsertShifts) {
-        auto* arr = MakeArray<Pos>(0, 3);
+        auto* arr = MakeArray<3, Pos>(0);
 
         // Добавления по возрастанию (быстрый путь)
         for (SectorId id = 0; id < 6; ++id) {
@@ -139,7 +140,7 @@ namespace CommonTests {
     // ---------- ERASE/SHIFT ----------
     TEST(SectorsArray_Erase, EraseBeginMiddleEndAndNoShift) {
         
-        auto* arr = MakeArray<Pos>(0, 3);
+        auto* arr = MakeArray<3, Pos>(0);
         for (SectorId id = 0; id < 7; ++id) {
             arr->insert<Pos>(id, Pos{ int(id) });
         }
@@ -170,7 +171,7 @@ namespace CommonTests {
     // ---------- DEFRAGMENT ----------
     TEST(SectorsArray_Defrag, RemoveDeadAndCompact) {
         
-        auto* arr = MakeArray<Pos, Vel>(0, 4);
+        auto* arr = MakeArray<4, Pos, Vel>(0);
 
         // 0..9, метим часть как dead для Pos и Vel по-разному
         for (SectorId id = 0; id < 10; ++id) {
@@ -207,7 +208,7 @@ namespace CommonTests {
     // ---------- COPY/MOVE КОНТЕЙНЕРОВ ----------
     TEST(SectorsArray_CopyMove, CopyAndMoveSemanticsPreserveData) {
         
-        auto* a = MakeArray<Pos, Vel>(0, 4);
+        auto* a = MakeArray<4, Pos, Vel>(0);
 
         for (SectorId id = 0; id < 8; ++id) {
             if (id & 1) a->insert<Pos>(id, Pos{ int(id) });
@@ -217,13 +218,13 @@ namespace CommonTests {
 
         // Копия
         {
-            ecss::Memory::SectorsArray<> b = *a;
+            auto b = *a;
             auto idsB = CollectIds(&b);
             EXPECT_EQ(idsA, idsB);
 
 
             // Муув
-            ecss::Memory::SectorsArray<> c = std::move(b);
+            auto c = std::move(b);
             auto idsC = CollectIds(&c);
             EXPECT_EQ(idsA, idsC);
         }
@@ -235,7 +236,7 @@ namespace CommonTests {
     TEST(SectorsArray_Chunks, IteratorAcrossChunkBoundaries) {
         
         // chunk=3 → принудительно пересекаем границы
-        auto* arr = MakeArray<Pos>(0, 3);
+        auto* arr = MakeArray<3, Pos>(0);
         const int N = 17;
         for (int i = 0; i < N; ++i) {
             arr->insert<Pos>(i, Pos{ i });
@@ -261,7 +262,7 @@ namespace CommonTests {
     // ---------- RANGED ----------
     TEST(SectorsArray_Ranged, RangedAndRangedAliveIterators) {
         
-        auto* arr = MakeArray<Pos, Vel>(0, 4);
+        auto* arr = MakeArray<4, Pos, Vel>(0);
         for (SectorId id = 0; id < 20; ++id) {
             // Пусть Pos живёт у кратных 2, Vel у кратных 3
             if (id % 2 == 0) arr->insert<Pos>(id, Pos{ int(id) });
@@ -304,7 +305,7 @@ namespace CommonTests {
     // ---------- REGISTRY ----------
     TEST(Registry_API, AddHasGetDestroyComponents) {
         Registry reg;
-        reg.registerArray<Pos, Vel>(/*capacity*/0, /*chunk*/4);
+        reg.registerArray<Pos, Vel>(/*capacity*/0);
 
         // Выдать сущности и добавить компоненты
         std::vector<EntityId> ids;
@@ -347,7 +348,7 @@ namespace CommonTests {
     // ---------- МНОГОПОТОЧНОСТЬ: ЧТЕНИЕ ----------
     TEST(SectorsArray_MT, ParallelReadIterators) {
         
-        auto* arr = MakeArray<Pos, Vel>(0, 8);
+        auto* arr = MakeArray<8, Pos, Vel>(0);
 
         const int N = 20000;
         for (int i = 0; i < N; ++i) {
@@ -358,9 +359,8 @@ namespace CommonTests {
         // Параллельно считаем сумму id через обычный итератор (read-only)
         auto reader = [&]() -> uint64_t {
             uint64_t sum = 0;
-            auto lock = arr->readLock(); // безопасный shared lock
             for (auto it = arr->begin(); it != arr->end(); ++it) {
-                sum += (*it)->id;
+                sum += arr->pinSector(*it)->id;
             }
             return sum;
         };
@@ -381,7 +381,7 @@ namespace CommonTests {
     // ---------- МНОГОПОТОЧНОСТЬ: ЧТЕНИЕ + БЕЗОПАСНЫЕ ИЗМЕНЕНИЯ ----------
     TEST(SectorsArray_MT, ConcurrentReadersWithOccasionalWriter) {
         
-        auto* arr = MakeArray<Pos, Vel>(0, 8);
+        auto* arr = MakeArray<8, Pos, Vel>(0);
 
         const int N = 5000;
         for (int i = 0; i < N; ++i) {
@@ -396,11 +396,9 @@ namespace CommonTests {
         auto reader = [&]() {
             uint64_t total = 0;
             while (!stop.load(std::memory_order_relaxed)) {
-                auto rlock = arr->readLock();
-                // Быстрый прогон — только несколько элементов
                 int count = 0;
                 for (auto it = arr->begin(); it != arr->end() && count < 256; ++it, ++count) {
-                    total += (*it)->id;
+                    total += arr->pinSector(*it)->id;
                 }
             }
             return total;
@@ -450,7 +448,7 @@ namespace CommonTests {
     // ---------- Ranged + Registry forEach ----------
     TEST(Registry_ForEach, RangedAndPlain) {
         Registry reg;
-        reg.registerArray<Pos, Vel>(/*capacity*/0, /*chunk*/4);
+        reg.registerArray<Pos, Vel>(/*capacity*/0);
 
         std::vector<EntityId> ids;
         for (int i = 0; i < 100; ++i) {

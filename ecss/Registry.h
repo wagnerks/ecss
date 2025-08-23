@@ -52,7 +52,7 @@ namespace ecss {
 		 * it should be called before any getContainer calls
 		*/
 		template<typename... ComponentTypes>
-		void registerArray(uint32_t capacity = 0, uint32_t chunkSize = 8192) noexcept {
+		void registerArray(uint32_t capacity = 0) noexcept {
 			std::unique_lock lock(componentsArrayMapMutex);
 			bool isCreated = true;
 			((isCreated = isCreated && mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()]), ...);
@@ -66,7 +66,7 @@ namespace ecss {
 				mComponentsArraysMap.resize(maxId + 1);
 			}
 
-			auto sectorArray = Memory::SectorsArray<>::create<ComponentTypes...>(capacity, chunkSize);
+			auto sectorArray = Memory::SectorsArray<>::create<ComponentTypes...>(capacity);
 			mComponentsArrays.push_back(sectorArray);
 			((mComponentsArraysMap[componentTypeId<ComponentTypes>()] = sectorArray), ...);
 		}
@@ -257,7 +257,7 @@ namespace ecss {
 			}
 
 			{
-				auto lock = ecss::Threads::uniqueLock(componentsArrayMapMutex, sync);
+				auto lock = ecss::Threads::uniqueLock(mEntitiesMutex, sync);
 				for (auto id : entities) {
 					mEntities.erase(id);
 				}
@@ -270,16 +270,15 @@ namespace ecss {
 
 	private:
 		template <class... T>
-		std::vector<ecss::Threads::SharedGuard> containersLock() noexcept {
-			std::unordered_set<std::shared_mutex*> mutexes;
-			std::vector<ecss::Threads::SharedGuard> locks;
+		std::array<Memory::SectorsArray<>::PinnedSector, sizeof...(T)> pinContainers(SectorId pinId) noexcept {
+			std::array<Memory::SectorsArray<>::PinnedSector, sizeof...(T)> pins;
+			if (pinId == INVALID_ID) {
+				return pins;
+			}
+			size_t i = 0;
+			((pins[i++] = std::move(Memory::SectorsArray<>::PinnedSector(getComponentContainer<T>(), nullptr, pinId))), ...);
 
-			(mutexes.insert(&getComponentContainer<T>()->getMutex()), ...);
-
-			locks.reserve(mutexes.size());
-			for (auto mtxPtr : mutexes) { locks.emplace_back(*mtxPtr, true); }
-
-			return locks;
+			return pins;
 		}
 
 	private:
@@ -292,7 +291,7 @@ namespace ecss {
 
 		//non copyable
 		mutable std::shared_mutex mEntitiesMutex;
-		std::shared_mutex componentsArrayMapMutex;
+		mutable std::shared_mutex componentsArrayMapMutex;
 	};
 
 	/*
@@ -371,7 +370,7 @@ namespace ecss {
 		private:
 			std::conditional_t<Ranged, Memory::SectorsArray<>::RangedIteratorAlive, Memory::SectorsArray<>::IteratorAlive> mIterator;
 
-			std::tuple < TypeAccessInfo, decltype((void)sizeof(ComponentTypes), TypeAccessInfo{})... > mTypeAccessInfo;
+			std::tuple<TypeAccessInfo, decltype((void)sizeof(ComponentTypes), TypeAccessInfo{})...> mTypeAccessInfo;
 		};
 
 		inline Iterator begin() noexcept {
@@ -379,7 +378,7 @@ namespace ecss {
 				return Iterator{ mArrays, Memory::SectorsArray<>::RangedIteratorAlive(mArrays[getIndex<T>()], mRanges, mArrays[getIndex<T>()]->template getLayoutData<T>().isAliveMask) };
 			}
 			else {
-				return Iterator{ mArrays, Memory::SectorsArray<>::IteratorAlive(mArrays[getIndex<T>()], 0, mArrays[getIndex<T>()]->size(false), mArrays[getIndex<T>()]->template getLayoutData<T>().isAliveMask) };
+				return Iterator{ mArrays, Memory::SectorsArray<>::IteratorAlive(mArrays[getIndex<T>()], 0, mArrays[getIndex<T>()]->getSectorIndex(mPins[getIndex<T>()].getId(), false) + 1, mArrays[getIndex<T>()]->template getLayoutData<T>().isAliveMask) };
 			}
 		}
 
@@ -388,29 +387,32 @@ namespace ecss {
 				return Iterator{ mArrays, Memory::SectorsArray<>::RangedIteratorAlive(mArrays[getIndex<T>()], mRanges.empty() ? 0 : mRanges.back().second) };
 			}
 			else {
-				return Iterator{ mArrays, Memory::SectorsArray<>::IteratorAlive(mArrays[getIndex<T>()], mArrays[getIndex<T>()]->size(false)) };
+				return Iterator{ mArrays, Memory::SectorsArray<>::IteratorAlive(mArrays[getIndex<T>()], mArrays[getIndex<T>()]->getSectorIndex(mPins[getIndex<T>()].getId(), false) + 1) };
 			}
 		}
 
 	public:
 		explicit ComponentArraysEntry(Registry* manager, bool lock = true) noexcept requires (!Ranged) {
 			initArrays<ComponentTypes..., T>(manager);
-
-			mLocks = lock ? manager->containersLock<T, ComponentTypes...>() : std::vector<ecss::Threads::SharedGuard>{};
+			if (lock) {
+				auto pinnedBack = mArrays[getIndex<T>()]->pinBackSector();
+				auto index = pinnedBack.getId();
+				mPins = manager->pinContainers<T, ComponentTypes...>(index);
+			}
 		}
 
 		explicit ComponentArraysEntry(Registry* manager, EntitiesRanges ranges = {}, bool lock = true) noexcept requires (Ranged) : mRanges(std::move(ranges)) {
 			initArrays<ComponentTypes..., T>(manager);
 
-			mLocks = lock ? manager->containersLock<T, ComponentTypes...>() : std::vector<ecss::Threads::SharedGuard>{};
-
 			auto sectorsArray = mArrays[getIndex<T>()];
 			for (auto& range : mRanges.ranges) {
-				range.first = static_cast<EntityId>(sectorsArray->findRightNearestSectorIndex(range.first, false));
-				range.second = static_cast<EntityId>(sectorsArray->findRightNearestSectorIndex(range.second, false));
+				range.first = static_cast<EntityId>(sectorsArray->findRightNearestSectorIndex(range.first));
+				range.second = static_cast<EntityId>(sectorsArray->findRightNearestSectorIndex(range.second));
 			}
 
 			mRanges.mergeIntersections();
+
+			mPins = lock ? manager->pinContainers<T, ComponentTypes...>(mRanges.back().second) : decltype(mPins){};
 		}
 
 		bool valid() const noexcept {
@@ -441,7 +443,8 @@ namespace ecss {
 
 	private:
 		std::array<Memory::SectorsArray<>*, sizeof...(ComponentTypes) + 1> mArrays;
-		std::vector<ecss::Threads::SharedGuard> mLocks;
+
+		std::array<ecss::Memory::SectorsArray<>::PinnedSector, sizeof...(ComponentTypes) + 1> mPins;
 
 		EntitiesRanges mRanges;
 	};

@@ -1297,7 +1297,7 @@ namespace RegistryTests {
 			for (auto i = 0; i < count; i++) {
 				int randomValue = dist(rng);
 				reg.addComponent<Velocity>(randomValue, (float)randomValue);
-			
+
 			}
 			creating = false;
 		});

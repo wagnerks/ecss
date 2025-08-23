@@ -22,7 +22,7 @@ using ecss::SectorId;
 struct Payload { int v = 0; };
 
 static SectorsArray<>* makeArray(size_t cap) {
-    auto* arr = SectorsArray<>::template create<Payload>(static_cast<uint32_t>(cap), static_cast<uint32_t>(cap));
+    auto* arr = SectorsArray<>::template create<Payload>(static_cast<uint32_t>(cap));
     // заполним секторами [0..cap-1]
     for (size_t i = 0; i < cap; ++i) {
         arr->template emplace<Payload>(static_cast<SectorId>(i), /*sync=*/true, Payload{ int(i) });

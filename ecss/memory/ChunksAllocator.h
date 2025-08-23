@@ -5,6 +5,7 @@
 #include <ecss/memory/Sector.h>
 
 namespace ecss::Memory {
+    template<uint32_t ChunkCapacity = 8192>
     struct ChunksAllocator {
         class Iterator {
         public:
@@ -15,12 +16,12 @@ namespace ecss::Memory {
             using reference = value_type&;
 
             Iterator() = default;
-            Iterator(size_t idx, const ChunksAllocator* chunks) : mSectorPtr(idx < chunks->capacity() ? chunks->at(std::min(idx, chunks->size())) : nullptr), shift(chunks->mSectorSize) {
+            Iterator(size_t idx, const ChunksAllocator* chunks) : mIdx(std::min(idx, chunks->size())), mSectorPtr(idx < chunks->capacity() ? chunks->at(mIdx) : nullptr), shift(chunks->mSectorSize) {
                 if (mSectorPtr) {
                     auto chunkIdx = chunks->calcChunkIndex(idx);
                     pointersList.reserve((chunks->mChunks.size() - chunkIdx) * 2 - 1);
 
-                    const size_t stride = static_cast<size_t>(chunks->mSectorSize) * chunks->mChunkCapacity;
+                    const size_t stride = static_cast<size_t>(chunks->mSectorSize) * mChunkCapacity;
                     for (auto i = chunks->mChunks.size(); --i > chunkIdx;) {
                         auto base = static_cast<char*>(chunks->mChunks[i]);
                         pointersList.emplace_back(reinterpret_cast<Sector*>(base + stride));
@@ -32,10 +33,10 @@ namespace ecss::Memory {
 
             inline Iterator& operator++() noexcept {
                 mSectorPtr = reinterpret_cast<Sector*>(reinterpret_cast<char*>(mSectorPtr) + shift);
+                mIdx++;
                 if (mSectorPtr == pointersList.back()) [[unlikely]] {
                     pointersList.pop_back();
                     if (pointersList.empty()) [[unlikely]] {
-                        mSectorPtr = nullptr;
                         return *this;
                     }
                     mSectorPtr = pointersList.back();
@@ -46,7 +47,7 @@ namespace ecss::Memory {
 
             inline Iterator operator++(int) noexcept { Iterator tmp = *this; ++(*this); return tmp; }
 
-            inline bool operator==(const Iterator& other) const noexcept { return mSectorPtr == other.mSectorPtr; }
+            inline bool operator==(const Iterator& other) const noexcept { return mIdx == other.mIdx; }
             inline bool operator!=(const Iterator& other) const noexcept { return !(*this == other); }
 
             inline value_type operator*() const noexcept { return mSectorPtr; }
@@ -54,7 +55,7 @@ namespace ecss::Memory {
 
         private:
             std::vector<Sector*> pointersList;
-
+            size_t mIdx = 0;
             Sector* mSectorPtr = nullptr;
             uint32_t shift = 0;
         };
@@ -94,8 +95,7 @@ namespace ecss::Memory {
 
     public:
         ~ChunksAllocator() noexcept { free(); }
-        ChunksAllocator() noexcept = default;
-        ChunksAllocator(uint32_t chunkSize) noexcept : mChunkCapacity(nextPowerOfTwo(chunkSize)), mChunkShift(std::countr_zero(mChunkCapacity)) {}
+        ChunksAllocator() = default;
 
     public:
         void init(SectorLayoutMeta* layoutMeta) noexcept {
@@ -175,7 +175,7 @@ namespace ecss::Memory {
             }
         }
 
-        size_t capacity() const noexcept { return static_cast<size_t>(mChunkCapacity) * mChunks.size(); }
+        size_t capacity() const noexcept { return mChunkCapacity * mChunks.size(); }
         size_t sectorsCapacity() const noexcept { return mSectorsMap.size(); }
         size_t size() const noexcept { return mSize; }
         bool empty() const noexcept { return !mSize; }
@@ -228,7 +228,7 @@ namespace ecss::Memory {
             }
 
         	// Number of bytes per chunk (chunk capacity × sector size)
-            const size_t stride = size_t(mChunkCapacity) * size_t(mSectorSize);
+            const size_t stride = mChunkCapacity * size_t(mSectorSize);
             const char* const p = reinterpret_cast<const char*>(sectorPtr);
 
             // --- FAST PATH: Check first chunk ---
@@ -394,8 +394,8 @@ namespace ecss::Memory {
     private:
         void* getChunk(size_t index) const noexcept { return mChunks[index]; }
 
-        inline size_t calcInChunkIndex(size_t sectorIdx) const noexcept { return (sectorIdx & (mChunkCapacity - 1)) * mSectorSize; }
-        inline size_t calcChunkIndex(size_t sectorIdx) const noexcept { return sectorIdx >> mChunkShift; }
+        inline constexpr size_t calcInChunkIndex(size_t sectorIdx) const noexcept { return (sectorIdx & (mChunkCapacity - 1)) * mSectorSize; }
+        inline constexpr size_t calcChunkIndex(size_t sectorIdx) const noexcept { return sectorIdx >> mChunkShift; }
 
         void allocateChunks(size_t count = 1) noexcept {
             if (count == 0) [[unlikely]] {
@@ -412,9 +412,7 @@ namespace ecss::Memory {
 
         void copyCommonData(const ChunksAllocator& other) noexcept {
             mSectorLayout = other.mSectorLayout;
-            mChunkCapacity = other.mChunkCapacity;
             mSectorSize = other.mSectorSize;
-            mChunkShift = std::countr_zero(mChunkCapacity);
             mIsSectorTrivial = other.mIsSectorTrivial;
         }
 
@@ -479,17 +477,6 @@ namespace ecss::Memory {
             }
 
             return right;
-        }
-
-        static inline uint32_t nextPowerOfTwo(uint32_t x) noexcept {
-            if (x == 0) return 1;
-            --x;
-            x |= x >> 1;
-            x |= x >> 2;
-            x |= x >> 4;
-            x |= x >> 8;
-            x |= x >> 16;
-            return ++x;
         }
 
         __forceinline char* bytePtrAt(size_t idx) const noexcept {
@@ -574,6 +561,17 @@ namespace ecss::Memory {
             }
         }
 
+        static constexpr inline uint32_t nextPowerOfTwo(uint32_t x) noexcept {
+            if (x == 0) return 1;
+            --x;
+            x |= x >> 1;
+            x |= x >> 2;
+            x |= x >> 4;
+            x |= x >> 8;
+            x |= x >> 16;
+            return ++x;
+        }
+
     private:
         std::vector<void*> mChunks;
         std::vector<Sector*> mSectorsMap;
@@ -583,8 +581,9 @@ namespace ecss::Memory {
         size_t mDefragmentationCoef = 0;
         size_t mSize = 0;
 
-        uint32_t mChunkCapacity = 8192;
-        uint32_t mChunkShift = 0;
+        static constexpr uint32_t mChunkCapacity = nextPowerOfTwo(ChunkCapacity);
+        static constexpr uint32_t mChunkShift = std::countr_zero(mChunkCapacity);
+        
         uint16_t mSectorSize = 0;
 
         bool mIsSectorTrivial = std::is_trivial_v<Sector>;

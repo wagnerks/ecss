@@ -19,7 +19,7 @@ namespace SectorsArrayTest
 
 using namespace ecss::Memory;
 
-using SA_T = SectorsArray<>;
+using SA_T = SectorsArray<ChunksAllocator<8192>>;
 
 TEST(SectorsArray, DefaultConstructEmpty) {
     auto* arr = SA_T::create<Trivial>();
@@ -113,7 +113,7 @@ TEST(SectorsArray, DefragmentRemovesDeadAndShiftsAlive) {
 }
 
 TEST(SectorsArray, ReserveAndShrink) {
-    auto* arr = SA_T::create<Trivial>(0, 8192);
+    auto* arr = SA_T::create<Trivial>(0);
     arr->reserve(100);
     EXPECT_GE(arr->capacity(), 8192);
     for (int i = 0; i < 10; ++i) arr->insert<Trivial>(i, Trivial{ i });
@@ -145,7 +145,7 @@ TEST(SectorsArray_perfTest, IteratorBasicStress) {
     constexpr std::size_t count = 100'000'000;
 
     auto t0 = std::chrono::high_resolution_clock::now();
-    auto* arr = SA_T::create<Trivial>(count, count);
+    auto* arr = SectorsArray<ChunksAllocator<count>>::create<Trivial>(count);
 
     for (int i = 0; i < count; ++i) arr->emplace<Trivial>(i, false,  i);
 
@@ -190,7 +190,7 @@ TEST(SectorsArray_perfTest, IteratorRangedStress) {
     constexpr size_t count = 100'000'000;
 
     auto t0 = std::chrono::high_resolution_clock::now();
-    auto* arr = SA_T::create<Trivial>(count, count);
+    auto* arr = SectorsArray<ChunksAllocator<count>>::create<Trivial>(count);
 
     arr->reserve(count);
     for (int i = 0; i < count; ++i) arr->emplace<Trivial>(i, false, i);
@@ -237,7 +237,7 @@ TEST(SectorsArray_perfTest, IteratorAliveStress) {
     constexpr size_t count = 100'000'000;
 
     auto t0 = std::chrono::high_resolution_clock::now();
-    auto* arr = SA_T::create<Trivial>(count, count);
+    auto* arr = SectorsArray<ChunksAllocator<count>>::create<Trivial>(count);
 
     arr->reserve(count);
     for (int i = 0; i < count; ++i) arr->emplace<Trivial>(i, false, i);
@@ -284,7 +284,7 @@ TEST(SectorsArray_perfTest, IteratorRangedAliveStress) {
     constexpr size_t count = 100'000'000;
 
     auto t0 = std::chrono::high_resolution_clock::now();
-    auto* arr = SA_T::create<Trivial>(count, count);
+    auto* arr = SectorsArray<ChunksAllocator<count>>::create<Trivial>(count);
 
     arr->reserve(count);
     for (int i = 0; i < count; ++i) arr->emplace<Trivial>(i, false, i);
@@ -577,7 +577,7 @@ TEST(SectorsArray, NonTrivialDestructor_IsCalled) {
 }
 
 TEST(SectorsArray_STRESS, ThreadedInsert_Simple) {
-    auto* arr = SA_T::create<Trivial>(0, 4);
+    auto* arr = SectorsArray<ChunksAllocator<4>>::create<Trivial>(0);
     constexpr int N = 1000, T = 8;
     std::vector<std::thread> ths;
     std::atomic<int> ready{ 0 };
@@ -643,7 +643,7 @@ TEST(SectorsArray_STRESS, ThreadedStress_RandomOps) {
 }
 
 TEST(SectorsArray, ThreadedIterateReadDuringInsert) {
-    auto* arr = SA_T::create<Trivial>(0, 64);
+    auto* arr = SectorsArray<ChunksAllocator<64>>::create<Trivial>(0);
     std::atomic<bool> running{ true };
     std::thread writer([&] {
         for (int i = 0; i < 2000; ++i) arr->insert<Trivial>(i, Trivial{ i });
@@ -652,10 +652,14 @@ TEST(SectorsArray, ThreadedIterateReadDuringInsert) {
     int sum = 0;
     std::thread reader([&] {
         while (running) {
-            auto lock = arr->readLock();
-            for (auto it = arr->begin(); it != arr->end(); ++it) {
-                auto* v = (*it)->getMember<Trivial>(arr->getLayoutData<Trivial>());
-                if (v) sum += v->a;
+            auto end = arr->end();
+            auto endPinned = arr->pinSector(static_cast<ecss::SectorId>(arr->size() - 1));
+            for (auto it = arr->begin(); it != end; ++it) {
+                auto sector = arr->pinSector(*it);
+                if (sector) {
+                    auto* v = sector->getMember<Trivial>(arr->getLayoutData<Trivial>());
+                    if (v) sum += v->a;
+                }
             }
         }
     });
@@ -664,7 +668,7 @@ TEST(SectorsArray, ThreadedIterateReadDuringInsert) {
 }
 
 TEST(SectorsArray_STRESS, ThreadedIterateInsertEraseFuzz) {
-    auto* arr = SA_T::create<Trivial>(0, 8);
+    auto* arr = SectorsArray<ChunksAllocator<8>>::create<Trivial>(0);
     std::atomic<bool> running{ true };
 
     constexpr int N = 20000;
@@ -683,10 +687,14 @@ TEST(SectorsArray_STRESS, ThreadedIterateInsertEraseFuzz) {
     std::thread reader([&] {
         while (running) {
             int64_t local_sum = 0;
-            auto lock = arr->readLock();
-            for (auto it = arr->begin(), end = arr->end(); it != end; ++it) {
-                auto* v = (*it)->getMember<Trivial>(arr->getLayoutData<Trivial>());
-                if (v) local_sum += v->a;
+            auto end = arr->end();
+            auto endPinned = arr->pinSector(static_cast<ecss::SectorId>(arr->size() - 1));
+            for (auto it = arr->begin(); it != end; ++it) {
+                auto sector = arr->pinSector(*it);
+                if (sector) {
+                    auto* v = sector->getMember<Trivial>(arr->getLayoutData<Trivial>());
+                    if (v) local_sum += v->a;
+                }
             }
             sum = local_sum;
             std::this_thread::yield();
@@ -710,6 +718,8 @@ TEST(SectorsArray_STRESS, ThreadedIterateInsertEraseFuzz) {
     running = false;
     remover.join();
     reader.join();
+
+    arr->processPendingErases();
 
     int64_t manual_sum = 0;
     for (int i = 0; i < N; ++i) if (inserted[i]) manual_sum += i;
@@ -953,7 +963,7 @@ TEST(SectorsArray_STRESS_light, TrivialType_StressDefrag) {
 
 TEST(SectorsArray_STRESS_light, ThreadedRandomEraseClear) {
     constexpr int threads = 4, N = 4000;
-    auto* arr = SA_T::create<Velocity>(0, 16);
+    auto* arr = SectorsArray<ChunksAllocator<16>>::create<Velocity>(0);
     for (int i = 0; i < N; ++i) arr->insert<Velocity>(i, Velocity{ (float)i, (float)-i });
     std::atomic<bool> stop = false;
     std::vector<std::thread> ts;
@@ -1039,7 +1049,7 @@ TEST(SectorsArray_STRESS_light, AliveAfterEraseInsertRace) {
 TEST(SectorsArray_STRESS_light, MultiComponentParallelRumble) {
     using Pair = std::pair<Health, Velocity>;
     constexpr int N = 4096, threads = 8;
-    auto* arr = SA_T::create<Health, Velocity>(0 , 4);
+    auto* arr = SectorsArray<ChunksAllocator<4>>::create<Health, Velocity>(0);
     std::vector<std::thread> ts;
     std::atomic<bool> stop = false;
     for (int t = 0; t < threads; ++t) {
@@ -1184,7 +1194,7 @@ TEST(SectorsArray, AllApiBrutalMix) {
 
 TEST(SectorsArray_STRESS, MassiveConcurrentInsertEraseAndDefrag) {
     static constexpr int N = 1000;
-    auto* arr = SA_T::create<Trivial>(0, 32);
+    auto* arr = SectorsArray<ChunksAllocator<32>>::create<Trivial>(0);
     std::vector<std::thread> insert_threads, erase_threads;
     for (int t = 0; t < 4; ++t)
         insert_threads.emplace_back([&, t] {
