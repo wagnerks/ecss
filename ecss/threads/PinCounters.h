@@ -4,6 +4,11 @@
 #include <bit>
 #include <atomic>
 
+#include <cstddef>
+#include <vector>
+#include <mutex>
+#include <type_traits>
+
 namespace ecss::Threads {
 	using PinIndex = int_fast64_t;
 
@@ -42,13 +47,8 @@ namespace ecss::Threads {
 			return level;
 		}
 
-	private:
-
-		mutable std::shared_mutex mtx;
-		std::vector<std::vector<BITS_TYPE>> bits;
-
 	public:
-		PinnedIndexesBitMask() noexcept { bits.resize(maxlvl); bits[0].resize(1); }
+		PinnedIndexesBitMask() noexcept { bits[0].resize(1); }
 
 		void set(SectorId index, bool state) noexcept {
 			thread_local std::array<size_t, maxlvl> path;
@@ -127,6 +127,10 @@ namespace ecss::Threads {
 
 			return wordIdx;
 		}
+
+	private:
+		mutable std::shared_mutex mtx;
+		std::array<std::vector<BITS_TYPE>, maxlvl> bits;
 	};
 
 	struct PinCounters {
@@ -247,8 +251,8 @@ namespace ecss::Threads {
 		static constexpr size_t BLOCK = 4096;
 
 		PinnedIndexesBitMask pinsBitMask;
-		mutable std::shared_mutex mtx;
 
+		mutable std::shared_mutex mtx;
 		mutable std::vector<std::unique_ptr<std::atomic<uint16_t>[]>> blocks;
 
 		std::atomic<PinIndex> maxPinnedSector{ -1 };

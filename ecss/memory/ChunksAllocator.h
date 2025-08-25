@@ -3,10 +3,57 @@
 #include <vector>
 
 #include <ecss/memory/Sector.h>
+#include <ecss/memory/RetireAllocator.h>
 
 namespace ecss::Memory {
+ /**
+ * @brief Chunked sector allocator with deferred memory reclamation.
+ *
+ * ChunksAllocator is responsible for managing memory in fixed-size chunks of
+ * `Sector` objects. It provides random access to sectors by index or ID and
+ * supports acquiring, freeing, shifting, and defragmenting sectors.
+ *
+ * - Memory model:
+ *   * Sectors are stored in contiguous "chunks", each chunk contains
+ *     `ChunkCapacity` sectors.
+ *   * Chunks grow dynamically as needed. When more capacity is required,
+ *     new chunks are allocated and appended.
+ *   * A secondary map (`mSectorsMap`) provides direct lookup by SectorId.
+ *
+ * - Iterator:
+ *   * A custom forward iterator is provided to traverse across chunks as if
+ *     they form one linear array of `Sector*`.
+ *
+ * - Memory safety:
+ *   * Uses RetireAllocator internally for both `mChunks` and `mSectorsMap`.
+ *     This avoids immediate deallocation of old buffers when std::vector
+ *     reallocates, preventing use-after-free in concurrent readers.
+ *   * Old buffers are collected into a RetireBin and freed only when
+ *     `emptyVectorsBin()` is called.
+ *
+ * - Operations:
+ *   * `acquireSector(SectorId)` — ensures a sector exists for the given ID,
+ *     allocating or constructing if needed.
+ *   * `freeSector(SectorId, shift)` — destroys and removes a sector.
+ *   * `erase()` / `defragment()` — remove sectors and optionally compact
+ *     storage.
+ *   * `reserve()` / `shrinkToFit()` — grow or release memory in chunk units.
+ *   * `calcSectorIndex()` — compute linear index from a SectorId or pointer,
+ *     with fast paths for first/last chunks.
+ *
+ * Usage:
+ *   This allocator is designed for high-performance ECS-style storage,
+ *   where sectors are densely packed and frequently accessed by ID.
+ *   It avoids costly per-element allocations by working with whole chunks,
+ *   and reduces concurrency hazards by deferring vector buffer frees.
+ *
+ * @tparam ChunkCapacity Number of sectors per chunk (rounded to power-of-two).
+ */
     template<uint32_t ChunkCapacity = 8192>
     struct ChunksAllocator {
+        template<uint32_t>
+        friend struct ChunksAllocator;
+
         class Iterator {
         public:
             using iterator_category = std::forward_iterator_tag;
@@ -18,7 +65,7 @@ namespace ecss::Memory {
             Iterator() = default;
             Iterator(size_t idx, const ChunksAllocator* chunks) : mIdx(std::min(idx, chunks->size())), mSectorPtr(idx < chunks->capacity() ? chunks->at(mIdx) : nullptr), shift(chunks->mSectorSize) {
                 if (mSectorPtr) {
-                    auto chunkIdx = chunks->calcChunkIndex(idx);
+                    auto chunkIdx = ChunksAllocator<ChunkCapacity>::calcChunkIndex(idx);
                     pointersList.reserve((chunks->mChunks.size() - chunkIdx) * 2 - 1);
 
                     const size_t stride = static_cast<size_t>(chunks->mSectorSize) * mChunkCapacity;
@@ -65,11 +112,7 @@ namespace ecss::Memory {
         Iterator end() noexcept { return { size(), this }; }
 
     public:
-        ChunksAllocator(const ChunksAllocator& other) noexcept {
-            copyCommonData(other);
-            copyChunksData(other);
-        }
-
+        ChunksAllocator(const ChunksAllocator& other) noexcept { *this = other; }
         ChunksAllocator& operator=(const ChunksAllocator& other) noexcept {
             if (this == &other) { return *this; }
 
@@ -79,13 +122,33 @@ namespace ecss::Memory {
             return *this;
         }
 
-        ChunksAllocator(ChunksAllocator&& other) noexcept {
-            copyCommonData(other);
-            moveChunksData(std::move(other));
-        }
-
+        ChunksAllocator(ChunksAllocator&& other) noexcept { *this = std::move(other); }
         ChunksAllocator& operator=(ChunksAllocator&& other) noexcept {
             if (this == &other) { return *this; }
+
+            copyCommonData(other);
+            moveChunksData(std::move(other));
+
+            return *this;
+        }
+
+        template<uint32_t OtherCapacity>
+        ChunksAllocator(const ChunksAllocator<OtherCapacity>& other) noexcept { *this = other; }
+        template<uint32_t OtherCapacity>
+        ChunksAllocator& operator=(const ChunksAllocator<OtherCapacity>& other) noexcept {
+            if (reinterpret_cast<void*>(this) == reinterpret_cast<void*>(const_cast<ChunksAllocator<OtherCapacity>*>(&other))) { return *this; }
+
+            copyCommonData(other);
+            copyChunksData(other);
+
+            return *this;
+        }
+
+        template<uint32_t OtherCapacity>
+        ChunksAllocator(ChunksAllocator<OtherCapacity>&& other) noexcept { *this = std::move(other); }
+        template<uint32_t OtherCapacity>
+        ChunksAllocator& operator=(ChunksAllocator<OtherCapacity>&& other) noexcept {
+            if (reinterpret_cast<void*>(this) == reinterpret_cast<void*>(const_cast<ChunksAllocator<OtherCapacity>*>(&other))) { return *this; }
 
             copyCommonData(other);
             moveChunksData(std::move(other));
@@ -98,10 +161,16 @@ namespace ecss::Memory {
         ChunksAllocator() = default;
 
     public:
+        /**
+        * @brief Initialize allocator with a sector layout.
+        *
+        * Must be called before using sectors. Stores metadata about sector size
+        * and whether the layout is trivial (plain old data).
+        */
         void init(SectorLayoutMeta* layoutMeta) noexcept {
             assert(layoutMeta);
 
-	        mSectorLayout = layoutMeta;
+            mSectorLayout = layoutMeta;
 
             mSectorSize = mSectorLayout->getTotalSize();
             if (mIsSectorTrivial) {
@@ -110,8 +179,18 @@ namespace ecss::Memory {
                 }
             }
         }
+
         SectorLayoutMeta* getSectorLayout() const { return mSectorLayout; }
 
+        /**
+         * @brief Acquire a sector by ID, creating it if necessary.
+         *
+         * Expands internal storage if needed and constructs a new `Sector`
+         * at the appropriate position. Ensures `mSectorsMap` is updated.
+         *
+         * @param sectorId Unique identifier for the sector.
+         * @return Pointer to the acquired sector.
+         */
         Sector* acquireSector(SectorId sectorId) noexcept {
 			if (sectorId >= mSectorsMap.size()) [[unlikely]] {
                 mSectorsMap.resize(static_cast<size_t>(sectorId) + 1, nullptr);
@@ -124,7 +203,7 @@ namespace ecss::Memory {
             }
 
             size_t pos = mSize++;
-        	if (!((pos == 0) || (sectorId > at(pos - 1)->id))) [[unlikely]] {
+        	if (!((pos == 0) || (sectorId > back()->id))) [[unlikely]] {
                 pos = findInsertPosition(sectorId, pos);
 
                 if (pos != mSize - 1) [[unlikely]] {
@@ -133,13 +212,27 @@ namespace ecss::Memory {
             }
 
             sector = at(pos);
-            return new (sector)Sector(sectorId, 0);
+            sector->id = sectorId;
+            return sector;
         }
 
-        void freeSector(SectorId id, bool shift) noexcept {
-            erase(calcSectorIndex(id), 1, shift);
-        }
+        /**
+        * @brief Free a sector by ID.
+        *
+        * Destroys the sector and removes its mapping. Optionally shifts
+        * subsequent data left to keep memory compact.
+        *
+        * @param id Sector ID.
+        * @param shift Whether to shift subsequent sectors left.
+        */
+        void freeSector(SectorId id, bool shift) noexcept { erase(calcSectorIndex(id), 1, shift); }
 
+        /**
+         * @brief Destroy all sectors and release all memory.
+         *
+         * Calls destructors for non-trivial sectors, frees all chunks,
+         * clears the sector map, and empties the retire bin.
+         */
         void free() noexcept {
             if (!mIsSectorTrivial) {
                 for (auto it = begin(), endIt = end(); it != endIt; ++it) {
@@ -151,26 +244,26 @@ namespace ecss::Memory {
             mSectorsMap.clear();
             mChunks.clear();
             mChunks.shrink_to_fit();
+            emptyVectorsBin();
+            mDefragmentationKoef = 0;
             mSize = 0;
         }
 
         Sector* getSector(size_t sectorId) const noexcept { assert(sectorId < mSectorsMap.size()); return mSectorsMap[sectorId]; }
         Sector* tryGetSector(size_t sectorId) const noexcept { return sectorId < mSectorsMap.size() ? mSectorsMap[sectorId] : nullptr; }
         
-        Sector* at(size_t index) const noexcept {
-            auto chunkIndex = calcChunkIndex(index);
-            auto inChunkIndex = calcInChunkIndex(index);
-
-            return reinterpret_cast<Sector*>(static_cast<char*>(getChunk(chunkIndex)) + inChunkIndex);
-        }
+        Sector* at(size_t index) const noexcept { return reinterpret_cast<Sector*>(static_cast<char*>(getChunk(calcChunkIndex(index))) + calcInChunkIndex(index)); }
+        Sector* back() const noexcept { return reinterpret_cast<Sector*>(static_cast<char*>(mChunks.back()) + calcInChunkIndex(mSize - 1)); }
 
         void reserve(size_t newCapacity) noexcept {
-            const size_t need = newCapacity > capacity() ? (newCapacity - capacity()) : 0;
-            const size_t add = (need + mChunkCapacity - 1) / mChunkCapacity; // ceil
-            if (add) [[unlikely]] {
+            auto oldCapacity = capacity();
+            const size_t need = newCapacity > oldCapacity ? (newCapacity - oldCapacity) : 0;
+            if (const size_t add = (need + mChunkCapacity - 1) / mChunkCapacity) [[unlikely]] { // ceil
             	allocateChunks(add);
-                if (capacity() > sectorsCapacity()) [[unlikely]] {
-                    mSectorsMap.resize(capacity(), nullptr);
+
+                oldCapacity = capacity();
+                if (oldCapacity > sectorsCapacity()) [[unlikely]] {
+                    mSectorsMap.resize(oldCapacity, nullptr);
                 }
             }
         }
@@ -180,6 +273,16 @@ namespace ecss::Memory {
         size_t size() const noexcept { return mSize; }
         bool empty() const noexcept { return !mSize; }
 
+        /**
+         * @brief Erase one or more sectors starting at an index.
+         *
+         * Optionally shifts remaining sectors left or leaves holes for
+         * deferred compaction. Updates the sector map accordingly.
+         *
+         * @param begin Index of first sector to erase.
+         * @param count Number of sectors to erase.
+         * @param shift If true, shifts remaining data left.
+         */
         void erase(size_t begin, size_t count = 1, bool shift = true) noexcept {
             count = std::min(size() - begin, count);
             if (count == 0 || begin >= size()) {
@@ -199,7 +302,7 @@ namespace ecss::Memory {
             }
             else {
                 if (begin + count < mSize) {
-                    mDefragmentationCoef += count;
+                    mDefragmentationKoef += count;
                 }
             }
         }
@@ -221,6 +324,23 @@ namespace ecss::Memory {
             }
         }
 
+        /**
+         * @brief Compute linear index of a sector by its ID.
+         *
+         * This function attempts to quickly locate the sector's index
+         * using multiple fast paths:
+         *  - First chunk check (common for low IDs).
+         *  - Last chunk check (common for newly allocated sectors).
+         *  - Range check on ID to discard invalid sectors.
+         *  - Heuristic estimate of chunk index based on ID distance,
+         *    followed by local scan left/right if necessary.
+         *
+         * In practice this resolves the index in O(1) or O(few) steps,
+         * worst case O(#chunks).
+         *
+         * @param id SectorId of the sector to locate.
+         * @return Linear index within the allocator, or INVALID_ID if not found.
+         */
         size_t calcSectorIndex(SectorId id) const noexcept {
             auto sectorPtr = tryGetSector(id);
             if (!sectorPtr || mSize == 0) [[unlikely]] {
@@ -228,24 +348,24 @@ namespace ecss::Memory {
             }
 
         	// Number of bytes per chunk (chunk capacity × sector size)
-            const size_t stride = mChunkCapacity * size_t(mSectorSize);
+            const size_t stride = mChunkCapacity * static_cast<size_t>(mSectorSize);
             const char* const p = reinterpret_cast<const char*>(sectorPtr);
 
             // --- FAST PATH: Check first chunk ---
             {
-                const char* const base0 = reinterpret_cast<const char*>(mChunks.front());
+                const char* const base0 = static_cast<const char*>(mChunks.front());
                 if (p >= base0 && p < base0 + stride) {
-                    const size_t local = size_t(p - base0) / size_t(mSectorSize);
+                    const size_t local = static_cast<size_t>(p - base0) / static_cast<size_t>(mSectorSize);
                     return local; // First chunk → global index == local index
                 }
             }
 
             // --- FAST PATH: Check last chunk ---
             {
-                const char* const baseL = reinterpret_cast<const char*>(mChunks.back());
+                const char* const baseL = static_cast<const char*>(mChunks.back());
                 if (p >= baseL && p < baseL + stride) {
-                    const size_t local = size_t(p - baseL) / size_t(mSectorSize);
-                    return (mChunks.size() - 1) * size_t(mChunkCapacity) + local;
+                    const size_t local = static_cast<size_t>(p - baseL) / static_cast<size_t>(mSectorSize);
+                    return (mChunks.size() - 1) * static_cast<size_t>(mChunkCapacity) + local;
                 }
             }
 
@@ -256,7 +376,7 @@ namespace ecss::Memory {
             const SectorId firstId = firstSec->id;
             const SectorId lastId = lastSec->id;
 
-            // If the given sectorPtr's ID is outside the valid range → invalid index
+            // If the given sector's ID is outside the valid range → invalid index
             const SectorId sid = sectorPtr->id;
             if (sid < firstId || sid > lastId) [[unlikely]] {
                 return static_cast<size_t>(INVALID_ID);
@@ -264,24 +384,24 @@ namespace ecss::Memory {
 
             // --- HEURISTIC: Estimate the chunk index from ID ---
             // This assumes IDs are mostly contiguous, so we can jump near the target chunk.
-            size_t approx = 0;
+            size_t approx;
             {
-                const uint64_t dist = uint64_t(sid - firstId);
-                approx = size_t(dist / mChunkCapacity);
+                const auto dist = static_cast<uint64_t>(sid - firstId);
+                approx = static_cast<size_t>(dist / mChunkCapacity);
                 if (approx >= mChunks.size()) approx = mChunks.size() - 1;
             }
 
             // Lambda to check if address p is inside a chunk with given index
             auto inChunk = [&](size_t ci) -> bool {
-                const char* const base = reinterpret_cast<const char*>(mChunks[ci]);
+                const char* const base = static_cast<const char*>(mChunks[ci]);
                 return (p >= base) && (p < base + stride);
             };
 
             // --- Try the estimated chunk first ---
             if (inChunk(approx)) {
-                const char* const base = reinterpret_cast<const char*>(mChunks[approx]);
-                const size_t local = size_t(p - base) / size_t(mSectorSize);
-                return approx * size_t(mChunkCapacity) + local;
+                const char* const base = static_cast<const char*>(mChunks[approx]);
+                const size_t local = static_cast<size_t>(p - base) / static_cast<size_t>(mSectorSize);
+                return approx * static_cast<size_t>(mChunkCapacity) + local;
             }
 
             // --- Expand search left/right from approx ---
@@ -292,18 +412,18 @@ namespace ecss::Memory {
             while (left > 0 || right < mChunks.size()) {
                 if (right < mChunks.size()) {
                     if (inChunk(right)) {
-                        const char* const base = reinterpret_cast<const char*>(mChunks[right]);
-                        const size_t local = size_t(p - base) / size_t(mSectorSize);
-                        return right * size_t(mChunkCapacity) + local;
+                        const char* const base = static_cast<const char*>(mChunks[right]);
+                        const size_t local = static_cast<size_t>(p - base) / static_cast<size_t>(mSectorSize);
+                        return right * static_cast<size_t>(mChunkCapacity) + local;
                     }
                     ++right;
                 }
                 if (left > 0) {
                     --left;
                     if (inChunk(left)) {
-                        const char* const base = reinterpret_cast<const char*>(mChunks[left]);
-                        const size_t local = size_t(p - base) / size_t(mSectorSize);
-                        return left * size_t(mChunkCapacity) + local;
+                        const char* const base = static_cast<const char*>(mChunks[left]);
+                        const size_t local = static_cast<size_t>(p - base) / static_cast<size_t>(mSectorSize);
+                        return left * static_cast<size_t>(mChunkCapacity) + local;
                     }
                 }
             }
@@ -312,9 +432,18 @@ namespace ecss::Memory {
             return static_cast<size_t>(INVALID_ID);
         }
 
+        /**
+         * @brief Defragment allocator by compacting alive sectors.
+         *
+         * Moves only alive sectors leftwards until no holes remain.
+         * Destroys dead sectors and shrinks unused chunks.
+         *
+         * Useful to restore density after many frees without frequent shifting.
+         */
         void defragment() noexcept {
             const size_t n = size();
             if (!n) return;
+            mDefragmentationKoef = 0;
 
         	//algorithm which will not shift all sectors left every time, but shift only alive sectors to left border till not found empty place
         	//OOOOxOxxxOOxxxxOOxOOOO   0 - start
@@ -390,12 +519,20 @@ namespace ecss::Memory {
 
             shrinkToFit();
         }
-        
+
+        /**
+         * @brief Empty the RetireBin associated with vectors.
+         *
+         * Frees all retired memory blocks that were previously held
+         * due to vector reallocations.
+         */
+        void emptyVectorsBin() const { mBin.drainAll(); }
+
     private:
         void* getChunk(size_t index) const noexcept { return mChunks[index]; }
 
         inline constexpr size_t calcInChunkIndex(size_t sectorIdx) const noexcept { return (sectorIdx & (mChunkCapacity - 1)) * mSectorSize; }
-        inline constexpr size_t calcChunkIndex(size_t sectorIdx) const noexcept { return sectorIdx >> mChunkShift; }
+        inline static constexpr size_t calcChunkIndex(size_t sectorIdx) noexcept { return sectorIdx >> mChunkShift; }
 
         void allocateChunks(size_t count = 1) noexcept {
             if (count == 0) [[unlikely]] {
@@ -403,34 +540,44 @@ namespace ecss::Memory {
             }
 
             mChunks.reserve(mChunks.size() + count);
-            for (auto i = 0; i < count; i++) {
+            for (auto i = 0u; i < count; i++) {
                 void* ptr = calloc(mChunkCapacity, mSectorSize);
 				assert(ptr);
                 mChunks.emplace_back(ptr);
             }
         }
 
-        void copyCommonData(const ChunksAllocator& other) noexcept {
+        template<uint32_t OtherCapacity>
+        void copyCommonData(const ChunksAllocator<OtherCapacity>& other) noexcept {
             mSectorLayout = other.mSectorLayout;
             mSectorSize = other.mSectorSize;
             mIsSectorTrivial = other.mIsSectorTrivial;
         }
 
-        void copyChunksData(const ChunksAllocator& other) noexcept {
+        template<uint32_t OtherCapacity>
+        void copyChunksData(const ChunksAllocator<OtherCapacity>& other) noexcept {
             free();
+            other.emptyVectorsBin();
             mSize = other.mSize;
-            allocateChunks(other.mChunks.size());
+            allocateChunks((mSize + mChunkCapacity - 1) / mChunkCapacity);
 
             mSectorsMap.resize(other.mSectorsMap.size(), nullptr);
+            if constexpr (OtherCapacity == ChunkCapacity) {
+                if (mIsSectorTrivial) {
+                    for (auto i = 0u; i < other.mChunks.size(); i++) {
+                        memcpy(mChunks[i], other.mChunks[i], mChunkCapacity * static_cast<size_t>(mSectorSize));
+                    }
 
-            if (mIsSectorTrivial) {
-                for (auto i = 0u; i < other.mChunks.size(); i++) {
-                    memcpy(mChunks[i], other.mChunks[i], mChunkCapacity * static_cast<size_t>(mSectorSize));
+                    for (auto it = begin(), endIt = getIterator(other.mSize); it != endIt; ++it) {
+                        auto sector = *it;
+                        mSectorsMap[sector->id] = sector;
+                    }
                 }
-
-                for (auto it = begin(), endIt = getIterator(other.mSize); it != endIt; ++it) {
-                    auto sector = *it;
-                    mSectorsMap[sector->id] = sector;
+                else {
+                    for (auto i = 0u; i < mSize; i++) {
+                        auto sector = Sector::copySector(other.at(i), at(i), mSectorLayout);
+                        mSectorsMap[sector->id] = sector;
+                    }
                 }
             }
             else {
@@ -439,14 +586,30 @@ namespace ecss::Memory {
                     mSectorsMap[sector->id] = sector;
                 }
             }
+            mDefragmentationKoef = other.mDefragmentationKoef;
+            defragment();
         }
 
-    	void moveChunksData(ChunksAllocator&& other) noexcept {
+        template<uint32_t OtherCapacity>
+    	void moveChunksData(ChunksAllocator<OtherCapacity>&& other) noexcept {
             free();
+            other.emptyVectorsBin();
             mSize = other.mSize;
-            mChunks = std::move(other.mChunks);
-            mSectorsMap = std::move(other.mSectorsMap);
+            if constexpr (OtherCapacity == ChunkCapacity) {
+                mChunks = std::move(other.mChunks);
+                mSectorsMap = std::move(other.mSectorsMap);
+            }
+            else {
+                allocateChunks((mSize + mChunkCapacity - 1) / mChunkCapacity);
+                for (auto i = 0u; i < mSize; i++) {
+                    auto sector = Sector::moveSector(other.at(i), at(i), mSectorLayout);
+                    mSectorsMap[sector->id] = sector;
+                }
+            }
+
             other.mSize = 0;
+            mDefragmentationKoef = std::move(other.mDefragmentationKoef);
+            defragment();
         }
 
     private:
@@ -479,11 +642,20 @@ namespace ecss::Memory {
             return right;
         }
 
-        __forceinline char* bytePtrAt(size_t idx) const noexcept {
-            return reinterpret_cast<char*>(at(idx));
-        }
+        char* bytePtrAt(size_t idx) const noexcept { return reinterpret_cast<char*>(at(idx)); }
 
-        void copySectors(size_t dst, size_t src, size_t n) noexcept {
+        /**
+        * @brief Copy a contiguous run of sectors from src to dst.
+        *
+        * Works across chunk boundaries. Preserves raw memory layout,
+        * does not call constructors/destructors. Used only when
+        * sectors are known to be trivially copyable.
+        *
+        * @param dst Destination index (linear).
+        * @param src Source index (linear).
+        * @param n Number of sectors to copy.
+        */
+        void copySectors(size_t dst, size_t src, size_t n) const noexcept {
             if (!n || dst == src) return;
 
             if (dst < src) {
@@ -492,7 +664,7 @@ namespace ecss::Memory {
                     const size_t srcRoom = mChunkCapacity - (src & (mChunkCapacity - 1));
                     const size_t dstRoom = mChunkCapacity - (dst & (mChunkCapacity - 1));
                     const size_t run = std::min({ n, srcRoom, dstRoom });
-                    std::memmove(bytePtrAt(dst), bytePtrAt(src), run * size_t(mSectorSize));
+                    std::memmove(bytePtrAt(dst), bytePtrAt(src), run * static_cast<size_t>(mSectorSize));
                     dst += run; src += run; n -= run;
                 }
             }
@@ -509,21 +681,33 @@ namespace ecss::Memory {
 
                     const size_t srcBeg = srcEnd - run;
                     const size_t dstBeg = dstEnd - run;
-                    std::memmove(bytePtrAt(dstBeg), bytePtrAt(srcBeg), run * size_t(mSectorSize));
+                    std::memmove(bytePtrAt(dstBeg), bytePtrAt(srcBeg), run * static_cast<size_t>(mSectorSize));
 
                     srcEnd -= run; dstEnd -= run; n -= run;
                 }
             }
         }
 
+        /**
+         * @brief Shift a block of sectors to the right starting at 'from'.
+         *
+         * Used when inserting a new sector inside the sequence.
+         * Ensures existing sectors and mSectorsMap are updated to
+         * their new locations.
+         *
+         * For trivial sectors: uses raw memmove.
+         * For non-trivial: uses Sector::moveSector element by element.
+         *
+         * @param from First index where shifting begins.
+         * @param count Number of empty slots to create.
+         */
         // [][][][from][][][] -> [][][] ____ [from][][][]
         void shiftDataRight(size_t from, size_t count = 1) noexcept {
             if (!count) return;
 
             if (mIsSectorTrivial) {
                 const size_t oldSize = mSize - count;
-                const size_t tail = oldSize > from ? (oldSize - from) : 0;
-                if (tail) {
+                if (const size_t tail = oldSize > from ? (oldSize - from) : 0) {
                     copySectors(/*dst*/ from + count, /*src*/ from, /*n*/ tail);
                     for (size_t i = from + count; i < from + count + tail; ++i) {
                         Sector* s = at(i);
@@ -539,13 +723,24 @@ namespace ecss::Memory {
             }
         }
 
+        /**
+         * @brief Shift a block of sectors to the left starting at 'from'.
+         *
+         * Used when erasing one or more sectors and closing the gap.
+         * Ensures subsequent sectors are compacted and mSectorsMap is updated.
+         *
+         * For trivial sectors: uses raw memmove.
+         * For non-trivial: uses Sector::moveSector element by element.
+         *
+         * @param from First index of erased block.
+         * @param count Number of erased sectors.
+         */
         // [][][][from][][][] -> [][][from][][][]
         void shiftDataLeft(size_t from, size_t count = 1) noexcept {
             if (!count) return;
 
             if (mIsSectorTrivial) {
-                const size_t tail = (mSize > from + count) ? (mSize - (from + count)) : 0;
-                if (tail) {
+	            if (const size_t tail = (mSize > from + count) ? (mSize - (from + count)) : 0) {
                     copySectors(/*dst*/ from, /*src*/ from + count, /*n*/ tail);
                     for (size_t i = from; i < from + tail; ++i) {
                         Sector* s = at(i);
@@ -573,12 +768,14 @@ namespace ecss::Memory {
         }
 
     private:
-        std::vector<void*> mChunks;
-        std::vector<Sector*> mSectorsMap;
+        mutable Memory::RetireBin mBin;
+
+        std::vector<void*, Memory::RetireAllocator<void*>> mChunks { Memory::RetireAllocator<void*>{ &mBin } };
+        std::vector<Sector*, Memory::RetireAllocator<Sector*>> mSectorsMap{ Memory::RetireAllocator<Sector*>{ &mBin } };
 
         SectorLayoutMeta* mSectorLayout = nullptr;
 
-        size_t mDefragmentationCoef = 0;
+        size_t mDefragmentationKoef = 0; //todo
         size_t mSize = 0;
 
         static constexpr uint32_t mChunkCapacity = nextPowerOfTwo(ChunkCapacity);

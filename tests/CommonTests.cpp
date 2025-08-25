@@ -24,14 +24,14 @@ namespace CommonTests {
 
     // Хелпер на создание массива с заданными типами и малыми чанками
     template<size_t chunk, typename... Ts>
-    ecss::Memory::SectorsArray<ChunksAllocator<chunk>>* MakeArray(uint32_t capacity = 0) {
+    ecss::Memory::SectorsArray<true, ChunksAllocator<chunk>>* MakeArray(uint32_t capacity = 0) {
         // chunk — это "ёмкость чанка в секторах", выбираем маленький, чтобы насильно бегать по границам чанков
-        return ecss::Memory::SectorsArray<ChunksAllocator<chunk>>::template create<Ts...>(capacity);
+        return ecss::Memory::SectorsArray<true, ChunksAllocator<chunk>>::template create<Ts...>(capacity);
     }
 
     // Возвращает все id из обычного итератора
     template<typename T>
-    static std::vector<SectorId> CollectIds(ecss::Memory::SectorsArray<T>* arr) {
+    static std::vector<SectorId> CollectIds(ecss::Memory::SectorsArray<true, T>* arr) {
         std::vector<SectorId> out;
         for (auto it = arr->begin(); it != arr->end(); ++it) {
             out.push_back((*it)->id);
@@ -41,7 +41,7 @@ namespace CommonTests {
 
     // Возвращает все id из IteratorAlive<T>
     template<typename T, typename Alloc>
-    static std::vector<SectorId> CollectAliveIds(ecss::Memory::SectorsArray<Alloc>* arr) {
+    static std::vector<SectorId> CollectAliveIds(ecss::Memory::SectorsArray<true, Alloc>* arr) {
         std::vector<SectorId> out;
         for (auto it = arr->template beginAlive<T>(); it != arr->endAlive(); ++it) {
             out.push_back((*it)->id);
@@ -460,7 +460,7 @@ namespace CommonTests {
 
         // forEach (plain)
         {
-            auto entry = reg.forEach<Pos, Vel>(/*lock*/true);
+            auto entry = reg.forEach<Pos, Vel>();
             if (entry.valid()) {
                 auto seen = 0;
                 for (auto it = entry.begin(); it != entry.end(); ++it) {
@@ -481,7 +481,7 @@ namespace CommonTests {
         ranges.mergeIntersections();
 
         {
-            auto entry = reg.forEach<Pos>(ranges, /*lock*/true);
+            auto entry = reg.forEach<Pos>(ranges);
             if (entry.valid()) {
                 for (auto it = entry.begin(); it != entry.end(); ++it) {
                     auto [eid, p] = *it;

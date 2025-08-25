@@ -4,6 +4,7 @@
 #include <cassert>
 #include <shared_mutex>
 
+#include <utility>
 #include <vector>
 
 #include <ecss/memory/Sector.h>
@@ -14,14 +15,38 @@
 #include <ecss/contiguousMap.h>
 
 namespace ecss::Memory {
-
 #define SHARED_LOCK(sync) auto lock = ecss::Threads::sharedLock(mtx, sync);
 #define UNIQUE_LOCK(sync) auto lock = ecss::Threads::uniqueLock(mtx, sync);
 
 	/// Data container with sectors of custom data in it.
 	/// Synchronization lives in the container (allocator is single-threaded under write lock).
-	template<typename Allocator = ChunksAllocator<4096>>
+	/**
+	 * @tparam ThreadSafe  If true, public APIs acquire shared/unique locks and use PinCounters
+	 *                     so writers wait for readers. If false, calls are non-synchronized.
+	 * @tparam Allocator   Chunked sector storage (default: ChunksAllocator<8192>).
+	 *
+	 * Design:
+	 *  - Storage is provided by @p Allocator (chunked, contiguous in chunks).
+	 *  - A direct map (SectorId -> Sector*) is kept by the allocator for O(1) lookup.
+	 *  - This wrapper adds thread-safety (optional), pin/unpin semantics and
+	 *    higher-level operations (erase queuing, defragmentation, ranged iteration).
+	 *
+	 * Concurrency (when ThreadSafe = true):
+	 *  - Readers use shared locks; writers use unique locks.
+	 *  - PinCounters ensure a sector (or the whole array) is not moved/destroyed while pinned.
+	 *  - Vector buffers inside the allocator use RetireAllocator to defer frees after reallocation;
+	 *    old buffers are reclaimed in @ref processPendingErases() via emptyVectorsBin().
+	 *
+	 * Iteration:
+	 *  - @ref Iterator — linear walk over all sectors (including dead ones).
+	 *  - @ref IteratorAlive — linear walk over sectors whose isAliveData matches a mask.
+	 *  - @ref RangedIterator — walks only specified [begin,end) index ranges.
+	 *  - @ref RangedIteratorAlive — same as RangedIterator but filtered by alive mask.
+	 */
+	template<bool ThreadSafe = true, typename Allocator = ChunksAllocator<8192>>
 	class SectorsArray final {
+		template<bool, typename>
+		friend class SectorsArray;
 	public:
 		// ===== Iterators over contiguous storage (allocator) =====
 		class Iterator {
@@ -48,8 +73,8 @@ namespace ecss::Memory {
 			typename Allocator::Iterator chunksIt;
 		};
 
-		Iterator begin()	const noexcept { SHARED_LOCK(true) return { this, 0 }; }
-		Iterator end()		const noexcept { SHARED_LOCK(true) return { this, size(false) }; }
+		Iterator begin(bool sync = ThreadSafe)  const noexcept { SHARED_LOCK(sync) return { this, 0 }; }
+		Iterator end(bool sync = ThreadSafe)	const noexcept { SHARED_LOCK(sync) return { this, size(false) }; }
 
 		class IteratorAlive {
 		public:
@@ -87,8 +112,8 @@ namespace ecss::Memory {
 		};
 
 		template<typename T>
-		IteratorAlive beginAlive()	const noexcept { SHARED_LOCK(true) return { this, 0 , size(false), getLayoutData<T>().isAliveMask }; }
-		IteratorAlive endAlive()	const noexcept { SHARED_LOCK(true) return { this, size(false) }; }
+		IteratorAlive beginAlive(bool sync = ThreadSafe)	const noexcept { SHARED_LOCK(sync) return { this, 0 , size(false), getLayoutData<T>().isAliveMask }; }
+		IteratorAlive endAlive(bool sync = ThreadSafe)	const noexcept { SHARED_LOCK(sync) return { this, size(false) }; }
 
 		class RangedIterator {
 		public:
@@ -143,8 +168,8 @@ namespace ecss::Memory {
 			typename Allocator::Iterator chunksIt;
 		};
 
-		RangedIterator beginRanged(const EntitiesRanges& ranges)	const noexcept { SHARED_LOCK(true) return { this, ranges }; }
-		RangedIterator endRanged(const EntitiesRanges& ranges)		const noexcept { SHARED_LOCK(true) return { this, ranges.back().second }; }
+		RangedIterator beginRanged(const EntitiesRanges& ranges, bool sync = ThreadSafe)	const noexcept { SHARED_LOCK(sync) return { this, ranges }; }
+		RangedIterator endRanged(const EntitiesRanges& ranges, bool sync = ThreadSafe)	const noexcept { SHARED_LOCK(sync) return { this, ranges.empty() ? 0 : ranges.back().second }; }
 
 		class RangedIteratorAlive {
 		public:
@@ -231,15 +256,18 @@ namespace ecss::Memory {
 		};
 
 		template<typename T>
-		RangedIteratorAlive beginRangedAlive(const EntitiesRanges& ranges)	const noexcept { SHARED_LOCK(true) return { this, ranges, getLayoutData<T>().isAliveMask }; }
-		RangedIteratorAlive endRangedAlive(const EntitiesRanges& ranges)	const noexcept { SHARED_LOCK(true) return { this, ranges.back().second }; }
+		RangedIteratorAlive beginRangedAlive(const EntitiesRanges& ranges, bool sync = ThreadSafe) const noexcept { SHARED_LOCK(sync) return { this, ranges, getLayoutData<T>().isAliveMask }; }
+		RangedIteratorAlive endRangedAlive(const EntitiesRanges& ranges, bool sync = ThreadSafe)	 const noexcept { SHARED_LOCK(sync) return { this, ranges.empty() ? 0 : ranges.back().second }; }
 
 	public:
 		struct PinnedSector {
 			PinnedSector() noexcept = default;
 			PinnedSector(const SectorsArray* o, Sector* s, SectorId sid) noexcept : sec(s), owner(o), id(sid) {
 				assert(id != INVALID_ID);
-				owner->mPinsCounter.pin(id);
+				if constexpr (ThreadSafe) {
+					owner->mPinsCounter.pin(id);
+				}
+				
 			}
 
 			PinnedSector(const PinnedSector&) = delete;
@@ -265,7 +293,9 @@ namespace ecss::Memory {
 
 			void release() noexcept {
 				if (owner) {
-					owner->mPinsCounter.unpin(id);
+					if constexpr (ThreadSafe) {
+						owner->mPinsCounter.unpin(id);
+					}
 				}
 
 				owner = nullptr;
@@ -284,22 +314,34 @@ namespace ecss::Memory {
 		};
 
 	public:
+		// it allows to copy array with different allocator, if allocator supports it
+		template<bool T, typename Alloc>
+		SectorsArray(const SectorsArray<T, Alloc>& other)			 noexcept { *this = other; }
+		template<bool T, typename Alloc>
+		SectorsArray& operator=(const SectorsArray<T, Alloc>& other) noexcept { if (reinterpret_cast<void*>(this) == reinterpret_cast<void*>(const_cast<SectorsArray<T, Alloc>*>(&other))) { return *this; } copy(other); return *this; }
+		template<bool T, typename Alloc>
+		SectorsArray(SectorsArray<T, Alloc>&& other)				 noexcept { *this = std::move(other); }
+		template<bool T, typename Alloc>
+		SectorsArray& operator=(SectorsArray<T, Alloc>&& other)		 noexcept { if (reinterpret_cast<void*>(this) == reinterpret_cast<void*>(const_cast<SectorsArray<T, Alloc>*>(&other))) { return *this; } move(std::move(other)); return *this; }
+
+	public:
 		SectorsArray(const SectorsArray& other)				noexcept { *this = other; }
 		SectorsArray& operator=(const SectorsArray& other)	noexcept { if (this == &other) { return *this; } copy(other); return *this; }
 
 		SectorsArray(SectorsArray&& other)					noexcept { *this = std::move(other); }
 		SectorsArray& operator=(SectorsArray&& other)		noexcept { if (this == &other) { return *this; } move(std::move(other)); return *this; }
 
+	public:
 		~SectorsArray() = default;
 
 		template <typename... Types>
-		static SectorsArray* create(uint32_t capacity = 0) noexcept {
-			const auto array = new SectorsArray(); array->template initializeSector<Types...>(capacity);
+		static SectorsArray* create(uint32_t capacity = 0, Allocator allocator = {}) noexcept {
+			const auto array = new SectorsArray(std::move(allocator)); array->template initializeSector<Types...>(capacity);
 			return array;
 		}
 
 	private:
-		SectorsArray() = default;
+		SectorsArray(Allocator allocator = {}) : mAllocator(std::move(allocator)) {}
 
 		template <typename... Types>
 		void initializeSector(uint32_t capacity) noexcept {
@@ -316,10 +358,10 @@ namespace ecss::Memory {
 		const LayoutData& getLayoutData() const noexcept { return mAllocator.getSectorLayout()->template getLayoutData<T>(); }
 		SectorLayoutMeta* getLayout()	  const noexcept { return mAllocator.getSectorLayout(); }
 
-		[[nodiscard]] PinnedSector pinSector(Sector* sector, bool sync = true)	const noexcept { SHARED_LOCK(sync) return sector ? PinnedSector{ this, sector, sector->id } : PinnedSector{}; }
-		[[nodiscard]] PinnedSector pinSector(SectorId id, bool sync = true)		const noexcept { SHARED_LOCK(sync) return pinSector(mAllocator.tryGetSector(id), false); }
-		[[nodiscard]] PinnedSector pinSectorAt(size_t idx, bool sync = true)    const noexcept { SHARED_LOCK(sync) return pinSector(mAllocator.at(idx), false); }
-		[[nodiscard]] PinnedSector pinBackSector(bool sync = true)  const noexcept {
+		[[nodiscard]] PinnedSector pinSector(Sector* sector, bool sync = ThreadSafe) const noexcept { SHARED_LOCK(sync) return sector ? PinnedSector{ this, sector, sector->id } : PinnedSector{}; }
+		[[nodiscard]] PinnedSector pinSector(SectorId id, bool sync = ThreadSafe)	 const noexcept { SHARED_LOCK(sync) return pinSector(mAllocator.tryGetSector(id), false); }
+		[[nodiscard]] PinnedSector pinSectorAt(size_t idx, bool sync = ThreadSafe)	 const noexcept { SHARED_LOCK(sync) return pinSector(mAllocator.at(idx), false); }
+		[[nodiscard]] PinnedSector pinBackSector(bool sync = ThreadSafe) const noexcept {
 			SHARED_LOCK(sync)
 			auto contSize = size(false);
 			if (contSize == 0) {
@@ -328,18 +370,18 @@ namespace ecss::Memory {
 			return pinSector(mAllocator.at(contSize - 1), false);
 		}
 
-		void freeSector(SectorId id, bool shift = false, bool sync = true)			  noexcept { eraseSectorSafe(id, shift, sync); }
-		bool containsSector(SectorId id, bool sync = true)						const noexcept { return findSector(id, sync); }
+		void freeSector(SectorId id, bool shift = false, bool sync = ThreadSafe)		    noexcept { eraseSectorSafe(id, shift, sync); }
+		bool containsSector(SectorId id, bool sync = ThreadSafe)					  const noexcept { return findSector(id, sync); }
 
 		// unsafe getter, use pinned version in multithread
-		Sector* findSector(SectorId id, bool sync = true)						const noexcept { SHARED_LOCK(sync) return mAllocator.tryGetSector(id); }
+		Sector* findSector(SectorId id, bool sync = ThreadSafe)						  const noexcept { SHARED_LOCK(sync) return mAllocator.tryGetSector(id); }
 		// unsafe getter, use pinned version in multithread
-		Sector* getSector(SectorId id, bool sync = true)						const noexcept { SHARED_LOCK(sync) return mAllocator.getSector(id); }
+		Sector* getSector(SectorId id, bool sync = ThreadSafe)						  const noexcept { SHARED_LOCK(sync) return mAllocator.getSector(id); }
 
-		size_t sectorsCapacity(bool sync = true)								const noexcept { SHARED_LOCK(sync) return mAllocator.sectorsCapacity(); }
-		size_t getSectorIndex(SectorId id, bool sync = true)					const noexcept { SHARED_LOCK(sync) return mAllocator.calcSectorIndex(id); }
+		size_t sectorsCapacity(bool sync = ThreadSafe)								  const noexcept { SHARED_LOCK(sync) return mAllocator.sectorsCapacity(); }
+		size_t getSectorIndex(SectorId id, bool sync = ThreadSafe)					  const noexcept { SHARED_LOCK(sync) return mAllocator.calcSectorIndex(id); }
 
-		size_t findRightNearestSectorIndex(SectorId sectorId, bool sync = true) const noexcept {
+		size_t findRightNearestSectorIndex(SectorId sectorId, bool sync = ThreadSafe) const noexcept {
 			SHARED_LOCK(sync)
 			while (sectorId < sectorsCapacity(false)) {
 				if (containsSector(sectorId, false)) {
@@ -352,16 +394,18 @@ namespace ecss::Memory {
 		}
 
 		template<typename T>
-		void destroyMember(SectorId sectorId, bool sync = true) const noexcept {
+		void destroyMember(SectorId sectorId, bool sync = ThreadSafe) const noexcept {
 			UNIQUE_LOCK(sync)
-			mPinsCounter.waitUntilSectorChangeable(sectorId);
+			if constexpr (ThreadSafe) {
+				mPinsCounter.waitUntilSectorChangeable(sectorId);
+			}
 			if (auto sector = findSector(sectorId, false)) {
 				sector->destroyMember(getLayoutData<T>());
 			}
 		}
 
 		template<typename T>
-		void destroyMembers(std::vector<SectorId>& sectorIds, bool sort = true, bool sync = true) const noexcept {
+		void destroyMembers(std::vector<SectorId>& sectorIds, bool sort = true, bool sync = ThreadSafe) const noexcept {
 			if (sectorIds.empty()) return;
 			if (sort) std::ranges::sort(sectorIds);
 
@@ -372,14 +416,16 @@ namespace ecss::Memory {
 			const auto sectorsSize = sectorsCapacity(false);
 			for (const auto sectorId : sectorIds) {
 				if (sectorId >= sectorsSize) break;
-				mPinsCounter.waitUntilSectorChangeable(sectorId);
+				if constexpr (ThreadSafe) {
+					mPinsCounter.waitUntilSectorChangeable(sectorId);
+				}
 				if (auto sector = pinSector(sectorId, false)) {
 					sector->destroyMember(layout);
 				}
 			}
 		}
 
-		void clearSectors(std::vector<SectorId>& sectorIds, bool sort = true, bool sync = true) const noexcept {
+		void clearSectors(std::vector<SectorId>& sectorIds, bool sort = true, bool sync = ThreadSafe) const noexcept {
 			if (sectorIds.empty()) return;
 			if (sort) std::ranges::sort(sectorIds);
 
@@ -389,36 +435,42 @@ namespace ecss::Memory {
 			const auto sectorsSize = sectorsCapacity(false);
 			for (const auto sectorId : sectorIds) {
 				if (sectorId >= sectorsSize) break;
-				mPinsCounter.waitUntilSectorChangeable(sectorId);
+				if constexpr (ThreadSafe) {
+					mPinsCounter.waitUntilSectorChangeable(sectorId);
+				}
 				Sector::destroyMembers(findSector(sectorId, false), layout);
 			}
 		}
 
 	public: // container methods
 		// WARNING! at() doesn't do bounds checks
-		Sector* at(size_t sectorIndex, bool sync = true) const noexcept { SHARED_LOCK(sync) return mAllocator.at(sectorIndex); }
+		Sector* at(size_t sectorIndex, bool sync = ThreadSafe) const noexcept { SHARED_LOCK(sync) return mAllocator.at(sectorIndex); }
 
-		size_t capacity(bool sync = true)	const noexcept { SHARED_LOCK(sync) return mAllocator.capacity(); }
-		size_t size(bool sync = true)		const noexcept { SHARED_LOCK(sync) return mAllocator.size(); }
-		bool   empty(bool sync = true)		const noexcept { return !size(sync); }
+		size_t capacity(bool sync = ThreadSafe)	const noexcept { SHARED_LOCK(sync) return mAllocator.capacity(); }
+		size_t size(bool sync = ThreadSafe)		const noexcept { SHARED_LOCK(sync) return mAllocator.size(); }
+		bool   empty(bool sync = ThreadSafe)		const noexcept { return !size(sync); }
 
-		void shrinkToFit(bool sync = true) noexcept { UNIQUE_LOCK(sync) mAllocator.shrinkToFit(); }
-		void clear(bool sync = true) noexcept {
+		void shrinkToFit(bool sync = ThreadSafe) noexcept { UNIQUE_LOCK(sync) mAllocator.shrinkToFit(); }
+		void clear(bool sync = ThreadSafe) noexcept {
 			UNIQUE_LOCK(sync)
-			mPinsCounter.waitUntilChangeable();
+			if constexpr (ThreadSafe) {
+				mPinsCounter.waitUntilChangeable();
+			}
 
 			mAllocator.free();
 			mPendingErase.clear();
 		}
 
-		void reserve(uint32_t newCapacity, bool sync = true) noexcept {	UNIQUE_LOCK(sync) mAllocator.reserve(newCapacity); }
+		void reserve(uint32_t newCapacity, bool sync = ThreadSafe) noexcept {	UNIQUE_LOCK(sync) mAllocator.reserve(newCapacity); }
 
 		template<typename T>
-		std::remove_reference_t<T>* insert(SectorId sectorId, T&& data, bool sync = true) noexcept {
+		std::remove_reference_t<T>* insert(SectorId sectorId, T&& data, bool sync = ThreadSafe) noexcept {
 			using U = std::remove_reference_t<T>;
 			UNIQUE_LOCK(sync)
 			if (sync) {
-				mPinsCounter.waitUntilChangeable(sectorId);
+				if constexpr (ThreadSafe) {
+					mPinsCounter.waitUntilChangeable(sectorId);
+				}
 			}
 		
 			Sector* sector = mAllocator.acquireSector(sectorId);
@@ -442,120 +494,158 @@ namespace ecss::Memory {
 		}
 
 		template<typename T, class... Args>
-		T* emplace(SectorId sectorId, bool sync = true, Args&&... args) noexcept {
+		T* emplace(SectorId sectorId, bool sync = ThreadSafe, Args&&... args) noexcept {
 			UNIQUE_LOCK(sync)
-
-			if (sync) {
-				mPinsCounter.waitUntilChangeable(sectorId);
+			if constexpr (ThreadSafe) {
+				if (sync) {
+					mPinsCounter.waitUntilChangeable(sectorId);
+				}
 			}
 
 			return Memory::Sector::emplaceMember<T>(mAllocator.acquireSector(sectorId), getLayoutData<T>(), std::forward<Args>(args)...);
 		}
 
 		// Safe erase: only if not pinned and id >= last active pinned id; otherwise queued.
-		void eraseSectorSafe(SectorId id, bool shift = false, bool sync = true) noexcept {
+		void eraseSectorSafe(SectorId id, bool shift = false, bool sync = ThreadSafe) noexcept {
 			Sector* s = findSector(id, sync);
 			if (!s) {
 				return;
 			}
 
 			UNIQUE_LOCK(sync)
-
-			if (shift) {
-				if (mPinsCounter.canMoveSector(id)) {
-					mAllocator.freeSector(id, shift);
+			if constexpr (ThreadSafe) {
+				if (shift) {
+					if (mPinsCounter.canMoveSector(id)) {
+						mAllocator.freeSector(id, shift);
+					}
+					else {
+						mPendingErase.push_back(id);
+					}
 				}
 				else {
-					mPendingErase.push_back(id);
+					if (!mPinsCounter.isPinned(id)) {
+						mAllocator.freeSector(id, shift);
+					}
+					else {
+						mPendingErase.push_back(id);
+					}
 				}
 			}
 			else {
-				if (!mPinsCounter.isPinned(id)) {
-					mAllocator.freeSector(id, shift);
-				}
-				else {
-					mPendingErase.push_back(id);
-				}
+				mAllocator.freeSector(id, shift);
 			}
 		}
 
 		// Raw erase by contiguous index (compat). Applies same safety rule per SectorId.
-		void erase(size_t beginIdx, size_t count = 1, bool shift = false, bool sync = true) noexcept {
+		void erase(size_t beginIdx, size_t count = 1, bool shift = false, bool sync = ThreadSafe) noexcept {
 			if (!count) return;
 			UNIQUE_LOCK(sync)
 			const size_t endIdx = std::min(beginIdx + count, mAllocator.size());
 			for (size_t i = beginIdx; i < endIdx; ++i) {
-				Sector* s = mAllocator.at(i);
+				auto s = mAllocator.at(i);
 				if (!s) continue;
 				eraseSectorSafe(s->id, shift, false);
 			}
 		}
 
-		void defragment(bool sync = true) noexcept {
+		void defragment(bool sync = ThreadSafe) noexcept {
 			if (empty(sync)) {
 				return;
 			}
 
 			UNIQUE_LOCK(sync)
-			if (sync) {
-				mPinsCounter.waitUntilChangeable();
+			if constexpr (ThreadSafe) {
+				if (sync) {
+					mPinsCounter.waitUntilChangeable();
+				}
 			}
 
 			mAllocator.defragment();
 		}
 
-		// (call at frame end / maintenance points)
-		void processPendingErases(bool sync = true) noexcept {
-			if (mPendingErase.empty()) { return; }
-
-			UNIQUE_LOCK(sync)
-
-			auto tmp = std::move(mPendingErase);
-			for (auto id : tmp) {
-				if (!mPinsCounter.isPinned(id)) {
-					mAllocator.freeSector(id, false);
+		/** @brief Maintenance hook (e.g., end of frame).
+		 *  - Attempts queued erases that were deferred due to pins.
+		 *  - If array is not "locked" by readers, drains deferred vector buffers
+		 *    (allocator.emptyVectorsBin()) and optionally defragments.
+		 *
+		 * Call this periodically to keep memory and fragmentation under control.
+		 */
+		void processPendingErases(bool sync = ThreadSafe) noexcept {
+			
+			if constexpr (ThreadSafe) {
+				if (mPendingErase.empty()) {
+					mAllocator.emptyVectorsBin();
+					defragment(false); // todo defragment only if fragmentation koeff too high
+					return;
 				}
-				else {
-					mPendingErase.emplace_back(id);
+				UNIQUE_LOCK(sync)
+
+				auto tmp = std::move(mPendingErase);
+				std::ranges::sort(tmp);
+				for (auto id : tmp) {
+					if (!mPinsCounter.isPinned(id)) {
+						mAllocator.freeSector(id, false);
+					}
+					else {
+						mPendingErase.emplace_back(id);
+					}
+				}
+
+				if (!mPinsCounter.isArrayLocked()) {
+					mAllocator.emptyVectorsBin();
+					defragment(false); // todo defragment only if fragmentation koeff too high
 				}
 			}
-
-			if (!mPinsCounter.isArrayLocked()) {
+			else {
+				mAllocator.emptyVectorsBin();
 				defragment(false); // todo defragment only if fragmentation koeff too high
 			}
 		}
 
 	private:
-		void copy(const SectorsArray& other) noexcept {
-			auto lock = ecss::Threads::uniqueLock(mtx, true);
-			auto otherLock = ecss::Threads::sharedLock(other.mtx, true);
-			mPinsCounter.waitUntilChangeable();
+		template<bool T, typename Alloc>
+		void copy(const SectorsArray<T, Alloc>& other) noexcept {
+			if constexpr (ThreadSafe) {
+				auto lock = ecss::Threads::uniqueLock(mtx, true);
+				auto otherLock = ecss::Threads::sharedLock(other.mtx, true);
+				mPinsCounter.waitUntilChangeable();
 
-			processPendingErases(false);
-			mAllocator = other.mAllocator;
+				processPendingErases(false);
+				mAllocator = other.mAllocator;
+			}
+			else {
+				processPendingErases(false);
+				mAllocator = other.mAllocator;
+			}
 		}
 
 		void move(SectorsArray&& other) noexcept {
-			auto lock = ecss::Threads::uniqueLock(mtx, true);
-			auto otherLock = ecss::Threads::uniqueLock(other.mtx, true);
-			mPinsCounter.waitUntilChangeable();
-			other.mPinsCounter.waitUntilChangeable();
+			if constexpr (ThreadSafe) {
+				auto lock = ecss::Threads::uniqueLock(mtx, true);
+				auto otherLock = ecss::Threads::uniqueLock(other.mtx, true);
+				mPinsCounter.waitUntilChangeable();
+				other.mPinsCounter.waitUntilChangeable();
 
-			processPendingErases(false);
-			other.processPendingErases(false);
+				processPendingErases(false);
+				other.processPendingErases(false);
 
-			mAllocator = std::move(other.mAllocator);
+				mAllocator = std::move(other.mAllocator);
+			}
+			else {
+				processPendingErases(false);
+				other.processPendingErases(false);
+
+				mAllocator = std::move(other.mAllocator);
+			}
+			
 		}
-
-	public:
-		std::shared_mutex& getMutex() const noexcept { return mtx; }
 
 	private:
 		Allocator mAllocator;
 
 		mutable std::shared_mutex mtx;
 
-		mutable Threads::PinCounters	mPinsCounter;
+		mutable Threads::PinCounters mPinsCounter;
 
 		std::vector<SectorId> mPendingErase;
 	};

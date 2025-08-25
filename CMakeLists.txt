@@ -9,7 +9,6 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_INTERPROCEDURAL_OPTIMIZATION ON)
 
 target_include_directories(ecss INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
-
 add_subdirectory(gtests EXCLUDE_FROM_ALL)
 
 enable_testing()

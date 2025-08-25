@@ -32,34 +32,27 @@ namespace ecss::Memory {
 
 	struct SectorLayoutMeta {
 		template<typename U>
-		inline void initLayoutData(LayoutData& data, uint8_t& index, uint32_t offset) {
+		inline void initLayoutData(LayoutData& data, uint8_t& index, uint32_t offset) const noexcept {
 			static_assert(std::is_move_constructible_v<U>, "Type must be move-constructible for use in SectorsArray");
 
 			data.typeHash = SectorLayoutMeta::TypeId<U>();
 			data.offset = offset;
 			data.index = index++;
-			data.isAliveMask = 1u << data.index;
+			data.isAliveMask = static_cast<uint16_t>(1u << data.index);
 			data.isNotAliveMask = ~(data.isAliveMask);
 			data.isTrivial = std::is_trivial_v<U>;
 
-			data.functionTable.move = [](void* dest, void* src)
-			{
-				new(dest) U(std::move(*static_cast<U*>(src)));
-			};
+			data.functionTable.move = [](void* dest, void* src) { new(dest) U(std::move(*static_cast<U*>(src))); };
 
 			data.functionTable.copy = [](void* dest, const void* src)
 			{
 				if constexpr (std::is_copy_constructible_v<U>) {
 					new(dest) U(*static_cast<const U*>(src));
 				}
-				else {
-					assert(false && "Attempt to copy a move-only type!");
-				}
+				else { assert(false && "Attempt to copy a move-only type!"); }
 			};
 
-			data.functionTable.destructor = [](void* src) {
-				std::destroy_at(static_cast<U*>(src));
-			};
+			data.functionTable.destructor = [](void* src) { std::destroy_at(static_cast<U*>(src)); };
 		}
 
 		template<typename... U>
@@ -116,7 +109,7 @@ namespace ecss::Memory {
 		~SectorLayoutMeta() {
 			delete[] layout;
 			delete[] typeIds;
-		};
+		}
 
 		uint16_t getTotalSize() const {	return totalSize; }
 
@@ -126,16 +119,16 @@ namespace ecss::Memory {
 
 	public:
 		template<typename T>
-		inline constexpr static size_t TypeId() { return TypeIdImpl<std::remove_const_t<std::remove_pointer_t<std::remove_reference_t<T>>>>(); }
+		inline static size_t TypeId() { return TypeIdImpl<std::remove_const_t<std::remove_pointer_t<std::remove_reference_t<T>>>>(); }
 
 	private:
 		template<typename T>
-		inline constexpr static size_t TypeIdImpl() { static char tag; return reinterpret_cast<size_t>(&tag); }
+		inline static size_t TypeIdImpl() { static char tag; return reinterpret_cast<size_t>(&tag); }
 
 		template<typename T>
 		inline uint8_t getIndex() const { return getIndexByType(TypeId<T>()); }
 
-		const LayoutData* getLayouts() const { return layout; };
+		const LayoutData* getLayouts() const { return layout; }
 		
 		uint8_t getIndexByType(size_t hash) const {
 			for (uint8_t i = 0; i < count; ++i) {
@@ -148,7 +141,7 @@ namespace ecss::Memory {
 			return count;
 		}
 
-		uint8_t getTypesCount() const { return count; };
+		uint8_t getTypesCount() const { return count; }
 
 	private:
 		LayoutData* layout = nullptr;
@@ -175,16 +168,25 @@ namespace ecss::Memory {
 		uint32_t isAliveData; //bits for alive flags
 
 		inline constexpr void setAlive(size_t mask, bool value) { value ? isAliveData |= mask : isAliveData &= mask; }
+		inline constexpr void markAlive(size_t mask) { isAliveData |= mask; }
+		inline constexpr void markNotAlive(size_t mask) { isAliveData &= mask; }
 
 		inline constexpr bool isAlive(size_t mask) const { return isAliveData & mask; }
 
 		template<typename T>
-		inline constexpr T* getMember(size_t offset, size_t mask) const { return isAlive(mask) ? static_cast<T*>(getMemberPtr(this, offset)) : nullptr; }
+		inline constexpr T* getMember(size_t offset, size_t mask) const { return isAliveData & mask ? static_cast<T*>(getMemberPtr(this, offset)) : nullptr; }
+
+		template<typename T>
+		inline constexpr T* getMember(size_t offset, size_t mask) { return isAliveData & mask ? static_cast<T*>(getMemberPtr(this, offset)) : nullptr; }
 
 		template<typename T>
 		inline constexpr T* getMember(const LayoutData& layout) const { return getMember<T>(layout.offset, layout.isAliveMask); }
 
+		template<typename T>
+		inline constexpr T* getMember(const LayoutData& layout) { return getMember<T>(layout.offset, layout.isAliveMask); }
+
 		inline static void* getMemberPtr(const Sector* sectorAdr, size_t offset) { return const_cast<char*>(reinterpret_cast<const char*>(sectorAdr) + offset); }
+		inline static void* getMemberPtr(Sector* sectorAdr, size_t offset) { return reinterpret_cast<char*>(sectorAdr) + offset; }
 
 		inline constexpr bool isSectorAlive() const { return isAliveData != 0; }
 
@@ -224,9 +226,9 @@ namespace ecss::Memory {
 				}
 			}
 
-			sector->setAlive(layout.isAliveMask, true);
+			sector->markAlive(layout.isAliveMask);
 
-			return new(memberPtr)T(std::forward<Args>(args)...);
+			return new(memberPtr)T{ std::forward<Args>(args)... };
 		}
 
 		template<typename T>

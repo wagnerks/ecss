@@ -190,7 +190,7 @@ TEST(SectorsArrayConcurrency, RandomStressNoDeadlockNoLostWakeups) {
 
 
 TEST(SectorArrayPinBitMask, highestSetTests) {
-    ecss::Memory::PinnedIndexesBitMask mask;
+    ecss::Threads::PinnedIndexesBitMask mask;
     mask.set(0, true);
     EXPECT_EQ(mask.test(0), true);
     EXPECT_EQ(mask.test(5), false);

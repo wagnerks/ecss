@@ -2,6 +2,7 @@
 #include <gtest/gtest.h>
 
 #include <ecss/memory/SectorsArray.h>
+#include <entt/entt.hpp>
 
 namespace SectorsArrayTest
 {
@@ -19,7 +20,7 @@ namespace SectorsArrayTest
 
 using namespace ecss::Memory;
 
-using SA_T = SectorsArray<ChunksAllocator<8192>>;
+using SA_T = SectorsArray<true, ChunksAllocator<8192>>;
 
 TEST(SectorsArray, DefaultConstructEmpty) {
     auto* arr = SA_T::create<Trivial>();
@@ -142,28 +143,37 @@ TEST(SectorsArray, IteratorBasic) {
 }
 
 TEST(SectorsArray_perfTest, IteratorBasicStress) {
-    constexpr std::size_t count = 100'000'000;
+    constexpr std::size_t count = 100'0000;
 
     auto t0 = std::chrono::high_resolution_clock::now();
-    auto* arr = SectorsArray<ChunksAllocator<count>>::create<Trivial>(count);
+    auto* arr = SectorsArray<false, ChunksAllocator<8192>>::create<Trivial, Position>(count);
 
-    for (int i = 0; i < count; ++i) arr->emplace<Trivial>(i, false,  i);
+    for (int i = 0; i < count; ++i) {
+	    arr->emplace<Trivial>(i, false,  i);
+        //arr->emplace<Position>(i, false, 0.f, 1.f);
+    }
 
     unsigned long long sum = 0;
     auto t1 = std::chrono::high_resolution_clock::now();
     size_t counter = 0;
+    volatile unsigned long long kek = 0;
+    auto layout = arr->getLayoutData<Trivial>();
+    auto layout2 = arr->getLayoutData<Position>();
     for (auto it = arr->begin(), itEnd = arr->end(); it != itEnd; ++it) {
-        sum += (*it)->getMember<Trivial>(arr->getLayoutData<Trivial>())->a;
+        sum += it->getMember<Trivial>(layout.offset, layout.isAliveMask)->a;
+        //sum += static_cast<size_t>(it->getMember<Position>(layout2.offset, layout2.isAliveMask)->y);
         counter++;
     }
+    kek = counter;
+    kek = sum;
     EXPECT_EQ(counter, count);
 
     auto t2 = std::chrono::high_resolution_clock::now();
 
-    auto create_us = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-    auto iterate_us = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
-    std::cout << "[StressTest] Create time: " << create_us << " ms\n";
-    std::cout << "[StressTest] Iterate time: " << iterate_us << " ms\n";
+    auto create_us = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
+    auto iterate_us = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+    std::cout << "[StressTest] ecss Create time: " << create_us << " ms\n";
+    std::cout << "[StressTest] ecss Iterat time: " << iterate_us << " ms\n";
     delete arr;
 
     t0 = std::chrono::high_resolution_clock::now();
@@ -180,17 +190,54 @@ TEST(SectorsArray_perfTest, IteratorBasicStress) {
     sink = sum;
     t2 = std::chrono::high_resolution_clock::now();
 
-    create_us = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-    iterate_us = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
-    std::cout << "[StressTest] std::vector Create time: " << create_us << " ms\n";
-    std::cout << "[StressTest] std::vector Iterate time: " << iterate_us << " ms\n";
+    create_us = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
+    iterate_us = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+    std::cout << "[StressTest] vect Create time: " << create_us << " ms\n";
+    std::cout << "[StressTest] vect Iterat time: " << iterate_us << " ms\n";
+
+
+    t0 = std::chrono::high_resolution_clock::now();
+
+    entt::registry reg;
+
+    t0 = std::chrono::high_resolution_clock::now();
+    
+    // Создание: создаём entity и эмплейсим Trivial{ i }
+    for (size_t i = 0; i < count; ++i) {
+        const entt::entity e = reg.create();
+        reg.emplace<Trivial>(e, static_cast<int>(i));
+        reg.emplace<Position>(e,0.f,1.f);
+    }
+
+    t1 = std::chrono::high_resolution_clock::now();
+
+    // Итерация по всем Trivial
+    sink = 0;
+	sum = 0;
+
+
+    auto view = reg.view<Trivial>();
+    // Вариант 1: each()
+    for (auto [entity, comp] : view.each()) {
+        sum += comp.a;
+    }
+    sink = sum; // чтобы компилятор не выкинул
+
+    
+    t2 = std::chrono::high_resolution_clock::now();
+
+    auto create_ms = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
+    auto iterate_ms = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
+
+    std::cout << "[StressTest] entt Create time: " << create_ms << " ms\n";
+    std::cout << "[StressTest] entt Iterat time: " << iterate_ms << " ms\n";
 }
 
 TEST(SectorsArray_perfTest, IteratorRangedStress) {
     constexpr size_t count = 100'000'000;
 
     auto t0 = std::chrono::high_resolution_clock::now();
-    auto* arr = SectorsArray<ChunksAllocator<count>>::create<Trivial>(count);
+    auto* arr = SectorsArray<true, ChunksAllocator<count>>::create<Trivial>(count);
 
     arr->reserve(count);
     for (int i = 0; i < count; ++i) arr->emplace<Trivial>(i, false, i);
@@ -237,7 +284,7 @@ TEST(SectorsArray_perfTest, IteratorAliveStress) {
     constexpr size_t count = 100'000'000;
 
     auto t0 = std::chrono::high_resolution_clock::now();
-    auto* arr = SectorsArray<ChunksAllocator<count>>::create<Trivial>(count);
+    auto* arr = SectorsArray<true, ChunksAllocator<count>>::create<Trivial>(count);
 
     arr->reserve(count);
     for (int i = 0; i < count; ++i) arr->emplace<Trivial>(i, false, i);
@@ -284,7 +331,7 @@ TEST(SectorsArray_perfTest, IteratorRangedAliveStress) {
     constexpr size_t count = 100'000'000;
 
     auto t0 = std::chrono::high_resolution_clock::now();
-    auto* arr = SectorsArray<ChunksAllocator<count>>::create<Trivial>(count);
+    auto* arr = SectorsArray<true, ChunksAllocator<count>>::create<Trivial>(count);
 
     arr->reserve(count);
     for (int i = 0; i < count; ++i) arr->emplace<Trivial>(i, false, i);
@@ -577,7 +624,7 @@ TEST(SectorsArray, NonTrivialDestructor_IsCalled) {
 }
 
 TEST(SectorsArray_STRESS, ThreadedInsert_Simple) {
-    auto* arr = SectorsArray<ChunksAllocator<4>>::create<Trivial>(0);
+    auto* arr = SectorsArray<true, ChunksAllocator<4>>::create<Trivial>(0);
     constexpr int N = 1000, T = 8;
     std::vector<std::thread> ths;
     std::atomic<int> ready{ 0 };
@@ -643,7 +690,7 @@ TEST(SectorsArray_STRESS, ThreadedStress_RandomOps) {
 }
 
 TEST(SectorsArray, ThreadedIterateReadDuringInsert) {
-    auto* arr = SectorsArray<ChunksAllocator<64>>::create<Trivial>(0);
+    auto* arr = SectorsArray<true, ChunksAllocator<64>>::create<Trivial>(0);
     std::atomic<bool> running{ true };
     std::thread writer([&] {
         for (int i = 0; i < 2000; ++i) arr->insert<Trivial>(i, Trivial{ i });
@@ -668,7 +715,7 @@ TEST(SectorsArray, ThreadedIterateReadDuringInsert) {
 }
 
 TEST(SectorsArray_STRESS, ThreadedIterateInsertEraseFuzz) {
-    auto* arr = SectorsArray<ChunksAllocator<8>>::create<Trivial>(0);
+    auto* arr = SectorsArray<true, ChunksAllocator<8>>::create<Trivial>(0);
     std::atomic<bool> running{ true };
 
     constexpr int N = 20000;
@@ -963,7 +1010,7 @@ TEST(SectorsArray_STRESS_light, TrivialType_StressDefrag) {
 
 TEST(SectorsArray_STRESS_light, ThreadedRandomEraseClear) {
     constexpr int threads = 4, N = 4000;
-    auto* arr = SectorsArray<ChunksAllocator<16>>::create<Velocity>(0);
+    auto* arr = SectorsArray<true, ChunksAllocator<16>>::create<Velocity>(0);
     for (int i = 0; i < N; ++i) arr->insert<Velocity>(i, Velocity{ (float)i, (float)-i });
     std::atomic<bool> stop = false;
     std::vector<std::thread> ts;
@@ -1049,7 +1096,7 @@ TEST(SectorsArray_STRESS_light, AliveAfterEraseInsertRace) {
 TEST(SectorsArray_STRESS_light, MultiComponentParallelRumble) {
     using Pair = std::pair<Health, Velocity>;
     constexpr int N = 4096, threads = 8;
-    auto* arr = SectorsArray<ChunksAllocator<4>>::create<Health, Velocity>(0);
+    auto* arr = SectorsArray<true, ChunksAllocator<4>>::create<Health, Velocity>(0);
     std::vector<std::thread> ts;
     std::atomic<bool> stop = false;
     for (int t = 0; t < threads; ++t) {
@@ -1194,7 +1241,7 @@ TEST(SectorsArray, AllApiBrutalMix) {
 
 TEST(SectorsArray_STRESS, MassiveConcurrentInsertEraseAndDefrag) {
     static constexpr int N = 1000;
-    auto* arr = SectorsArray<ChunksAllocator<32>>::create<Trivial>(0);
+    auto* arr = SectorsArray<true, ChunksAllocator<32>>::create<Trivial>(0);
     std::vector<std::thread> insert_threads, erase_threads;
     for (int t = 0; t < 4; ++t)
         insert_threads.emplace_back([&, t] {
