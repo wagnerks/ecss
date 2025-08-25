@@ -203,7 +203,7 @@ namespace ecss::Memory {
             }
 
             size_t pos = mSize++;
-        	if (!((pos == 0) || (sectorId > back()->id))) [[unlikely]] {
+        	if (!((pos == 0) || (sectorId < back()->id))) [[unlikely]] {
                 pos = findInsertPosition(sectorId, pos);
 
                 if (pos != mSize - 1) [[unlikely]] {

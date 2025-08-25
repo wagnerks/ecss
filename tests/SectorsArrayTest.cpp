@@ -2,7 +2,6 @@
 #include <gtest/gtest.h>
 
 #include <ecss/memory/SectorsArray.h>
-#include <entt/entt.hpp>
 
 namespace SectorsArrayTest
 {
@@ -143,25 +142,18 @@ TEST(SectorsArray, IteratorBasic) {
 }
 
 TEST(SectorsArray_perfTest, IteratorBasicStress) {
-    constexpr std::size_t count = 100'0000;
+    constexpr std::size_t count = 100'000'000;
 
     auto t0 = std::chrono::high_resolution_clock::now();
-    auto* arr = SectorsArray<false, ChunksAllocator<8192>>::create<Trivial, Position>(count);
+    auto* arr = SectorsArray<ChunksAllocator<count>>::create<Trivial>(count);
 
-    for (int i = 0; i < count; ++i) {
-	    arr->emplace<Trivial>(i, false,  i);
-        //arr->emplace<Position>(i, false, 0.f, 1.f);
-    }
+    for (int i = 0; i < count; ++i) arr->emplace<Trivial>(i, false,  i);
 
     unsigned long long sum = 0;
     auto t1 = std::chrono::high_resolution_clock::now();
     size_t counter = 0;
-    volatile unsigned long long kek = 0;
-    auto layout = arr->getLayoutData<Trivial>();
-    auto layout2 = arr->getLayoutData<Position>();
     for (auto it = arr->begin(), itEnd = arr->end(); it != itEnd; ++it) {
-        sum += it->getMember<Trivial>(layout.offset, layout.isAliveMask)->a;
-        //sum += static_cast<size_t>(it->getMember<Position>(layout2.offset, layout2.isAliveMask)->y);
+        sum += (*it)->getMember<Trivial>(arr->getLayoutData<Trivial>())->a;
         counter++;
     }
     kek = counter;
@@ -170,10 +162,10 @@ TEST(SectorsArray_perfTest, IteratorBasicStress) {
 
     auto t2 = std::chrono::high_resolution_clock::now();
 
-    auto create_us = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
-    auto iterate_us = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
-    std::cout << "[StressTest] ecss Create time: " << create_us << " ms\n";
-    std::cout << "[StressTest] ecss Iterat time: " << iterate_us << " ms\n";
+    auto create_us = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+    auto iterate_us = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+    std::cout << "[StressTest] Create time: " << create_us << " ms\n";
+    std::cout << "[StressTest] Iterate time: " << iterate_us << " ms\n";
     delete arr;
 
     t0 = std::chrono::high_resolution_clock::now();
@@ -190,47 +182,10 @@ TEST(SectorsArray_perfTest, IteratorBasicStress) {
     sink = sum;
     t2 = std::chrono::high_resolution_clock::now();
 
-    create_us = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
-    iterate_us = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
-    std::cout << "[StressTest] vect Create time: " << create_us << " ms\n";
-    std::cout << "[StressTest] vect Iterat time: " << iterate_us << " ms\n";
-
-
-    t0 = std::chrono::high_resolution_clock::now();
-
-    entt::registry reg;
-
-    t0 = std::chrono::high_resolution_clock::now();
-    
-    // Создание: создаём entity и эмплейсим Trivial{ i }
-    for (size_t i = 0; i < count; ++i) {
-        const entt::entity e = reg.create();
-        reg.emplace<Trivial>(e, static_cast<int>(i));
-        reg.emplace<Position>(e,0.f,1.f);
-    }
-
-    t1 = std::chrono::high_resolution_clock::now();
-
-    // Итерация по всем Trivial
-    sink = 0;
-	sum = 0;
-
-
-    auto view = reg.view<Trivial>();
-    // Вариант 1: each()
-    for (auto [entity, comp] : view.each()) {
-        sum += comp.a;
-    }
-    sink = sum; // чтобы компилятор не выкинул
-
-    
-    t2 = std::chrono::high_resolution_clock::now();
-
-    auto create_ms = std::chrono::duration_cast<std::chrono::nanoseconds>(t1 - t0).count();
-    auto iterate_ms = std::chrono::duration_cast<std::chrono::nanoseconds>(t2 - t1).count();
-
-    std::cout << "[StressTest] entt Create time: " << create_ms << " ms\n";
-    std::cout << "[StressTest] entt Iterat time: " << iterate_ms << " ms\n";
+    create_us = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
+    iterate_us = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
+    std::cout << "[StressTest] std::vector Create time: " << create_us << " ms\n";
+    std::cout << "[StressTest] std::vector Iterate time: " << iterate_us << " ms\n";
 }
 
 TEST(SectorsArray_perfTest, IteratorRangedStress) {
