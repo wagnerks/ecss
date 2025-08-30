@@ -33,7 +33,7 @@ namespace RegistryTests {
 	TEST(Registry, AddAndgetPinnedComponent) {
 	    Registry registry;
 	    auto entity = registry.takeEntity();
-	    registry.addComponent<Position>(entity, false, (float)10, (float)20);
+	    registry.addComponent<Position>(entity, (float)10, (float)20);
 
 	    auto* pos = registry.getPinnedComponent<Position>(entity).get();
 	    ASSERT_NE(pos, nullptr);
@@ -400,7 +400,7 @@ namespace RegistryTests {
 #define REGISTRY_PERF_TESTS  1
 #if REGISTRY_PERF_TESTS
 	TEST(Registry_perfTest, CreatingAndIteratingNotOneSector) {
-		ecss::Registry registry;
+		ecss::Registry<false> registry;
 		constexpr size_t size = 100'000'000;
 		registry.reserve<Health>(size);
 		registry.reserve<Velocity>(size);
@@ -408,8 +408,8 @@ namespace RegistryTests {
 		auto t0 = std::chrono::high_resolution_clock::now();
 		for (auto i = 0; i < size; i++) {
 			auto e = registry.takeEntity();
-			registry.addComponent<Health>(e, false, 1);
-			registry.addComponent<Velocity>(e, false, (float)1, (float)2);
+			registry.addComponent<Health>(e, 1);
+			registry.addComponent<Velocity>(e, (float)1, (float)2);
 		}
 		auto t1 = std::chrono::high_resolution_clock::now();
 
@@ -443,7 +443,7 @@ namespace RegistryTests {
 
 		auto t0 = std::chrono::high_resolution_clock::now();
 		for (auto i = 0; i < size; i++) {
-			registry.addComponent<Health>(registry.takeEntity(), false, 1);
+			registry.addComponent<Health>(registry.takeEntity(), 1);
 		}
 		auto t1 = std::chrono::high_resolution_clock::now();
 		EXPECT_EQ(size, registry.getComponentContainer<Health>()->size());
@@ -465,7 +465,7 @@ namespace RegistryTests {
 	}
 
 	TEST(Registry_perfTest, CreatingAndIteratingOneSector) {
-		ecss::Registry registry;
+		ecss::Registry<false> registry;
 		constexpr size_t size = 100'000'000;
 
 		registry.registerArray<Health, Velocity>();
@@ -475,8 +475,8 @@ namespace RegistryTests {
 		auto t0 = std::chrono::high_resolution_clock::now();
 		for (auto i = 0; i < size; i++) {
 			auto e = registry.takeEntity();
-			registry.addComponent<Health>(e, false, 1);
-			registry.addComponent<Velocity>(e, false, (float)1, (float)2);
+			registry.addComponent<Health>(e, 1);
+			registry.addComponent<Velocity>(e, (float)1, (float)2);
 		}
 		auto t1 = std::chrono::high_resolution_clock::now();
 		EXPECT_EQ(size, registry.getComponentContainer<Health>()->size());
@@ -500,7 +500,7 @@ namespace RegistryTests {
 	}
 
 	TEST(Registry_perfTest, CreatingAndIteratingOneSectorRanges) {
-		ecss::Registry registry;
+		ecss::Registry<false> registry;
 		constexpr size_t size = 100'000'000;
 
 		registry.registerArray<Health, Velocity>();
@@ -510,8 +510,8 @@ namespace RegistryTests {
 		auto t0 = std::chrono::high_resolution_clock::now();
 		for (auto i = 0; i < size; i++) {
 			auto e = registry.takeEntity();
-			registry.addComponent<Health>(e, false, 1);
-			registry.addComponent<Velocity>(e, false, (float)1, (float)2);
+			registry.addComponent<Health>(e, 1);
+			registry.addComponent<Velocity>(e, (float)1, (float)2);
 		}
 		auto t1 = std::chrono::high_resolution_clock::now();
 
@@ -535,15 +535,15 @@ namespace RegistryTests {
 	}
 
 	TEST(Registry_perfTest, CreatingAndIteratingNotOneSectorNotReserved) {
-		ecss::Registry registry;
+		ecss::Registry<false> registry;
 		constexpr size_t size = 100'000'000;
 		constexpr size_t itCount = 10;
 
 		auto t0 = std::chrono::high_resolution_clock::now();
 		for (auto i = 0; i < size; i++) {
 			auto e = registry.takeEntity();
-			registry.addComponent<Health>(e, false, 1);
-			registry.addComponent<Velocity>(e, false, (float)1, (float)2);
+			registry.addComponent<Health>(e, 1);
+			registry.addComponent<Velocity>(e, (float)1, (float)2);
 		}
 		auto t1 = std::chrono::high_resolution_clock::now();
 
@@ -569,7 +569,7 @@ namespace RegistryTests {
 	}
 
 	TEST(Registry_perfTest, CreatingAndIteratingOneSectorNotReserved) {
-		ecss::Registry registry;
+		ecss::Registry<false> registry;
 		constexpr size_t size = 100'000'000;
 		constexpr size_t itCount = 10;
 
@@ -578,8 +578,8 @@ namespace RegistryTests {
 		auto t0 = std::chrono::high_resolution_clock::now();
 		for (auto i = 0; i < size; i++) {
 			auto e = registry.takeEntity();
-			registry.addComponent<Health>(e, false, 1);
-			registry.addComponent<Velocity>(e, false, (float)1, (float)2);
+			registry.addComponent<Health>(e, 1);
+			registry.addComponent<Velocity>(e, (float)1, (float)2);
 		}
 		auto t1 = std::chrono::high_resolution_clock::now();
 

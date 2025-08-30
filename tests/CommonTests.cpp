@@ -26,7 +26,9 @@ namespace CommonTests {
     template<size_t chunk, typename... Ts>
     ecss::Memory::SectorsArray<true, ChunksAllocator<chunk>>* MakeArray(uint32_t capacity = 0) {
         // chunk — это "ёмкость чанка в секторах", выбираем маленький, чтобы насильно бегать по границам чанков
-        return ecss::Memory::SectorsArray<true, ChunksAllocator<chunk>>::template create<Ts...>(capacity);
+        auto arr = ecss::Memory::SectorsArray<true, ChunksAllocator<chunk>>::template create<Ts...>();
+        arr->reserve(capacity);
+        return arr;
     }
 
     // Возвращает все id из обычного итератора
@@ -66,16 +68,16 @@ namespace CommonTests {
 
         // Найти сектора по id
         {
-            auto s3 = arr->findSector(3, false);
+            auto s3 = arr->findSector(3);
             ASSERT_NE(s3, nullptr);
             EXPECT_EQ(s3->id, 3u);
             EXPECT_TRUE(s3->isSectorAlive()); // хотя бы один компонент должен быть alive
         }
 
         // Повторная вставка в существующий сектор не должна раздувать размер
-        auto sizeBefore = arr->size(false);
+        auto sizeBefore = arr->size();
         arr->insert<Pos>(3, Pos{ 300 });
-        auto sizeAfter = arr->size(false);
+        auto sizeAfter = arr->size();
         EXPECT_EQ(sizeBefore, sizeAfter);
 
         delete arr;
@@ -101,11 +103,11 @@ namespace CommonTests {
         // Снять alive у пары чётных — итератор должен пропустить
         arr->insert<Pos>(2, {}); // не меняет alive
         {
-            auto s2 = arr->findSector(2, false);
+            auto s2 = arr->findSector(2);
             s2->destroyMember(arr->getLayoutData<Pos>());
         }
         {
-            auto s8 = arr->findSector(8, false);
+            auto s8 = arr->findSector(8);
             s8->destroyMember(arr->getLayoutData<Pos>());
         }
         alive = CollectAliveIds<Pos>(arr);
@@ -144,26 +146,26 @@ namespace CommonTests {
         for (SectorId id = 0; id < 7; ++id) {
             arr->insert<Pos>(id, Pos{ int(id) });
         }
-        ASSERT_EQ(arr->size(false), 7u);
+        ASSERT_EQ(arr->size(), 7u);
 
         // Удаление из начала (со сдвигом)
-        arr->erase(0, 1, /*shift*/true, false);
+        arr->erase(0, 1, /*shift*/ true);
         auto ids = CollectIds(arr);
         ASSERT_EQ(ids.size(), 6u);
         EXPECT_EQ(ids.front(), 1u);
 
         // Удаление из середины (со сдвигом)
-        arr->erase(2, 2, /*shift*/true, false); // сотрём текущие индексы 2 и 3
+        arr->erase(2, 2, /*shift*/ true); // сотрём текущие индексы 2 и 3
         ids = CollectIds(arr);
         ASSERT_EQ(ids.size(), 4u);
 
         // Удаление из конца без сдвига (оставим "дыру" для последующей дефрагментации)
-        const auto sizeBefore = arr->size(false);
-        arr->erase(ids.size() - 1, 1, /*shift*/false, false);
-        EXPECT_EQ(arr->size(false), sizeBefore); // размер не уменьшился
+        const auto sizeBefore = arr->size();
+        arr->erase(ids.size() - 1, 1, /*shift*/false);
+        EXPECT_EQ(arr->size(), sizeBefore); // размер не уменьшился
         // запускаем defragment
-        arr->defragment(false);
-        EXPECT_LT(arr->size(false), sizeBefore);
+        arr->defragment();
+        EXPECT_LT(arr->size(), sizeBefore);
 
         delete arr;
     }
@@ -182,13 +184,13 @@ namespace CommonTests {
         }
         // Помечаем not alive для нескольких
         for (SectorId id : {1u, 4u, 8u}) {
-            auto s = arr->findSector(id, false);
+            auto s = arr->findSector(id);
             s->destroyMember(arr->getLayoutData<Pos>());
             s->destroyMember(arr->getLayoutData<Vel>());
         }
-        const auto sizeBefore = arr->size(false);
-        arr->defragment(false);
-        const auto sizeAfter = arr->size(false);
+        const auto sizeBefore = arr->size();
+        arr->defragment();
+        const auto sizeAfter = arr->size();
         EXPECT_LT(sizeAfter, sizeBefore);
 
         // Порядок должен сохраниться (возрастающий id)
@@ -197,7 +199,7 @@ namespace CommonTests {
 
         // Нет dangling в SectorsMap для живых id
         for (auto id : ids) {
-            auto s = arr->findSector(id, false);
+            auto s = arr->findSector(id);
             ASSERT_NE(s, nullptr);
             EXPECT_EQ(s->id, id);
         }
@@ -250,9 +252,9 @@ namespace CommonTests {
         }
 
         // Удалим несколько в середине, дефрагментируем — снова проверим
-        arr->erase(4, 2, true, false); // сдвиг
-        arr->erase(5, 1, false, false); // без сдвига
-        arr->defragment(false);
+        arr->erase(4, 2, true); // сдвиг
+        arr->erase(5, 1, false); // без сдвига
+        arr->defragment();
         ids = CollectIds(arr);
         EXPECT_TRUE(std::is_sorted(ids.begin(), ids.end()));
 
@@ -305,7 +307,7 @@ namespace CommonTests {
     // ---------- REGISTRY ----------
     TEST(Registry_API, AddHasGetDestroyComponents) {
         Registry reg;
-        reg.registerArray<Pos, Vel>(/*capacity*/0);
+        reg.registerArray<Pos, Vel>();
 
         // Выдать сущности и добавить компоненты
         std::vector<EntityId> ids;
@@ -412,7 +414,7 @@ namespace CommonTests {
                 {
                     // Случайно “мигнём” Vel для id
                     const int id = dist(rng);
-                    auto s = arr->pinSector(id, true);
+                    auto s = arr->pinSector(id);
                     if (s) {
                         // Тоггл: если жив – разрушим; если мертв – добавим
                         if (s->isAlive(arr->getLayoutData<Vel>().isAliveMask)) {
@@ -448,7 +450,7 @@ namespace CommonTests {
     // ---------- Ranged + Registry forEach ----------
     TEST(Registry_ForEach, RangedAndPlain) {
         Registry reg;
-        reg.registerArray<Pos, Vel>(/*capacity*/0);
+        reg.registerArray<Pos, Vel>();
 
         std::vector<EntityId> ids;
         for (int i = 0; i < 100; ++i) {

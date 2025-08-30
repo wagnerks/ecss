@@ -22,10 +22,11 @@ using ecss::SectorId;
 struct Payload { int v = 0; };
 
 static SectorsArray<>* makeArray(size_t cap) {
-    auto* arr = SectorsArray<>::template create<Payload>(static_cast<uint32_t>(cap));
+    auto* arr = SectorsArray<>::template create<Payload>();
+    arr->reserve(cap);
     // заполним секторами [0..cap-1]
     for (size_t i = 0; i < cap; ++i) {
-        arr->template emplace<Payload>(static_cast<SectorId>(i), /*sync=*/true, Payload{ int(i) });
+        arr->template emplace<Payload>(static_cast<SectorId>(i), Payload{ int(i) });
     }
     return arr;
 }
@@ -38,7 +39,7 @@ TEST(SectorsArrayConcurrency, EraseBlocksWhilePinnedThenProceeds) {
     // запиним сектор в отдельном треде и подержим
     std::promise<void> pinnedReady, canUnpin;
     std::thread pinT([&] {
-        auto pinned = arr.pinSector(target, /*sync=*/true);
+        auto pinned = arr.pinSector(target);
         pinnedReady.set_value();
         // ждём разрешения на распин
         canUnpin.get_future().wait();
@@ -48,10 +49,10 @@ TEST(SectorsArrayConcurrency, EraseBlocksWhilePinnedThenProceeds) {
     pinnedReady.get_future().wait();
 
     // попытка убрать сектор: должен уйти в pending (не удалиться)
-    arr.freeSector(target, /*shift=*/false, /*sync=*/true);
+    arr.eraseAsync(target, 1, /*shift=*/false);
     // moment of truth: sector все еще должен существовать
     {
-        auto s = arr.findSector(target, /*sync=*/true);
+        auto s = arr.findSector(target);
         ASSERT_NE(s, nullptr) << "sector must not be erased while pinned";
     }
 
@@ -60,8 +61,8 @@ TEST(SectorsArrayConcurrency, EraseBlocksWhilePinnedThenProceeds) {
     pinT.join();
 
     // в конце кадра удаление должно пройти
-    arr.processPendingErases(/*sync=*/true);
-    auto s2 = arr.findSector(target, /*sync=*/true);
+    arr.processPendingErases();
+    auto s2 = arr.findSector(target);
     ASSERT_EQ(s2, nullptr) << "sector should be erased after unpin + processing";
 }
 
@@ -73,21 +74,21 @@ TEST(SectorsArrayConcurrency, WatermarkBlocksAndLowersAfterUnpin) {
     const SectorId lo = 50;
 
     // держим «правый» пин, чтобы поднять max
-    auto pHi = arr.pinSector(hi, /*sync=*/true);
+    auto pHi = arr.pinSector(hi);
     // параллельно пытаемся менять сектор с id <= max — нельзя
     std::atomic<bool> canChange{ true };
 
     std::thread t([&] {
         // жёсткая проверка через canMoveSector (индикативно)
         for (int i = 0; i < 1000; ++i) {
-            if (arr.containsSector(lo, /*sync=*/true)) {
-                if (arr.getSector(lo, /*sync=*/true)) {
-                    if (arr.getSector(hi, /*sync=*/true)) {
-                        if (!arr.containsSector(hi, /*sync=*/true)) break;
-                        if (!arr.containsSector(lo, /*sync=*/true)) break;
+            if (arr.containsSector(lo)) {
+                if (arr.getSector(lo)) {
+                    if (arr.getSector(hi)) {
+                        if (!arr.containsSector(hi)) break;
+                        if (!arr.containsSector(lo)) break;
                        
                         // если watermark работает, изменение сектора lo блокируется
-                        arr.eraseSectorSafe(lo, /*shift=*/false, /*sync=*/true), true;
+                        arr.eraseAsync(lo, 1, /*shift=*/false), true;
                         
                     }
                 }
@@ -105,12 +106,12 @@ TEST(SectorsArrayConcurrency, WatermarkBlocksAndLowersAfterUnpin) {
 
     // распиним HI → watermark должен опуститься, и изменения станут возможны
     pHi = {}; // RAII unpin
-    arr.processPendingErases(/*sync=*/true); // чтобы сработали очереди, не обязательно, но ускоряет
+    arr.processPendingErases(); // чтобы сработали очереди, не обязательно, но ускоряет
 
     // после распина ждем, пока сектор lo можно менять
-    arr.eraseSectorSafe(lo, /*shift=*/false, /*sync=*/true);
-    arr.processPendingErases(/*sync=*/true);
-    auto s = arr.findSector(lo, /*sync=*/true);
+    arr.eraseAsync(lo, 1, /*shift=*/false);
+    arr.processPendingErases();
+    auto s = arr.findSector(lo);
     ASSERT_EQ(s, nullptr) << "after unpin of HI, LO sector should be erasable";
 
     t.join();
@@ -134,7 +135,7 @@ TEST(SectorsArrayConcurrency, RandomStressNoDeadlockNoLostWakeups) {
         start.arrive_and_wait();
         while (!stop.load(std::memory_order_relaxed)) {
             SectorId id = rng() % CAP;
-            auto pin = arr.pinSector(id, /*sync=*/true);
+            auto pin = arr.pinSector(id);
             // мелкое чтение
             auto s = pin.get();
             if (s) { volatile int x = s->isAliveData; (void)x; }
@@ -152,23 +153,23 @@ TEST(SectorsArrayConcurrency, RandomStressNoDeadlockNoLostWakeups) {
             if ((r & 0x3) == 0) {
                 // попытка удалить случайный сектор
                 SectorId id = r % CAP;
-                arr.eraseSectorSafe(id, /*shift=*/false, /*sync=*/true);
+                arr.eraseAsync(id, 1, /*shift=*/false);
             }
             else if ((r & 0x7) == 1) {
-                arr.processPendingErases(/*sync=*/true);
+                arr.processPendingErases();
             }
             else if ((r & 0xF) == 2) {
-                arr.defragment(/*sync=*/true);
+                arr.defragment();
             }
             else if ((r & 0xFF) == 3) {
                 // редкий reserve — спровоцировать ensureSidecarCapacity
-                arr.reserve(uint32_t(CAP + (r % 64)), /*sync=*/true);
+                arr.reserve(uint32_t(CAP + (r % 64)));
             }
             // иногда ждём конкретного id, чтобы проверить waitUntilChangeable
             if ((r & 0x1F) == 4) {
                 SectorId id = r % CAP;
-                arr.eraseSectorSafe(id, /*shift=*/false, /*sync=*/true);
-                arr.processPendingErases(/*sync=*/true);
+                arr.eraseAsync(id, 1, /*shift=*/false);
+                arr.processPendingErases();
             }
         }
     };
@@ -183,7 +184,7 @@ TEST(SectorsArrayConcurrency, RandomStressNoDeadlockNoLostWakeups) {
     for (auto& t : th) t.join();
 
     // быстрая sanity-проверка: после прохода очереди удалений — всё стабильно
-    holder->processPendingErases(/*sync=*/true);
+    holder->processPendingErases();
     // если что-то пошло не так (дедлок/лост-вейкап/UB), этот тест часто падает под TSAN или зависает.
     SUCCEED();
 }

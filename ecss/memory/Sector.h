@@ -104,6 +104,12 @@ namespace ecss::Memory {
 
 			layout = new LayoutData[types::OffsetArray<Dummy::sectorSize, Types...>::count];
 			initLayoutData<Types...>(layout);
+			for (size_t i = 0; i < types::OffsetArray<Dummy::sectorSize, Types...>::count; i++) {
+				mIsTrivial = mIsTrivial && layout[i].isTrivial;
+				if (!mIsTrivial) {
+					break;
+				}
+			}
 		}
 
 		~SectorLayoutMeta() {
@@ -112,6 +118,7 @@ namespace ecss::Memory {
 		}
 
 		uint16_t getTotalSize() const {	return totalSize; }
+		bool isTrivial() const { return mIsTrivial; }
 
 		template<typename T>
 		inline const LayoutData& getLayoutData() const { return layout[getIndex<T>()]; }
@@ -148,6 +155,7 @@ namespace ecss::Memory {
 		size_t* typeIds = nullptr;
 		uint16_t totalSize = 0;
 		uint8_t count = 0;
+		bool mIsTrivial = std::is_trivial_v<Dummy::Sector>;
 	};
 
 	/*
@@ -213,6 +221,19 @@ namespace ecss::Memory {
 				setAlive(layout.isNotAliveMask, false);
 				layout.functionTable.destructor(getMemberPtr(this, layout.offset));
 			}
+		}
+		template<typename T, class ...Args>
+		inline T* emplaceMember(const LayoutData& layout, Args&&... args) {
+			void* memberPtr = getMemberPtr(this, layout.offset);
+			if constexpr (!std::is_trivially_destructible_v<T>) {
+				if (isAlive(layout.isAliveMask)) {
+					layout.functionTable.destructor(memberPtr);
+				}
+			}
+
+			markAlive(layout.isAliveMask);
+
+			return new(memberPtr)T(std::forward<Args>(args)... );
 		}
 
 		template<typename T, class ...Args>
@@ -316,17 +337,17 @@ namespace ecss::Memory {
 		}
 
 		inline static void destroySector(Sector* sector, const SectorLayoutMeta* layouts) {
-			if (sector) {
-				destroyMembers(sector, layouts);
-			}
+			destroyMembers(sector, layouts);
 		}
 
 		inline static void destroyMembers(Sector* sector, const SectorLayoutMeta* layouts) {
 			if (sector) {
 				if (sector->isSectorAlive()) {
-					for (const auto& layout : (*layouts)) {
-						if (sector->isAlive(layout.isAliveMask)) {
-							layout.functionTable.destructor(sector->getMemberPtr(sector, layout.offset));
+					if (layouts->isTrivial()) {
+						for (const auto& layout : (*layouts)) {
+							if (sector->isAlive(layout.isAliveMask)) {
+								layout.functionTable.destructor(ecss::Memory::Sector::getMemberPtr(sector, layout.offset));
+							}
 						}
 					}
 					sector->isAliveData = 0;

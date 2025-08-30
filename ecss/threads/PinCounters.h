@@ -23,16 +23,16 @@ namespace ecss::Threads {
 		static constexpr auto shift = std::countr_zero(static_cast<unsigned>(kFanout));
 		static constexpr auto maxlvl = 1 + (std::numeric_limits<size_t>::digits + shift - 1) / shift;
 
-		static constexpr size_t		wordIndexOf(size_t idx) noexcept { return idx >> shift; }						//		/kFanout
-		static constexpr size_t		bitOffsetOf(size_t idx) noexcept { return idx & kBitsCount; }					//		%kFanout 
-		static constexpr BITS_TYPE	bitMask(size_t off)		noexcept { return static_cast<BITS_TYPE>(1) << off; }
+		static constexpr size_t		wordIndexOf(size_t idx)  { return idx >> shift; }						//		/kFanout
+		static constexpr size_t		bitOffsetOf(size_t idx)  { return idx & kBitsCount; }					//		%kFanout 
+		static constexpr BITS_TYPE	bitMask(size_t off)		 { return static_cast<BITS_TYPE>(1) << off; }
 
-		static constexpr size_t levelsFor(size_t idx) noexcept {
+		static constexpr size_t levelsFor(size_t idx)  {
 			auto w0 = wordIndexOf(idx);
 			return w0 ? 2 + (std::bit_width(w0) - 1) / shift : 1;
 		}
 
-		size_t ensurePath(size_t idx, std::array<size_t, maxlvl>& path) noexcept {
+		size_t ensurePath(size_t idx, std::array<size_t, maxlvl>& path)  {
 			auto lock = std::unique_lock(mtx);
 
 			auto w = idx;
@@ -48,9 +48,9 @@ namespace ecss::Threads {
 		}
 
 	public:
-		PinnedIndexesBitMask() noexcept { bits[0].resize(1); }
+		PinnedIndexesBitMask()  { bits[0].resize(1); }
 
-		void set(SectorId index, bool state) noexcept {
+		void set(SectorId index, bool state)  {
 			thread_local std::array<size_t, maxlvl> path;
 			auto size = ensurePath(index, path);
 
@@ -88,7 +88,7 @@ namespace ecss::Threads {
 			}
 		}
 
-		bool test(SectorId index) const noexcept {
+		bool test(SectorId index) const  {
 			auto lock = std::shared_lock(mtx);
 
 			const auto w = wordIndexOf(index);
@@ -102,7 +102,7 @@ namespace ecss::Threads {
 			return (v & m) != 0;
 		}
 
-		PinIndex highestSet() const noexcept {
+		PinIndex highestSet() const  {
 			auto lock = std::shared_lock(mtx);
 
 			int top = static_cast<int>(bits.size() - 1);
@@ -134,7 +134,7 @@ namespace ecss::Threads {
 	};
 
 	struct PinCounters {
-		void pin(SectorId id) noexcept {
+		void pin(SectorId id)  {
 			assert(id != INVALID_ID);
 
 			epoch.fetch_add(1, std::memory_order_release);
@@ -148,7 +148,7 @@ namespace ecss::Threads {
 			while (want > cur && !maxPinnedSector.compare_exchange_weak(cur, want, std::memory_order_release, std::memory_order_relaxed)) {}
 		}
 
-		void unpin(SectorId id) noexcept {
+		void unpin(SectorId id)  {
 			assert(id != INVALID_ID);
 
 			epoch.fetch_add(1, std::memory_order_release);
@@ -170,14 +170,14 @@ namespace ecss::Threads {
 			}
 		}
 
-		bool canMoveSector(SectorId sectorId) const noexcept {
+		bool canMoveSector(SectorId sectorId) const  {
 			assert(sectorId != INVALID_ID);
 
 			const auto max = maxPinnedSector.load(std::memory_order_acquire);
 			return static_cast<PinIndex>(sectorId) > max && get(sectorId).load(std::memory_order_acquire) == 0;
 		}
 
-		void waitUntilChangeable(SectorId sid = 0) const noexcept {
+		void waitUntilChangeable(SectorId sid = 0) const {
 			assert(sid != INVALID_ID);
 			const auto id = static_cast<PinIndex>(sid);
 			for (;;) {
@@ -196,7 +196,7 @@ namespace ecss::Threads {
 			}
 		}
 
-		void waitUntilSectorChangeable(SectorId sid) const noexcept {
+		void waitUntilSectorChangeable(SectorId sid) const {
 			assert(sid != INVALID_ID);
 			for (;;) {
 				auto& var = get(sid);
@@ -237,7 +237,7 @@ namespace ecss::Threads {
 			}
 		}
 
-		void updateMaxPinned() noexcept {
+		void updateMaxPinned()  {
 			const auto e1 = epoch.load(std::memory_order_acquire);
 			auto cur = maxPinnedSector.load(std::memory_order_relaxed);
 			if (cur != -1) {

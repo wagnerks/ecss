@@ -98,7 +98,7 @@ namespace test_adapt {
     template<class T, class... A> inline T* emplace(Registry& r, EntityId id, A&&... a) {
         return r.addComponent<T>(id, std::forward<A>(a)...);
     }
-    template<class T> inline Registry::PinnedComponent<T> get(Registry& r, EntityId id) {
+    template<class T> inline ecss::PinnedComponent<T> get(Registry& r, EntityId id) {
         return r.getPinnedComponent<T>(id);
     }
     inline void destroy(Registry& r, EntityId id) { r.destroyEntity(id); }
