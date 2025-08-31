@@ -19,7 +19,7 @@ namespace ecss
 	class Registry;
 
 	template <bool ThreadSafe, typename Allocator, bool Ranged, typename T, typename ...ComponentTypes>
-	class ComponentArraysEntry;
+	class ArraysView;
 }
 
 namespace ecss::Memory {
@@ -111,7 +111,7 @@ namespace ecss::Memory {
 		friend class ecss::Registry;
 
 		template <bool TS, typename Alloc, bool Ranged, typename T, typename ...ComponentTypes>
-		friend class ecss::ComponentArraysEntry;
+		friend class ecss::ArraysView;
 
 	public:
 		// iterators
@@ -346,21 +346,19 @@ namespace ecss::Memory {
 			TS_GUARD_S(TS, UNIQUE, mPinsCounter.waitUntilChangeable(sectorId); , return insertImpl(sectorId, std::forward<T>(data)););
 		}
 
-		template<typename T, class... Args>
+		template<typename T, bool TS = ThreadSafe, class... Args>
 		T* emplace(SectorId sectorId, Args&&... args)  {
-			if constexpr (ThreadSafe) {
-				UNIQUE_LOCK();
-				mPinsCounter.waitUntilChangeable(sectorId);
-
-				return emplaceImpl<T>(sectorId, std::forward<Args>(args)...);
-			}
-			
-			return emplaceImpl<T>(sectorId, std::forward<Args>(args)...);
+			TS_GUARD_S(TS, UNIQUE, mPinsCounter.waitUntilChangeable(sectorId);, return emplaceImpl<T>(sectorId, std::forward<Args>(args)...););
 		}
 
-		template<typename T, class... Args>
-		T* emplaceNoLock(SectorId sectorId, Args&&... args) requires(ThreadSafe) {
-			return emplaceImpl<T>(sectorId, std::forward<Args>(args)...);
+		template<typename T, bool TS = ThreadSafe, class... Args>
+		T* push(SectorId sectorId, Args&&... args) requires(ThreadSafe) {
+			if constexpr (sizeof...(Args) == 1 && (std::is_same_v<std::remove_cvref_t<Args>, T> && ...)) {
+				return insert<Args..., TS>(sectorId, std::forward<Args>(args)...);
+			}
+			else {
+				return emplace<T, TS>(sectorId, std::forward<Args>(args)...);
+			}
 		}
 
 		/** @brief Maintenance hook (e.g., end of frame).
@@ -370,9 +368,13 @@ namespace ecss::Memory {
 		 *
 		 * Call this periodically to keep memory and fragmentation under control.
 		 */
-		void processPendingErases(bool sync = true) requires(ThreadSafe) {
+		void processPendingErases(bool withDefragment = true, bool sync = ThreadSafe) requires(ThreadSafe) {
 			auto lock = ecss::Threads::uniqueLock(mtx, sync);
 			if (mPendingErase.empty()) {
+				if (withDefragment && !mPinsCounter.isArrayLocked()) {
+					defragmentImpl();
+				}
+				mBin.drainAll();
 				return;
 			}
 
@@ -389,12 +391,24 @@ namespace ecss::Memory {
 				}
 			}
 
-			if (!mPinsCounter.isArrayLocked()) {
+			if (withDefragment && !mPinsCounter.isArrayLocked()) {
 				defragmentImpl();
 			}
+
+			mBin.drainAll();
 		}
 
 	private:
+		template<typename T, class... Args>
+		T* pushComponentNoLock(SectorId sectorId, Args&&... args) requires(ThreadSafe) {
+			if constexpr (sizeof...(Args) == 1 && (std::is_same_v<std::remove_cvref_t<Args>, T> && ...)) {
+				return insertImpl(sectorId, std::forward<Args>(args)...);
+			}
+			else {
+				return emplaceImpl<T>(sectorId, std::forward<Args>(args)...);
+			}
+		}
+
 		template<bool T, typename Alloc, bool TS = ThreadSafe>
 		void copy(const SectorsArray<T, Alloc>& other)  {
 			if constexpr (TS) {
@@ -559,7 +573,7 @@ namespace ecss::Memory {
 			clearImpl();
 			shrinkToFitImpl();
 			if constexpr (ThreadSafe || T) {
-				processPendingErases(false);
+				processPendingErases(true, false);
 			}
 			mSize = other.mSize;
 			mAllocator = other.mAllocator;
@@ -578,8 +592,8 @@ namespace ecss::Memory {
 			clearImpl();
 			shrinkToFitImpl();
 			if constexpr (ThreadSafe || T) {
-				processPendingErases(false);
-				other.processPendingErases(false);
+				processPendingErases(true, false);
+				other.processPendingErases(true, false);
 			}
 			
 			mSize = other.mSize;

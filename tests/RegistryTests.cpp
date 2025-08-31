@@ -97,7 +97,7 @@ namespace RegistryTests {
 	        ids.push_back(e);
 	    }
 	    int count = 0;
-	    for (auto [e, pos] : registry.forEach<Position>()) {
+	    for (auto [e, pos] : registry.view<Position>()) {
 	        EXPECT_EQ(e, ids[count]);
 	        EXPECT_FLOAT_EQ(pos->x, float(count));
 	        ++count;
@@ -209,7 +209,7 @@ namespace RegistryTests {
 	    registry.addComponent<Position>(b, (float)5, (float)6); // b без Velocity
 
 	    int count = 0;
-	    for (auto [e, pos, vel] : registry.forEach<Position, Velocity>()) {
+	    for (auto [e, pos, vel] : registry.view<Position, Velocity>()) {
 	        if (e == a) {
 	            EXPECT_EQ(pos->x, (float)1);
 	            EXPECT_EQ(vel->dx, (float)3);
@@ -377,7 +377,7 @@ namespace RegistryTests {
 	    }
 
 	    int count = 0;
-	    for (auto [e, pos] : registry.forEach<Position>(ecss::EntitiesRanges{ {ids[2],ids[3],ids[4]}})) {
+	    for (auto [e, pos] : registry.view<Position>(ecss::EntitiesRanges{ {ids[2],ids[3],ids[4]}})) {
 	        EXPECT_GE(e, ids[2]);
 	        EXPECT_LT(e, ids[5]);
 	        ++count;
@@ -416,7 +416,7 @@ namespace RegistryTests {
 		int counter = 0;
 		auto t2 = std::chrono::high_resolution_clock::now();
 
-		for (auto [e, hel, vel] : registry.forEach<Health, Velocity>()) {
+		for (auto [e, hel, vel] : registry.view<Health, Velocity>()) {
 			hel->value += e;
 			vel->dx += e;
 			vel->dy += hel->value;
@@ -449,7 +449,7 @@ namespace RegistryTests {
 		EXPECT_EQ(size, registry.getComponentContainer<Health>()->size());
 		int counter = 0;
 		auto t2 = std::chrono::high_resolution_clock::now();
-		for (auto [e, hel] : registry.forEach<Health>()) {
+		for (auto [e, hel] : registry.view<Health>()) {
 			hel->value += e;
 			counter++;
 		}
@@ -482,7 +482,7 @@ namespace RegistryTests {
 		EXPECT_EQ(size, registry.getComponentContainer<Health>()->size());
 		int counter = 0;
 		auto t2 = std::chrono::high_resolution_clock::now();
-		for (auto [e, hel, vel] : registry.forEach<Health, Velocity>()) {
+		for (auto [e, hel, vel] : registry.view<Health, Velocity>()) {
 			hel->value += e;
 			vel->dx += e;
 			vel->dy += hel->value;
@@ -517,7 +517,7 @@ namespace RegistryTests {
 
 		int counter = 0;
 		auto t2 = std::chrono::high_resolution_clock::now();
-		for (auto [e, hel, vel] : registry.forEach<Health, Velocity>(EntitiesRanges{ std::vector<EntitiesRanges::range>{{0,static_cast<SectorId>(size)}} })) {
+		for (auto [e, hel, vel] : registry.view<Health, Velocity>(EntitiesRanges{ std::vector<EntitiesRanges::range>{{0,static_cast<SectorId>(size)}} })) {
 			hel->value += e;
 			vel->dx += e;
 			vel->dy += hel->value;
@@ -550,7 +550,7 @@ namespace RegistryTests {
 		int counter = 0;
 		auto t2 = std::chrono::high_resolution_clock::now();
 		for (auto i = 0; i < 10; i++) {
-			for (auto [e, hel, vel] : registry.forEach<Health, Velocity>()) {
+			for (auto [e, hel, vel] : registry.view<Health, Velocity>()) {
 				hel->value += e;
 				vel->dx += e;
 				vel->dy += hel->value;
@@ -586,7 +586,7 @@ namespace RegistryTests {
 		int counter = 0;
 		auto t2 = std::chrono::high_resolution_clock::now();
 		for (auto i = 0; i < 10; i++) {
-			for (auto [e, hel, vel] : registry.forEach<Health, Velocity>()) {
+			for (auto [e, hel, vel] : registry.view<Health, Velocity>()) {
 				hel->value += e;
 				vel->dx += e;
 				vel->dy += hel->value;
@@ -623,7 +623,7 @@ namespace RegistryTests {
 
 			threads.emplace_back([&] {
 				while (!done) {
-					for (auto [ent, vel] : reg.forEach<Velocity>()) {
+					for (auto [ent, vel] : reg.view<Velocity>()) {
 						vel->dx++;
 					}
 					std::this_thread::sleep_for(std::chrono::milliseconds(16));
@@ -652,7 +652,7 @@ namespace RegistryTests {
 
 			threads.emplace_back([&] {
 				while (!done) {
-					for (auto [ent, vel] : reg.forEach<Velocity>({ ids })) {
+					for (auto [ent, vel] : reg.view<Velocity>({ ids })) {
 						vel->dx++;
 					}
 					std::this_thread::sleep_for(std::chrono::milliseconds(16));
@@ -703,7 +703,7 @@ namespace RegistryTests {
 	    EXPECT_EQ(count, 500);
 
 	    int check = 0;
-	    for (auto [e, h] : registry.forEach<Health>()) {
+	    for (auto [e, h] : registry.view<Health>()) {
 	        EXPECT_TRUE(h->value % 2 == 1);
 	        ++check;
 	    }
@@ -811,7 +811,7 @@ namespace RegistryTests {
 	    for (int i = 0; i < N; i += 2)
 	        reg.destroyEntity(ids[i]);
 	    int cnt = 0;
-	    for (auto [e, pos] : reg.forEach<Position>())
+	    for (auto [e, pos] : reg.view<Position>())
 	        cnt++;
 	    EXPECT_EQ(cnt, N / 2);
 	}
@@ -883,7 +883,7 @@ namespace RegistryTests {
 	    for (auto& th : thrs) th.join();
 
 	    int count = 0;
-	    for (auto [e, val] : reg.forEach<Health>()) {
+	    for (auto [e, val] : reg.view<Health>()) {
 	        count++;
 	    }
 
@@ -913,7 +913,7 @@ namespace RegistryTests {
 			reg.addComponent<Position>(e, (float)i, (float)-i);
 		}
 		size_t cnt = 0, sum = 0;
-		for (auto [e, h, p] : reg.forEach<Health, Position>()) {
+		for (auto [e, h, p] : reg.view<Health, Position>()) {
 			cnt++;
 			sum += static_cast<size_t>(h->value) + static_cast<size_t>(p->x);
 		}
@@ -953,7 +953,7 @@ namespace RegistryTests {
 	    auto e = reg.takeEntity();
 	    reg.addComponent<Health>(e, 1);
 	    reg.addComponent<Position>(e, (float)2, (float)3);
-	    reg.destroyComponents(e);
+	    reg.destroyEntity(e);
 	    EXPECT_EQ(reg.getPinnedComponent<Health>(e).get(), nullptr);
 	    EXPECT_EQ(reg.getPinnedComponent<Position>(e).get(), nullptr);
 	}
@@ -962,7 +962,7 @@ namespace RegistryTests {
 	    ecss::Registry reg1, reg2;
 	    auto e = reg1.takeEntity();
 	    reg1.addComponent<Health>(e, 42);
-	    reg2.copyComponentsArrayToRegistry<Health>(*reg1.getComponentContainer<Health>());
+	    reg2.insert<Health>(*reg1.getComponentContainer<Health>());
 	    EXPECT_EQ(reg2.getPinnedComponent<Health>(e)->value, 42);
 	}
 
@@ -976,11 +976,11 @@ namespace RegistryTests {
 	        reg.addComponent<Velocity>(e, (float)10, (float)-10);
 	    }
 	    int cnt = 0;
-	    for (auto [e, h, p, v] : reg.forEach<Health, Position, Velocity>())
+	    for (auto [e, h, p, v] : reg.view<Health, Position, Velocity>())
 	        cnt++;
 	    EXPECT_EQ(cnt, size);
 	    cnt = 0;
-	    for (auto [e, p, v, h] : reg.forEach<Position, Velocity, Health>())
+	    for (auto [e, p, v, h] : reg.view<Position, Velocity, Health>())
 	        cnt++;
 	    EXPECT_EQ(cnt, size);
 	}
@@ -1021,7 +1021,7 @@ namespace RegistryTests {
 
 	    std::thread iter([&] {
 	        int cnt = 0;
-	        for (auto [e, h] : reg.forEach<Health>()) {
+	        for (auto [e, h] : reg.view<Health>()) {
 	            EXPECT_NE(h, nullptr);
 	            cnt++;
 	        }
@@ -1075,7 +1075,7 @@ namespace RegistryTests {
 	    }
 	    for (auto& th : threads) th.join();
 	    int cnt = 0;
-	    for (auto [e, h, p] : reg.forEach<Health, Position>())
+	    for (auto [e, h, p] : reg.view<Health, Position>())
 	        cnt++;
 	    EXPECT_LE(cnt, T * N);
 	}
@@ -1140,7 +1140,7 @@ namespace RegistryTests {
 			reg.addComponent<Velocity>(ent);
 		}
 		std::unordered_set<A*> set;
-		for (auto [e, vel] : reg.forEach<A>()) {
+		for (auto [e, vel] : reg.view<A>()) {
 			EXPECT_TRUE(!set.contains(vel));
 			set.insert(vel);
 		}
@@ -1178,7 +1178,7 @@ namespace RegistryTests {
 		// Читатель: параллельно читает Transform и проверяет корректность
 		std::thread reader([&] {
 			while (running && !foundNaN) {
-				for (auto [e, t] : reg.forEach<Transform>()) {
+				for (auto [e, t] : reg.view<Transform>()) {
 					if (!t) continue;
 
 					// Проверка матрицы на NaN/Inf (сломана память?)
@@ -1260,7 +1260,7 @@ namespace RegistryTests {
 		// thread: iterating and check if there is any matrix corrupted
 		std::thread reader([&]() {
 			while (!stop) {
-				for (auto [ent, t] : target.forEach<const TransformMatComp>()) {
+				for (auto [ent, t] : target.view<const TransformMatComp>()) {
 					for (int i = 0; i < 4; ++i)
 						for (int j = 0; j < 4; ++j) {
 							float v = t->mTransform.m[i][j];
@@ -1305,7 +1305,7 @@ namespace RegistryTests {
 
 		threads.emplace_back([&] {
 			while (creating) {
-				for (auto [e, val] : reg.forEach<const Velocity>()) {
+				for (auto [e, val] : reg.view<const Velocity>()) {
 					int d = 0;
 				}
 				std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -1315,7 +1315,7 @@ namespace RegistryTests {
 
 		for (auto& th : threads) th.join();
 
-		for (auto [ent, a] : reg.forEach<Velocity>()) {
+		for (auto [ent, a] : reg.view<Velocity>()) {
 			EXPECT_EQ(a->dx, (float)ent);
 		}
 	}
@@ -1331,7 +1331,7 @@ namespace RegistryTests {
 		}
 
 		int i = first;
-		for (auto [ent, vel] : reg.forEach<Velocity>(EntitiesRanges{ std::vector<EntitiesRanges::range>{{first,count}}})) {
+		for (auto [ent, vel] : reg.view<Velocity>(EntitiesRanges{ std::vector<EntitiesRanges::range>{{first,count}}})) {
 			EXPECT_EQ(ent, i++);
 		}
 
@@ -1342,7 +1342,7 @@ namespace RegistryTests {
 
 		reg.addComponent<Velocity>(reg.takeEntity());
 
-		for (auto [e, vel] : reg.forEach<Velocity>()) {
+		for (auto [e, vel] : reg.view<Velocity>()) {
 			
 		}
 	}
@@ -1405,7 +1405,7 @@ namespace RegistryTests {
 
 			threads.emplace_back([&] {
 				while (creating) {
-					for (auto [e, val, val2] : reg.forEach<A, B>()) {
+					for (auto [e, val, val2] : reg.view<A, B>()) {
 						val->a = e;
 						if (!val2) {
 							continue;
@@ -1419,7 +1419,7 @@ namespace RegistryTests {
 
 			threads.emplace_back([&] {
 				while (creating) {
-					for (auto [e, val, val2] : reg.forEach<B, C>()) {
+					for (auto [e, val, val2] : reg.view<B, C>()) {
 						val->a = e;
 						if (!val2) {
 							continue;
@@ -1432,7 +1432,7 @@ namespace RegistryTests {
 
 			threads.emplace_back([&] {
 				while (creating) {
-					for (auto [e, val] : reg.forEach<B>()) {
+					for (auto [e, val] : reg.view<B>()) {
 						val->a = e;
 					}
 					std::this_thread::sleep_for(std::chrono::milliseconds(50));
@@ -1441,7 +1441,7 @@ namespace RegistryTests {
 
 			threads.emplace_back([&] {
 				while (creating) {
-					for (auto [e, val, val2] : reg.forEach<D, E>()) {
+					for (auto [e, val, val2] : reg.view<D, E>()) {
 						val->a = e;
 						if (!val2) {
 							continue;
@@ -1454,7 +1454,7 @@ namespace RegistryTests {
 			});
 			threads.emplace_back([&] {
 				while (creating) {
-					for (auto [e, val, val2, val3, val4] : reg.forEach<D, E, F, G>()) {
+					for (auto [e, val, val2, val3, val4] : reg.view<D, E, F, G>()) {
 						val->a = e;
 						if (val2) {
 							val2->a = e;
@@ -1489,7 +1489,7 @@ namespace RegistryTests {
 
 			for (auto& th : threads) th.join();
 
-			for (auto [ent, a, b, c, d, e, f, g] : reg.forEach<A, B, C, D, E, F, G>()) {
+			for (auto [ent, a, b, c, d, e, f, g] : reg.view<A, B, C, D, E, F, G>()) {
 				EXPECT_EQ(true, a->a == ent || a->a == 0);
 				if (b) {
 					EXPECT_EQ(true, b->a == ent || b->a == 0);

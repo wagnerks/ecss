@@ -447,7 +447,7 @@ namespace CommonTests {
         delete arr;
     }
 
-    // ---------- Ranged + Registry forEach ----------
+    // ---------- Ranged + Registry view ----------
     TEST(Registry_ForEach, RangedAndPlain) {
         Registry reg;
         reg.registerArray<Pos, Vel>();
@@ -460,10 +460,10 @@ namespace CommonTests {
             if (i % 3 == 0) reg.addComponent<Vel>(id, Vel{ float(i) });
         }
 
-        // forEach (plain)
+        // view (plain)
         {
-            auto entry = reg.forEach<Pos, Vel>();
-            if (entry.valid()) {
+            auto entry = reg.view<Pos, Vel>();
+            if (!entry.empty()) {
                 auto seen = 0;
                 for (auto it = entry.begin(); it != entry.end(); ++it) {
                     auto [eid, p, v] = *it;
@@ -476,28 +476,28 @@ namespace CommonTests {
             }
         }
 
-        // forEach (ranged)
+        // view (ranged)
         EntitiesRanges ranges;
         ranges.ranges.push_back({ 10, 25 });
         ranges.ranges.push_back({ 20, 35 });
         ranges.mergeIntersections();
 
         {
-            auto entry = reg.forEach<Pos>(ranges);
-            if (entry.valid()) {
-                for (auto it = entry.begin(); it != entry.end(); ++it) {
-                    auto [eid, p] = *it;
-                    EXPECT_GE(eid, 10u);
-                    EXPECT_LT(eid, 35u);
-                    if (eid % 2 == 0) {
-                        ASSERT_NE(p, nullptr);
-                        EXPECT_EQ(p->x, (int)eid);
-                    }
-                    else {
-                        EXPECT_EQ(p, nullptr);
-                    }
+            auto entry = reg.view<Pos>(ranges);
+            
+            for (auto it = entry.begin(); it != entry.end(); ++it) {
+                auto [eid, p] = *it;
+                EXPECT_GE(eid, 10u);
+                EXPECT_LT(eid, 35u);
+                if (eid % 2 == 0) {
+                    ASSERT_NE(p, nullptr);
+                    EXPECT_EQ(p->x, (int)eid);
+                }
+                else {
+                    EXPECT_EQ(p, nullptr);
                 }
             }
+            
         }
     }
 }

@@ -297,6 +297,7 @@ namespace ecss::Memory {
 		inline static Sector* moveSector(Sector* from, Sector* to, const SectorLayoutMeta* layouts) {
 			assert(from != to);
 			assert(from && to);
+			assert(to);
 			destroySector(to, layouts);
 
 			new (to)Sector(std::move(*from));
@@ -316,6 +317,7 @@ namespace ecss::Memory {
 		inline static Sector* copySector(Sector* from, Sector* to, const SectorLayoutMeta* layouts) {
 			assert(from != to);
 			assert(from && to);
+			assert(to);
 			destroySector(to, layouts);
 			
 			if constexpr (std::is_trivially_copyable_v<Sector>) {
@@ -337,22 +339,18 @@ namespace ecss::Memory {
 		}
 
 		inline static void destroySector(Sector* sector, const SectorLayoutMeta* layouts) {
-			destroyMembers(sector, layouts);
-		}
+			if (!sector || !sector->isSectorAlive()) {
+				return;
+			}
 
-		inline static void destroyMembers(Sector* sector, const SectorLayoutMeta* layouts) {
-			if (sector) {
-				if (sector->isSectorAlive()) {
-					if (layouts->isTrivial()) {
-						for (const auto& layout : (*layouts)) {
-							if (sector->isAlive(layout.isAliveMask)) {
-								layout.functionTable.destructor(ecss::Memory::Sector::getMemberPtr(sector, layout.offset));
-							}
-						}
+			if (layouts->isTrivial()) {
+				for (const auto& layout : (*layouts)) {
+					if (sector->isAlive(layout.isAliveMask)) {
+						layout.functionTable.destructor(ecss::Memory::Sector::getMemberPtr(sector, layout.offset));
 					}
-					sector->isAliveData = 0;
 				}
 			}
+			sector->isAliveData = 0;
 		}
 	};
 
