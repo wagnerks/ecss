@@ -33,49 +33,6 @@ namespace ecss::Memory {
         return ++x;
     }
 
- /**
- * @brief Chunked sector allocator with deferred memory reclamation.
- *
- * ChunksAllocator is responsible for managing memory in fixed-size chunks of
- * `Sector` objects. It provides random access to sectors by index or ID and
- * supports acquiring, freeing, shifting, and defragmenting sectors.
- *
- * - Memory model:
- *   * Sectors are stored in contiguous "chunks", each chunk contains
- *     `ChunkCapacity` sectors.
- *   * Chunks grow dynamically as needed. When more capacity is required,
- *     new chunks are allocated and appended.
- *   * A secondary map (`mSectorsMap`) provides direct lookup by SectorId.
- *
- * - Iterator:
- *   * A custom forward iterator is provided to traverse across chunks as if
- *     they form one linear array of `Sector*`.
- *
- * - Memory safety:
- *   * Uses RetireAllocator internally for both `mChunks` and `mSectorsMap`.
- *     This avoids immediate deallocation of old buffers when std::vector
- *     reallocates, preventing use-after-free in concurrent readers.
- *   * Old buffers are collected into a RetireBin and freed only when
- *     `emptyVectorsBin()` is called.
- *
- * - Operations:
- *   * `acquireSector(SectorId)` — ensures a sector exists for the given ID,
- *     allocating or constructing if needed.
- *   * `freeSector(SectorId, shift)` — destroys and removes a sector.
- *   * `erase()` / `defragment()` — remove sectors and optionally compact
- *     storage.
- *   * `reserve()` / `shrinkToFit()` — grow or release memory in chunk units.
- *   * `calcSectorIndex()` — compute linear index from a SectorId or pointer,
- *     with fast paths for first/last chunks.
- *
- * Usage:
- *   This allocator is designed for high-performance ECS-style storage,
- *   where sectors are densely packed and frequently accessed by ID.
- *   It avoids costly per-element allocations by working with whole chunks,
- *   and reduces concurrency hazards by deferring vector buffer frees.
- *
- * @tparam ChunkCapacity Number of sectors per chunk (rounded to power-of-two).
- */
     template<uint32_t ChunkCapacity = 8192>
     struct ChunksAllocator {
         template<uint32_t>
