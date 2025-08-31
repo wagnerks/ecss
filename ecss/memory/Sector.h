@@ -1,8 +1,5 @@
 ﻿#pragma once
 
-#include <cstdint>
-#include <typeindex>
-
 #include <ecss/memory/SectorLayoutMeta.h>
 
 namespace ecss::Memory {
