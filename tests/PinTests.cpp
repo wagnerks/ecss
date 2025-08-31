@@ -23,7 +23,7 @@ struct Payload { int v = 0; };
 
 static SectorsArray<>* makeArray(size_t cap) {
     auto* arr = SectorsArray<>::template create<Payload>();
-    arr->reserve(cap);
+    arr->reserve(static_cast<uint32_t>(cap));
     // заполним секторами [0..cap-1]
     for (size_t i = 0; i < cap; ++i) {
         arr->template emplace<Payload>(static_cast<SectorId>(i), Payload{ int(i) });
@@ -49,7 +49,7 @@ TEST(SectorsArrayConcurrency, EraseBlocksWhilePinnedThenProceeds) {
     pinnedReady.get_future().wait();
 
     // попытка убрать сектор: должен уйти в pending (не удалиться)
-    arr.eraseAsync(target, 1, /*shift=*/false);
+    arr.eraseAsync(target, 1);
     // moment of truth: sector все еще должен существовать
     {
         auto s = arr.findSector(target);
@@ -88,7 +88,7 @@ TEST(SectorsArrayConcurrency, WatermarkBlocksAndLowersAfterUnpin) {
                         if (!arr.containsSector(lo)) break;
                        
                         // если watermark работает, изменение сектора lo блокируется
-                        arr.eraseAsync(lo, 1, /*shift=*/false), true;
+                        arr.eraseAsync(lo, 1), true;
                         
                     }
                 }
@@ -109,7 +109,7 @@ TEST(SectorsArrayConcurrency, WatermarkBlocksAndLowersAfterUnpin) {
     arr.processPendingErases(); // чтобы сработали очереди, не обязательно, но ускоряет
 
     // после распина ждем, пока сектор lo можно менять
-    arr.eraseAsync(lo, 1, /*shift=*/false);
+    arr.eraseAsync(lo, 1);
     arr.processPendingErases();
     auto s = arr.findSector(lo);
     ASSERT_EQ(s, nullptr) << "after unpin of HI, LO sector should be erasable";
@@ -153,7 +153,7 @@ TEST(SectorsArrayConcurrency, RandomStressNoDeadlockNoLostWakeups) {
             if ((r & 0x3) == 0) {
                 // попытка удалить случайный сектор
                 SectorId id = r % CAP;
-                arr.eraseAsync(id, 1, /*shift=*/false);
+                arr.eraseAsync(id, 1);
             }
             else if ((r & 0x7) == 1) {
                 arr.processPendingErases();
@@ -168,7 +168,7 @@ TEST(SectorsArrayConcurrency, RandomStressNoDeadlockNoLostWakeups) {
             // иногда ждём конкретного id, чтобы проверить waitUntilChangeable
             if ((r & 0x1F) == 4) {
                 SectorId id = r % CAP;
-                arr.eraseAsync(id, 1, /*shift=*/false);
+                arr.eraseAsync(id, 1);
                 arr.processPendingErases();
             }
         }

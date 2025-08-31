@@ -477,7 +477,7 @@ TEST(SectorsArray, ThreadedFindAndErase) {
         });
 
         std::thread eraser([&] {
-            for (int i = 0; i < N; i += 2) arr->eraseAsync(i,1, false);
+            for (int i = 0; i < N; i += 2) arr->eraseAsync(i,1);
         });
 
         reader.join();
@@ -546,7 +546,7 @@ TEST(SectorsArray, Defragmentation) {
         arr->emplace<Health>(i, i);
 
     for (int i = 0; i < 100; i += 2) {
-	    arr->eraseAsync(i, 1, false);
+	    arr->eraseAsync(i, 1);
     }
     arr->processPendingErases();
     arr->defragment();
@@ -571,7 +571,7 @@ TEST(SectorsArray, MassiveInsertErase_Sequential) {
         EXPECT_EQ(arr->findSector(i)->getMember<Trivial>(arr->getLayoutData<Trivial>())->a, i);
 
     for (int i = 0; i < N; i += 2)
-        arr->eraseAsync(i, 1, false);
+        arr->erase(i, 1);
     arr->defragment();
     EXPECT_LE(arr->size(), N / 2 + 1);
 
@@ -629,8 +629,8 @@ TEST(SectorsArray, InsertRemove_BoundarySectorIds) {
     auto* arr = SA_T::create<Trivial>();
     arr->insert<Trivial>(0, Trivial{ 10 });
     arr->insert<Trivial>(9999, Trivial{ 99 });
-    arr->eraseAsync(0, 1, true);
-    arr->eraseAsync(9999, 1, true);
+    arr->eraseAsync(0, 1);
+    arr->eraseAsync(9999, 1);
     arr->defragment();
     EXPECT_EQ(arr->size(), 0);
     delete arr;
@@ -665,11 +665,11 @@ TEST(SectorsArray, NonTrivialDestructor_IsCalled) {
     {
         auto* arr = SA_T::create<CtorCounter>();
         for (int i = 0; i < 100; ++i) {
-	        arr->insert<CtorCounter>(i, {});
+	        arr->push<CtorCounter>(i, CtorCounter{});
         }
         delete arr;
     }
-    EXPECT_EQ(CtorCounter::constructed, CtorCounter::destroyed);
+    EXPECT_EQ(CtorCounter::constructed * 2, CtorCounter::destroyed);
 }
 
 TEST(SectorsArray_STRESS, ThreadedInsert_Simple) {
@@ -697,7 +697,7 @@ TEST(SectorsArray_STRESS, ThreadedInsertErase_Concurrent) {
         ths.emplace_back([&, t] {
             for (int i = 0; i < N; ++i) {
                 arr->insert<Trivial>(t * N + i, Trivial{ t * N + i });
-                if (i % 100 == 0) arr->eraseAsync(t * N + i, 1, false);
+                if (i % 100 == 0) arr->eraseAsync(t * N + i, 1);
             }
         });
     }
@@ -800,7 +800,7 @@ TEST(SectorsArray_STRESS, ThreadedIterateInsertEraseFuzz) {
         while (running) {
             int idx = dist(rng);
             
-            arr->eraseAsync(idx, 1, false);
+            arr->eraseAsync(idx, 1);
             if (dist(rng) % 100 == 0) std::this_thread::yield();
         }
     });
@@ -854,7 +854,7 @@ TEST(SectorsArray, ThreadedStress_AllMethods) {
         ths.emplace_back([&, t] {
             for (int i = 0; i < N; ++i) {
                 arr->insert<Trivial>(i, Trivial{ i });
-                arr->eraseAsync(i, 1, false);
+                arr->eraseAsync(i, 1);
             }
         });
     }
@@ -981,7 +981,7 @@ TEST(SectorsArray, ThreadedRandomized) {
                 		break;
 	                }
                 case 1: {
-                	arr->eraseAsync(id, 1, false);
+                	arr->eraseAsync(id, 1);
                 	break;
                 }
                 case 2:
@@ -1122,7 +1122,8 @@ TEST(SectorsArray_STRESS_light, AliveAfterEraseInsertRace) {
             std::mt19937 rng(t + 1);
             while (!stop) {
                 int i = rng() % N;
-                arr->eraseAsync(i, 1, true);
+                arr->eraseAsync(i, 1);
+                arr->defragment();
                 arr->insert<Health>(i, Health{ 1000 + t });
             }
         });
@@ -1215,7 +1216,7 @@ TEST(SectorsArray, MoveOnly_StressInsertErase) {
     auto* arr = SA_T::create<MoveOnly>();
     for (int i = 0; i < 256; ++i) arr->insert<MoveOnly>(i, MoveOnly{ i });
     for (int i = 0; i < 256; ++i) EXPECT_TRUE(arr->findSector(i)->getMember<MoveOnly>(arr->getLayoutData<MoveOnly>())->v);
-    for (int i = 0; i < 256; i += 2) arr->eraseAsync(i, 1, false);
+    for (int i = 0; i < 256; i += 2) arr->eraseAsync(i, 1);
     arr->defragment();
     delete arr;
 }
@@ -1443,7 +1444,7 @@ TEST(SectorsArrayPins, EraseByContiguousIndexRespectsPins) {
     auto p = arr->pinSector(id0);
     ASSERT_TRUE(bool(p));
 
-    arr->eraseAsync(/*beginIdx*/10, /*count*/2, /*shift*/false);
+    arr->eraseAsync(/*beginIdx*/10, /*count*/2);
     // id0 — pinned → должен остаться; id1 — может быть удалён сразу
     EXPECT_TRUE(arr->containsSector(id0));
     // id1 мог удалиться сразу либо попасть в pending; после обработки точно исчезнет

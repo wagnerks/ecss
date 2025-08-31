@@ -35,7 +35,7 @@ namespace RegistryTests {
 	    auto entity = registry.takeEntity();
 	    registry.addComponent<Position>(entity, (float)10, (float)20);
 
-	    auto* pos = registry.getPinnedComponent<Position>(entity).get();
+	    auto* pos = registry.pinComponent<Position>(entity).get();
 	    ASSERT_NE(pos, nullptr);
 	    EXPECT_FLOAT_EQ(pos->x, 10);
 	    EXPECT_FLOAT_EQ(pos->y, 20);
@@ -55,7 +55,7 @@ namespace RegistryTests {
 	    registry.addComponent<Health>(entity,  100 );
 	    registry.destroyComponent<Health>(entity);
 	    EXPECT_FALSE(registry.hasComponent<Health>(entity));
-	    EXPECT_EQ(registry.getPinnedComponent<Health>(entity).get(), nullptr);
+	    EXPECT_EQ(registry.pinComponent<Health>(entity).get(), nullptr);
 	}
 
 	TEST(Registry, AddMultipleComponents) {
@@ -65,9 +65,9 @@ namespace RegistryTests {
 	    registry.addComponent<Velocity>(entity, (float)3, (float)4 );
 	    registry.addComponent<Health>(entity, 5 );
 
-	    auto* pos = registry.getPinnedComponent<Position>(entity).get();
-	    auto* vel = registry.getPinnedComponent<Velocity>(entity).get();
-	    auto* health = registry.getPinnedComponent<Health>(entity).get();
+	    auto* pos = registry.pinComponent<Position>(entity).get();
+	    auto* vel = registry.pinComponent<Velocity>(entity).get();
+	    auto* health = registry.pinComponent<Health>(entity).get();
 
 	    ASSERT_NE(pos, nullptr);
 	    ASSERT_NE(vel, nullptr);
@@ -84,8 +84,8 @@ namespace RegistryTests {
 	    registry.addComponent<Health>(entity, 50);
 	    registry.destroyEntity(entity);
 
-	    EXPECT_EQ(registry.getPinnedComponent<Position>(entity).get(), nullptr);
-	    EXPECT_EQ(registry.getPinnedComponent<Health>(entity).get(), nullptr);
+	    EXPECT_EQ(registry.pinComponent<Position>(entity).get(), nullptr);
+	    EXPECT_EQ(registry.pinComponent<Health>(entity).get(), nullptr);
 	}
 
 	TEST(Registry, IterateEntitiesWithComponent) {
@@ -110,7 +110,7 @@ namespace RegistryTests {
 	    auto entity = registry.takeEntity();
 	    registry.addComponent<Velocity>(entity, (float)1, (float)1);
 	    registry.addComponent<Velocity>(entity, (float)2, (float)2); // Overwrite
-	    auto* vel = registry.getPinnedComponent<Velocity>(entity).get();
+	    auto* vel = registry.pinComponent<Velocity>(entity).get();
 	    ASSERT_NE(vel, nullptr);
 	    EXPECT_FLOAT_EQ(vel->dx, 2);
 	}
@@ -118,7 +118,7 @@ namespace RegistryTests {
 	TEST(Registry, getPinnedComponentNonexistentReturnsNull) {
 	    Registry registry;
 	    auto entity = registry.takeEntity();
-	    EXPECT_EQ(registry.getPinnedComponent<Health>(entity).get(), nullptr);
+	    EXPECT_EQ(registry.pinComponent<Health>(entity).get(), nullptr);
 	}
 
 	TEST(Registry, HasComponentAfterEntityRemove) {
@@ -135,8 +135,8 @@ namespace RegistryTests {
 	    auto e2 = registry.takeEntity();
 	    registry.addComponent<Health>(e1, 99);
 	    registry.addComponent<Health>(e2, 42);
-	    EXPECT_EQ(registry.getPinnedComponent<Health>(e1)->value, 99);
-	    EXPECT_EQ(registry.getPinnedComponent<Health>(e2)->value, 42);
+	    EXPECT_EQ(registry.pinComponent<Health>(e1)->value, 99);
+	    EXPECT_EQ(registry.pinComponent<Health>(e2)->value, 42);
 	}
 
 
@@ -147,7 +147,7 @@ namespace RegistryTests {
 	    registry.addComponent<Health>(entity, 100);
 	    registry.destroyComponent<Health>(entity);
 	    registry.destroyComponent<Health>(entity);
-	    EXPECT_EQ(registry.getPinnedComponent<Health>(entity).get(), nullptr);
+	    EXPECT_EQ(registry.pinComponent<Health>(entity).get(), nullptr);
 	}
 
 	TEST(Registry, RemoveEntityTwiceDoesNotCrash) {
@@ -156,7 +156,7 @@ namespace RegistryTests {
 	    registry.addComponent<Position>(entity, (float)1, (float)1);
 	    registry.destroyEntity(entity);
 	    registry.destroyEntity(entity);
-	    EXPECT_EQ(registry.getPinnedComponent<Position>(entity).get(), nullptr);
+	    EXPECT_EQ(registry.pinComponent<Position>(entity).get(), nullptr);
 	}
 
 	TEST(Registry, OverwriteWithDifferentComponents) {
@@ -165,8 +165,8 @@ namespace RegistryTests {
 	    registry.addComponent<Position>(entity, (float)1, (float)2);
 	    registry.addComponent<Velocity>(entity, (float)3, (float)4);
 	    registry.addComponent<Position>(entity, (float)7, (float)8);
-	    EXPECT_EQ(registry.getPinnedComponent<Position>(entity)->x, (float)7);
-	    EXPECT_EQ(registry.getPinnedComponent<Velocity>(entity)->dx, (float)3);
+	    EXPECT_EQ(registry.pinComponent<Position>(entity)->x, (float)7);
+	    EXPECT_EQ(registry.pinComponent<Velocity>(entity)->dx, (float)3);
 	}
 
 	TEST(Registry, MassEntityAndComponentAddRemove) {
@@ -184,7 +184,7 @@ namespace RegistryTests {
 	    }
 	    int alive = 0;
 	    for (int i = 0; i < N; ++i) {
-	        if (registry.getPinnedComponent<Health>(ids[i]))
+	        if (registry.pinComponent<Health>(ids[i]))
 	            ++alive;
 	    }
 	    EXPECT_EQ(alive, N / 2);
@@ -195,9 +195,9 @@ namespace RegistryTests {
 	    auto e = registry.takeEntity();
 	    registry.addComponent<Health>(e, 10);
 	    registry.destroyComponent<Health>(e);
-	    EXPECT_EQ(registry.getPinnedComponent<Health>(e).get(), nullptr);
+	    EXPECT_EQ(registry.pinComponent<Health>(e).get(), nullptr);
 	    registry.addComponent<Health>(e, 20);
-	    EXPECT_EQ(registry.getPinnedComponent<Health>(e)->value, 20);
+	    EXPECT_EQ(registry.pinComponent<Health>(e)->value, 20);
 	}
 
 	TEST(Registry, ForEachSkipsEntitiesWithoutAllComponents) {
@@ -227,7 +227,7 @@ namespace RegistryTests {
 	TEST(Registry, InvalidEntityDoesNothing) {
 	    ecss::Registry registry;
 	    ecss::EntityId invalid = 0;
-	    EXPECT_EQ(registry.getPinnedComponent<Position>(invalid).get(), nullptr);
+	    EXPECT_EQ(registry.pinComponent<Position>(invalid).get(), nullptr);
 	    EXPECT_FALSE(registry.hasComponent<Health>(invalid));
 	    registry.destroyEntity(invalid);
 	}
@@ -236,17 +236,17 @@ namespace RegistryTests {
 	    ecss::Registry registry;
 	    auto e = registry.takeEntity();
 	    registry.addComponent<Position>(e, (float)1, (float)2);
-	    EXPECT_EQ(registry.getPinnedComponent<Health>(e).get(), nullptr);
+	    EXPECT_EQ(registry.pinComponent<Health>(e).get(), nullptr);
 	    registry.addComponent<Health>(e, 42);
-	    EXPECT_EQ(registry.getPinnedComponent<Position>(e)->x, (float)1);
-	    EXPECT_EQ(registry.getPinnedComponent<Health>(e)->value, 42);
+	    EXPECT_EQ(registry.pinComponent<Position>(e)->x, (float)1);
+	    EXPECT_EQ(registry.pinComponent<Health>(e)->value, 42);
 	}
 
 	TEST(Registry, InsertMoveOnlyComponent) {
 	    ecss::Registry registry;
 	    auto e = registry.takeEntity();
 	    registry.addComponent<MoveOnly>(e, MoveOnly(7));
-	    auto* ptr = registry.getPinnedComponent<MoveOnly>(e).get();
+	    auto* ptr = registry.pinComponent<MoveOnly>(e).get();
 	    ASSERT_NE(ptr, nullptr);
 	    EXPECT_EQ(ptr->val, 7);
 	}
@@ -256,7 +256,7 @@ namespace RegistryTests {
 	    registry.reserve<Position>(1000);
 	    auto e = registry.takeEntity();
 	    registry.addComponent<Position>(e, (float)5, (float)6);
-	    EXPECT_NE(registry.getPinnedComponent<Position>(e).get(), nullptr);
+	    EXPECT_NE(registry.pinComponent<Position>(e).get(), nullptr);
 	}
 
 	TEST(Registry, ThreadedAddRemoveStress) {
@@ -282,9 +282,9 @@ namespace RegistryTests {
 	    std::unordered_map<EntityId, size_t> ents;
 	    for (int i = 0; i < threadCount * N; ++i) {
 	        EXPECT_EQ(++ents[ids[i]], 1);
-	        if (registry.getPinnedComponent<Position>(ids[i]))
+	        if (registry.pinComponent<Position>(ids[i]))
 	            ++countP;
-	        if (registry.getPinnedComponent<Health>(ids[i]))
+	        if (registry.pinComponent<Health>(ids[i]))
 	            ++countH;
 	    }
 
@@ -299,8 +299,8 @@ namespace RegistryTests {
 	    registry.addComponent<Health>(e, 5);
 	    registry.addComponent<Position>(e, (float)1, (float)2);
 	    registry.clear();
-	    EXPECT_EQ(registry.getPinnedComponent<Health>(e).get(), nullptr);
-	    EXPECT_EQ(registry.getPinnedComponent<Position>(e).get(), nullptr);
+	    EXPECT_EQ(registry.pinComponent<Health>(e).get(), nullptr);
+	    EXPECT_EQ(registry.pinComponent<Position>(e).get(), nullptr);
 	    EXPECT_TRUE(registry.getAllEntities().empty());
 	}
 
@@ -310,8 +310,8 @@ namespace RegistryTests {
 	    auto e = registry.takeEntity();
 	    registry.addComponent<A>(e, 10);
 	    registry.addComponent<B>(e, 2.5f);
-	    EXPECT_EQ(registry.getPinnedComponent<A>(e)->a, 10);
-	    EXPECT_FLOAT_EQ(registry.getPinnedComponent<B>(e)->b, 2.5f);
+	    EXPECT_EQ(registry.pinComponent<A>(e)->a, 10);
+	    EXPECT_FLOAT_EQ(registry.pinComponent<B>(e)->b, 2.5f);
 	}
 
 	TEST(Registry, DestroyMultipleComponents) {
@@ -337,7 +337,7 @@ namespace RegistryTests {
 	    }
 	    registry.destroyEntities(ids);
 	    for (auto e : ids)
-	        EXPECT_EQ(registry.getPinnedComponent<Position>(e).get(), nullptr);
+	        EXPECT_EQ(registry.pinComponent<Position>(e).get(), nullptr);
 	    EXPECT_TRUE(registry.getAllEntities().empty());
 	}
 
@@ -348,7 +348,7 @@ namespace RegistryTests {
 	    registry.clear();
 	    auto e2 = registry.takeEntity();
 	    registry.addComponent<Position>(e2, (float)7, (float)8);
-	    EXPECT_EQ(registry.getPinnedComponent<Position>(e2)->x, (float)7);
+	    EXPECT_EQ(registry.pinComponent<Position>(e2)->x, (float)7);
 	}
 
 	TEST(Registry, ForEachAsyncWorks) {
@@ -394,7 +394,7 @@ namespace RegistryTests {
 	    registry.reserve<Health>(20);
 	    auto e2 = registry.takeEntity();
 	    registry.addComponent<Health>(e2, 2);
-	    EXPECT_EQ(registry.getPinnedComponent<Health>(e2)->value, 2);
+	    EXPECT_EQ(registry.pinComponent<Health>(e2)->value, 2);
 	}
 
 #define REGISTRY_PERF_TESTS  1
@@ -676,7 +676,7 @@ namespace RegistryTests {
 	    EXPECT_FALSE(registry.hasComponent<Health>(e));
 	    registry.addComponent<Health>(e, 321);
 	    EXPECT_TRUE(registry.hasComponent<Health>(e));
-	    EXPECT_EQ(registry.getPinnedComponent<Health>(e)->value, 321);
+	    EXPECT_EQ(registry.pinComponent<Health>(e)->value, 321);
 	}
 
 	TEST(Registry, IterationWithComponentRemoval) {
@@ -690,7 +690,7 @@ namespace RegistryTests {
 
 	    int count = 0;
 		for (auto e : entities) {
-			auto h = registry.getPinnedComponent<Health>(e);
+			auto h = registry.pinComponent<Health>(e);
 			if (h->value % 2 == 0) {
 				h.release();
 				registry.destroyComponent<Health>(e);
@@ -718,7 +718,7 @@ namespace RegistryTests {
 	    std::atomic<bool> stop = false;
 	    std::thread t1([&]() {
 	        while (!stop.load()) {
-	            auto ptr = registry.getPinnedComponent<Health>(e);
+	            auto ptr = registry.pinComponent<Health>(e);
 	            if (ptr) EXPECT_EQ(ptr->value, 777);
 	        }
 	    });
@@ -740,8 +740,8 @@ namespace RegistryTests {
 	    registry.addComponent<Health>(e, 100);
 	    registry.addComponent<Velocity>(e, (float)1, (float)2);
 
-	    auto* h = registry.getPinnedComponent<Health>(e).get();
-	    auto* v = registry.getPinnedComponent<Velocity>(e).get();
+	    auto* h = registry.pinComponent<Health>(e).get();
+	    auto* v = registry.pinComponent<Velocity>(e).get();
 	    EXPECT_TRUE(h);
 	    EXPECT_TRUE(v);
 	    EXPECT_EQ(h->value, 100);
@@ -753,15 +753,15 @@ namespace RegistryTests {
 	    ecss::Registry reg;
 	    auto e = reg.takeEntity();
 	    reg.addComponent<NoDefaultCtor>(e, 42);
-	    ASSERT_NE(reg.getPinnedComponent<NoDefaultCtor>(e).get(), nullptr);
-	    EXPECT_EQ(reg.getPinnedComponent<NoDefaultCtor>(e)->x, 42);
+	    ASSERT_NE(reg.pinComponent<NoDefaultCtor>(e).get(), nullptr);
+	    EXPECT_EQ(reg.pinComponent<NoDefaultCtor>(e)->x, 42);
 	}
 
 	TEST(Registry, MoveOnlyComponentWorks) {
 	    ecss::Registry reg;
 	    auto e = reg.takeEntity();
 	    reg.addComponent<MoveOnly>(e, MoveOnly(777));
-	    auto* ptr = reg.getPinnedComponent<MoveOnly>(e).get();
+	    auto* ptr = reg.pinComponent<MoveOnly>(e).get();
 	    ASSERT_NE(ptr, nullptr);
 	    EXPECT_EQ(ptr->val, 777);
 	}
@@ -781,7 +781,7 @@ namespace RegistryTests {
 	//    ecss::Registry reg;
 	//    auto e = reg.takeEntity();
 	//    reg.addComponent<CopyOnly>(e, CopyOnly(555));
-	//    auto* ptr = reg.getPinnedComponent<CopyOnly>(e);
+	//    auto* ptr = reg.pinComponent<CopyOnly>(e);
 	//    ASSERT_NE(ptr, nullptr);
 	//    EXPECT_EQ(ptr->v, 555);
 	//}
@@ -795,7 +795,7 @@ namespace RegistryTests {
 	        ids.push_back(e);
 	    }
 	    for (int i = 0; i < 10; ++i) {
-	        EXPECT_EQ(reg.getPinnedComponent<Health>(ids[i])->value, i * 10);
+	        EXPECT_EQ(reg.pinComponent<Health>(ids[i])->value, i * 10);
 	    }
 	}
 
@@ -838,7 +838,7 @@ namespace RegistryTests {
 	    for (int t = 0; t < threads; ++t) {
 	        reads.emplace_back([&, t] {
 	            for (int i = t * N; i < (t + 1) * N; ++i) {
-	                auto* pos = reg.getPinnedComponent<Position>(ids[i]).get();
+	                auto* pos = reg.pinComponent<Position>(ids[i]).get();
 	                if (pos) found++;
 	            }
 	        });
@@ -860,9 +860,9 @@ namespace RegistryTests {
 	    reg.addComponent<Velocity>(e, (float)3, (float)4);
 	    reg.addComponent<Health>(e, 5);
 
-	    EXPECT_EQ(reg.getPinnedComponent<Position>(e)->x, 1);
-	    EXPECT_EQ(reg.getPinnedComponent<Velocity>(e)->dx, 3);
-	    EXPECT_EQ(reg.getPinnedComponent<Health>(e)->value, 5);
+	    EXPECT_EQ(reg.pinComponent<Position>(e)->x, 1);
+	    EXPECT_EQ(reg.pinComponent<Velocity>(e)->dx, 3);
+	    EXPECT_EQ(reg.pinComponent<Health>(e)->value, 5);
 	}
 
 	TEST(Registry, ParallelAddRemove) {
@@ -900,7 +900,7 @@ namespace RegistryTests {
 
 	    int alive = 0;
 	    for (int i = 0; i < threads * N; ++i)
-	        if (reg.getPinnedComponent<Health>(ids[i])) alive++;
+	        if (reg.pinComponent<Health>(ids[i])) alive++;
 	    EXPECT_EQ(alive, threads * N / 2);
 	}
 
@@ -932,7 +932,7 @@ namespace RegistryTests {
 	    }
 	    reg.destroyEntities(ids);
 	    for (auto e : ids)
-	        EXPECT_EQ(reg.getPinnedComponent<Health>(e).get(), nullptr);
+	        EXPECT_EQ(reg.pinComponent<Health>(e).get(), nullptr);
 	}
 
 	TEST(Registry, RemoveNonExistent) {
@@ -945,7 +945,7 @@ namespace RegistryTests {
 	    auto e = reg.takeEntity();
 	    reg.addComponent<Health>(e, 1);
 	    reg.destroyComponent<Health>(e);
-	    EXPECT_EQ(reg.getPinnedComponent<Health>(e).get(), nullptr);
+	    EXPECT_EQ(reg.pinComponent<Health>(e).get(), nullptr);
 	}
 
 	TEST(Registry, DestroyAllComponentsOnEntity) {
@@ -954,8 +954,8 @@ namespace RegistryTests {
 	    reg.addComponent<Health>(e, 1);
 	    reg.addComponent<Position>(e, (float)2, (float)3);
 	    reg.destroyEntity(e);
-	    EXPECT_EQ(reg.getPinnedComponent<Health>(e).get(), nullptr);
-	    EXPECT_EQ(reg.getPinnedComponent<Position>(e).get(), nullptr);
+	    EXPECT_EQ(reg.pinComponent<Health>(e).get(), nullptr);
+	    EXPECT_EQ(reg.pinComponent<Position>(e).get(), nullptr);
 	}
 
 	TEST(Registry, CopyArrayToRegistry) {
@@ -963,7 +963,7 @@ namespace RegistryTests {
 	    auto e = reg1.takeEntity();
 	    reg1.addComponent<Health>(e, 42);
 	    reg2.insert<Health>(*reg1.getComponentContainer<Health>());
-	    EXPECT_EQ(reg2.getPinnedComponent<Health>(e)->value, 42);
+	    EXPECT_EQ(reg2.pinComponent<Health>(e)->value, 42);
 	}
 
 	TEST(Registry, ForEachOrderIndependence) {
@@ -1050,8 +1050,8 @@ namespace RegistryTests {
 	        ids[i] = e;
 	    }
 	    for (int i = 0; i < N; ++i) {
-	        EXPECT_EQ(reg.getPinnedComponent<MoveOnly>(ids[i])->val, i);
-	        //EXPECT_EQ(reg.getPinnedComponent<CopyOnly>(ids[i])->v, i); //this code should not compile
+	        EXPECT_EQ(reg.pinComponent<MoveOnly>(ids[i])->val, i);
+	        //EXPECT_EQ(reg.pinComponent<CopyOnly>(ids[i])->v, i); //this code should not compile
 	    }
 	}
 
@@ -1127,7 +1127,7 @@ namespace RegistryTests {
 
 	    int found = 0;
 	    for (int i = 0; i < T * N; ++i)
-	        if (reg.getPinnedComponent<MoveOnly>(ids[i]))
+	        if (reg.pinComponent<MoveOnly>(ids[i]))
 	            found++;
 	    EXPECT_GE(found, 0);
 	}
@@ -1246,7 +1246,7 @@ namespace RegistryTests {
 				std::sort(shuffledIds.begin(), shuffledIds.end());
 
 				for (auto id : shuffledIds) {
-					target.addComponent<TransformMatComp>(id, source.getPinnedComponent<TransformMatComp>(id)->mTransform);
+					target.addComponent<TransformMatComp>(id, source.pinComponent<TransformMatComp>(id)->mTransform);
 
 					if (errorDetected) {
 						break;

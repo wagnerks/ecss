@@ -216,12 +216,6 @@ namespace ecss::Memory {
 			return sector->getMember<T>(layout.offset, layout.isAliveMask);
 		}
 
-		inline void destroyMember(const LayoutData& layout) {
-			if (isAlive(layout.isAliveMask)) {
-				setAlive(layout.isNotAliveMask, false);
-				layout.functionTable.destructor(getMemberPtr(this, layout.offset));
-			}
-		}
 		template<typename T, class ...Args>
 		inline T* emplaceMember(const LayoutData& layout, Args&&... args) {
 			void* memberPtr = getMemberPtr(this, layout.offset);
@@ -268,6 +262,19 @@ namespace ecss::Memory {
 			return new(getMemberPtr(to, layout.offset))T(std::move(from));
 		}
 
+		inline static void* copyMember(const void* from, Sector* to, const LayoutData& layout) {
+			assert(to);
+			to->destroyMember(layout);
+			
+			auto ptr = getMemberPtr(to, layout.offset);
+			if (!from) {
+				return ptr;
+			}
+			layout.functionTable.copy(ptr, const_cast<void*>(from));
+			to->setAlive(!!from ? layout.isAliveMask : layout.isNotAliveMask, !!from);
+			return ptr;
+		}
+
 		inline static void* moveMember(void* from, Sector* to, const LayoutData& layout) {
 			assert(to);
 			to->destroyMember(layout);
@@ -281,17 +288,28 @@ namespace ecss::Memory {
 			return ptr;
 		}
 
-		inline static void* copyMember(const void* from, Sector* to, const LayoutData& layout) {
+		inline static Sector* copySector(Sector* from, Sector* to, const SectorLayoutMeta* layouts) {
+			assert(from != to);
+			assert(from && to);
 			assert(to);
-			to->destroyMember(layout);
-			
-			auto ptr = getMemberPtr(to, layout.offset);
-			if (!from) {
-				return ptr;
+			destroySector(to, layouts);
+
+			if constexpr (std::is_trivially_copyable_v<Sector>) {
+				memcpy(to, from, sizeof(Sector));
 			}
-			layout.functionTable.copy(ptr, const_cast<void*>(from));
-			to->setAlive(!!from ? layout.isAliveMask : layout.isNotAliveMask, !!from);
-			return ptr;
+			else {
+				new (to)Sector(*from);
+			}
+
+			for (const auto& layout : *layouts) {
+				if (!from->isAlive(layout.isAliveMask)) {
+					continue;
+				}
+
+				layout.functionTable.copy(getMemberPtr(to, layout.offset), getMemberPtr(from, layout.offset));
+			}
+
+			return to;
 		}
 
 		inline static Sector* moveSector(Sector* from, Sector* to, const SectorLayoutMeta* layouts) {
@@ -314,36 +332,12 @@ namespace ecss::Memory {
 			return to;
 		}
 
-		inline static Sector* copySector(Sector* from, Sector* to, const SectorLayoutMeta* layouts) {
-			assert(from != to);
-			assert(from && to);
-			assert(to);
-			destroySector(to, layouts);
-			
-			if constexpr (std::is_trivially_copyable_v<Sector>) {
-				memcpy(to, from, sizeof(Sector));
-			}
-			else {
-				new (to)Sector(*from);
-			}
-			
-			for (const auto& layout : *layouts) {
-				if (!from->isAlive(layout.isAliveMask)) {
-					continue;
-				}
-
-				layout.functionTable.copy(getMemberPtr(to, layout.offset), getMemberPtr(from, layout.offset));
-			}
-
-			return to;
-		}
-
 		inline static void destroySector(Sector* sector, const SectorLayoutMeta* layouts) {
 			if (!sector || !sector->isSectorAlive()) {
 				return;
 			}
 
-			if (layouts->isTrivial()) {
+			if (!layouts->isTrivial()) {
 				for (const auto& layout : (*layouts)) {
 					if (sector->isAlive(layout.isAliveMask)) {
 						layout.functionTable.destructor(ecss::Memory::Sector::getMemberPtr(sector, layout.offset));
@@ -351,6 +345,16 @@ namespace ecss::Memory {
 				}
 			}
 			sector->isAliveData = 0;
+		}
+
+		inline void destroyMember(const LayoutData& layout) {
+			if (!layout.isTrivial) {
+				if (isAlive(layout.isAliveMask)) {
+					layout.functionTable.destructor(getMemberPtr(this, layout.offset));
+				}
+			}
+
+			setAlive(layout.isNotAliveMask, false);
 		}
 	};
 

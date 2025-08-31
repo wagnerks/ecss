@@ -322,16 +322,16 @@ namespace CommonTests {
 
         for (auto id : ids) {
             EXPECT_TRUE(reg.hasComponent<Pos>(id));
-            auto* p = reg.getPinnedComponent<Pos>(id).get();
+            auto* p = reg.pinComponent<Pos>(id).get();
             ASSERT_NE(p, nullptr);
             EXPECT_EQ(p->x, (int)id);
             if (id % 3 == 0) {
-                auto* v = reg.getPinnedComponent<Vel>(id).get();
+                auto* v = reg.pinComponent<Vel>(id).get();
                 ASSERT_NE(v, nullptr);
                 EXPECT_FLOAT_EQ(v->v, float(id));
             }
             else {
-                EXPECT_EQ(reg.getPinnedComponent<Vel>(id).get(), nullptr);
+                EXPECT_EQ(reg.pinComponent<Vel>(id).get(), nullptr);
             }
         }
 
@@ -343,7 +343,7 @@ namespace CommonTests {
         std::vector<EntityId> kill(ids.begin() + 1, ids.begin() + 5);
         reg.destroyComponent<Vel>(kill);
         for (auto id : kill) {
-            EXPECT_EQ(reg.getPinnedComponent<Vel>(id).get(), nullptr);
+            EXPECT_EQ(reg.pinComponent<Vel>(id).get(), nullptr);
         }
     }
 

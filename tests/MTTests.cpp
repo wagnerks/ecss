@@ -99,13 +99,13 @@ namespace test_adapt {
         return r.addComponent<T>(id, std::forward<A>(a)...);
     }
     template<class T> inline ecss::PinnedComponent<T> get(Registry& r, EntityId id) {
-        return r.getPinnedComponent<T>(id);
+        return r.pinComponent<T>(id);
     }
     inline void destroy(Registry& r, EntityId id) { r.destroyEntity(id); }
 
     template<class... Cs>
     inline auto range(Registry& r) {
-        return r.forEach<Cs...>(); // should iterate yielding (EntityId, Cs*...)
+        return r.view<Cs...>(); // should iterate yielding (EntityId, Cs*...)
     }
 }
 

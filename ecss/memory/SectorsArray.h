@@ -313,10 +313,9 @@ namespace ecss::Memory {
 			TS_GUARD_S(TS, UNIQUE, mPinsCounter.waitUntilChangeable(first->id);, erase_ifImpl(first, last, std::forward<Func>(func), defragment););
 		}
 
-		void eraseAsync(SectorId id, size_t count = 1, bool defragment = false) requires(ThreadSafe) {
-			UNIQUE_LOCK();
+		void eraseAsync(SectorId id, size_t count = 1) requires(ThreadSafe) {
 			for (auto i = id; i < id + count; ++i) {
-				eraseAsyncImpl(i, defragment);
+				eraseAsyncImpl(i);
 			}
 		}
 
@@ -340,10 +339,17 @@ namespace ecss::Memory {
 
 		template<bool TS = ThreadSafe>
 		void defragment() { TS_GUARD_S(TS, UNIQUE, if (emptyImpl()) { return; } mPinsCounter.waitUntilChangeable(); , defragmentImpl();); }
+		void incDefragmentSize(uint32_t count = 1) { mDefragmentSize += count; }
+
+		
+		template<bool TS = ThreadSafe> auto getDefragmentationSize()			const { TS_GUARD(TS, SHARED, return mDefragmentSize; ); }
+		template<bool TS = ThreadSafe> auto getDefragmentationRation()			const { TS_GUARD(TS, SHARED, return mSize ? (static_cast<float>(mDefragmentSize) / static_cast<float>(mSize)) : 0.f;); }
+		template<bool TS = ThreadSafe> bool needDefragment()					const { TS_GUARD(TS, SHARED, return getDefragmentationRation<false>() > mDefragThreshold; ); }
+		template<bool TS = ThreadSafe> void setDefragmentThreshold(float threshold)	  { TS_GUARD(TS, UNIQUE, mDefragThreshold = threshold; ); }
 
 		template<typename T, bool TS = ThreadSafe>
-		std::remove_reference_t<T>* insert(SectorId sectorId, T&& data) {
-			TS_GUARD_S(TS, UNIQUE, mPinsCounter.waitUntilChangeable(sectorId); , return insertImpl(sectorId, std::forward<T>(data)););
+		std::remove_cvref_t<T>* insert(SectorId sectorId, T&& data) {
+			TS_GUARD_S(TS, UNIQUE, mPinsCounter.waitUntilChangeable(sectorId);, return insertImpl(sectorId, std::forward<T>(data)););
 		}
 
 		template<typename T, bool TS = ThreadSafe, class... Args>
@@ -352,7 +358,7 @@ namespace ecss::Memory {
 		}
 
 		template<typename T, bool TS = ThreadSafe, class... Args>
-		T* push(SectorId sectorId, Args&&... args) requires(ThreadSafe) {
+		T* push(SectorId sectorId, Args&&... args) {
 			if constexpr (sizeof...(Args) == 1 && (std::is_same_v<std::remove_cvref_t<Args>, T> && ...)) {
 				return insert<Args..., TS>(sectorId, std::forward<Args>(args)...);
 			}
@@ -371,9 +377,12 @@ namespace ecss::Memory {
 		void processPendingErases(bool withDefragment = true, bool sync = ThreadSafe) requires(ThreadSafe) {
 			auto lock = ecss::Threads::uniqueLock(mtx, sync);
 			if (mPendingErase.empty()) {
-				if (withDefragment && !mPinsCounter.isArrayLocked()) {
-					defragmentImpl();
+				if (needDefragment<false>()) {
+					if (withDefragment && !mPinsCounter.isArrayLocked()) {
+						defragmentImpl();
+					}
 				}
+				
 				mBin.drainAll();
 				return;
 			}
@@ -384,6 +393,7 @@ namespace ecss::Memory {
 			for (auto id : tmp) {
 				if (!mPinsCounter.isPinned(id)) {
 					Sector::destroySector(getSectorImpl(id), getLayout());
+					incDefragmentSize();
 					mSectorsMap[id] = nullptr;
 				}
 				else {
@@ -391,8 +401,10 @@ namespace ecss::Memory {
 				}
 			}
 
-			if (withDefragment && !mPinsCounter.isArrayLocked()) {
-				defragmentImpl();
+			if (needDefragment<false>()) {
+				if (withDefragment && !mPinsCounter.isArrayLocked()) {
+					defragmentImpl();
+				}
 			}
 
 			mBin.drainAll();
@@ -452,6 +464,9 @@ namespace ecss::Memory {
 				shiftSectorsImpl<Left>(idx + 1);
 				mSize--;
 			}
+			else {
+				incDefragmentSize();
+			}
 
 			return Iterator(this, idx);
 		}
@@ -470,6 +485,9 @@ namespace ecss::Memory {
 				shiftSectorsImpl<Left>(lastIdx, lastIdx - idx);
 				mSize -= lastIdx - idx;
 			}
+			else {
+				incDefragmentSize(static_cast<uint32_t>(lastIdx - idx));
+			}
 
 			return Iterator(this, idx);
 		}
@@ -484,6 +502,7 @@ namespace ecss::Memory {
 				if (std::forward<Func>(func)(*it)) {
 					mSectorsMap[it->id] = nullptr;
 					Sector::destroySector(*it, getLayout());
+					incDefragmentSize();
 				}
 			}
 
@@ -524,6 +543,7 @@ namespace ecss::Memory {
 				if (!getLayout()->isTrivial()) { //call destructors for nontrivial types
 					for (auto it = Iterator(this, 0), endIt = Iterator(this, sizeImpl()); it != endIt; ++it) {
 						Sector::destroySector(*it, getLayout());
+						incDefragmentSize();
 					}
 				}
 
@@ -544,10 +564,10 @@ namespace ecss::Memory {
 
 		template<typename T>
 		std::remove_reference_t<T>* insertImpl(SectorId sectorId, T&& data) {
-			using U = std::remove_reference_t<T>;
+			using U = std::remove_cvref_t<T>;
 
 			Sector* sector = acquireSectorImpl(sectorId);
-			if constexpr (std::is_same_v<std::remove_cvref_t<T>, Sector>) {
+			if constexpr (std::is_same_v<U, Sector>) {
 				if constexpr (std::is_lvalue_reference_v<T>) {
 					return Sector::copySector(std::addressof(data), sector, getLayout());
 				}
@@ -696,9 +716,6 @@ namespace ecss::Memory {
 		}
 
 		void defragmentImpl(size_t from = 0)  {
-			const size_t n = mSize;
-			if (!n) return;
-
 			//algorithm which will not shift all sectors left every time, but shift only alive sectors to left border till not found empty place
 			//OOOOxOxxxOOxxxxOOxOOOO   0 - start
 			//OOOOx<-OxxxOOxxxxOOxOOOO 0
@@ -713,29 +730,13 @@ namespace ecss::Memory {
 			size_t read = from;
 			size_t write = from;
 			size_t deleted = 0;
-			while (read < n) {
-				auto s = mAllocator.at(read);
-				if (s->isSectorAlive()) break;
-				mSectorsMap[s->id] = nullptr;
-				if (!mAllocator.mIsSectorTrivial) {
-					Sector::destroySector(s, mAllocator.mSectorLayout);
-				}
-				++read; ++deleted;
-			}
-
-			if (read == n) {
-				shrinkToFitImpl();
-				return;
-			}
+			const size_t n = mSize;
 
 			while (read < n) {
 				while (read < n) {
 					auto s = mAllocator.at(read);
 					if (s->isSectorAlive()) break;
 					mSectorsMap[s->id] = nullptr;
-					if (!mAllocator.mIsSectorTrivial) {
-						Sector::destroySector(s, mAllocator.mSectorLayout);
-					}
 					++read; ++deleted;
 				}
 				if (read >= n) break;
@@ -765,32 +766,25 @@ namespace ecss::Memory {
 			}
 
 			mSize -= deleted;
-
+			mDefragmentSize = 0;
 			shrinkToFitImpl();
 		}
 
-		void eraseAsyncImpl(SectorId id, bool defragment = false) requires(ThreadSafe) {
-			if (auto sector = findSectorImpl(id)) {
-				if (defragment) {
-					if (mPinsCounter.canMoveSector(id)) {
-						Sector::destroySector(sector, getLayout());
-						mSectorsMap[id] = nullptr;
-						shiftSectorsImpl<Left>(mAllocator.find(sector) + 1);
-						mSize--;
-					}
-					else {
-						mPendingErase.push_back(id);
-					}
+		void eraseAsyncImpl(SectorId id) requires(ThreadSafe) {
+			if (!findSector(id)) {
+				return;
+			}
+
+			if (!mPinsCounter.isPinned(id)) {
+				UNIQUE_LOCK();
+				if (auto sector = findSector<false>(id)) {
+					Sector::destroySector(sector, getLayout());
+					incDefragmentSize();
+					mSectorsMap[id] = nullptr;
 				}
-				else {
-					if (!mPinsCounter.isPinned(id)) {
-						Sector::destroySector(sector, getLayout());
-						mSectorsMap[id] = nullptr;
-					}
-					else {
-						mPendingErase.push_back(id);
-					}
-				}
+			}
+			else {
+				mPendingErase.push_back(id);
 			}
 		}
 
@@ -818,5 +812,8 @@ namespace ecss::Memory {
 		std::vector<SectorId> mPendingErase;
 
 		size_t mSize = 0;
+		float mDefragThreshold = 0.2f;
+		uint32_t mDefragmentSize = 0;
+
 	};
 }

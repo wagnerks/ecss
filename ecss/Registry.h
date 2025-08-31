@@ -65,8 +65,6 @@ namespace ecss {
 		Registry() noexcept = default;
 		~Registry() noexcept { for (auto array : mComponentsArrays) delete array; }
 
-		// todo defragmentation koef
-
 		// in multithread environment you need to call update for registry in "safe" parts of your app, to support pending erases and memory safe array reallocations
 		// you can also control defragmentation via flag, call defragment once per few frames, or call it manually for needed container
 		void update(bool withDefragment = true) noexcept requires(ThreadSafe) {
@@ -78,6 +76,16 @@ namespace ecss {
 
 			for (auto* array : arrays) {
 				array->processPendingErases(withDefragment);
+			}
+		}
+
+		void update(bool withDefragment = true) noexcept requires(!ThreadSafe) {
+			for (auto* array : mComponentsArrays) {
+				if (withDefragment) {
+					if (array->needDefragment()) {
+						array->defragment();
+					}
+				}
 			}
 		}
 
@@ -125,10 +133,10 @@ namespace ecss {
 			auto container = getComponentContainer<T>();
 			container->writeLock();
 
-			auto res = std::forward<T>(func);
+			auto res = std::forward<Func>(func);
 			while (res.first != INVALID_ID) {
 				container->template push<T, false>(res.first, res.second);
-				res = std::forward<T>(func);
+				res = std::forward<Func>(func);
 			}
 		}
 
@@ -140,12 +148,20 @@ namespace ecss {
 					container->mPinsCounter.waitUntilSectorChangeable(entity);
 
 					if (auto sector = container->template findSector<false>(entity)) {
+						auto before = sector->isAliveData;
 						sector->destroyMember(container->template getLayoutData<T>());
+						if (before != sector->isAliveData) {
+							container->incDefragmentSize();
+						}
 					}
 				}
 				else {
 					if (auto sector = container->template findSector<false>(entity)) {
+						auto before = sector->isAliveData;
 						sector->destroyMember(container->template getLayoutData<T>());
+						if (before != sector->isAliveData) {
+							container->incDefragmentSize();
+						}
 					}
 				}
 			}
@@ -166,7 +182,11 @@ namespace ecss {
 						container->mPinsCounter.waitUntilSectorChangeable(sectorId);
 
 						if (auto sector = container->template findSector<false>(sectorId)) {
+							auto before = sector->isAliveData;
 							sector->destroyMember(layout);
+							if (before != sector->isAliveData) {
+								container->incDefragmentSize();
+							}
 						}
 					}
 				}
@@ -175,7 +195,11 @@ namespace ecss {
 
 					for (const auto sectorId : entities) {
 						if (auto sector = container->template findSector<false>(sectorId)) {
+							auto before = sector->isAliveData;
 							sector->destroyMember(layout);
+							if (before != sector->isAliveData) {
+								container->incDefragmentSize();
+							}
 						}
 					}
 				}
@@ -355,6 +379,7 @@ namespace ecss {
 							for (const auto sectorId : entities) {
 								array->mPinsCounter.waitUntilSectorChangeable(sectorId);
 								Memory::Sector::destroySector(array->template findSector<false>(sectorId), layout);
+								array->incDefragmentSize();
 							}
 						});
 					}
@@ -378,6 +403,7 @@ namespace ecss {
 					const auto layout = array->getLayout();
 					for (const auto sectorId : ents) {
 						Memory::Sector::destroySector(array->template findSector<false>(sectorId), layout);
+						array->incDefragmentSize();
 					}
 				}
 				
@@ -388,7 +414,9 @@ namespace ecss {
 		}
 
 		template<typename T>
-		void defragment() noexcept { if (auto container = getComponentContainer<T>()) container->defragment(); }
+		void defragment() noexcept { if (auto container = getComponentContainer<T>()) { container->defragment();} }
+		template<typename T>
+		void setDefragmentThreshold(float threshold) { if (auto container = getComponentContainer<T>()) { container->setDefragmentThreshold(threshold); } }
 
 	private:
 		void destroySector(EntityId entityId) noexcept {
@@ -397,9 +425,11 @@ namespace ecss {
 					auto lock = array->writeLock();
 					array->mPinsCounter.waitUntilSectorChangeable(entityId);
 					Memory::Sector::destroySector(array->template findSector<false>(entityId), array->getLayout());
+					array->incDefragmentSize();
 				}
 				else {
 					Memory::Sector::destroySector(array->findSector(entityId), array->getLayout());
+					array->incDefragmentSize();
 				}
 			}
 		}
