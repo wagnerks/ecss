@@ -313,7 +313,7 @@ namespace ecss::Memory {
 		SectorsArray(SectorLayoutMeta* meta, Allocator&& allocator = {}) : mAllocator(std::move(allocator)) { mAllocator.init(meta); }
 
 	public:
-		~SectorsArray() { clear(); shrinkToFit(); mBin.drainAll(); }
+		~SectorsArray() { clear(); shrinkToFit(); if constexpr (ThreadSafe) { mBin.drainAll(); } }
 
 		/**
 		 * \brief Create an array configured for a set of component types.
