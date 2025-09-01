@@ -1,0 +1,206 @@
+name: CI (build & tests)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+permissions:
+  contents: read
+
+# -----------------------
+# Linux & macOS matrix job
+# -----------------------
+jobs:
+  posix-build-and-test:
+    name: ${{ matrix.os }} • ${{ matrix.build_type }} • ${{ matrix.profile }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        build_type: [Release, Debug]
+        profile: [default, asan-ubsan]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # ---------- Deps ----------
+      - name: Install deps (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++-13 ccache
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
+
+      - name: Install deps (macOS)
+        if: runner.os == 'macOS'
+        run: |
+          brew update
+          brew install cmake ninja ccache
+
+      # ---------- ccache cache ----------
+      - name: Cache ccache
+        if: runner.os != 'Windows'
+        uses: actions/cache@v4
+        with:
+          path: ~/.ccache
+          key: ${{ runner.os }}-ccache-${{ matrix.build_type }}-${{ matrix.profile }}-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-ccache-${{ matrix.build_type }}-${{ matrix.profile }}-
+            ${{ runner.os }}-ccache-${{ matrix.build_type }}-
+            ${{ runner.os }}-ccache-
+
+      - name: Compute compiler & sanitizer flags
+        id: flags
+        shell: bash
+        run: |
+          CFLAGS=""
+          CXXFLAGS=""
+          LDFLAGS=""
+          if [[ "${{ matrix.profile }}" == "asan-ubsan" ]]; then
+            # UBSan+ASan (macOS: UBSan only by default to avoid codesign issues)
+            if [[ "$RUNNER_OS" == "Linux" ]]; then
+              SAN="-fsanitize=address,undefined -fno-omit-frame-pointer"
+            else
+              SAN="-fsanitize=undefined -fno-omit-frame-pointer"
+            fi
+            CFLAGS="$SAN"
+            CXXFLAGS="$SAN"
+            LDFLAGS="$SAN"
+            echo "sanitizers=true" >> $GITHUB_OUTPUT
+          else
+            echo "sanitizers=false" >> $GITHUB_OUTPUT
+          fi
+          echo "cflags=$CFLAGS"   >> $GITHUB_OUTPUT
+          echo "cxxflags=$CXXFLAGS" >> $GITHUB_OUTPUT
+          echo "ldflags=$LDFLAGS" >> $GITHUB_OUTPUT
+
+      - name: Configure (CMake + Ninja)
+        shell: bash
+        env:
+          CFLAGS: ${{ steps.flags.outputs.cflags }}
+          CXXFLAGS: ${{ steps.flags.outputs.cxxflags }}
+          LDFLAGS: ${{ steps.flags.outputs.ldflags }}
+        run: |
+          cmake -S . -B build \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DECSS_BUILD_TESTS=ON \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+
+      - name: Build
+        run: cmake --build build --config ${{ matrix.build_type }} -- -k 0
+
+      - name: Run tests
+        env:
+          ASAN_OPTIONS: ${{ steps.flags.outputs.sanitizers == 'true' && 'verify_asan_link_order=0:fast_unwind_on_malloc=0:strict_string_checks=1:detect_leaks=1' || '' }}
+          UBSAN_OPTIONS: ${{ steps.flags.outputs.sanitizers == 'true' && 'print_stacktrace=1' || '' }}
+        run: ctest --test-dir build --output-on-failure --build-config ${{ matrix.build_type }}
+
+      - name: Upload test logs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: posix-ctest-logs-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.profile }}
+          path: |
+            build/Testing/Temporary/LastTest.log
+            build/**/Testing/Temporary/LastTest.log
+
+  # -----------------------
+  # Windows job (MSVC)
+  # -----------------------
+  windows-build-and-test:
+    name: windows-latest • ${{ matrix.toolchain }} • ${{ matrix.build_type }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        build_type: [Release, Debug]
+        toolchain: [msbuild, ninja]   # msbuild generator (Visual Studio) & Ninja generator
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Setup MSVC dev cmd
+        uses: ilammy/msvc-dev-cmd@v1
+
+      - name: Install Ninja & sccache
+        run: |
+          choco install ninja --no-progress
+          choco install sccache --no-progress
+
+      - name: Cache sccache
+        uses: actions/cache@v4
+        with:
+          path: |
+            C:\Users\runneradmin\AppData\Local\Mozilla\sccache\cache
+          key: windows-sccache-${{ matrix.toolchain }}-${{ matrix.build_type }}-${{ github.sha }}
+          restore-keys: |
+            windows-sccache-${{ matrix.toolchain }}-${{ matrix.build_type }}-
+            windows-sccache-${{ matrix.toolchain }}-
+            windows-sccache-
+
+      - name: Show compilers
+        shell: pwsh
+        run: |
+          cl /Bv
+          where cl
+          where sccache
+
+      - name: Configure (CMake • Ninja with MSVC)
+        if: matrix.toolchain == 'ninja'
+        shell: pwsh
+        run: |
+          $env:SCCACHE_CACHE_SIZE="5G"
+          $env:SCCACHE_DIR="C:\Users\runneradmin\AppData\Local\Mozilla\sccache\cache"
+          cmake -S . -B build `
+            -G Ninja `
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} `
+            -DECSS_BUILD_TESTS=ON `
+            -DCMAKE_C_COMPILER=cl `
+            -DCMAKE_CXX_COMPILER=cl `
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache `
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+
+      - name: Build (Ninja)
+        if: matrix.toolchain == 'ninja'
+        run: cmake --build build --config ${{ matrix.build_type }}
+
+      - name: Configure (CMake • Visual Studio generator / MSBuild)
+        if: matrix.toolchain == 'msbuild'
+        shell: pwsh
+        run: |
+          $env:SCCACHE_CACHE_SIZE="5G"
+          $env:SCCACHE_DIR="C:\Users\runneradmin\AppData\Local\Mozilla\sccache\cache"
+          # For MSBuild, use multi-config generator; launcher works for cl via CMAKE_*_LAUNCHER
+          cmake -S . -B build `
+            -G "Visual Studio 17 2022" -A x64 `
+            -DECSS_BUILD_TESTS=ON `
+            -DCMAKE_C_COMPILER_LAUNCHER=sccache `
+            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+
+      - name: Build (MSBuild)
+        if: matrix.toolchain == 'msbuild'
+        run: cmake --build build --config ${{ matrix.build_type }} -- /m
+
+      - name: Run tests
+        run: ctest --test-dir build --output-on-failure --build-config ${{ matrix.build_type }}
+
+      - name: Upload test logs (on failure)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-ctest-logs-${{ matrix.toolchain }}-${{ matrix.build_type }}
+          path: |
+            build/Testing/Temporary/LastTest.log
+            build/**/Testing/Temporary/LastTest.log
