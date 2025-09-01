@@ -8,6 +8,7 @@
 namespace ecss::Memory {
 	struct RetireBin {
 		RetireBin() = default;
+		~RetireBin() { drainAll(); }
 
 		RetireBin(const RetireBin&){}
 		RetireBin& operator=(const RetireBin&) { return *this; }
@@ -20,30 +21,23 @@ namespace ecss::Memory {
 			return *this;
 		}
 
-		struct Block { void* ptr; size_t bytes; size_t align; };
-
-		void retire(void* p, size_t bytes, size_t align) {
+		void retire(void* p) {
 			auto lock = std::lock_guard(mMtx);
-			mRetired.emplace_back(p, bytes, align);
+			mRetired.emplace_back(p);
 		}
 
 		void drainAll() {
-			std::vector<Block> tmp;
+			std::vector<void*> tmp;
 			{ auto lock = std::lock_guard(mMtx); tmp.swap(mRetired); }
 
-			for (auto& b : tmp){
-				std::free(b.ptr);
+			for (auto b : tmp){
+				std::free(b);
 			}
-		}
-
-		size_t queuedBytes() const {
-			auto lock = std::lock_guard(mMtx);
-			size_t s = 0; for (auto& b : mRetired) s += b.bytes; return s;
 		}
 
 	private:
 		mutable std::mutex mMtx;
-		std::vector<Block> mRetired;
+		std::vector<void*> mRetired;
 	};
 
 	/**
@@ -83,7 +77,7 @@ namespace ecss::Memory {
 
 		void deallocate(T* p, size_t n) noexcept {
 			if (!bin) { std::free(static_cast<void*>(p)); return; }
-			bin->retire(static_cast<void*>(p), n * sizeof(T), alignof(T));
+			bin->retire(static_cast<void*>(p));
 		}
 
 		template<class U> friend struct RetireAllocator;
