@@ -9,8 +9,7 @@
 namespace ecss::Memory {
 	namespace Dummy // Dummy sector for correct size calculation 
 	{
-		struct alignas(8) Sector { SectorId id; uint32_t isAliveData; };
-		inline constexpr size_t sectorSize = (sizeof(Dummy::Sector) + alignof(Dummy::Sector) - 1) / alignof(Dummy::Sector) * alignof(Dummy::Sector);
+		struct Sector { SectorId id; uint32_t isAliveData; };
 	}
 
 	/** @brief Metadata describing how a component type is laid out within a Sector.
@@ -103,7 +102,7 @@ namespace ecss::Memory {
 		template<typename... U>
 		inline void initLayoutData(LayoutData* dataArray) {
 			uint8_t counter = 0;
-			(initLayoutData<std::remove_const_t<std::remove_pointer_t<std::remove_reference_t<U>>>>(dataArray[counter], counter, types::OffsetArray<Dummy::sectorSize, U...>::offsets[counter]), ...);
+			(initLayoutData<std::remove_const_t<std::remove_pointer_t<std::remove_reference_t<U>>>>(dataArray[counter], counter, types::OffsetArray<Dummy::Sector, U...>::offsets[counter]), ...);
 		}
 
 		/**
@@ -165,13 +164,13 @@ namespace ecss::Memory {
 		*/
 		template<typename... Types>
 		void initData()	{
-			count = types::OffsetArray<Dummy::sectorSize, Types...>::count;
-			totalSize = types::OffsetArray<Dummy::sectorSize, Types...>::totalSize;
-			typeIds = new size_t[types::OffsetArray<Dummy::sectorSize, Types...>::count]{ TypeId<Types>()... };
+			count = types::OffsetArray<Dummy::Sector, Types...>::count;
+			totalSize = types::OffsetArray<Dummy::Sector, Types...>::totalSize;
+			typeIds = new size_t[types::OffsetArray<Dummy::Sector, Types...>::count]{ TypeId<Types>()... };
 
-			layout = new LayoutData[types::OffsetArray<Dummy::sectorSize, Types...>::count];
+			layout = new LayoutData[types::OffsetArray<Dummy::Sector, Types...>::count];
 			initLayoutData<Types...>(layout);
-			for (size_t i = 0; i < types::OffsetArray<Dummy::sectorSize, Types...>::count; i++) {
+			for (size_t i = 0; i < types::OffsetArray<Dummy::Sector, Types...>::count; i++) {
 				mIsTrivial = mIsTrivial && layout[i].isTrivial;
 				if (!mIsTrivial) {
 					break;

@@ -16,7 +16,7 @@ namespace ecss::Memory {
 	 * \param id           Sector identifier.
 	 * \param isAliveData  Bitfield of component liveness; 32 bits => up to 32 components per sector.
 	 */
-	struct alignas(8) Sector final {
+	struct Sector final {
 		SectorId id;
 		uint32_t isAliveData;
 

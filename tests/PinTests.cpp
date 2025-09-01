@@ -1,4 +1,4 @@
-﻿// build:  -std=c++20 -O2 -pthread
+// build:  -std=c++20 -O2 -pthread
 // suggest: -fsanitize=thread  (TSAN)
 
 #include <gtest/gtest.h>
@@ -88,8 +88,8 @@ TEST(SectorsArrayConcurrency, WatermarkBlocksAndLowersAfterUnpin) {
                         if (!arr.containsSector(lo)) break;
                        
                         // если watermark работает, изменение сектора lo блокируется
-                        arr.eraseAsync(lo, 1), true;
-                        
+                        arr.eraseAsync(lo, 1);
+                       
                     }
                 }
             }
@@ -100,7 +100,7 @@ TEST(SectorsArrayConcurrency, WatermarkBlocksAndLowersAfterUnpin) {
         canChange.store(false, std::memory_order_relaxed);
     });
 
-    std::this_thread::sleep_for(50ms);
+    t.join();
     EXPECT_FALSE(canChange.load(std::memory_order_relaxed))
         << "watermark should prevent changes for ids <= max";
 
@@ -113,8 +113,6 @@ TEST(SectorsArrayConcurrency, WatermarkBlocksAndLowersAfterUnpin) {
     arr.processPendingErases();
     auto s = arr.findSector(lo);
     ASSERT_EQ(s, nullptr) << "after unpin of HI, LO sector should be erasable";
-
-    t.join();
 }
 
 TEST(SectorsArrayConcurrency, RandomStressNoDeadlockNoLostWakeups) {
@@ -125,9 +123,29 @@ TEST(SectorsArrayConcurrency, RandomStressNoDeadlockNoLostWakeups) {
 
     std::unique_ptr<SectorsArray<>> holder(makeArray(CAP));
     auto& arr = *holder;
-
+    struct cv_barrier {
+        explicit cv_barrier(int count) : total(count) {}
+        void arrive_and_wait() {
+            std::unique_lock<std::mutex> lk(m);
+            int gen = generation;
+            if (++arrived == total) {
+                arrived = 0;
+                ++generation;
+                cv.notify_all();
+            } else {
+                cv.wait(lk, [&]{ return generation != gen; });
+            }
+        }
+    private:
+        std::mutex m;
+        std::condition_variable cv;
+        int arrived = 0;
+        int generation = 0;
+        const int total;
+    };
+    
     std::atomic<bool> stop{ false };
-    std::barrier start(READERS + WRITERS);
+    cv_barrier start(READERS + WRITERS);
 
     // читатели: пинают случайные id
     auto reader = [&](int tid) {
@@ -140,7 +158,7 @@ TEST(SectorsArrayConcurrency, RandomStressNoDeadlockNoLostWakeups) {
             auto s = pin.get();
             if (s) { volatile int x = s->isAliveData; (void)x; }
             // иногда подождём, провоцируя пересечения
-            if ((rng() & 7u) == 0) std::this_thread::sleep_for(100us);
+            if ((rng() & 7u) == 0) std::this_thread::sleep_for(10ms);
         }
     };
 
@@ -159,7 +177,7 @@ TEST(SectorsArrayConcurrency, RandomStressNoDeadlockNoLostWakeups) {
                 arr.processPendingErases();
             }
             else if ((r & 0xF) == 2) {
-                arr.defragment();
+                arr.tryDefragment();
             }
             else if ((r & 0xFF) == 3) {
                 // редкий reserve — спровоцировать ensureSidecarCapacity
@@ -175,6 +193,7 @@ TEST(SectorsArrayConcurrency, RandomStressNoDeadlockNoLostWakeups) {
     };
 
     std::vector<std::thread> th;
+    th.reserve(READERS + WRITERS);
     for (int i = 0; i < READERS; ++i) th.emplace_back(reader, i);
     for (int i = 0; i < WRITERS; ++i) th.emplace_back(writer, i);
 
@@ -185,6 +204,7 @@ TEST(SectorsArrayConcurrency, RandomStressNoDeadlockNoLostWakeups) {
 
     // быстрая sanity-проверка: после прохода очереди удалений — всё стабильно
     holder->processPendingErases();
+
     // если что-то пошло не так (дедлок/лост-вейкап/UB), этот тест часто падает под TSAN или зависает.
     SUCCEED();
 }
