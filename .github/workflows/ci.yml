@@ -153,9 +153,9 @@ jobs:
       - name: Show compilers
         shell: pwsh
         run: |
-          cl /Bv
-          where cl
-          where sccache
+          cl /Bv /?
+          where.exe cl
+          where.exe sccache
 
       - name: Configure (CMake • Ninja with MSVC)
         if: matrix.toolchain == 'ninja'
