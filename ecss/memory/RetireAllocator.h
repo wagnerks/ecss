@@ -32,7 +32,7 @@ namespace ecss::Memory {
 			{ auto lock = std::lock_guard(mMtx); tmp.swap(mRetired); }
 
 			for (auto& b : tmp){
-				::operator delete(b.ptr, static_cast<std::align_val_t>(b.align));
+				std::free(b.ptr);
 			}
 		}
 
@@ -78,12 +78,12 @@ namespace ecss::Memory {
 		RetireAllocator(const RetireAllocator<U>& other) noexcept : bin(other.bin) {}
 
 		T* allocate(size_t n) {
-			return static_cast<T*>(::operator new(n * sizeof(T), std::align_val_t(alignof(T))));
+			return static_cast<T*>(std::calloc(n, sizeof(T)));
 		}
 
 		void deallocate(T* p, size_t n) noexcept {
-			if (!bin) { ::operator delete(p, std::align_val_t(alignof(T))); return; }
-			bin->retire(p, n * sizeof(T), alignof(T));
+			if (!bin) { std::free(static_cast<void*>(p)); return; }
+			bin->retire(static_cast<void*>(p), n * sizeof(T), alignof(T));
 		}
 
 		template<class U> friend struct RetireAllocator;
