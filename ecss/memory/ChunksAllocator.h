@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <vector>
+#include <cstring>
 
 #include <ecss/memory/Sector.h>
 #include <ecss/memory/RetireAllocator.h>
