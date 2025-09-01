@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include <cstdint>
+#include <cstring>
 
 #include <ecss/memory/Reflection.h>
 #include <ecss/Types.h>

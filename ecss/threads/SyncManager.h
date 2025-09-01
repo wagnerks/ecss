@@ -4,7 +4,7 @@
 
 namespace ecss::Threads {
     template<class L>
-    class [[nodiscard]] MaybeLock {
+    [[nodiscard]] class MaybeLock {
     public:
         MaybeLock() noexcept = default;
 
@@ -24,7 +24,7 @@ namespace ecss::Threads {
     using SharedGuard = MaybeLock<std::shared_lock<std::shared_mutex>>;
     using UniqueGuard = MaybeLock<std::unique_lock<std::shared_mutex>>;
 
-    inline SharedGuard [[nodiscard]] sharedLock(std::shared_mutex& mtx, bool sync = true) noexcept { return SharedGuard(mtx, sync); }
+    [[nodiscard]] inline SharedGuard sharedLock(std::shared_mutex& mtx, bool sync = true) noexcept { return SharedGuard(mtx, sync); }
 
-    inline UniqueGuard [[nodiscard]] uniqueLock(std::shared_mutex& mtx, bool sync = true) noexcept { return UniqueGuard(mtx, sync); }
+    [[nodiscard]] inline UniqueGuard uniqueLock(std::shared_mutex& mtx, bool sync = true) noexcept { return UniqueGuard(mtx, sync); }
 }
