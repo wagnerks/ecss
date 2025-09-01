@@ -9,7 +9,7 @@
 namespace ecss::Memory {
 	namespace Dummy // Dummy sector for correct size calculation 
 	{
-		struct alignas(8) Sector { SectorId id; uint32_t isAliveData; };
+		struct Sector { SectorId id; uint32_t isAliveData; };
 		inline constexpr size_t sectorSize = (sizeof(Dummy::Sector) + alignof(Dummy::Sector) - 1) / alignof(Dummy::Sector) * alignof(Dummy::Sector);
 	}
 
