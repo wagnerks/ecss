@@ -18,6 +18,14 @@
 #include <ecss/threads/SyncManager.h>
 
 namespace ecss {
+	/**
+	 * \brief RAII wrapper that pins the sector containing T and exposes a pointer to T.
+	 *
+	 * \tparam T Component type stored in the sector.
+	 *
+	 * \details Holds a \ref Memory::PinnedSector (sector-level pin) and a raw T*.
+	 * Releasing or destroying the object unpins the sector and nulls the pointer.
+	 */
 	template<class T>
 	struct PinnedComponent {
 		PinnedComponent(const PinnedComponent& other) = delete;
@@ -43,6 +51,12 @@ namespace ecss {
 	template <bool ThreadSafe, typename Allocator, bool Ranged, typename T, typename ...ComponentTypes>
 	class ArraysView;
 
+	/**
+	 * \brief Central ECS registry that owns per-type sector arrays, entities, and iteration helpers.
+	 *
+	 * \tparam ThreadSafe If true, public APIs use internal synchronization and pinning rules.
+	 * \tparam Allocator  Sector allocator type used by component arrays.
+	 */
 	template<bool ThreadSafe = true, typename Allocator = Memory::ChunksAllocator<8192>>
 	class Registry final {
 		template <bool TS, typename Alloc, bool Ranged, typename T, typename ...ComponentTypes>
@@ -52,6 +66,7 @@ namespace ecss {
 		friend class Registry;
 
 	public:
+		/// \brief Get a stable numeric type id for T within this registry.
 		template<typename T>
 		ECSType componentTypeId() const noexcept { return mReflectionHelper.getTypeId<T>(); }
 
@@ -65,8 +80,11 @@ namespace ecss {
 		Registry() noexcept = default;
 		~Registry() noexcept { for (auto array : mComponentsArrays) delete array; }
 
-		// in multithread environment you need to call update for registry in "safe" parts of your app, to support pending erases and memory safe array reallocations
-		// you can also control defragmentation via flag, call defragment once per few frames, or call it manually for needed container
+		/**
+		 * \brief Maintenance pass (thread-safe build): process deferred erases and optional defragmentation.
+		 * \param withDefragment If true, allows arrays to defragment when their thresholds are exceeded.
+		 * \note Should be called from “safe” points in your app (e.g., end of frame).
+		 */
 		void update(bool withDefragment = true) noexcept requires(ThreadSafe) {
 			decltype(mComponentsArrays) arrays;
 			{
@@ -79,6 +97,10 @@ namespace ecss {
 			}
 		}
 
+		/**
+		 * \brief Maintenance pass (single-threaded build): optional defragmentation only.
+		 * \param withDefragment If true, defragment arrays that report needDefragment().
+		 */
 		void update(bool withDefragment = true) noexcept requires(!ThreadSafe) {
 			for (auto* array : mComponentsArrays) {
 				if (withDefragment) {
@@ -90,7 +112,12 @@ namespace ecss {
 		}
 
 	public:
-		// returns true if sector with such component exists, and component alive
+		/**
+		 * \brief Check if entity has a live component T.
+		 * \tparam T Component type.
+		 * \param entity Entity id.
+		 * \return True if sector exists and component’s liveness bit is set.
+		 */
 		template <class T>
 		bool hasComponent(EntityId entity) noexcept {
 			if constexpr (ThreadSafe) {
@@ -111,6 +138,12 @@ namespace ecss {
 			return false;
 		}
 
+		/**
+		 * \brief Pin the sector for entity and return an RAII handle to T (thread-safe build).
+		 * \tparam T Component type.
+		 * \param entity Entity id.
+		 * \return \ref PinnedComponent<T> that unpins on destruction; empty if missing.
+		 */
 		template<class T>
 		[[nodiscard]] PinnedComponent<T> pinComponent(EntityId entity) noexcept requires(ThreadSafe)  {
 			auto* container = getComponentContainer<T>();
@@ -121,25 +154,39 @@ namespace ecss {
 			return component ? PinnedComponent<T>{ std::move(pinnedSector), component } : PinnedComponent<T>{};
 		}
 
-		// you can emplace component into sector using initializer list
+		/**
+		 * \brief Add or overwrite component T for entity using perfect-forwarded arguments.
+		 * \tparam T Component type.
+		 * \param entity Entity id (used as sector id).
+		 */
 		template <class T, class ...Args>
 		T* addComponent(EntityId entity, Args&&... args) noexcept {
 			return getComponentContainer<T>()->template push<T>(entity, std::forward<Args>(args)...);
 		}
 
-		// add components under one lock via functor, func returns std::pair<EntityId, T>, if EntityId == INVALID_ID - cycle stops
+		/**
+		 * \brief Add multiple components T under one write lock via a generator functor (thread-safe build).
+		 * \tparam T Component type.
+		 * \tparam Func Callable returning std::pair<EntityId, T>. When \c first==INVALID_ID the loop stops.
+		 * \param func Generator invoked repeatedly under the array write lock.
+		 */
 		template <class T, typename Func>
 		void addComponents(Func&& func) requires(ThreadSafe) {
 			auto container = getComponentContainer<T>();
 			container->writeLock();
 
-			auto res = std::forward<Func>(func);
+			auto res = std::forward<Func>(func)();
 			while (res.first != INVALID_ID) {
 				container->template push<T, false>(res.first, res.second);
-				res = std::forward<Func>(func);
+				res = std::forward<Func>(func)();
 			}
 		}
 
+		/**
+		 * \brief Destroy component T for a single entity (no-op if missing).
+		 * \tparam T Component type.
+		 * \param entity Entity id.
+		 */
 		template <class T>
 		void destroyComponent(EntityId entity) noexcept {
 			if (auto container = getComponentContainer<T>()) {
@@ -167,6 +214,10 @@ namespace ecss {
 			}
 		}
 
+		/**
+		 * \brief Destroy component T for a batch of entities (in-place reorder & clamp by container capacity).
+		 * \param entities List of entity ids; will be sorted and truncated to valid ids.
+		 */
 		template <class T>
 		void destroyComponent(std::vector<EntityId>& entities) noexcept {
 			if (entities.empty()) {return;}
@@ -207,27 +258,50 @@ namespace ecss {
 			}
 		}
 
+		/// \brief Replace component array for T by copy from an external array.
 		template<typename T, bool TS, typename Alloc>
 		void insert(const Memory::SectorsArray<TS, Alloc>& array) noexcept { *getComponentContainer<T>() = array; }
 
+		/// \brief Replace component array for T by move from an external array.
 		template<typename T, bool TS, typename Alloc>
 		void insert(Memory::SectorsArray<TS, Alloc>&& array) noexcept { *getComponentContainer<T>() = std::move(array); }
 
 	public:
+		/**
+		 * \brief Create an iterable view limited to given entity ranges.
+		 * \tparam Components Component set to access per entity (first type drives iteration).
+		 * \param ranges Half-open ranges of entity ids to iterate.
+		 */
 		template<typename... Components>
 		auto view(const EntitiesRanges& ranges) noexcept { return ArraysView<ThreadSafe, Allocator, true, Components...>{ this, ranges }; }
 
+		/**
+		 * \brief Create an iterable view over all entities for a component set.
+		 * \tparam Components Component set to access per entity (first type drives iteration).
+		 */
 		template<typename... Components>
 		auto view() noexcept { return ArraysView<ThreadSafe, Allocator, false, Components...>{this}; }
 
+		/**
+		 * \brief Apply a functor to each entity in \p entities, passing pinned component pointers (thread-safe build).
+		 * \tparam Components Component set to pin for each entity.
+		 * \param entities List of entity ids.
+		 * \param func Callable with signature f(EntityId, Components*...).
+		 */
 		template<typename... Components, typename Func>
 		inline void forEachAsync(const std::vector<EntityId>& entities, Func&& func) noexcept requires(ThreadSafe) { for (auto entity : entities) withPinned<Components...>(entity, std::forward<Func>(func)); }
 
 	public:
-		// container handles
+		// ===== Container management ==========================================
+
 		template <class... Components>
 		void reserve(uint32_t newCapacity) noexcept { (getComponentContainer<Components>()->reserve(newCapacity), ...); }
 
+		/**
+		 * \brief Clear all component arrays and all entities.
+		 * \note In thread-safe build, each array is cleared under its own lock,
+		 *       then entity set is cleared under the registry lock.
+		 */
 		void clear() noexcept {
 			if constexpr (ThreadSafe) {
 				{
@@ -254,6 +328,10 @@ namespace ecss {
 			}
 		}
 
+		/**
+		 * \brief Defragment all component arrays.
+		 * \note In thread-safe build, snapshots container list then defrag under each array’s lock.
+		 */
 		void defragment() noexcept {
 			if constexpr(ThreadSafe) {
 				decltype(mComponentsArrays) arrays;
@@ -274,17 +352,14 @@ namespace ecss {
 		}
 
 		/**
-		 * \brief Pre-initialize container for multi-component sectors, or single-component with reserved capacity.
+		 * \brief Pre-register a multi-component array (or single-type with reserved capacity).
 		 *
-		 * Layout:\n
-		 * \code
-		 * 0x..[sector info]
-		 * 0x..[component 1]
-		 * 0x..[component 2]
-		 * 0x..[    ...    ]
-		 * 0x..[component N]
-		 * \endcode
-		 * \note Call this before any getContainer() calls if you want multi-component array.
+		 * \details Must be called before \ref getComponentContainer for any of \p ComponentTypes...
+		 * to ensure they share the same underlying \ref Memory::SectorsArray.
+		 *
+		 * \param capacity  Optional initial capacity.
+		 * \param allocator Allocator instance to move into the array.
+		 * \note All \p ComponentTypes must be either entirely new or already mapped to the same array.
 		 */
 		template<typename... ComponentTypes>
 		void registerArray(uint32_t capacity = 0, Allocator allocator = {}) noexcept {
@@ -315,6 +390,11 @@ namespace ecss {
 			((mComponentsArraysMap[componentTypeId<ComponentTypes>()] = sectorArray), ...);
 		}
 
+		/**
+		 * \brief Get (or lazily create) the component container for T.
+		 * \tparam T Component type.
+		 * \return Pointer to the owning \ref Memory::SectorsArray for T.
+		 */
 		template <class T>
 		Memory::SectorsArray<ThreadSafe, Allocator>* getComponentContainer() noexcept {
 			const auto componentType = componentTypeId<T>();
@@ -338,13 +418,21 @@ namespace ecss {
 		}
 
 	public:
-		// entities
+		// ===== Entities API ===================================================
+
+		/// \return True if the registry currently owns \p entityId.
 		bool contains(EntityId entityId) const noexcept { auto lock = ecss::Threads::sharedLock(mEntitiesMutex, ThreadSafe); return mEntities.contains(entityId); }
 
+		/// \brief Take (allocate) a new entity id.
 		EntityId takeEntity() noexcept { auto lock = ecss::Threads::uniqueLock(mEntitiesMutex, ThreadSafe); return mEntities.take(); }
 
+		/// \brief Copy out all entity ids.
 		std::vector<EntityId> getAllEntities() const noexcept { auto lock = ecss::Threads::sharedLock(mEntitiesMutex, ThreadSafe); return mEntities.getAll(); }
 
+		/**
+		 * \brief Destroy one entity and all its components.
+		 * \param entityId Entity to delete (no-op if not owned).
+		 */
 		void destroyEntity(EntityId entityId) noexcept {
 			if (!contains(entityId)) {
 				return;
@@ -358,6 +446,11 @@ namespace ecss {
 			destroySector(entityId);
 		}
 
+		/**
+		 * \brief Destroy a batch of entities and all their components.
+		 * \param entities Entity ids to delete; vector content is not modified.
+		 * \note Thread-safe build runs per-array work in parallel (one thread per array).
+		 */
 		void destroyEntities(std::vector<EntityId>& entities) noexcept {
 			if (entities.empty()) {
 				return;
@@ -413,8 +506,11 @@ namespace ecss {
 			}
 		}
 
+		/// \brief Defragment the container for component T.
 		template<typename T>
 		void defragment() noexcept { if (auto container = getComponentContainer<T>()) { container->defragment();} }
+
+		/// \brief Set defragment threshold for container of T.
 		template<typename T>
 		void setDefragmentThreshold(float threshold) { if (auto container = getComponentContainer<T>()) { container->setDefragmentThreshold(threshold); } }
 
@@ -481,8 +577,11 @@ namespace ecss {
 		mutable std::shared_mutex componentsArrayMapMutex;
 	};
 
-
-
+	/**
+	 * \brief Metadata for accessing a component type inside a sector array.
+	 * \tparam ThreadSafe Mirrors the owning array’s thread-safety flag.
+	 * \tparam Allocator  Mirrors the owning array’s allocator type.
+	 */
 	template<bool ThreadSafe, typename Allocator>
 	struct TypeAccessInfo {
 		Memory::SectorsArray<ThreadSafe, Allocator>* array = nullptr;
