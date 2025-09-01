@@ -40,9 +40,14 @@ jobs:
 
       - name: Install deps (macOS)
         if: runner.os == 'macOS'
+        env:
+          HOMEBREW_NO_INSTALL_CLEANUP: "1"
         run: |
           brew update
-          brew install cmake ninja ccache
+          cmake --version
+          
+          brew list --formula ninja  >/dev/null 2>&1 || brew install ninja
+          brew list --formula ccache >/dev/null 2>&1 || brew install ccache
 
       # ---------- ccache cache ----------
       - name: Cache ccache
