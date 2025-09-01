@@ -2,7 +2,7 @@
 
 #include <cstdint>
 #include <limits>
-
+#include <array>
 #include <type_traits>
 
 namespace ecss {
@@ -13,6 +13,32 @@ namespace ecss {
 	constexpr SectorId INVALID_ID = std::numeric_limits<SectorId>::max();
 
 	namespace types {
+		template <size_t base, typename... Types>
+		struct OffsetArray {
+			static constexpr size_t count = sizeof...(Types);
+
+			template <size_t I>
+			static constexpr uint32_t get() {
+				if constexpr (I == 0) {
+					return base;
+				}
+				else {
+					using PrevType = typename std::tuple_element<I - 1, std::tuple<Types...>>::type;
+					using CurType = typename std::tuple_element<I, std::tuple<Types...>>::type;
+					constexpr uint32_t prev = get<I - 1>();
+					return ((prev + sizeof(PrevType) + alignof(CurType) - 1) / alignof(CurType)) * alignof(CurType);
+				}
+			}
+
+			template <size_t... Is>
+			static constexpr std::array<uint32_t, count> make(std::index_sequence<Is...>) {
+				return { get<Is>()... };
+			}
+
+			static constexpr std::array<uint32_t, count> offsets = make(std::make_index_sequence<count>{});
+			static constexpr size_t totalSize = offsets.back() + sizeof(std::tuple_element_t<count - 1, std::tuple<Types...>>);
+		};
+
 		template <typename T>
 		struct Base {};
 
