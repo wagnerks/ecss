@@ -97,7 +97,7 @@ namespace ecss::Threads {
 			}
 
 			const auto m = bitMask(bitOffsetOf(index));
-			const auto v = std::atomic_ref{ bits[0][w] }.load(std::memory_order_acquire);
+			auto v = std::atomic_ref{ bits[0][w] }.load(std::memory_order_acquire);
 
 			return (v & m) != 0;
 		}
@@ -130,7 +130,7 @@ namespace ecss::Threads {
 
 	private:
 		mutable std::shared_mutex mtx;
-		std::array<std::vector<BITS_TYPE>, maxlvl> bits;
+		mutable std::array<std::vector<BITS_TYPE>, maxlvl> bits;
 	};
 
 	struct PinCounters {
