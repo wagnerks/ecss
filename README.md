@@ -1,195 +1,183 @@
-# Stellar Forge Engine - ECSS Architecture Overview
-![logo](https://github.com/user-attachments/assets/bb40a5e6-b923-4d11-9c30-4a4ac5a4dc5c)
+# ecss — High-performance C++ ECS with sector-based memory layout
 
+> A data-oriented Entity-Component System focused on cache locality, predictable memory, and safe multithreading. MIT licensed.
 
-The **Stellar Forge Engine** uses a custom-built Entity Component System (ECS) framework called **ECSS** (Entity Component System with Sectors). It is designed for scalability, cache locality, and high-performance multithreaded game logic. This document provides an in-depth explanation of how ECSS is structured, how it differs from other ECS designs, and the rationale behind its implementation.
+## Why ECSS?
 
----
+ECSS (Entity Component System with **Sectors**) groups multiple components of an entity into a single tightly-packed memory block (a *sector*). This improves cache behavior, reduces pointer chasing, and enables fast iteration (sync or async) over large worlds. The architecture centers on:
 
-## 🔧 Motivation
-
-Traditional ECS systems typically rely on per-component arrays and sparse maps to associate entities with their components. While this works well for basic use cases, it can introduce performance bottlenecks when working at scale due to poor data locality and redundant iteration.
-
-**ECSS** solves these problems by:
-
-- Packing multiple components into a single memory block (called a *Sector*)
-- Structuring memory with chunked allocation to reduce fragmentation
-- Using low-level memory management with explicit component lifetimes
-- Supporting true data-oriented iteration and asynchronous system access
+- **Sector-based layout** (components are packed together per entity)
+- **Chunked storage** for low fragmentation and stable addresses
+- **Reflection helpers** for generic operations without RTTI bloat
+- **Thread-safe access** with per-type shared/unique locking
+- **Iterators** tailored for dense traversal and filtered access
 
 ---
 
-## 🧠 Key Concepts
+## Features
 
-### 1. **Sectors**
-
-A **Sector** is a tightly packed memory structure that holds multiple components belonging to the same entity. Each Sector contains:
-
-- `SectorId` (unique identifier)
-- Component data laid out linearly in memory
-- A per-component "alive" flag
-
-Each component inside a Sector is accessed by an offset, which is computed and stored in a central `membersLayout` map per Sector type.
-
-**Diagram:**
-
-```
-+------------+--------------+------------+-----------+--------+
-| Sector ID  | Alive Flags  | Transform  | Velocity  | Health |
-+------------+--------------+------------+-----------+--------+
-```
-
-### 2. **SectorsArray**
-
-`SectorsArray` is the primary data container used in ECSS:
-
-- Stores sectors in memory **chunks** for performance and memory fragmentation control
-- Uses a custom mapping from `EntityId` → sector index
-- Tracks sector occupancy and alive states
-
-Key features:
-
-- Manual control of capacity (`reserve`, `shrinkToFit`) — useful for avoiding costly reallocations during runtime peaks
-- Ability to insert/remove sectors dynamically
-- Bulk operations on sectors (destroy, move, clear)
-- `removeEmptySectors()` for memory compaction
-
-### 3. **Component Reflection**
-
-To enable dynamic component access and support a wide variety of component types, ECSS uses a `ReflectionHelper`. This approach is particularly valuable for runtime flexibility, debugging tools, and editor integration:
-
-- Provides type IDs for each component
-- Maintains a `typeFunctionsTable` with function pointers for construction, copy, move, and destruction
-- Enables generic operations like `destroyMember(typeId, entity)` without knowing the type at compile-time
-
-### 4. **Multithreaded Registry**
-
-The `Registry` class manages all entities and components:
-
-- Stores components in `SectorsArray` instances (one per component or group)
-- Uses `std::shared_mutex` per component type for safe concurrent access
-- Provides per-component read/write locking
-- Tracks entities in `EntitiesRanges`, which is a compact set of ID ranges for allocation/deallocation
-
-**Architecture Diagram:**
-
-```
-+------------+         +------------------+         +------------------+
-|  Registry  | <--->   |  SectorsArray<>  | <-----> | ReflectionHelper |
-+------------+         +------------------+         +------------------+
-       |                     |  |  
-       |                     |  └-- [Type Function Table]
-       |                     └----- [Chunked Sector Storage]
-       |
-       └-- [EntitiesRanges] (ID management)
-```
+- 🧱 **Sectors**: multiple components in one cache-friendly block  
+- 🧭 **Chunked allocation**: capacity planning, fewer reallocations  
+- 🔍 **Reflection table**: construct/copy/move/destroy by type id  
+- 🔒 **Concurrency**: shared/unique locks per component container  
+- 🔁 **Iterators**: dense `forEach<...>()` + async traversal by ID sets  
+- 🧹 **Compaction utilities**: remove empty sectors, recycle IDs  
+- 🧰 **Modern C++**: header/impl split with zero-overhead paths where possible
 
 ---
 
-## 🚀 Entity Lifecycle
+## Getting started
+
+### 1) Add to your project
+
+**As a submodule**
+```bash
+git submodule add https://github.com/wagnerks/ecss external/ecss
+```
+
+**CMake**
+```cmake
+# In your CMakeLists.txt
+add_subdirectory(external/ecss)
+target_link_libraries(your_app PRIVATE ecss)
+```
+
+### 2) Define components
 
 ```cpp
-EntityId entity = registry.takeEntity();
-registry.addComponent<Transform>(entity, ...);
-registry.addComponent<Velocity>(entity, ...);
-...
-registry.removeComponent<Transform>(entity);
-registry.destroyEntity(entity);
+struct Transform { float x{}, y{}, z{}; };
+struct Velocity  { float vx{}, vy{}, vz{}; };
+struct Health    { int hp{100}; };
 ```
 
-Entities are created using `takeEntity()`, which returns a new or recycled ID. Components are added using `addComponent<T>()`, which internally reserves memory in the correct `SectorsArray`, creates the component, and sets the "alive" flag.
-
----
-
-## 📦 Memory Layout & Performance
-
-### Chunked Allocation
-
-Sectors are allocated in memory **chunks** (e.g., 10240 Sectors per chunk). This reduces memory fragmentation and improves spatial locality.
-
-### Component Packing
-
-Multiple components can share the same memory sector. This:
-
-- Improves cache locality
-- Reduces pointer chasing
-- Enables batch iteration over grouped data
-
-**Memory Layout Diagram:**
-
-```
-+------------+--------------+------------+-----------+--------+
-| Sector ID  | Alive Flags  | Transform  | Velocity  | Health |
-+------------+--------------+------------+-----------+--------+
-```
-
-### Dirty Tracking
-
-Only sectors that have been modified are marked as **dirty**, and only they are updated. This minimizes per-frame overhead.
-
----
-
-## 🔄 Iteration Model
-
-ECSS supports both synchronous and asynchronous iteration:
-
-### Synchronous
+### 3) Create a registry and spawn entities
 
 ```cpp
-for (auto [id, transform, velocity] : registry.forEach<Transform, Velocity>()) {
-    ...
+#include <ecss/Registry.h>
+
+using Registry = ecss::Registry</*ThreadSafe=*/true, ecss::Memory::ChunksAllocator>;
+
+int main() {
+    Registry reg;
+
+    auto e = reg.takeEntity();
+    reg.addComponent<Transform>(e, {0,0,0});
+    reg.addComponent<Velocity >(e, {1,0,0});
+    reg.addComponent<Health   >(e, {100});
+
+    reg.forEach<Transform, Velocity>([&](auto id, Transform* t, Velocity* v) {
+        t->x += v->vx; t->y += v->vy; t->z += v->vz;
+    });
+
+    return 0;
 }
 ```
 
-- Internally uses smart iterators over the "main" component container
-- Skips sectors where components are missing
-
-### Asynchronous
+### 4) Async / filtered traversal
 
 ```cpp
-registry.forEachAsync<Transform, Velocity>(entities, [](EntityId id, Transform* t, Velocity* v) {
-    ...
+std::vector<ecss::EntityId> visible;
+
+reg.forEachAsync<Transform, Velocity>(visible, [](auto id, Transform* t, Velocity* v){
+    // safe traversal with locks
 });
 ```
 
-- Accepts a set of entity IDs (usually from frustum culling or other system)
-- Parallel-safe read access
+### 5) Reflection-driven ops
 
----
-
-## 🧵 Threading Model
-
-- **Render thread** is isolated
-- **Systems run in their own threads**, reading and writing to component arrays via mutex-protected access
-- Each component container has its own lock, allowing high concurrency and minimizing read/write contention
-- Entity creation/destruction uses a separate mutex (`mEntitiesMutex`)
-
-**Threading Diagram:**
-
-```
-+------------------+       +-------------------+
-|   System Thread  | <---> |  Component Mutex  |
-+------------------+       +-------------------+
-
-+------------------+       +-------------------+
-|   Render Thread  | <---> |    Draw Buffer    |
-+------------------+       +-------------------+
+```cpp
+ecss::TypeId tid = resolveTypeId("Health");
+reg.destroyMember(tid, e);
 ```
 
 ---
 
-## ✅ Summary
+## Concepts in a nutshell
 
-ECSS is a highly-performant and flexible ECS designed for real-time simulation of millions of entities. It combines:
+### Sectors
+A *Sector* is a tightly packed block containing all/selected components for a single entity, plus per-component flags and offsets.
 
-- Dense memory layout with sector packing
-- Strong reflection and type safety
-- Efficient dynamic updates via dirty tracking
-- Asynchronous safe system iteration
+### SectorsArray
+Stores sectors in **chunks** to control fragmentation and keep addresses stable.
 
-It’s built to scale with modern games and simulations — from deferred rendering to open-world culling. This makes ECSS ideal for complex simulations, large-scale environments, and real-time systems.
+### Reflection helpers
+Generates per-type function tables (construct, move, destroy, etc.) without RTTI.
+
+### Threading model
+Per-component containers use `shared_mutex` to allow multiple readers with exclusive writers when needed.
 
 ---
+
+## Build
+
+**Requirements**
+- C++20 (or newer)
+- CMake
+
+**Standard build**
+```bash
+cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+cmake --build build -j
+```
+
+**Tests**
+```bash
+cmake -S . -B build -DECSS_BUILD_TESTS=ON
+cmake --build build -j
+ctest --test-dir build
+```
+
+---
+
+## Usage tips
+
+- Call `reserve` to avoid reallocations during spikes  
+- Group hot components together in the same sector  
+- Use `forEach<Ts...>` for fastest traversal  
+- Use async traversal for read-heavy systems  
+- Compact periodically if entities churn heavily
+
+---
+
+## Roadmap
+
+- Serialization hooks  
+- Stable archetype hashes  
+- Lock-free read paths  
+- Debug UI with live sector maps  
+- More benchmarks
+
+---
+
+## FAQ
+
+**Is ECSS an archetype ECS?**  
+It’s closer to a **sector-packed** design.
+
+**Does it require RTTI?**  
+No.
+
+**How do I mix TS and non-TS modes?**  
+`Registry` is templated: enable or disable thread-safety at compile time.
+
+---
+
+## Contributing
+
+Contributions welcome. Include reasoning or benchmarks for perf changes.
+
+---
+
+## License
+
+MIT. See [`LICENSE`](./LICENSE).
+
+---
+
+## Acknowledgements
+
+Built as part of the [**Stellar Forge Engine**](https://github.com/wagnerks/StelForge)  initiative and refined through real-world use.
+
 
 **Author**: [@wagnerks](https://github.com/wagnerks)  
 **License**: MIT
