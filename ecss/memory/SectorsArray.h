@@ -872,7 +872,7 @@ namespace ecss::Memory {
 			}
 
 			mSize -= deleted;
-			mDefragmentSize = from != 0 && mDefragmentSize < deleted ? mDefragmentSize - deleted : 0;
+			mDefragmentSize = from != 0 && mDefragmentSize < static_cast<uint32_t>(deleted) ? mDefragmentSize - static_cast<uint32_t>(deleted) : 0;
 			
 			shrinkToFitImpl();
 		}
