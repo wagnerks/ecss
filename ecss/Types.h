@@ -13,25 +13,26 @@ namespace ecss {
 	constexpr SectorId INVALID_ID = std::numeric_limits<SectorId>::max();
 
 	namespace types {
-		template <size_t base, typename... Types>
+		template <typename Base, typename... Types>
 		struct OffsetArray {
-			static constexpr size_t count = sizeof...(Types);
-
 			static constexpr std::size_t align_up(std::size_t n, std::size_t a) noexcept {
-				return (n + (a - 1)) / a * a; 
+				return (n + (a - 1)) / a * a;
 			}
+
+			static constexpr size_t count = sizeof...(Types);
+			static constexpr size_t baseSize = align_up(sizeof(Base), alignof(Base));
 
 			template <size_t I>
 			static constexpr uint32_t get() {
 				using Tup = std::tuple<Types...>;
 				using Cur = std::tuple_element_t<I, Tup>;
 				if constexpr (I == 0) {
-					return static_cast<uint32_t>(align_up(base, alignof(Cur)));
+					return static_cast<uint32_t>(baseSize);
 				}
 				else {
 					using Prev = std::tuple_element_t<I - 1, Tup>;
 					constexpr uint32_t prev = get<I - 1>();
-					return static_cast<uint32_t>(align_up(prev + sizeof(Prev), alignof(Cur)));
+					return static_cast<uint32_t>(align_up(align_up(prev + sizeof(Cur), alignof(Cur)), alignof(Base)));
 				}
 			}
 
@@ -41,11 +42,7 @@ namespace ecss {
 			}
 
 			static constexpr std::array<uint32_t, count> offsets = make(std::make_index_sequence<count>{});
-			static constexpr size_t totalSize =
-				offsets.back() + sizeof(std::tuple_element_t<count - 1, std::tuple<Types...>>);
-
-			static constexpr size_t sector_align = base;
-			static constexpr size_t stride = align_up(totalSize, sector_align);
+			static constexpr size_t totalSize = align_up(offsets.back() + sizeof(std::tuple_element_t<count - 1, std::tuple<Types...>>), alignof(Base));
 		};
 
 		template <typename T>
