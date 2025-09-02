@@ -152,7 +152,21 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
         with:
           arch: x64
-          toolset: ${{ startsWith(matrix.toolchain, 'clang-') && 'ClangCL' || '' }}
+
+      - name: Locate clang-cl
+        if: contains(matrix.toolchain, 'clang-')
+        id: clang
+        shell: pwsh
+        run: |
+          $cands = @(
+            "$env:VCToolsInstallDir\Llvm\x64\bin\clang-cl.exe",
+            "$env:VCToolsInstallDir\Llvm\bin\clang-cl.exe",
+            "C:\Program Files\Microsoft Visual Studio\2022\*\VC\Tools\Llvm\*\bin\clang-cl.exe"
+          ) | Get-ChildItem -ErrorAction SilentlyContinue
+          if (-not $cands) { throw "clang-cl not found" }
+          $p = $cands[0].FullName
+          echo "path=$p" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          & $p --version
 
       - name: Show compilers
         shell: pwsh
@@ -189,8 +203,8 @@ jobs:
           -G Ninja
           -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
           -DECSS_BUILD_TESTS=ON
-          -DCMAKE_C_COMPILER=clang-cl
-          -DCMAKE_CXX_COMPILER=clang-cl
+          -DCMAKE_C_COMPILER="${{ steps.clang.outputs.path }}"
+          -DCMAKE_CXX_COMPILER="${{ steps.clang.outputs.path }}"
 
       - name: Configure (MSBuild + clang-cl)
         if: matrix.toolchain == 'clang-msbuild'
