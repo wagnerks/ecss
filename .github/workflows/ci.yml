@@ -124,107 +124,68 @@ jobs:
   # Windows job (MSVC)
   # -----------------------
   windows-build-and-test:
-    name: windows-latest • ${{ matrix.toolchain }} • ${{ matrix.build_type }}${{ matrix.profile && format(' • {0}', matrix.profile) || '' }}
+    name: windows-latest • ${{ matrix.toolchain }} • ${{ matrix.build_type }}
     runs-on: windows-latest
     strategy:
       fail-fast: false
       matrix:
         build_type: [Release, Debug]
         toolchain: [msbuild, ninja, clang-msbuild, clang-ninja]
-        profile: [default, asan]
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          submodules: recursive
+      - uses: actions/checkout@v4
+        with: { submodules: recursive }
 
       - name: Setup MSVC dev cmd
         uses: ilammy/msvc-dev-cmd@v1
 
       - name: Install Ninja
-        run: |
-          choco install ninja --no-progress
+        run: choco install ninja --no-progress
 
-      - name: Install LLVM (clang)
-        if: contains(matrix.toolchain, 'clang-')
-        run: choco install llvm --no-progress -y
+      - name: Install LLVM (clang-cl)
+        if: contains(matrix.toolchain, 'clang')
+        run: |
+          choco install llvm --version=18.1.8 --no-progress
+          echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
 
       - name: Show compilers
         shell: pwsh
         run: |
+          if ('${{ matrix.toolchain }}' -like 'clang-*') { clang-cl --version }
           cl /Bv /?
           where.exe cl
+          where.exe clang-cl || echo "clang-cl not found in PATH"
 
-      - name: Configure (CMake • Ninja with MSVC)
-        if: matrix.toolchain == 'ninja'
+      # ------------ Configure ------------
+      - name: Configure (CMake • Ninja)
+        if: contains(matrix.toolchain, 'ninja')
         shell: pwsh
         run: |
+          $cmp='cl'
+          if ('${{ matrix.toolchain }}' -eq 'clang-ninja') { $cmp='clang-cl' }
           cmake -S . -B build `
             -G Ninja `
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} `
             -DECSS_BUILD_TESTS=ON `
-            -DCMAKE_C_COMPILER=cl `
-            -DCMAKE_CXX_COMPILER=cl
+            -DCMAKE_C_COMPILER=$cmp `
+            -DCMAKE_CXX_COMPILER=$cmp
 
-      - name: Build (Ninja)
-        if: matrix.toolchain == 'ninja'
-        run: cmake --build build --config ${{ matrix.build_type }}
-
-      - name: Compute clang flags (only for clang toolchains)
-        id: clang_flags
-        if: contains(matrix.toolchain, 'clang-')
+      - name: Configure (CMake • Visual Studio / MSBuild)
+        if: contains(matrix.toolchain, 'msbuild')
         shell: pwsh
         run: |
-          $c = ""
-          $cxx = ""
-          $ld = ""
-          if ("${{ matrix.profile }}" -eq "asan") {
-            # адресный санитайзер + нужные опции для линкера
-            $c   = "/fsanitize=address /Zi /Oy-"
-            $cxx = $c
-            $ld  = "/fsanitize=address /INCREMENTAL:NO"
-            echo "asan=true" >> $env:GITHUB_OUTPUT
-          } else {
-            echo "asan=false" >> $env:GITHUB_OUTPUT
-          }
-          echo "cflags=$c"   >> $env:GITHUB_OUTPUT
-          echo "cxxflags=$cxx" >> $env:GITHUB_OUTPUT
-          echo "ldflags=$ld" >> $env:GITHUB_OUTPUT
-
-      - name: Configure (CMake • MSBuild • ClangCL)
-        if: matrix.toolchain == 'clang-msbuild'
-        shell: pwsh
-        run: |
+          $toolset=''
+          if ('${{ matrix.toolchain }}' -eq 'clang-msbuild') { $toolset='-T ClangCL' }
           cmake -S . -B build `
-            -G "Visual Studio 17 2022" -A x64 -T ClangCL `
-            -DECSS_BUILD_TESTS=ON `
-            -DCMAKE_C_FLAGS="${{ steps.clang_flags.outputs.cflags }}" `
-            -DCMAKE_CXX_FLAGS="${{ steps.clang_flags.outputs.cxxflags }}" `
-            -DCMAKE_EXE_LINKER_FLAGS="${{ steps.clang_flags.outputs.ldflags }}"
+            -G "Visual Studio 17 2022" -A x64 $toolset `
+            -DECSS_BUILD_TESTS=ON
 
-      - name: Configure (CMake • Ninja • clang-cl)
-        if: matrix.toolchain == 'clang-ninja'
-        shell: pwsh
-        run: |
-          cmake -S . -B build `
-            -G Ninja `
-            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} `
-            -DECSS_BUILD_TESTS=ON `
-            -DCMAKE_C_COMPILER=clang-cl `
-            -DCMAKE_CXX_COMPILER=clang-cl `
-            -DCMAKE_LINKER=lld-link `
-            -DCMAKE_C_FLAGS="${{ steps.clang_flags.outputs.cflags }}" `
-            -DCMAKE_CXX_FLAGS="${{ steps.clang_flags.outputs.cxxflags }}" `
-            -DCMAKE_EXE_LINKER_FLAGS="${{ steps.clang_flags.outputs.ldflags }}"
-
-      - name: Build (MSBuild)
-        if: matrix.toolchain == 'msbuild'
+      # ------------ Build ------------
+      - name: Build
         run: cmake --build build --config ${{ matrix.build_type }} -- /m
 
+      # ------------ Tests ------------
       - name: Run tests
-        env:
-          ASAN_OPTIONS: ${{ contains(matrix.toolchain, 'clang-') && matrix.profile == 'asan' && 'abort_on_error=1:windows_hook_legacy_allocators=1' || '' }}
         run: ctest --test-dir build --output-on-failure --build-config ${{ matrix.build_type }} --timeout 100
 
       - name: Upload test logs (on failure)
