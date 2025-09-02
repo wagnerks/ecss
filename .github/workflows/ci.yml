@@ -158,15 +158,29 @@ jobs:
         id: clang
         shell: pwsh
         run: |
-          $cands = @(
-            "$env:VCToolsInstallDir\Llvm\x64\bin\clang-cl.exe",
-            "$env:VCToolsInstallDir\Llvm\bin\clang-cl.exe",
-            "C:\Program Files\Microsoft Visual Studio\2022\*\VC\Tools\Llvm\*\bin\clang-cl.exe"
-          ) | Get-ChildItem -ErrorAction SilentlyContinue
-          if (-not $cands) { throw "clang-cl not found" }
-          $p = $cands[0].FullName
-          echo "path=$p" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
-          & $p --version
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+
+          # Пробуем найти x64 clang-cl через vswhere
+          $cand = & $vswhere -latest -products * `
+                  -requires Microsoft.VisualStudio.Component.VC.Llvm.Clang `
+                  -find **\VC\Tools\Llvm\x64\bin\clang-cl.exe
+
+          if (-not $cand) {
+            # Фолбэк: обычные пути, но отфильтровываем ARM/ARM64
+            $cand = @(
+              "$env:VCToolsInstallDir\Llvm\x64\bin\clang-cl.exe",
+              "$env:VCToolsInstallDir\Llvm\bin\clang-cl.exe",
+              "C:\Program Files\Microsoft Visual Studio\2022\*\VC\Tools\Llvm\x64\bin\clang-cl.exe",
+              "C:\Program Files\Microsoft Visual Studio\2022\*\VC\Tools\Llvm\bin\clang-cl.exe"
+            ) | Get-ChildItem -ErrorAction SilentlyContinue |
+                Where-Object { $_.FullName -notmatch '\\ARM(64)?\\' } |
+                Select-Object -First 1 | ForEach-Object { $_.FullName }
+          }
+
+          if (-not $cand) { throw "clang-cl (x64) not found" }
+
+          echo "path=$cand" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          & "$cand" --version
 
       - name: Show compilers
         shell: pwsh
