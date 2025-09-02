@@ -300,7 +300,8 @@ namespace ecss::Memory {
             copyCommonData(other);
             if constexpr (OC == ChunkCapacity) {
                 mChunks = std::move(other.mChunks);
-                other.mBin.drainAll();
+                other.mChunks.clear();
+				other.mBin.drainAll();
             }
             else {
                 allocate(other.mChunks.size() * mChunkCapacity);
