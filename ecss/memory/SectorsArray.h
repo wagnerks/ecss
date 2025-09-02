@@ -725,13 +725,17 @@ namespace ecss::Memory {
 			mSize = other.mSize;
 			mAllocator = std::move(other.mAllocator);
 
-			mSectorsMap.resize(other.mSectorsMap.size(), nullptr);
-			for (auto it = Iterator(this, 0), endIt = Iterator(this, sizeImpl()); it != endIt; ++it) {
-				auto sector = *it;
-				mSectorsMap[sector->id] = sector;
+			mSectorsMap.assign(other.mSectorsMap.size(), nullptr);
+			size_t i = 0;
+
+			auto cursor = mAllocator.getCursor(0);
+			while (cursor && i++ < sizeImpl()) {
+				mSectorsMap[cursor->id] = *cursor;
+				++cursor;
 			}
 
-			defragmentImpl();
+			mDefragmentSize = other.mDefragmentSize;
+			mDefragThreshold = other.mDefragThreshold;
 
 			other.mSize = 0;
 			other.shrinkToFitImpl();
