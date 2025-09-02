@@ -34,7 +34,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build g++-13
+          sudo apt-get install -y cmake ninja-build g++-13 llvm
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
 
@@ -44,9 +44,9 @@ jobs:
           HOMEBREW_NO_INSTALL_CLEANUP: "1"
         run: |
           brew update
-          cmake --version
-          
           brew list --formula ninja  >/dev/null 2>&1 || brew install ninja
+          xcrun --find llvm-symbolizer || true
+          cmake --version
 
       - name: Compute compiler & sanitizer flags
         id: flags
@@ -56,11 +56,10 @@ jobs:
           CXXFLAGS=""
           LDFLAGS=""
           if [[ "${{ matrix.profile }}" == "asan-ubsan" ]]; then
-            # UBSan+ASan (macOS: UBSan only by default to avoid codesign issues)
             if [[ "$RUNNER_OS" == "Linux" ]]; then
-              SAN="-fsanitize=address,undefined -fno-omit-frame-pointer"
+              SAN="-fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all"
             else
-              SAN="-fsanitize=undefined -fno-omit-frame-pointer"
+              SAN="-fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all"
             fi
             CFLAGS="$SAN"
             CXXFLAGS="$SAN"
@@ -73,6 +72,18 @@ jobs:
           echo "cxxflags=$CXXFLAGS" >> $GITHUB_OUTPUT
           echo "ldflags=$LDFLAGS" >> $GITHUB_OUTPUT
 
+      - name: Find llvm-symbolizer
+        id: sym
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            SYM=$(command -v llvm-symbolizer || true)
+          else
+            SYM=$(xcrun --find llvm-symbolizer || true)
+          fi
+          echo "path=${SYM}" >> $GITHUB_OUTPUT
+          echo "llvm-symbolizer: ${SYM:-<not found>}"
+
       - name: Configure (CMake + Ninja)
         shell: bash
         env:
@@ -83,16 +94,22 @@ jobs:
           cmake -S . -B build \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            -DECSS_BUILD_TESTS=ON
+            -DECSS_BUILD_TESTS=ON \
+            $([ "${{ steps.flags.outputs.sanitizers }}" = "true" ] && echo "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF")
 
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }} -- -k 0
 
       - name: Run tests
         env:
-          ASAN_OPTIONS: ${{ steps.flags.outputs.sanitizers == 'true' && 'verify_asan_link_order=0:fast_unwind_on_malloc=0:strict_string_checks=1:detect_leaks=1' || '' }}
-          UBSAN_OPTIONS: ${{ steps.flags.outputs.sanitizers == 'true' && 'print_stacktrace=1' || '' }}
-        run: ctest --test-dir build --output-on-failure --build-config ${{ matrix.build_type }}
+          ASAN_SYMBOLIZER_PATH: ${{ steps.sym.outputs.path }}
+          CTEST_OUTPUT_ON_FAILURE: "1"
+          GTEST_COLOR: "1"
+          ASAN_OPTIONS: ${{ steps.flags.outputs.sanitizers == 'true' && (runner.os == 'Linux' && 'verify_asan_link_order=0:fast_unwind_on_malloc=0:strict_string_checks=1:detect_leaks=1:check_initialization_order=1:strict_init_order=1:halt_on_error=1:abort_on_error=1:alloc_dealloc_mismatch=1:log_to_syslog=0:log_path=asan/asan' || 'verify_asan_link_order=0:fast_unwind_on_malloc=0:strict_string_checks=1:detect_leaks=0:check_initialization_order=1:strict_init_order=1:halt_on_error=1:abort_on_error=1:alloc_dealloc_mismatch=1:log_to_syslog=0:log_path=asan/asan') || '' }}
+          UBSAN_OPTIONS: ${{ steps.flags.outputs.sanitizers == 'true' && 'print_stacktrace=1:halt_on_error=1:report_error_type=1' || '' }}
+        run: |
+          mkdir -p asan
+          ctest --test-dir build --output-on-failure --build-config ${{ matrix.build_type }}
 
       - name: Upload test logs (on failure)
         if: failure()
