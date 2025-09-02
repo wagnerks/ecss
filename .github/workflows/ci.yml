@@ -133,62 +133,82 @@ jobs:
         toolchain: [msbuild, ninja, clang-msbuild, clang-ninja]
 
     steps:
-      - uses: actions/checkout@v4
-        with: { submodules: recursive }
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
 
-      - name: Setup MSVC dev cmd
-        uses: ilammy/msvc-dev-cmd@v1
-
-      - name: Install Ninja
-        run: choco install ninja --no-progress
-
-      - name: Install LLVM (clang-cl)
-        if: contains(matrix.toolchain, 'clang')
+      - name: Ensure LLVM (optional)
+        if: startsWith(matrix.toolchain, 'clang-')
+        shell: pwsh
         run: |
-          choco install llvm --version=18.1.8 --no-progress
-          echo "C:\Program Files\LLVM\bin" | Out-File -FilePath $env:GITHUB_PATH -Append
+          if (-not (Get-Command clang-cl -ErrorAction SilentlyContinue)) {
+            choco upgrade llvm -y --no-progress
+          } else {
+            Write-Host "clang-cl already available"
+          }
+
+      - name: MSVC DevCmd
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+          toolset: ${{ startsWith(matrix.toolchain, 'clang-') && 'ClangCL' || '' }}
 
       - name: Show compilers
         shell: pwsh
         run: |
-          if ('${{ matrix.toolchain }}' -like 'clang-*') { clang-cl --version }
-          cl /Bv /?
-          where.exe cl
-          where.exe clang-cl || echo "clang-cl not found in PATH"
+          if (Get-Command cl -ErrorAction SilentlyContinue) { cl /Bv }
+          if (Get-Command clang-cl -ErrorAction SilentlyContinue) { clang-cl --version }
+          if (Get-Command ninja -ErrorAction SilentlyContinue) { ninja --version }
 
-      # ------------ Configure ------------
-      - name: Configure (CMake • Ninja)
-        if: contains(matrix.toolchain, 'ninja')
+      # --- Configure ---
+      - name: Configure (Ninja + MSVC)
+        if: matrix.toolchain == 'ninja'
         shell: pwsh
-        run: |
-          $cmp='cl'
-          if ('${{ matrix.toolchain }}' -eq 'clang-ninja') { $cmp='clang-cl' }
-          cmake -S . -B build `
-            -G Ninja `
-            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} `
-            -DECSS_BUILD_TESTS=ON `
-            -DCMAKE_C_COMPILER=$cmp `
-            -DCMAKE_CXX_COMPILER=$cmp
+        run: >
+          cmake -S . -B build
+          -G Ninja
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -DECSS_BUILD_TESTS=ON
+          -DCMAKE_C_COMPILER=cl
+          -DCMAKE_CXX_COMPILER=cl
 
-      - name: Configure (CMake • Visual Studio / MSBuild)
-        if: contains(matrix.toolchain, 'msbuild')
+      - name: Configure (MSBuild + MSVC)
+        if: matrix.toolchain == 'msbuild'
         shell: pwsh
-        run: |
-          $toolset=''
-          if ('${{ matrix.toolchain }}' -eq 'clang-msbuild') { $toolset='-T ClangCL' }
-          cmake -S . -B build `
-            -G "Visual Studio 17 2022" -A x64 $toolset `
-            -DECSS_BUILD_TESTS=ON
+        run: >
+          cmake -S . -B build
+          -G "Visual Studio 17 2022" -A x64
+          -DECSS_BUILD_TESTS=ON
 
-      # ------------ Build ------------
+      - name: Configure (Ninja + clang-cl)
+        if: matrix.toolchain == 'clang-ninja'
+        shell: pwsh
+        run: >
+          cmake -S . -B build
+          -G Ninja
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -DECSS_BUILD_TESTS=ON
+          -DCMAKE_C_COMPILER=clang-cl
+          -DCMAKE_CXX_COMPILER=clang-cl
+
+      - name: Configure (MSBuild + clang-cl)
+        if: matrix.toolchain == 'clang-msbuild'
+        shell: pwsh
+        run: >
+          cmake -S . -B build
+          -G "Visual Studio 17 2022" -A x64 -T ClangCL
+          -DECSS_BUILD_TESTS=ON
+
+      # --- Build ---
       - name: Build
-        run: cmake --build build --config ${{ matrix.build_type }} -- /m
+        run: cmake --build build --config ${{ matrix.build_type }}
 
-      # ------------ Tests ------------
+      # --- Tests ---
       - name: Run tests
         run: ctest --test-dir build --output-on-failure --build-config ${{ matrix.build_type }} --timeout 100
 
-      - name: Upload test logs (on failure)
+      - name: Upload logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:
