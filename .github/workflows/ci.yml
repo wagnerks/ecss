@@ -34,7 +34,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build g++-13 ccache
+          sudo apt-get install -y cmake ninja-build g++-13
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
 
@@ -47,19 +47,6 @@ jobs:
           cmake --version
           
           brew list --formula ninja  >/dev/null 2>&1 || brew install ninja
-          brew list --formula ccache >/dev/null 2>&1 || brew install ccache
-
-      # ---------- ccache cache ----------
-      - name: Cache ccache
-        if: runner.os != 'Windows'
-        uses: actions/cache@v4
-        with:
-          path: ~/.ccache
-          key: ${{ runner.os }}-ccache-${{ matrix.build_type }}-${{ matrix.profile }}-${{ github.sha }}
-          restore-keys: |
-            ${{ runner.os }}-ccache-${{ matrix.build_type }}-${{ matrix.profile }}-
-            ${{ runner.os }}-ccache-${{ matrix.build_type }}-
-            ${{ runner.os }}-ccache-
 
       - name: Compute compiler & sanitizer flags
         id: flags
@@ -96,9 +83,7 @@ jobs:
           cmake -S . -B build \
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
-            -DECSS_BUILD_TESTS=ON \
-            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
-            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache
+            -DECSS_BUILD_TESTS=ON
 
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }} -- -k 0
@@ -139,43 +124,26 @@ jobs:
       - name: Setup MSVC dev cmd
         uses: ilammy/msvc-dev-cmd@v1
 
-      - name: Install Ninja & sccache
+      - name: Install Ninja
         run: |
           choco install ninja --no-progress
-          choco install sccache --no-progress
-
-      - name: Cache sccache
-        uses: actions/cache@v4
-        with:
-          path: |
-            C:\Users\runneradmin\AppData\Local\Mozilla\sccache\cache
-          key: windows-sccache-${{ matrix.toolchain }}-${{ matrix.build_type }}-${{ github.sha }}
-          restore-keys: |
-            windows-sccache-${{ matrix.toolchain }}-${{ matrix.build_type }}-
-            windows-sccache-${{ matrix.toolchain }}-
-            windows-sccache-
 
       - name: Show compilers
         shell: pwsh
         run: |
           cl /Bv /?
           where.exe cl
-          where.exe sccache
 
       - name: Configure (CMake • Ninja with MSVC)
         if: matrix.toolchain == 'ninja'
         shell: pwsh
         run: |
-          $env:SCCACHE_CACHE_SIZE="5G"
-          $env:SCCACHE_DIR="C:\Users\runneradmin\AppData\Local\Mozilla\sccache\cache"
           cmake -S . -B build `
             -G Ninja `
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} `
             -DECSS_BUILD_TESTS=ON `
             -DCMAKE_C_COMPILER=cl `
-            -DCMAKE_CXX_COMPILER=cl `
-            -DCMAKE_C_COMPILER_LAUNCHER=sccache `
-            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+            -DCMAKE_CXX_COMPILER=cl
 
       - name: Build (Ninja)
         if: matrix.toolchain == 'ninja'
@@ -185,14 +153,10 @@ jobs:
         if: matrix.toolchain == 'msbuild'
         shell: pwsh
         run: |
-          $env:SCCACHE_CACHE_SIZE="5G"
-          $env:SCCACHE_DIR="C:\Users\runneradmin\AppData\Local\Mozilla\sccache\cache"
           # For MSBuild, use multi-config generator; launcher works for cl via CMAKE_*_LAUNCHER
           cmake -S . -B build `
             -G "Visual Studio 17 2022" -A x64 `
-            -DECSS_BUILD_TESTS=ON `
-            -DCMAKE_C_COMPILER_LAUNCHER=sccache `
-            -DCMAKE_CXX_COMPILER_LAUNCHER=sccache
+            -DECSS_BUILD_TESTS=ON
 
       - name: Build (MSBuild)
         if: matrix.toolchain == 'msbuild'
