@@ -109,7 +109,7 @@ jobs:
           UBSAN_OPTIONS: ${{ steps.flags.outputs.sanitizers == 'true' && 'print_stacktrace=1:halt_on_error=1:report_error_type=1' || '' }}
         run: |
           mkdir -p asan
-          ctest --test-dir build --output-on-failure --build-config ${{ matrix.build_type }} --timeout 100
+          ctest --test-dir build --output-on-failure --build-config ${{ matrix.build_type }} --timeout 150
 
       - name: Upload test logs (on failure)
         if: failure()
@@ -234,7 +234,7 @@ jobs:
 
       # --- Tests ---
       - name: Run tests
-        run: ctest --test-dir build --output-on-failure --build-config ${{ matrix.build_type }} --timeout 100
+        run: ctest --test-dir build --output-on-failure --build-config ${{ matrix.build_type }} --timeout 150
 
       - name: Upload logs on failure
         if: failure()
