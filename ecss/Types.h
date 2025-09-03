@@ -32,7 +32,7 @@ namespace ecss {
 				else {
 					using Prev = std::tuple_element_t<I - 1, Tup>;
 					constexpr uint32_t prev = get<I - 1>();
-					return static_cast<uint32_t>(align_up(align_up(prev + sizeof(Cur), alignof(Cur)), alignof(Base)));
+					return static_cast<uint32_t>(align_up(align_up(prev + sizeof(Prev), alignof(Cur)), alignof(Base)));
 				}
 			}
 
