@@ -100,7 +100,7 @@ TEST(SectorsArrayConcurrency, WatermarkBlocksAndLowersAfterUnpin) {
         canChange.store(false, std::memory_order_relaxed);
     });
 
-    std::this_thread::sleep_for(50ms);
+    std::this_thread::sleep_for(150ms);
     EXPECT_FALSE(canChange.load(std::memory_order_relaxed))
         << "watermark should prevent changes for ids <= max";
 

@@ -671,6 +671,7 @@ namespace ecss {
 
 		inline Iterator begin() noexcept {
 			using SectorItType = std::conditional_t<Ranged, typename Memory::SectorsArray<ThreadSafe, Allocator>::RangedIteratorAlive, typename Memory::SectorsArray<ThreadSafe, Allocator>::IteratorAlive>;
+			auto lock = mArrays[getIndex<T>()]->readLock();
 			if constexpr (Ranged) {
 				return Iterator{ mArrays, SectorItType(mArrays[getIndex<T>()], mRanges, mArrays[getIndex<T>()]->template getLayoutData<T>().isAliveMask) };
 			}
@@ -681,6 +682,7 @@ namespace ecss {
 
 		inline Iterator end() noexcept {
 			using SectorItType = std::conditional_t<Ranged, typename Memory::SectorsArray<ThreadSafe, Allocator>::RangedIteratorAlive, typename Memory::SectorsArray<ThreadSafe, Allocator>::IteratorAlive>;
+			auto lock = mArrays[getIndex<T>()]->readLock();
 			return Iterator{ mArrays, SectorItType(mArrays[getIndex<T>()], mLast) };
 		}
 
