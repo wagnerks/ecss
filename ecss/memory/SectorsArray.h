@@ -39,7 +39,7 @@ namespace ecss::Memory {
 /// \param ADDITIONAL_SINK extra code executed under the lock before EXPR
 /// \param EXPR expression to execute
 #define TS_GUARD_S(TS_FLAG, LOCK_MACRO, ADDITIONAL_SINK, EXPR) \
-	do {if constexpr (TS_FLAG) { LOCK_MACRO##_LOCK(); ADDITIONAL_SINK; EXPR; } else { EXPR; }} while(0)
+	do {if constexpr (TS_FLAG) { ADDITIONAL_SINK; LOCK_MACRO##_LOCK(); EXPR; } else { EXPR; }} while(0)
 
 	/**
 	 * \brief RAII pin for a sector to prevent moves/erases while in use.
