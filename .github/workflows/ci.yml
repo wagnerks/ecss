@@ -21,7 +21,7 @@ jobs:
       matrix:
         os: [ubuntu-latest, macos-latest]
         build_type: [Release, Debug]
-        profile: [default, asan-ubsan]
+        profile: [default, asan-ubsan, tsan]
 
     steps:
       - name: Checkout repository
@@ -55,22 +55,30 @@ jobs:
           CFLAGS=""
           CXXFLAGS=""
           LDFLAGS=""
-          if [[ "${{ matrix.profile }}" == "asan-ubsan" ]]; then
-            if [[ "$RUNNER_OS" == "Linux" ]]; then
+          SANITIZERS="false"
+          TSAN="false"
+
+          case "${{ matrix.profile }}" in
+            asan-ubsan)
               SAN="-fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all"
-            else
-              SAN="-fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all"
-            fi
-            CFLAGS="$SAN"
-            CXXFLAGS="$SAN"
-            LDFLAGS="$SAN"
-            echo "sanitizers=true" >> $GITHUB_OUTPUT
-          else
-            echo "sanitizers=false" >> $GITHUB_OUTPUT
-          fi
-          echo "cflags=$CFLAGS"   >> $GITHUB_OUTPUT
-          echo "cxxflags=$CXXFLAGS" >> $GITHUB_OUTPUT
-          echo "ldflags=$LDFLAGS" >> $GITHUB_OUTPUT
+              SANITIZERS="true"
+              ;;
+            tsan)
+              SAN="-fsanitize=thread -fno-omit-frame-pointer -fno-sanitize-recover=all"
+              SANITIZERS="true"
+              TSAN="true"
+              ;;
+          esac
+
+          CFLAGS="$SAN"
+          CXXFLAGS="$SAN"
+          LDFLAGS="$SAN"
+
+          echo "sanitizers=$SANITIZERS"   >> $GITHUB_OUTPUT
+          echo "tsan=$TSAN"               >> $GITHUB_OUTPUT
+          echo "cflags=$CFLAGS"           >> $GITHUB_OUTPUT
+          echo "cxxflags=$CXXFLAGS"       >> $GITHUB_OUTPUT
+          echo "ldflags=$LDFLAGS"         >> $GITHUB_OUTPUT
 
       - name: Find llvm-symbolizer
         id: sym
@@ -105,10 +113,11 @@ jobs:
           ASAN_SYMBOLIZER_PATH: ${{ steps.sym.outputs.path }}
           CTEST_OUTPUT_ON_FAILURE: "1"
           GTEST_COLOR: "1"
-          ASAN_OPTIONS: ${{ steps.flags.outputs.sanitizers == 'true' && (runner.os == 'Linux' && 'verify_asan_link_order=0:fast_unwind_on_malloc=0:strict_string_checks=1:detect_leaks=1:check_initialization_order=1:strict_init_order=1:halt_on_error=1:abort_on_error=1:alloc_dealloc_mismatch=1:log_to_syslog=0:log_path=asan/asan' || 'verify_asan_link_order=0:fast_unwind_on_malloc=0:strict_string_checks=1:detect_leaks=0:check_initialization_order=1:strict_init_order=1:halt_on_error=1:abort_on_error=1:alloc_dealloc_mismatch=1:log_to_syslog=0:log_path=asan/asan') || '' }}
-          UBSAN_OPTIONS: ${{ steps.flags.outputs.sanitizers == 'true' && 'print_stacktrace=1:halt_on_error=1:report_error_type=1' || '' }}
+          ASAN_OPTIONS: ${{ steps.flags.outputs.sanitizers == 'true' && matrix.profile == 'asan-ubsan' && (runner.os == 'Linux' && 'verify_asan_link_order=0:fast_unwind_on_malloc=0:strict_string_checks=1:detect_leaks=1:check_initialization_order=1:strict_init_order=1:halt_on_error=1:abort_on_error=1:alloc_dealloc_mismatch=1:log_to_syslog=0:log_path=asan/asan' || 'verify_asan_link_order=0:fast_unwind_on_malloc=0:strict_string_checks=1:detect_leaks=0:check_initialization_order=1:strict_init_order=1:halt_on_error=1:abort_on_error=1:alloc_dealloc_mismatch=1:log_to_syslog=0:log_path=asan/asan') || '' }}
+          UBSAN_OPTIONS: ${{ steps.flags.outputs.sanitizers == 'true' && matrix.profile == 'asan-ubsan' && 'print_stacktrace=1:halt_on_error=1:report_error_type=1' || '' }}
+          TSAN_OPTIONS: ${{ steps.flags.outputs.tsan == 'true' && 'halt_on_error=1:history_size=7:report_atomic_races=1:detect_deadlocks=1:log_path=tsan/tsan' || '' }}
         run: |
-          mkdir -p asan
+          mkdir -p asan tsan
           ctest --test-dir build --output-on-failure --build-config ${{ matrix.build_type }} --timeout 150
 
       - name: Upload test logs (on failure)
@@ -119,6 +128,8 @@ jobs:
           path: |
             build/Testing/Temporary/LastTest.log
             build/**/Testing/Temporary/LastTest.log
+            asan/*
+            tsan/*
 
   # -----------------------
   # Windows job (MSVC)
@@ -160,13 +171,11 @@ jobs:
         run: |
           $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
 
-          # Пробуем найти x64 clang-cl через vswhere
           $cand = & $vswhere -latest -products * `
                   -requires Microsoft.VisualStudio.Component.VC.Llvm.Clang `
                   -find **\VC\Tools\Llvm\x64\bin\clang-cl.exe
 
           if (-not $cand) {
-            # Фолбэк: обычные пути, но отфильтровываем ARM/ARM64
             $cand = @(
               "$env:VCToolsInstallDir\Llvm\x64\bin\clang-cl.exe",
               "$env:VCToolsInstallDir\Llvm\bin\clang-cl.exe",
