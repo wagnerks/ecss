@@ -32,7 +32,8 @@ if(ECSS_BUILD_TESTS)
     include(GoogleTest)
     gtest_discover_tests(ecss_tests
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
-        DISCOVERY_MODE POST_BUILD
+        DISCOVERY_MODE PRE_TEST
         DISCOVERY_TIMEOUT 60
+        TIMEOUT 150
     )
 endif()

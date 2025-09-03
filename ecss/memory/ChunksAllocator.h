@@ -210,7 +210,7 @@ namespace ecss::Memory {
         size_t capacity() const { return mChunkCapacity * mChunks.size(); }
 
         size_t find(const Sector* sectorPtr) const {
-            if (!sectorPtr || mChunks.empty()) return static_cast<size_t>(INVALID_ID);
+            if (!sectorPtr || mChunks.empty()) return capacity();
 
             const size_t stride = static_cast<size_t>(mChunkCapacity) * static_cast<size_t>(mSectorSize);
             const std::byte* p = reinterpret_cast<const std::byte*>(sectorPtr);
@@ -235,7 +235,8 @@ namespace ecss::Memory {
                     return ci * static_cast<size_t>(mChunkCapacity) + local;
                 }
             }
-            return static_cast<size_t>(INVALID_ID);
+
+            return capacity();
         }
 
     private:

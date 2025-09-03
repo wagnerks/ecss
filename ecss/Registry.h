@@ -692,7 +692,7 @@ namespace ecss {
 				auto pinnedBack = mArrays[getIndex<T>()]->pinBackSector();
 				auto index = pinnedBack.getId();
 				mPins = manager->template pinContainers<T, ComponentTypes...>(index);
-				mLast = index == INVALID_ID ? 0 : mArrays[getIndex<T>()]->template getSectorIndex<false>(index) + 1; // we pinned sector, but its size can be changed in other tread, use pinned index
+				mLast = index == INVALID_ID ? 0 : mArrays[getIndex<T>()]->template getSectorIndex<false>(pinnedBack.get()) + 1; // we pinned sector, but its size can be changed in other tread, use pinned index
 			}
 			else {
 				mLast = mArrays[getIndex<T>()]->size();

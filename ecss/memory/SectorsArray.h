@@ -438,6 +438,7 @@ namespace ecss::Memory {
 
 		// return INVALID_ID if not found
 		template<bool TS = ThreadSafe> size_t getSectorIndex(SectorId id)					 const { TS_GUARD(TS, SHARED, return getSectorIndexImpl(id)); }
+		template<bool TS = ThreadSafe> size_t getSectorIndex(Sector* sector)			     const { TS_GUARD(TS, SHARED, return getSectorIndexImpl(sector)); }
 		template<bool TS = ThreadSafe> size_t sectorsMapCapacity()							 const { TS_GUARD(TS, SHARED, return sectorsMapCapacityImpl()); }
 		template<bool TS = ThreadSafe> size_t capacity()									 const { TS_GUARD(TS, SHARED, return capacityImpl()); }
 		template<bool TS = ThreadSafe> size_t size()										 const { TS_GUARD(TS, SHARED, return sizeImpl()); }
@@ -658,6 +659,7 @@ namespace ecss::Memory {
 		Sector* getSectorImpl(SectorId id)		const { assert(id < mSectorsMap.size()); return mSectorsMap[id]; }
 		// return INVALID_ID if not found
 		size_t getSectorIndexImpl(SectorId id)	const { return mAllocator.find(findSectorImpl(id)); }
+		size_t getSectorIndexImpl(Sector* sector)	const { return mAllocator.find(sector); }
 
 		size_t sectorsMapCapacityImpl()			const { return mSectorsMap.size(); }
 		size_t capacityImpl()					const { return mAllocator.capacity(); }
