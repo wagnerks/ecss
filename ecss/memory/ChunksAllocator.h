@@ -301,7 +301,7 @@ namespace ecss::Memory {
             if constexpr (OC == ChunkCapacity) {
                 mChunks = std::move(other.mChunks);
                 other.mChunks.clear();
-				other.mBin.drainAll();
+                other.mBin.drainAll();
             }
             else {
                 allocate(other.mChunks.size() * mChunkCapacity);
