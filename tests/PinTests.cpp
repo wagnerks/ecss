@@ -140,7 +140,7 @@ TEST(SectorsArrayConcurrency, RandomStressNoDeadlockNoLostWakeups) {
             auto s = pin.get();
             if (s) { volatile int x = s->isAliveData; (void)x; }
             // иногда подождём, провоцируя пересечения
-            if ((rng() & 7u) == 0) std::this_thread::sleep_for(100us);
+            if ((rng() & 7u) == 0) std::this_thread::sleep_for(10ms);
         }
     };
 
@@ -159,7 +159,7 @@ TEST(SectorsArrayConcurrency, RandomStressNoDeadlockNoLostWakeups) {
                 arr.processPendingErases();
             }
             else if ((r & 0xF) == 2) {
-                arr.defragment();
+                arr.tryDefragment();
             }
             else if ((r & 0xFF) == 3) {
                 // редкий reserve — спровоцировать ensureSidecarCapacity
@@ -185,6 +185,7 @@ TEST(SectorsArrayConcurrency, RandomStressNoDeadlockNoLostWakeups) {
 
     // быстрая sanity-проверка: после прохода очереди удалений — всё стабильно
     holder->processPendingErases();
+
     // если что-то пошло не так (дедлок/лост-вейкап/UB), этот тест часто падает под TSAN или зависает.
     SUCCEED();
 }

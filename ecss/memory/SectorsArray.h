@@ -452,7 +452,10 @@ namespace ecss::Memory {
 		 * \note In ThreadSafe mode, waits until no pins block compaction.
 		 */
 		template<bool TS = ThreadSafe>
-		void defragment() { TS_GUARD_S(TS, UNIQUE, if (emptyImpl()) { return; } mPinsCounter.waitUntilChangeable(); , defragmentImpl();); }
+		void defragment() { TS_GUARD_S(TS, UNIQUE, mPinsCounter.waitUntilChangeable(); , defragmentImpl();); }
+		
+		template<bool TS = ThreadSafe>
+		void tryDefragment() { TS_GUARD_S(TS, UNIQUE, if (mPinsCounter.isArrayLocked()){ return;} , defragmentImpl();); }
 		void incDefragmentSize(uint32_t count = 1) { mDefragmentSize += count; }
 
 		
@@ -914,6 +917,7 @@ namespace ecss::Memory {
 				}
 			}
 			else {
+				UNIQUE_LOCK();
 				mPendingErase.push_back(id);
 			}
 		}
