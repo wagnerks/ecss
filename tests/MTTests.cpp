@@ -227,7 +227,7 @@ TEST(MT, ReadersWriters_Churn) {
                     if (!p || !v) continue; // if your API guarantees both, you can assert instead
                     local += size_t(p->x + v->dx);
                 }
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }
            
             guard_sum.fetch_add(local, std::memory_order_relaxed);

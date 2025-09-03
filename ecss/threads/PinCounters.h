@@ -158,13 +158,7 @@ namespace ecss::Threads {
 
 			if (prev == 1) {
 				pinsBitMask.set(id, false);
-
-				// failsafe
-				if (var.load(std::memory_order_acquire) != 0) {
-					pinsBitMask.set(id, true);
-					return;
-				}
-
+ 
 				updateMaxPinned();
 				var.notify_all();
 			}

@@ -88,8 +88,8 @@ TEST(SectorsArrayConcurrency, WatermarkBlocksAndLowersAfterUnpin) {
                         if (!arr.containsSector(lo)) break;
                        
                         // если watermark работает, изменение сектора lo блокируется
-                        arr.eraseAsync(lo, 1), true;
-                        
+                        arr.eraseAsync(lo, 1);
+                       
                     }
                 }
             }

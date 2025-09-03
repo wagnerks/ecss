@@ -366,12 +366,28 @@ namespace ecss::Memory {
 		 * \param defragment If true, compacts storage immediately.
 		 * \note In ThreadSafe mode, writers wait for unpinned sectors.
 		 */
+		template<bool TS = ThreadSafe>
 		void erase(size_t beginIdx, size_t count = 1, bool defragment = false) {
-			if (count == 1) {
-				erase(Iterator(this, beginIdx), defragment);
+			if constexpr(TS) {
+				UNIQUE_LOCK();
+				auto begin = Iterator(this, beginIdx);
+				if (!*begin) { return; }
+
+				mPinsCounter.waitUntilChangeable(begin->id);
+				if (count == 1) {
+					erase<false>(begin, defragment);
+				}
+				else if (count > 1) {
+					erase<false>(begin, Iterator(this, beginIdx + count), defragment);
+				}
 			}
-			else if (count > 1) {
-				erase(Iterator(this, beginIdx), Iterator(this, beginIdx + count), defragment);
+			else {
+				if (count == 1) {
+					erase(Iterator(this, beginIdx), defragment);
+				}
+				else if (count > 1) {
+					erase(Iterator(this, beginIdx), Iterator(this, beginIdx + count), defragment);
+				}
 			}
 		}
 
@@ -558,7 +574,7 @@ namespace ecss::Memory {
 
 	private: // impl functions
 		Iterator eraseImpl(Iterator it, bool defragment = false) noexcept {
-			if (!(*it)) {
+			if (!(*it) || mSectorsMap.size() <= it->id) {
 				return it;
 			}
 
@@ -583,7 +599,10 @@ namespace ecss::Memory {
 			auto lastIdx = last.linearIndex();
 
 			for (auto it = first; it != last; ++it) {
-				mSectorsMap[it->id] = nullptr;
+				if (mSectorsMap.size() <= it->id) {
+					mSectorsMap[it->id] = nullptr;
+				}
+				
 				Sector::destroySector(*it, getLayout());
 			}
 
