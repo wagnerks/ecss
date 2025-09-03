@@ -599,7 +599,7 @@ namespace ecss::Memory {
 			auto lastIdx = last.linearIndex();
 
 			for (auto it = first; it != last; ++it) {
-				if (mSectorsMap.size() <= it->id) {
+				if (mSectorsMap.size() > it->id) {
 					mSectorsMap[it->id] = nullptr;
 				}
 				
