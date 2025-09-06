@@ -39,7 +39,7 @@ namespace ecss::Memory {
 /// \param ADDITIONAL_SINK extra code executed under the lock before EXPR
 /// \param EXPR expression to execute
 #define TS_GUARD_S(TS_FLAG, LOCK_MACRO, ADDITIONAL_SINK, EXPR) \
-	do {if constexpr (TS_FLAG) { ADDITIONAL_SINK; LOCK_MACRO##_LOCK(); EXPR; } else { EXPR; }} while(0)
+	do {if constexpr (TS_FLAG) { LOCK_MACRO##_LOCK(); ADDITIONAL_SINK; EXPR; } else { EXPR; }} while(0)
 
 	/**
 	 * \brief RAII pin for a sector to prevent moves/erases while in use.
@@ -170,7 +170,7 @@ namespace ecss::Memory {
 		public:
 			ITERATOR_COMMON_USING(Iterator)
 
-			Iterator(const SectorsArray* array, size_t idx)  : mIt(array->mAllocator.getCursor(std::min(idx, array->sizeImpl()))) { }
+			Iterator(const SectorsArray* array, size_t idx, bool checkBounds = true)  : mIt(array->mAllocator.getCursor(checkBounds ? std::min(idx, array->sizeImpl()) : idx)) { }
 
 			Iterator& operator++() noexcept { ++mIt; return *this; }
 			Iterator& operator+=(difference_type n) noexcept { mIt = mIt + n; return *this; }
@@ -195,13 +195,13 @@ namespace ecss::Memory {
 		public:
 			ITERATOR_COMMON_USING(IteratorAlive)
 
-			IteratorAlive(const SectorsArray* array, size_t idx, size_t sz, uint32_t aliveMask)
-				: mIt(array, idx), mLastIt(array, sz), typeAliveMask(aliveMask)
+			IteratorAlive(const SectorsArray* array, size_t idx, size_t sz, uint32_t aliveMask, bool checkBounds = true)
+				: mIt(array, idx, checkBounds), mLastIt(array, sz, checkBounds), typeAliveMask(aliveMask)
 			{
 				while (mIt != mLastIt && !(mIt->isAliveData & typeAliveMask)) { ++mIt; }
 			}
 
-			IteratorAlive(const SectorsArray* array, size_t idx)  : mIt(array, idx) {}
+			IteratorAlive(const SectorsArray* array, size_t idx, bool checkBounds = true)  : mIt(array, idx, checkBounds) {}
 
 			inline IteratorAlive& operator++() { do { ++mIt; } while (mIt != mLastIt && !(mIt->isAliveData & typeAliveMask)); return *this; }
 
@@ -224,19 +224,19 @@ namespace ecss::Memory {
 		public:
 			ITERATOR_COMMON_USING(RangedIterator)
 
-			RangedIterator(const SectorsArray* array, const EntitiesRanges& ranges) : mIt(array, 0) {
+			RangedIterator(const SectorsArray* array, const EntitiesRanges& ranges, bool checkBounds = true) : mIt(array, 0, checkBounds) {
 				if (ranges.ranges.empty()) { return; }
 
 				mIterators.reserve(ranges.ranges.size() * 2);
 				for (auto it = ranges.ranges.rbegin(), endIt = ranges.ranges.rend(); it != endIt; ++it) {
-					mIterators.emplace_back(array, it->second);
-					mIterators.emplace_back(array, it->first);
+					mIterators.emplace_back(array, it->second, checkBounds);
+					mIterators.emplace_back(array, it->first, checkBounds);
 				}
 				mIt = std::move(mIterators.back());
 				mIterators.pop_back();
 			}
 
-			RangedIterator(const SectorsArray* array, size_t idx) : mIt(array, idx) {}
+			RangedIterator(const SectorsArray* array, size_t idx, bool checkBounds = true) : mIt(array, idx, checkBounds) {}
 
 			inline RangedIterator& operator++() {
 				++mIt;
@@ -267,15 +267,15 @@ namespace ecss::Memory {
 		public:
 			ITERATOR_COMMON_USING(RangedIteratorAlive)
 
-			RangedIteratorAlive(const SectorsArray* array, const EntitiesRanges& ranges, uint32_t aliveMask)
-			: mIt{ array , ranges }
+			RangedIteratorAlive(const SectorsArray* array, const EntitiesRanges& ranges, uint32_t aliveMask, bool checkBounds = true)
+			: mIt{ array, ranges, checkBounds }
 			, mLast{ array, ranges.empty() ? 0 : ranges.back().second }
 			, mAliveMask(aliveMask)
 			{
 				while (mIt != mLast && !(mIt->isAliveData & mAliveMask)) { ++mIt; }
 			}
 
-			RangedIteratorAlive(const SectorsArray* array, size_t idx)  : mIt(array, idx) {}
+			RangedIteratorAlive(const SectorsArray* array, size_t idx, bool checkBounds = true)  : mIt(array, idx, checkBounds) {}
 
 			inline RangedIteratorAlive& operator++() { do { ++mIt; } while (mIt != mLast && !(mIt->isAliveData & mAliveMask)); return *this; }
 
@@ -337,25 +337,29 @@ namespace ecss::Memory {
 		 * \param sector Sector pointer (may be nullptr).
 		 * \return RAII pin; empty if sector==nullptr.
 		 */
-		[[nodiscard]] PinnedSector pinSector(Sector* sector) const requires(ThreadSafe) { SHARED_LOCK(); return sector ? PinnedSector{ mPinsCounter, sector, sector->id } : PinnedSector{}; }
+		template<bool Lock = true>
+		[[nodiscard]] PinnedSector pinSector(Sector* sector) const requires(ThreadSafe) { TS_GUARD(Lock, SHARED, return (sector ? PinnedSector{ mPinsCounter, sector, sector->id } : PinnedSector{});); }
 		/**
 		 * \brief Pin by sector id.
 		 * \param id Sector id.
 		 * \return RAII pin or empty if not found.
 		 */
-		[[nodiscard]] PinnedSector pinSector(SectorId id)	 const requires(ThreadSafe) { SHARED_LOCK(); return pinSectorImpl(findSectorImpl(id)); }
+		template<bool Lock = true>
+		[[nodiscard]] PinnedSector pinSector(SectorId id)	 const requires(ThreadSafe) { TS_GUARD(Lock, SHARED, return pinSectorImpl(findSectorImpl(id));); }
 		/**
 		 * \brief Pin by linear index in storage.
 		 * \param idx Linear position (0..size()).
 		 */
-		[[nodiscard]] PinnedSector pinSectorAt(size_t idx)	 const requires(ThreadSafe) { SHARED_LOCK(); return pinSectorImpl(mAllocator.at(idx)); }
+		template<bool Lock = true>
+		[[nodiscard]] PinnedSector pinSectorAt(size_t idx)	 const requires(ThreadSafe) { TS_GUARD(Lock, SHARED, return pinSectorImpl(mAllocator.at(idx));); }
+
 		/**
 		 * \brief Pin the last (most recent) sector if any.
 		 * \return Empty pin if the array is empty.
 		 */
-		[[nodiscard]] PinnedSector pinBackSector()			 const requires(ThreadSafe) { SHARED_LOCK();
-			auto contSize = sizeImpl();
-			return contSize == 0 ? PinnedSector{} : pinSectorImpl(mAllocator.at(contSize - 1));
+		template<bool Lock = true>
+		[[nodiscard]] PinnedSector pinBackSector()			 const requires(ThreadSafe) {
+			TS_GUARD(Lock, SHARED, auto contSize = sizeImpl(); return contSize == 0 ? PinnedSector{} : pinSectorImpl(mAllocator.at(contSize - 1)););
 		}
 
 	public:

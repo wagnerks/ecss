@@ -120,7 +120,6 @@ namespace ecss::Memory {
         ChunksAllocator() = default;
         ~ChunksAllocator() {
         	deallocate(0, capacity());
-            mBin.drainAll();
         }
 
         SectorLayoutMeta* getSectorLayout() const { return mSectorLayout; }
