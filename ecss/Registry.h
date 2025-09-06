@@ -292,7 +292,7 @@ namespace ecss {
 		 * \param func Callable with signature f(EntityId, Components*...).
 		 */
 		template<typename... Components, typename Func>
-		inline void forEachAsync(const std::vector<EntityId>& entities, Func&& func) noexcept requires(ThreadSafe) { for (auto entity : entities) withPinned<Components...>(entity, std::forward<Func>(func)); }
+		inline void forEachAsync(const std::vector<EntityId>& entities, Func&& func) noexcept requires(ThreadSafe) { for (auto entity : entities) withPinned<Components...>(entity, func); }
 
 	public:
 		// ===== Container management ==========================================
@@ -593,7 +593,7 @@ namespace ecss {
 	struct TypeAccessInfo {
 		Memory::SectorsArray<ThreadSafe, Allocator>* array = nullptr;
 		uint32_t typeAliveMask = 0;
-		uint16_t typeOffsetInSector = 0;
+		uint32_t typeOffsetInSector = 0;
 		bool isMain = false;
 	};
 
@@ -696,7 +696,7 @@ namespace ecss {
 			initArrays<ComponentTypes..., T>(manager);
 			auto lock = mArrays[getIndex<T>()]->readLock();
 			if constexpr (ThreadSafe) {
-				auto pinnedBack = mArrays[getIndex<T>()]->pinBackSector<false>();
+				auto pinnedBack = mArrays[getIndex<T>()]->template pinBackSector<false>();
 				auto index = pinnedBack.getId();
 				mPins = manager->template pinContainers<T, ComponentTypes...>(index);
 				mLast = index == INVALID_ID ? 0 : mArrays[getIndex<T>()]->template getSectorIndex<false>(pinnedBack.get()) + 1; // we pinned sector, but its size can be changed in other tread, use pinned index
