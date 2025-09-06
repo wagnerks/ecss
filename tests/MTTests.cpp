@@ -187,7 +187,7 @@ TEST(MT, ReadersWriters_Churn) {
     std::vector<std::thread> pool;
     pool.reserve(T);
     for (int w = 0; w < writers; ++w) {
-        pool.emplace_back([&] {
+        pool.emplace_back([w, &ecs, &stop] {
             std::mt19937 rng(1337u + w);
             auto dist = std::uniform_int_distribution<int>(0, 99);
             const auto t_end = std::chrono::steady_clock::now() + std::chrono::seconds(ECSS_MT_SECONDS);
@@ -227,7 +227,7 @@ TEST(MT, ReadersWriters_Churn) {
                     if (!p || !v) continue; // if your API guarantees both, you can assert instead
                     local += size_t(p->x + v->dx);
                 }
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }
            
             guard_sum.fetch_add(local, std::memory_order_relaxed);

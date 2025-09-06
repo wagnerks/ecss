@@ -4,7 +4,7 @@
 
 namespace ecss::Threads {
     template<class L>
-    [[nodiscard]] class MaybeLock {
+    class [[nodiscard]] MaybeLock {
     public:
         MaybeLock() noexcept = default;
 

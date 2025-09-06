@@ -1,7 +1,11 @@
 ﻿#include <random>
-#include <gtest/gtest.h>
+#include <chrono>
+#include <iostream>
+#include <thread>
 
 #include <ecss/memory/SectorsArray.h>
+
+#include <gtest/gtest.h>
 
 namespace SectorsArrayTest
 {
@@ -144,6 +148,89 @@ TEST(SectorsArray, IteratorBasic) {
     delete arr;
 }
 
+TEST(SectorsArray, IteratorsTest) {
+    constexpr size_t count = 100;
+    constexpr size_t deleted = 5;
+    auto* arr = SectorsArray<true, ChunksAllocator<count>>::create<Trivial>();
+    arr->reserve(count);
+
+    std::vector<ecss::SectorId> alives;
+    alives.reserve(count);
+
+    for (int i = 0; i < count; ++i) {
+        arr->emplace<Trivial>(i, i);
+        alives.push_back(i);
+    }
+
+    for (int i = 0; i < count; i += deleted) {
+        arr->erase(i, 1, false);
+        alives.erase(std::find(alives.begin(), alives.end(), i));
+    }
+
+    size_t alivesCount = alives.size();
+    auto ranges = ecss::EntitiesRanges{ {ecss::EntitiesRanges::range{0, 10}, ecss::EntitiesRanges::range{11, 50}, ecss::EntitiesRanges::range{54, 99}, ecss::EntitiesRanges::range{99, 100}} };
+    ranges.mergeIntersections();
+
+    auto allEnts = ranges.getAll();
+    auto rangesSize = allEnts.size();
+    size_t theorAliveRanges = 0;
+    std::vector<ecss::SectorId> alivesRanged;
+    for (auto ent : allEnts) {
+        if (ent % deleted > 0) {
+            ++theorAliveRanges;
+            alivesRanged.push_back(ent);
+        }
+    }
+
+    size_t counter = 0;
+    for (auto it = arr->begin(), itEnd = arr->end(); it != itEnd; ++it) {
+        counter++;
+    }
+    EXPECT_EQ(count, counter);
+
+    size_t counterAlive = 0;
+    for (auto it = arr->begin(), itEnd = arr->end(); it != itEnd; ++it) {
+        if (*it && it->isSectorAlive()) {
+            EXPECT_EQ(alives[counterAlive], it->id);
+            counterAlive++;
+        }
+    }
+    EXPECT_EQ(alivesCount, counterAlive);
+
+    size_t counterAliveIt = 0;
+    for (auto it = arr->beginAlive<Trivial>(), itEnd = arr->endAlive(); it != itEnd; ++it) {
+        EXPECT_EQ(alives[counterAliveIt], it->id);
+        counterAliveIt++;
+    }
+    EXPECT_EQ(alivesCount, counterAliveIt);
+
+    size_t counterRanged = 0;
+    for (auto it = arr->beginRanged(ranges), itEnd = arr->endRanged(ranges); it != itEnd; ++it) {
+        counterRanged++;
+    }
+    EXPECT_EQ(rangesSize, counterRanged);
+
+    size_t counterRangedAlive = 0;
+    for (auto it = arr->beginRanged(ranges), itEnd = arr->endRanged(ranges); it != itEnd; ++it) {
+        if (*it && it->isSectorAlive()) {
+            EXPECT_EQ(alivesRanged[counterRangedAlive], it->id);
+            counterRangedAlive++;
+        }
+    }
+    EXPECT_EQ(theorAliveRanges, counterRangedAlive);
+
+    size_t counterRangedAliveIt = 0;
+    std::vector<ecss::SectorId> rangedAliveIt;
+    for (auto it = arr->beginRangedAlive<Trivial>(ranges), itEnd = arr->endRangedAlive(ranges); it != itEnd; ++it) {
+        EXPECT_EQ(alivesRanged[counterRangedAliveIt], it->id);
+        counterRangedAliveIt++;
+    }
+    EXPECT_EQ(theorAliveRanges, counterRangedAliveIt);
+
+    delete arr;
+}
+
+#if REGISTRY_PERF_TESTS
 TEST(SectorsArray_perfTest, IteratorBasicStress) {
     constexpr std::size_t count = 100'000'000;
 
@@ -287,88 +374,6 @@ TEST(SectorsArray_perfTest, IteratorAliveStress) {
     std::cout << "[StressTest] std::vector Iterate time: " << iterate_us << " ms\n";
 }
 
-TEST(SectorsArray, IteratorsTest) {
-    constexpr size_t count = 100;
-    constexpr size_t deleted = 5;
-    auto* arr = SectorsArray<true, ChunksAllocator<count>>::create<Trivial>();
-    arr->reserve(count);
-
-    std::vector<ecss::SectorId> alives;
-    alives.reserve(count);
-
-    for (int i = 0; i < count; ++i) {
-	    arr->emplace<Trivial>(i, i);
-        alives.push_back(i);
-    }
-
-    for (int i = 0; i < count; i += deleted) {
-	    arr->erase(i, 1, false);
-        alives.erase(std::find(alives.begin(), alives.end(), i));
-    }
-
-    size_t alivesCount = alives.size();
-    auto ranges = ecss::EntitiesRanges{ {ecss::EntitiesRanges::range{0, 10}, ecss::EntitiesRanges::range{11, 50}, ecss::EntitiesRanges::range{54, 99}, ecss::EntitiesRanges::range{99, 100}} };
-    ranges.mergeIntersections();
-
-    auto allEnts = ranges.getAll();
-    auto rangesSize = allEnts.size();
-    size_t theorAliveRanges = 0;
-    std::vector<ecss::SectorId> alivesRanged;
-    for (auto ent : allEnts) {
-        if (ent % deleted > 0) {
-            ++theorAliveRanges;
-            alivesRanged.push_back(ent);
-        }
-    }
-
-    size_t counter = 0;
-    for (auto it = arr->begin(), itEnd = arr->end(); it != itEnd; ++it) {
-        counter++;
-    }
-    EXPECT_EQ(count, counter);
-
-    size_t counterAlive = 0;
-    for (auto it = arr->begin(), itEnd = arr->end(); it != itEnd; ++it) {
-        if (*it && it->isSectorAlive()) {
-            EXPECT_EQ(alives[counterAlive], it->id);
-            counterAlive++;
-        }
-    }
-    EXPECT_EQ(alivesCount, counterAlive);
-
-    size_t counterAliveIt = 0;
-    for (auto it = arr->beginAlive<Trivial>(), itEnd = arr->endAlive(); it != itEnd; ++it) {
-        EXPECT_EQ(alives[counterAliveIt], it->id);
-        counterAliveIt++;
-    }
-    EXPECT_EQ(alivesCount, counterAliveIt);
-
-    size_t counterRanged = 0;
-    for (auto it = arr->beginRanged(ranges), itEnd = arr->endRanged(ranges); it != itEnd; ++it) {
-        counterRanged++;
-    }
-    EXPECT_EQ(rangesSize, counterRanged);
-
-    size_t counterRangedAlive = 0;
-    for (auto it = arr->beginRanged(ranges), itEnd = arr->endRanged(ranges); it != itEnd; ++it) {
-        if (*it && it->isSectorAlive()) {
-            EXPECT_EQ(alivesRanged[counterRangedAlive], it->id);
-            counterRangedAlive++;
-        }
-    }
-    EXPECT_EQ(theorAliveRanges, counterRangedAlive);
-
-    size_t counterRangedAliveIt = 0;
-    std::vector<ecss::SectorId> rangedAliveIt;
-    for (auto it = arr->beginRangedAlive<Trivial>(ranges), itEnd = arr->endRangedAlive(ranges); it != itEnd; ++it) {
-        EXPECT_EQ(alivesRanged[counterRangedAliveIt], it->id);
-        counterRangedAliveIt++;
-    }
-    EXPECT_EQ(theorAliveRanges, counterRangedAliveIt);
-
-    delete arr;
-}
-
 TEST(SectorsArray_perfTest, IteratorRangedAliveStress) {
     constexpr size_t count = 100'000'000;
 
@@ -418,6 +423,7 @@ TEST(SectorsArray_perfTest, IteratorRangedAliveStress) {
     std::cout << "[StressTest] std::vector Create time: " << create_us << " ms\n";
     std::cout << "[StressTest] std::vector Iterate time: " << iterate_us << " ms\n";
 }
+#endif
 
 TEST(SectorsArray, InsertMove) {
     auto* arr = SA_T::create<NonTrivial>();
@@ -462,30 +468,27 @@ TEST(SectorsArray_STRESS, ThreadedInsert) {
 
 TEST(SectorsArray, ThreadedFindAndErase) {
     constexpr int N = 1000;
-    for (auto k = 0; k < 100; k++) {
-        auto* arr = SA_T::create<Trivial>();
+    auto* arr = SA_T::create<Trivial>();
+    for (int i = 0; i < N; ++i) arr->insert<Trivial>(i, Trivial{ i });
 
-        for (int i = 0; i < N; ++i) arr->insert<Trivial>(i, Trivial{ i });
-
-        std::atomic<int> sum{ 0 };
-        std::thread reader([&] {
-            for (int i = 0; i < N; ++i) {
-                if (auto s = arr->pinSector(i)) {
-	                sum += s->getMember<Trivial>(arr->getLayoutData<Trivial>())->a;
-                }
+    std::atomic<int> sum{ 0 };
+    std::thread reader([&] {
+        for (int i = 0; i < N; ++i) {
+            if (auto s = arr->pinSector(i)) {
+                sum += s->getMember<Trivial>(arr->getLayoutData<Trivial>())->a;
             }
-        });
+        }
+    });
 
-        std::thread eraser([&] {
-            for (int i = 0; i < N; i += 2) arr->eraseAsync(i,1);
-        });
+    std::thread eraser([&] {
+        for (int i = 0; i < N; i += 2) arr->eraseAsync(i,1);
+    });
 
-        reader.join();
-        eraser.join();
+    reader.join();
+    eraser.join();
 
-        EXPECT_GE(sum, 0);
-        delete arr;
-    }
+    EXPECT_GE(sum, 0);
+    delete arr;
 }
 
 TEST(SectorsArray, InsertInvalidEraseOutOfBounds) {

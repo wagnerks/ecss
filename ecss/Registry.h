@@ -192,7 +192,7 @@ namespace ecss {
 			if (auto container = getComponentContainer<T>()) {
 				if constexpr (ThreadSafe) {
 					auto lock = container->writeLock();
-					container->mPinsCounter.waitUntilSectorChangeable(entity);
+					container->mPinsCounter.waitUntilChangeable(entity);
 
 					if (auto sector = container->template findSector<false>(entity)) {
 						auto before = sector->isAliveData;
@@ -228,9 +228,12 @@ namespace ecss {
 					auto lock = container->writeLock();
 
 					prepareEntities(entities, container->template sectorsMapCapacity<false>());
+					if (entities.empty()) {
+						return;
+					}
 
+					container->mPinsCounter.waitUntilChangeable(entities.back());
 					for (const auto sectorId : entities) {
-						container->mPinsCounter.waitUntilSectorChangeable(sectorId);
 
 						if (auto sector = container->template findSector<false>(sectorId)) {
 							auto before = sector->isAliveData;
@@ -289,7 +292,7 @@ namespace ecss {
 		 * \param func Callable with signature f(EntityId, Components*...).
 		 */
 		template<typename... Components, typename Func>
-		inline void forEachAsync(const std::vector<EntityId>& entities, Func&& func) noexcept requires(ThreadSafe) { for (auto entity : entities) withPinned<Components...>(entity, std::forward<Func>(func)); }
+		inline void forEachAsync(const std::vector<EntityId>& entities, Func&& func) noexcept requires(ThreadSafe) { for (auto entity : entities) withPinned<Components...>(entity, func); }
 
 	public:
 		// ===== Container management ==========================================
@@ -468,9 +471,12 @@ namespace ecss {
 
 							auto arrLock = array->writeLock();
 							prepareEntities(entities, array->template sectorsMapCapacity<false>());
+							if (entities.empty()) {
+								return;
+							}
 
+							array->mPinsCounter.waitUntilChangeable(entities.back());
 							for (const auto sectorId : entities) {
-								array->mPinsCounter.waitUntilSectorChangeable(sectorId);
 								Memory::Sector::destroySector(array->template findSector<false>(sectorId), layout);
 								array->incDefragmentSize();
 							}
@@ -519,7 +525,8 @@ namespace ecss {
 			for (auto array : mComponentsArrays) {
 				if constexpr (ThreadSafe) {
 					auto lock = array->writeLock();
-					array->mPinsCounter.waitUntilSectorChangeable(entityId);
+					array->mPinsCounter.waitUntilChangeable(entityId);
+
 					Memory::Sector::destroySector(array->template findSector<false>(entityId), array->getLayout());
 					array->incDefragmentSize();
 				}
@@ -586,7 +593,7 @@ namespace ecss {
 	struct TypeAccessInfo {
 		Memory::SectorsArray<ThreadSafe, Allocator>* array = nullptr;
 		uint32_t typeAliveMask = 0;
-		uint16_t typeOffsetInSector = 0;
+		uint32_t typeOffsetInSector = 0;
 		bool isMain = false;
 	};
 
@@ -672,27 +679,27 @@ namespace ecss {
 		inline Iterator begin() noexcept {
 			using SectorItType = std::conditional_t<Ranged, typename Memory::SectorsArray<ThreadSafe, Allocator>::RangedIteratorAlive, typename Memory::SectorsArray<ThreadSafe, Allocator>::IteratorAlive>;
 			if constexpr (Ranged) {
-				return Iterator{ mArrays, SectorItType(mArrays[getIndex<T>()], mRanges, mArrays[getIndex<T>()]->template getLayoutData<T>().isAliveMask) };
+				return Iterator{ mArrays, SectorItType(mArrays[getIndex<T>()], mRanges, mArrays[getIndex<T>()]->template getLayoutData<T>().isAliveMask, false) };
 			}
 			else {
-				return Iterator{ mArrays, SectorItType(mArrays[getIndex<T>()], 0, mLast, mArrays[getIndex<T>()]->template getLayoutData<T>().isAliveMask) };
+				return Iterator{ mArrays, SectorItType(mArrays[getIndex<T>()], 0, mLast, mArrays[getIndex<T>()]->template getLayoutData<T>().isAliveMask, false) };
 			}
 		}
 
 		inline Iterator end() noexcept {
 			using SectorItType = std::conditional_t<Ranged, typename Memory::SectorsArray<ThreadSafe, Allocator>::RangedIteratorAlive, typename Memory::SectorsArray<ThreadSafe, Allocator>::IteratorAlive>;
-			return Iterator{ mArrays, SectorItType(mArrays[getIndex<T>()], mLast) };
+			return Iterator{ mArrays, SectorItType(mArrays[getIndex<T>()], mLast, false) };
 		}
 
 	public:
 		explicit ArraysView(Registry<ThreadSafe, Allocator>* manager) noexcept requires (!Ranged) {
 			initArrays<ComponentTypes..., T>(manager);
-			
+			auto lock = mArrays[getIndex<T>()]->readLock();
 			if constexpr (ThreadSafe) {
-				auto pinnedBack = mArrays[getIndex<T>()]->pinBackSector();
+				auto pinnedBack = mArrays[getIndex<T>()]->template pinBackSector<false>();
 				auto index = pinnedBack.getId();
 				mPins = manager->template pinContainers<T, ComponentTypes...>(index);
-				mLast = index == INVALID_ID ? 0 : mArrays[getIndex<T>()]->template getSectorIndex<false>(index) + 1; // we pinned sector, but its size can be changed in other tread, use pinned index
+				mLast = index == INVALID_ID ? 0 : mArrays[getIndex<T>()]->template getSectorIndex<false>(pinnedBack.get()) + 1; // we pinned sector, but its size can be changed in other tread, use pinned index
 			}
 			else {
 				mLast = mArrays[getIndex<T>()]->size();
@@ -701,11 +708,12 @@ namespace ecss {
 
 		explicit ArraysView(Registry<ThreadSafe, Allocator>* manager, EntitiesRanges ranges = {}) noexcept requires (Ranged) : mRanges(std::move(ranges)) {
 			initArrays<ComponentTypes..., T>(manager);
+			auto lock = mArrays[getIndex<T>()]->readLock();
 			auto sectorsArray = mArrays[getIndex<T>()];
 
 			for (auto& range : mRanges.ranges) {
-				range.first = static_cast<EntityId>(sectorsArray->findRightNearestSectorIndex(range.first));
-				range.second = static_cast<EntityId>(sectorsArray->findRightNearestSectorIndex(range.second));
+				range.first = static_cast<EntityId>(sectorsArray->template findRightNearestSectorIndex<false>(range.first));
+				range.second = static_cast<EntityId>(sectorsArray->template findRightNearestSectorIndex<false>(range.second));
 			}
 			mRanges.mergeIntersections();
 
