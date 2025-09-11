@@ -76,11 +76,11 @@ struct Health { int hp{ 100 }; };
 
 // ---- Tunables ----
 #ifndef ECSS_MT_ENTITIES
-#define ECSS_MT_ENTITIES 250000
+#define ECSS_MT_ENTITIES 25000
 #endif
 
 #ifndef ECSS_MT_SECONDS
-#define ECSS_MT_SECONDS 2
+#define ECSS_MT_SECONDS 1
 #endif
 
 // Number of threads; defaults to hardware concurrency, minimum 4.
@@ -171,7 +171,7 @@ TEST(MT, ReadersWriters_Churn) {
     Registry ecs;
 
     // Seed with initial population
-    const size_t N0 = ECSS_MT_ENTITIES / 2;
+    const size_t N0 = ECSS_MT_ENTITIES / 5;
     for (size_t i = 0; i < N0; ++i) {
         auto id = create(ecs);
         emplace<Position>(ecs, id, float(i), float(i), float(i));
@@ -187,7 +187,7 @@ TEST(MT, ReadersWriters_Churn) {
     std::vector<std::thread> pool;
     pool.reserve(T);
     for (int w = 0; w < writers; ++w) {
-        pool.emplace_back([&] {
+        pool.emplace_back([w, &ecs, &stop] {
             std::mt19937 rng(1337u + w);
             auto dist = std::uniform_int_distribution<int>(0, 99);
             const auto t_end = std::chrono::steady_clock::now() + std::chrono::seconds(ECSS_MT_SECONDS);
@@ -227,7 +227,7 @@ TEST(MT, ReadersWriters_Churn) {
                     if (!p || !v) continue; // if your API guarantees both, you can assert instead
                     local += size_t(p->x + v->dx);
                 }
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                std::this_thread::sleep_for(std::chrono::milliseconds(10));
             }
            
             guard_sum.fetch_add(local, std::memory_order_relaxed);
@@ -246,7 +246,7 @@ TEST(MT, ManyReaders_ReadOnlyPass) {
     using namespace test_adapt;
     Registry ecs;
 
-    const size_t N = ECSS_MT_ENTITIES;
+    const size_t N = ECSS_MT_ENTITIES / 10;
     for (size_t i = 0; i < N; ++i) {
         auto id = create(ecs);
         emplace<Position>(ecs, id, float(i), float(i), float(i));

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <vector>
 #include <cstring>
@@ -42,11 +42,12 @@ namespace ecss::Memory {
         struct Cursor {
             Cursor() = default;
 
-            Cursor(const ChunksAllocator* allocator, size_t index = 0) : shift(allocator->mSectorSize), alloc(allocator) {
+            Cursor(const ChunksAllocator* allocator, size_t index = 0) : shift(allocator->mSectorSize) {
                 chunkIdx = ChunksAllocator<ChunkCapacity>::calcChunkIndex(index);
                 inChunkIdx = index - chunkIdx * ChunksAllocator<ChunkCapacity>::mChunkCapacity;
-
-                cur = reinterpret_cast<Sector*>(alloc->mChunks.size() > chunkIdx ? static_cast<std::byte*>(alloc->mChunks[chunkIdx]) + inChunkIdx * shift : nullptr);
+                chunks.assign(allocator->mChunks.begin(), allocator->mChunks.end());
+                
+                cur = reinterpret_cast<Sector*>(chunks.size() > chunkIdx ? static_cast<std::byte*>(chunks[chunkIdx]) + inChunkIdx * shift : nullptr);
             }
 
             Sector* step() {
@@ -54,7 +55,7 @@ namespace ecss::Memory {
                 if (inChunkIdx == ChunksAllocator<ChunkCapacity>::mChunkCapacity) {
                     inChunkIdx = 0;
                     chunkIdx++;
-                    return cur = reinterpret_cast<Sector*>(alloc->mChunks.size() > chunkIdx ? static_cast<std::byte*>(alloc->mChunks[chunkIdx]) : nullptr), cur;
+                    return cur = reinterpret_cast<Sector*>(chunks.size() > chunkIdx ? static_cast<std::byte*>(chunks[chunkIdx]) : nullptr), cur;
                 }
 
                 return cur = reinterpret_cast<Sector*>(reinterpret_cast<std::byte*>(cur) + shift), cur;
@@ -71,7 +72,7 @@ namespace ecss::Memory {
                 chunkIdx = ChunksAllocator<ChunkCapacity>::calcChunkIndex(newIndex);
                 inChunkIdx = newIndex - chunkIdx * ChunksAllocator<ChunkCapacity>::mChunkCapacity;
 
-                cur = reinterpret_cast<Sector*>(alloc->mChunks.size() > chunkIdx ? static_cast<std::byte*>(alloc->mChunks[chunkIdx]) + inChunkIdx * shift : nullptr);
+                cur = reinterpret_cast<Sector*>(chunks.size() > chunkIdx ? static_cast<std::byte*>(chunks[chunkIdx]) + inChunkIdx * shift : nullptr);
 
                 return *this;
             }
@@ -89,7 +90,7 @@ namespace ecss::Memory {
         private:
             size_t shift = 0;
 
-            const ChunksAllocator* alloc = nullptr;
+            std::vector<void*> chunks;
             Sector* cur = nullptr;
             size_t chunkIdx = 0;
             size_t inChunkIdx = 0;            
@@ -120,7 +121,6 @@ namespace ecss::Memory {
         ChunksAllocator() = default;
         ~ChunksAllocator() {
         	deallocate(0, capacity());
-            mBin.drainAll();
         }
 
         SectorLayoutMeta* getSectorLayout() const { return mSectorLayout; }
@@ -210,7 +210,7 @@ namespace ecss::Memory {
         size_t capacity() const { return mChunkCapacity * mChunks.size(); }
 
         size_t find(const Sector* sectorPtr) const {
-            if (!sectorPtr || mChunks.empty()) return static_cast<size_t>(INVALID_ID);
+            if (!sectorPtr || mChunks.empty()) return capacity();
 
             const size_t stride = static_cast<size_t>(mChunkCapacity) * static_cast<size_t>(mSectorSize);
             const std::byte* p = reinterpret_cast<const std::byte*>(sectorPtr);
@@ -235,7 +235,8 @@ namespace ecss::Memory {
                     return ci * static_cast<size_t>(mChunkCapacity) + local;
                 }
             }
-            return static_cast<size_t>(INVALID_ID);
+
+            return capacity();
         }
 
     private:
@@ -300,7 +301,7 @@ namespace ecss::Memory {
             copyCommonData(other);
             if constexpr (OC == ChunkCapacity) {
                 mChunks = std::move(other.mChunks);
-                other.mBin.drainAll();
+                other.mChunks.clear();
             }
             else {
                 allocate(other.mChunks.size() * mChunkCapacity);

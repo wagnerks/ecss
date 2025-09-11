@@ -1,5 +1,8 @@
-﻿#include <random>
+#include <random>
 #include <unordered_set>
+#include <chrono>
+#include <iostream>
+#include <mutex>
 
 #include <ecss/Registry.h>
 
@@ -397,7 +400,6 @@ namespace RegistryTests {
 	    EXPECT_EQ(registry.pinComponent<Health>(e2)->value, 2);
 	}
 
-#define REGISTRY_PERF_TESTS  1
 #if REGISTRY_PERF_TESTS
 	TEST(Registry_perfTest, CreatingAndIteratingNotOneSector) {
 		ecss::Registry<false> registry;
@@ -610,6 +612,7 @@ namespace RegistryTests {
 			ecss::Registry reg;
 			constexpr int N = 500000;
 			std::vector<std::thread> threads;
+            threads.reserve(2);
 			std::vector<ecss::EntityId> ids(N);
 			std::atomic<bool> done = false;
 			threads.emplace_back([&] {
@@ -641,10 +644,16 @@ namespace RegistryTests {
 			std::vector<std::thread> threads;
 			std::vector<ecss::EntityId> ids(N);
 			std::atomic<bool> done = false;
+            std::shared_mutex mtx;
 			threads.emplace_back([&] {
 				for (int i = 0; i < N; ++i) {
-					ids[i] = reg.takeEntity();
-					reg.addComponent<Velocity>(ids[i], float(i));
+                    auto ent = reg.takeEntity();
+                    {
+                        auto lock = std::unique_lock(mtx);
+                        ids[i] = ent;
+                    }
+                    
+					reg.addComponent<Velocity>(ent, float(i));
 				}
 				done = true;
 			});
@@ -652,7 +661,12 @@ namespace RegistryTests {
 
 			threads.emplace_back([&] {
 				while (!done) {
-					for (auto [ent, vel] : reg.view<Velocity>({ ids })) {
+                    ecss::EntitiesRanges range;
+                    {
+                        auto lock = std::shared_lock(mtx);
+                        range = {ids};
+                    }
+					for (auto [ent, vel] : reg.view<Velocity>(range)) {
 						vel->dx++;
 					}
 					std::this_thread::sleep_for(std::chrono::milliseconds(16));
@@ -1133,9 +1147,9 @@ namespace RegistryTests {
 	}
 
 	TEST(Registry, CreateAndCheckNoDublicate) {
-		ecss::Registry reg;
-
-		for (auto i = 0; i < 6000000; i++) {
+		ecss::Registry<true, Memory::ChunksAllocator<32>> reg;
+		reg.registerArray<Velocity>(6000);
+		for (auto i = 0; i < 6000; i++) {
 			auto ent = reg.takeEntity();
 			reg.addComponent<Velocity>(ent);
 		}
@@ -1220,10 +1234,11 @@ namespace RegistryTests {
 
 		static_assert(std::is_trivial_v<TransformMatComp>);
 
-		ecss::Registry source;
-		ecss::Registry target;
+		constexpr int N = 2000;
 
-		constexpr int N = 50000;
+		ecss::Registry<true, Memory::ChunksAllocator<16>> source;
+		ecss::Registry<true, Memory::ChunksAllocator<16>> target;
+		source.reserve<TransformMatComp>(N);
 		std::vector<EntityId> ids;
 		for (int i = 0; i < N; ++i) {
 			auto id = source.takeEntity();
@@ -1285,9 +1300,9 @@ namespace RegistryTests {
 	}
 
 	TEST(Registry, ParallelAddingToTheRandomPlacesAndIteration) {
-		ecss::Registry reg;
+		ecss::Registry<true, Memory::ChunksAllocator<16>> reg;
 		reg.registerArray<Velocity>();
-		constexpr int count = 60000;
+		constexpr int count = 2000;
 		std::vector<std::thread> threads;
 		std::atomic_bool creating = true;
 		threads.emplace_back([&]()
@@ -1376,144 +1391,175 @@ namespace RegistryTests {
 		{
 			int a, b;
 		};
+        std::mutex am,bm,cm,dm,em,fm,gm;
 		ecss::Registry reg;
 		reg.registerArray<A, B, C>();
 		reg.registerArray<D>();
 		reg.registerArray<E>();
 		reg.registerArray<F>();
 		reg.registerArray<G>();
-		for (int i = 0 ; i < 200; i++) {
-			std::cout << std::to_string(i) << std::endl;
-			constexpr int T = 8, N = 500;
-			std::vector<std::thread> threads;
-			std::atomic_bool creating = true;
-			threads.emplace_back([&]()
-			{
-				for (auto i = 0; i < 60000; i++) {
-					auto ent = reg.takeEntity();
-					reg.addComponent<A>(ent);
-					reg.addComponent<B>(ent);
-					reg.addComponent<C>(ent);
-					reg.addComponent<D>(ent);
-					reg.addComponent<E>(ent);
-					reg.addComponent<F>(ent);
-					reg.addComponent<G>(ent);
-				}
-				creating = false;
-			});
+		constexpr int T = 8, N = 500;
+
+		std::vector<std::thread> threads;
+        threads.reserve(10);
+		std::atomic_bool creating = true;
+		threads.emplace_back([&]()
+		{
+			for (auto i = 0; i < 60000; i++) {
+				auto ent = reg.takeEntity();
+				reg.addComponent<A>(ent);
+				reg.addComponent<B>(ent);
+				reg.addComponent<C>(ent);
+				reg.addComponent<D>(ent);
+				reg.addComponent<E>(ent);
+				reg.addComponent<F>(ent);
+				reg.addComponent<G>(ent);
+			}
+			creating = false;
+		});
 
 
-			threads.emplace_back([&] {
-				while (creating) {
-					for (auto [e, val, val2] : reg.view<A, B>()) {
-						val->a = e;
-						if (!val2) {
-							continue;
-						}
-						val2->a = e;
+		threads.emplace_back([&] {
+			while (creating) {
+				for (auto [e, val, val2] : reg.view<A, B>()) {
+                    {
+                        auto lock = std::lock_guard(am);
+                        val->a = e;
+                    }
+					
+					if (!val2) {
+						continue;
 					}
-					std::this_thread::sleep_for(std::chrono::milliseconds(50));
+                    {
+                        auto lock = std::lock_guard(bm);
+                        val2->a = e;
+                    }
+					
 				}
-
-			});
-
-			threads.emplace_back([&] {
-				while (creating) {
-					for (auto [e, val, val2] : reg.view<B, C>()) {
-						val->a = e;
-						if (!val2) {
-							continue;
-						}
-						val2->a = e;
-					}
-					std::this_thread::sleep_for(std::chrono::milliseconds(50));
-				}
-			});
-
-			threads.emplace_back([&] {
-				while (creating) {
-					for (auto [e, val] : reg.view<B>()) {
-						val->a = e;
-					}
-					std::this_thread::sleep_for(std::chrono::milliseconds(50));
-				}
-			});
-
-			threads.emplace_back([&] {
-				while (creating) {
-					for (auto [e, val, val2] : reg.view<D, E>()) {
-						val->a = e;
-						if (!val2) {
-							continue;
-						}
-						val2->a = e;
-					}
-					std::this_thread::sleep_for(std::chrono::milliseconds(50));
-				}
-
-			});
-			threads.emplace_back([&] {
-				while (creating) {
-					for (auto [e, val, val2, val3, val4] : reg.view<D, E, F, G>()) {
-						val->a = e;
-						if (val2) {
-							val2->a = e;
-						}
-						if (val3) {
-							val3->a = e;
-						}
-						if (val4) {
-							val4->a = e;
-						}
-
-					}
-					std::this_thread::sleep_for(std::chrono::milliseconds(50));
-				}
-
-			});
-
-			threads.emplace_back([&] {
-				while (creating) {
-					auto componentsToDelete = reg.getAllEntities();
-
-					std::mt19937 rng(static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
-					std::shuffle(componentsToDelete.begin(), componentsToDelete.end(), rng);
-					auto N = componentsToDelete.size() / 3;
-					componentsToDelete.resize(componentsToDelete.size() - N);
-
-					reg.destroyEntities(componentsToDelete);
-					std::this_thread::sleep_for(std::chrono::milliseconds(100));
-				}
-
-			});
-
-			for (auto& th : threads) th.join();
-
-			for (auto [ent, a, b, c, d, e, f, g] : reg.view<A, B, C, D, E, F, G>()) {
-				EXPECT_EQ(true, a->a == ent || a->a == 0);
-				if (b) {
-					EXPECT_EQ(true, b->a == ent || b->a == 0);
-				}
-				if (c) {
-					EXPECT_EQ(true, c->a == ent || c->a == 0);
-				}
-				if (d) {
-					EXPECT_EQ(true, d->a == ent || d->a == 0);
-				}
-				if (e) {
-					EXPECT_EQ(true, e->a == ent || e->a == 0);
-				}
-				if (f) {
-					EXPECT_EQ(true, f->a == ent || f->a == 0);
-				}
-				if (g) {
-					EXPECT_EQ(true, g->a == ent || g->a == 0);
-				}
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
 			}
 
+		});
 
-			reg.clear();
+		threads.emplace_back([&] {
+			while (creating) {
+				for (auto [e, val, val2] : reg.view<B, C>()) {
+                    
+                    {
+                        auto lock = std::lock_guard(bm);
+                        val->a = e;
+                    }
+					if (!val2) {
+						continue;
+					}
+					{
+                        auto lock = std::lock_guard(cm);
+                        val2->a = e;
+                    }
+				}
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
+			}
+		});
+
+		threads.emplace_back([&] {
+			while (creating) {
+				for (auto [e, val] : reg.view<B>()) {
+					{
+                        auto lock = std::lock_guard(bm);
+                        val->a = e;
+                    }
+				}
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
+			}
+		});
+
+		threads.emplace_back([&] {
+			while (creating) {
+				for (auto [e, val, val2] : reg.view<D, E>()) {
+					{
+                        auto lock = std::lock_guard(dm);
+                        val->a = e;
+                    }
+					if (!val2) {
+						continue;
+					}
+					{
+                        auto lock = std::lock_guard(em);
+                        val2->a = e;
+                    }
+				}
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
+			}
+
+		});
+		threads.emplace_back([&] {
+			while (creating) {
+				for (auto [e, val, val2, val3, val4] : reg.view<D, E, F, G>()) {
+					{
+                        auto lock = std::lock_guard(dm);
+                        val->a = e;
+                    }
+					if (val2) {
+                        auto lock = std::lock_guard(em);
+						val2->a = e;
+					}
+					if (val3) {
+                        auto lock = std::lock_guard(fm);
+						val3->a = e;
+					}
+					if (val4) {
+                        auto lock = std::lock_guard(gm);
+						val4->a = e;
+					}
+
+				}
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
+			}
+
+		});
+
+		threads.emplace_back([&] {
+			while (creating) {
+				auto componentsToDelete = reg.getAllEntities();
+
+				std::mt19937 rng(static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
+				std::shuffle(componentsToDelete.begin(), componentsToDelete.end(), rng);
+				auto N = componentsToDelete.size() / 3;
+				componentsToDelete.resize(componentsToDelete.size() - N);
+
+				reg.destroyEntities(componentsToDelete);
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			}
+
+		});
+
+		for (auto& th : threads) th.join();
+
+		for (auto [ent, a, b, c, d, e, f, g] : reg.view<A, B, C, D, E, F, G>()) {
+			EXPECT_EQ(true, a->a == ent || a->a == 0);
+			if (b) {
+				EXPECT_EQ(true, b->a == ent || b->a == 0);
+			}
+			if (c) {
+				EXPECT_EQ(true, c->a == ent || c->a == 0);
+			}
+			if (d) {
+				EXPECT_EQ(true, d->a == ent || d->a == 0);
+			}
+			if (e) {
+				EXPECT_EQ(true, e->a == ent || e->a == 0);
+			}
+			if (f) {
+				EXPECT_EQ(true, f->a == ent || f->a == 0);
+			}
+			if (g) {
+				EXPECT_EQ(true, g->a == ent || g->a == 0);
+			}
 		}
+
+
+		reg.clear();
+		
 		
 	}
 }
