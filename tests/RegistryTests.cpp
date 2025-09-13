@@ -112,7 +112,7 @@ namespace RegistryTests {
 	    Registry registry;
 	    auto entity = registry.takeEntity();
 	    registry.addComponent<Velocity>(entity, (float)1, (float)1);
-	    registry.addComponent<Velocity>(entity, (float)2, (float)2); // Overwrite
+	    registry.addComponent<Velocity>(entity, (float)2, (float)2); 
 	    auto* vel = registry.pinComponent<Velocity>(entity).get();
 	    ASSERT_NE(vel, nullptr);
 	    EXPECT_FLOAT_EQ(vel->dx, 2);
@@ -209,7 +209,7 @@ namespace RegistryTests {
 	    auto b = registry.takeEntity();
 	    registry.addComponent<Position>(a, (float)1, (float)2);
 	    registry.addComponent<Velocity>(a, (float)3, (float)4);
-	    registry.addComponent<Position>(b, (float)5, (float)6); // b без Velocity
+	    registry.addComponent<Position>(b, (float)5, (float)6); 
 
 	    int count = 0;
 	    for (auto [e, pos, vel] : registry.view<Position, Velocity>()) {
@@ -1174,12 +1174,12 @@ namespace RegistryTests {
 		std::atomic_bool running = true;
 		std::atomic_bool foundNaN = false;
 
-		// Писатель: создаёт много сущностей с компонентом Transform
+		
 		std::thread writer([&] {
 			for (int i = 0; i < 10'000 && running; ++i) {
 				auto ent = reg.takeEntity();
 				Transform t{ 1.f,1.f,1.f,1.f,1.f,1.f,1.f,1.f };
-				t.m.h = static_cast<float>(i); // для уникальности
+				t.m.h = static_cast<float>(i); 
 
 				reg.addComponent<Transform>(ent, t);
 
@@ -1189,13 +1189,13 @@ namespace RegistryTests {
 			running = false;
 		});
 
-		// Читатель: параллельно читает Transform и проверяет корректность
+		
 		std::thread reader([&] {
 			while (running && !foundNaN) {
 				for (auto [e, t] : reg.view<Transform>()) {
 					if (!t) continue;
 
-					// Проверка матрицы на NaN/Inf (сломана память?)
+					
 					if (!std::isfinite(t->m.a) || std::isnan(t->m.a)) {
 						std::cerr << "Corrupted matrix found! Entity: " << e << "\n";
 						foundNaN = true;
@@ -1249,7 +1249,7 @@ namespace RegistryTests {
 		std::atomic<bool> stop = false;
 		std::atomic<bool> errorDetected = false;
 
-		// thread: copy comp from source to target
+		
 		std::thread writer([&]() {
 			for (int k = 0; k < 10; k++) {
 				std::vector<EntityId> shuffledIds = ids;
@@ -1272,7 +1272,7 @@ namespace RegistryTests {
 			
 		});
 
-		// thread: iterating and check if there is any matrix corrupted
+		
 		std::thread reader([&]() {
 			while (!stop) {
 				for (auto [ent, t] : target.view<const TransformMatComp>()) {
@@ -1711,13 +1711,13 @@ namespace EntitiesRangeTest
 
 	TEST(EntitiesRanges, EdgeCases) {
 		ER er;
-		er.erase(42); // erasing from empty
+		er.erase(42); 
 		er.insert(0);
 		er.erase(0);
 		EXPECT_TRUE(er.empty());
 		er.insert(10);
 		er.insert(12);
-		er.erase(11); // erasing missing element
+		er.erase(11); 
 		EXPECT_TRUE(er.contains(10));
 		EXPECT_TRUE(er.contains(12));
 		EXPECT_FALSE(er.contains(11));

@@ -174,11 +174,11 @@ namespace ecss {
 		void addComponents(Func&& func) requires(ThreadSafe) {
 			auto container = getComponentContainer<T>();
 			container->writeLock();
-
-			auto res = std::forward<Func>(func)();
+			auto func = std::forward<Func>(func);
+			auto res = func();
 			while (res.first != INVALID_ID) {
 				container->template push<T, false>(res.first, res.second);
-				res = std::forward<Func>(func)();
+				res = func();
 			}
 		}
 
@@ -292,7 +292,12 @@ namespace ecss {
 		 * \param func Callable with signature f(EntityId, Components*...).
 		 */
 		template<typename... Components, typename Func>
-		inline void forEachAsync(const std::vector<EntityId>& entities, Func&& func) noexcept requires(ThreadSafe) { for (auto entity : entities) withPinned<Components...>(entity, func); }
+		inline void forEachAsync(const std::vector<EntityId>& entities, Func&& func) noexcept requires(ThreadSafe)
+		{
+			if (entities.empty()) { return; }
+			auto f = std::forward<Func>(func);
+		    for (const auto& entity : entities) { withPinned<Components...>(entity, f); }
+		}
 
 	public:
 		// ===== Container management ==========================================

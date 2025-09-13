@@ -494,7 +494,7 @@ TEST(SectorsArray, ThreadedFindAndErase) {
 TEST(SectorsArray, InsertInvalidEraseOutOfBounds) {
     auto* arr = SA_T::create<Trivial>();
     arr->insert<Trivial>(0, Trivial{ 10 });
-    arr->erase(10); // out of bounds
+    arr->erase(10); 
     EXPECT_EQ(arr->size(), 1);
     delete arr;
 }
@@ -766,7 +766,6 @@ TEST(SectorsArray, ThreadedIterateReadDuringInsert) {
     delete arr;
 }
 
-    //todo data race
 TEST(SectorsArray_STRESS, ThreadedIterateInsertEraseFuzz) {
     auto* arr = SectorsArray<true, ChunksAllocator<8>>::create<Trivial>();
     std::atomic<bool> running{ true };
@@ -1286,7 +1285,7 @@ TEST(SectorsArray, AllApiBrutalMix) {
     for (int i = 0; i < 1000; i += 2) arr->insert<NonTrivial>(i, NonTrivial{ "i" });
     for (int i = 0; i < 500; ++i) arr->eraseAsync(i);
     arr->defragment();
-    auto* arr2 = new SA_T(*arr); // copy
+    auto* arr2 = new SA_T(*arr); 
     delete arr;
     delete arr2;
 }
@@ -1324,20 +1323,20 @@ TEST(SectorsArray, MultiComponentParallelRumble) {
 }
 
 
-// Примитивные компоненты для лэйаута
+
 struct CompA { int x{ 0 }; };
 struct CompB { float y{ 0.f }; };
 
 TEST(SectorsArrayPins, CreateAndInsertFind) {
     auto* arr = SectorsArray<>::create<CompA, CompB>();
     arr->reserve(4);
-    // Вставляем компонент
+    
     constexpr ecss::SectorId id = 3;
     auto* a = arr->emplace<CompA>(id);
     ASSERT_NE(a, nullptr);
     a->x = 42;
 
-    // На месте?
+    
     EXPECT_TRUE(arr->containsSector(id));
     auto* s = arr->getSector(id);
     ASSERT_NE(s, nullptr);
@@ -1354,20 +1353,20 @@ TEST(SectorsArrayPins, PinPreventsImmediateErase) {
     constexpr ecss::SectorId id = 1;
     arr->emplace<CompA>(id);
 
-    // Пин
+    
     auto pinned = arr->pinSector(id);
     ASSERT_TRUE(bool(pinned));
     EXPECT_TRUE(arr->containsSector(id));
 
-    // Пытаемся удалить — должно уйти в pending (сектор остаётся)
+    
     arr->eraseAsync(id);
     EXPECT_TRUE(arr->containsSector(id));
 
-    // Снимаем пин и обрабатываем отложенные
+    
     pinned.release();
     arr->processPendingErases();
 
-    // Теперь сектора быть не должно
+    
     EXPECT_FALSE(arr->containsSector(id));
 
     delete arr;
@@ -1381,7 +1380,7 @@ TEST(SectorsArrayPins, ImmediateEraseRightmostUnpinned) {
     arr->emplace<CompA>(low);
     arr->emplace<CompA>(high);
 
-    // Ничего не пинним. "Правый" сектор должен удалиться сразу.
+    
     arr->eraseAsync(high);
     EXPECT_FALSE(arr->containsSector(high));
     EXPECT_TRUE(arr->containsSector(low));
@@ -1396,16 +1395,15 @@ TEST(SectorsArrayPins, PendingThenEraseAfterUnpin) {
     constexpr ecss::SectorId id = 0;
     arr->emplace<CompA>(id);
 
-    // Пин + попытка удалить
     {
         auto p = arr->pinSector(id);
         ASSERT_TRUE(bool(p));
         arr->eraseAsync(id);
-        // Пока пин активен — сектор жив
+        
         EXPECT_TRUE(arr->containsSector(id));
-    } // RAII: unpin
+    } 
 
-    // Теперь можно удалить отложенное
+    
     arr->processPendingErases();
     EXPECT_FALSE(arr->containsSector(id));
 
@@ -1415,19 +1413,17 @@ TEST(SectorsArrayPins, PendingThenEraseAfterUnpin) {
 TEST(SectorsArrayPins, SidecarsAutoGrowOnAcquireAndReserve) {
     auto* arr = SectorsArray<>::create<CompA, CompB>();
 
-    // Вставляем сектор с большим id — сайдкары должны расшириться автоматически
     constexpr ecss::SectorId big = 123;
     arr->emplace<CompA>(big);
     EXPECT_TRUE(arr->containsSector(big));
 
-    // Пин/анпин для большого id — важно, что вектора выросли корректно
     {
         auto p = arr->pinSector(big);
         ASSERT_TRUE(bool(p));
     }
-    arr->processPendingErases(); // не должно падать/ничего ломать
+    arr->processPendingErases(); 
 
-    // Дополнительно проверим reserve + последующую вставку
+    
     arr->reserve(512);
     constexpr ecss::SectorId bigger = 400;
     arr->emplace<CompA>(bigger);
@@ -1436,30 +1432,30 @@ TEST(SectorsArrayPins, SidecarsAutoGrowOnAcquireAndReserve) {
     delete arr;
 }
 
-// Дополнительно: проверка, что erase по индексам работает и уважает безопасность
+
 TEST(SectorsArrayPins, EraseByContiguousIndexRespectsPins) {
     auto* arr = SectorsArray<>::create<CompA, CompB>();
     arr->reserve(4);
-    // Делаем два сектора подряд, чтобы у них были 0 и 1 индексы в аллокаторе
+    
     constexpr ecss::SectorId id0 = 10;
     constexpr ecss::SectorId id1 = 11;
     arr->emplace<CompA>(id0);
     arr->emplace<CompA>(id1);
 
-    // Пинним id0, удаляем диапазон [0,2)
+    
     auto p = arr->pinSector(id0);
     ASSERT_TRUE(bool(p));
 
     arr->eraseAsync(/*beginIdx*/10, /*count*/2);
-    // id0 — pinned → должен остаться; id1 — может быть удалён сразу
+    
     EXPECT_TRUE(arr->containsSector(id0));
-     // Снимаем пин и пробуем удалить первый сектор
+     
     p.release();
-    // id1 мог удалиться сразу либо попасть в pending; после обработки точно исчезнет
+    
     arr->processPendingErases();
     EXPECT_FALSE(arr->containsSector(id1));
 
-    arr->processPendingErases(); // на случай, если он был в очереди
+    arr->processPendingErases(); 
     arr->eraseAsync(id0);
     arr->processPendingErases();
     EXPECT_FALSE(arr->containsSector(id0));
