@@ -174,11 +174,11 @@ namespace ecss {
 		void addComponents(Func&& func) requires(ThreadSafe) {
 			auto container = getComponentContainer<T>();
 			container->writeLock();
-			auto func = std::forward<Func>(func);
-			auto res = func();
+			auto f = std::forward<Func>(func);
+			auto res = f();
 			while (res.first != INVALID_ID) {
 				container->template push<T, false>(res.first, res.second);
-				res = func();
+				res = f();
 			}
 		}
 
