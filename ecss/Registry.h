@@ -657,7 +657,7 @@ namespace ecss {
 	 */
 	template <bool ThreadSafe, typename Allocator, bool Ranged, typename T, typename ...ComponentTypes>
 	class ArraysView final {
-		using SectorItType = std::conditional_t<Ranged, typename Memory::SectorsArray<ThreadSafe, Allocator>::RangedIteratorAlive, typename Memory::SectorsArray<ThreadSafe, Allocator>::IteratorAlive>;
+		using SectorItType = typename Memory::SectorsArray<ThreadSafe, Allocator>::IteratorAlive;
 	public:
 		class Iterator {
 		public:
@@ -670,8 +670,7 @@ namespace ecss {
 		public:
 			using SectorArrays = std::array<Memory::SectorsArray<ThreadSafe, Allocator>*, sizeof...(ComponentTypes) + 1>;
 
-			Iterator(const SectorArrays& arrays, typename Memory::SectorsArray<ThreadSafe, Allocator>::RangedIteratorAlive iterator) noexcept requires (Ranged) : mIterator(std::move(iterator)) { initTypeAccessInfo<T, ComponentTypes...>(arrays); }
-			Iterator(const SectorArrays& arrays, typename Memory::SectorsArray<ThreadSafe, Allocator>::IteratorAlive iterator) noexcept requires (!Ranged) : mIterator(std::move(iterator)) { initTypeAccessInfo<T, ComponentTypes...>(arrays); }
+			Iterator(const SectorArrays& arrays, typename Memory::SectorsArray<ThreadSafe, Allocator>::IteratorAlive iterator) : mIterator(std::move(iterator)) { initTypeAccessInfo<T, ComponentTypes...>(arrays); }
 
 			inline value_type operator*() noexcept { return { mIterator->id, reinterpret_cast<T*>(mIterator.rawPtr() + getTypeAccessInfo<T>().typeOffsetInSector), getComponent<ComponentTypes>(mIterator->id)... }; }
 
@@ -681,6 +680,12 @@ namespace ecss {
 			bool operator==(const Iterator& other) const noexcept { return mIterator == other.mIterator; }
 
 		private:
+			template<typename ComponentType>
+			inline ComponentType* getComponent(EntityId sectorId) noexcept { return Iterator::getComponent<ComponentType>((getTypeAccessInfo<ComponentType>().isMain ? *mIterator : getTypeAccessInfo<ComponentType>().array->template findSector<false>(sectorId)),(getTypeAccessInfo<ComponentType>().isMain ? mIterator.rawPtr() : reinterpret_cast<std::byte*>(getTypeAccessInfo<ComponentType>().array->template findSector<false>(sectorId))), getTypeAccessInfo<ComponentType>()); }
+
+			template<typename ComponentType>
+			inline static ComponentType* getComponent(Memory::Sector* sector, std::byte* rawSector, const TypeAccessInfo<ThreadSafe, Allocator>& meta) noexcept { return sector && (sector->isAliveData & meta.typeAliveMask) ? reinterpret_cast<ComponentType*>(rawSector + meta.typeOffsetInSector) : nullptr; }
+
 			template <typename ComponentType>
 			inline constexpr TypeAccessInfo<ThreadSafe, Allocator>& getTypeAccessInfo() noexcept { return std::get<getIndex<ComponentType>()>(mTypeAccessInfo); }
 
@@ -695,12 +700,6 @@ namespace ecss {
 				info.typeOffsetInSector = sectorArray->template getLayoutData<ComponentType>().offset;
 				info.isMain = sectorArray == getTypeAccessInfo<T>().array;
 			}
-
-			template<typename ComponentType>
-			inline ComponentType* getComponent(EntityId sectorId) noexcept { return Iterator::getComponent<ComponentType>((getTypeAccessInfo<ComponentType>().isMain ? *mIterator : getTypeAccessInfo<ComponentType>().array->template findSector<false>(sectorId)),(getTypeAccessInfo<ComponentType>().isMain ? mIterator.rawPtr() : reinterpret_cast<std::byte*>(getTypeAccessInfo<ComponentType>().array->template findSector<false>(sectorId))), getTypeAccessInfo<ComponentType>()); }
-
-			template<typename ComponentType>
-			inline static ComponentType* getComponent(Memory::Sector* sector, std::byte* rawSector, const TypeAccessInfo<ThreadSafe, Allocator>& meta) noexcept { return sector && (sector->isAliveData & meta.typeAliveMask) ? reinterpret_cast<ComponentType*>(rawSector + meta.typeOffsetInSector) : nullptr; }
 
 		private:
 			SectorItType mIterator;
@@ -732,7 +731,6 @@ namespace ecss {
 				}
 
 				beginIt = SectorItType(mArrays[getIndex<T>()], 0, mLast, mArrays[getIndex<T>()]->template getLayoutData<T>().isAliveMask);
-				endIt = SectorItType();
 			}
 
 			if constexpr (ThreadSafe) {
@@ -761,7 +759,6 @@ namespace ecss {
 				mLast = mRanges.empty() ? 0 : mRanges.back().second;
 
 				beginIt = SectorItType(mArrays[getIndex<T>()], mRanges, mArrays[getIndex<T>()]->template getLayoutData<T>().isAliveMask);
-				endIt = SectorItType();
 			}
 
 			if constexpr (ThreadSafe) {
@@ -781,7 +778,7 @@ namespace ecss {
 
 	private:
 		template<typename ComponentType>
-		static inline size_t constexpr getIndex() noexcept {
+		static inline size_t consteval getIndex() noexcept {
 			if constexpr (std::is_same_v<T, ComponentType>) {
 				return 0;
 			}

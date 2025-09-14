@@ -114,36 +114,42 @@ namespace ecss::Memory {
 
 		struct RangesCursor {
 			RangesCursor() = default;
-			RangesCursor(const ChunksAllocator* alloc, const EntitiesRanges& ranges, size_t size, bool checkBounds = true)
+			RangesCursor(const ChunksAllocator* alloc, const EntitiesRanges& ranges, size_t size)
 				: shift(alloc->mSectorSize)
 				, chunkStride(shift * ChunksAllocator<ChunkCapacity>::mChunkCapacity)
 			{
-				spans.reserve(ranges.ranges.size() + alloc->mChunks.size());
+				std::vector<void*> chunks;
+				chunks.assign(alloc->mChunks.begin(), alloc->mChunks.end());
+				if (chunks.empty()) {
+					return;
+				}
+				size = std::min(size, alloc->capacity());
+
+				// precompute all spans as [beginPtr, endPtr)
+				spans.reserve(ranges.ranges.size() + chunks.size());
 
 				// split each logical [first,last) into per-chunk [b,e)
 				for (auto [first, last] : ranges.ranges) {
-					if (checkBounds) {
-						first = std::min(first, static_cast<EntityId>(size));
-						last  = std::min(last,  static_cast<EntityId>(size));
-					}
+					first = std::min(first, static_cast<EntityId>(size));
+					last  = std::min(last,  static_cast<EntityId>(size));
 
 					while (first < last) {
-						const size_t q = first >> std::countr_zero(ChunksAllocator<ChunkCapacity>::mChunkCapacity);
-						const size_t r = first & (ChunksAllocator<ChunkCapacity>::mChunkCapacity - 1);
-						std::byte* base = q >= alloc->mChunks.size() ? nullptr : static_cast<std::byte*>(alloc->mChunks[q]);
+						const auto chunkIndex = ChunksAllocator<ChunkCapacity>::calcChunkIndex(first);
+						std::byte* base = chunkIndex >= chunks.size() ? nullptr : static_cast<std::byte*>(chunks[chunkIndex]);
 						if (!base) break;
 
-						const size_t chunkEndIndex = (q + 1) << std::countr_zero(ChunksAllocator<ChunkCapacity>::mChunkCapacity);
-						const size_t upto = (last < chunkEndIndex) ? last : chunkEndIndex;
-						const size_t count = upto - first;
+						const auto chunkEndIndex = (chunkIndex + 1) << ChunksAllocator<ChunkCapacity>::mChunkShift;
+						const auto upto = (last < chunkEndIndex) ? last : chunkEndIndex;
+						const auto count = upto - first;
 
-						std::byte* b = base + r * shift;
-						std::byte* e = b    + count * shift;
-						if (b != e) { spans.emplace_back(b, e); }
+						auto beginPtr = base + ChunksAllocator<ChunkCapacity>::calcInChunkShift(first, shift);
+						auto endPtr = beginPtr + count * shift;
+						if (beginPtr != endPtr) { spans.emplace_back(beginPtr, endPtr); }
 
 						first = static_cast<decltype(first)>(upto);
 					}
 				}
+				spans.shrink_to_fit();
 
 				if (!spans.empty()) {
 					spanIdx = 0;
@@ -153,15 +159,18 @@ namespace ecss::Memory {
 			}
 
 			inline void nextSpan() noexcept {
-				++spanIdx;
-				if (spanIdx >= spans.size()) [[unlikely]] { ptr = end = nullptr; return; }
-				ptr = spans[spanIdx].first;
-				end = spans[spanIdx].second;
+				if (++spanIdx < spans.size()) [[likely]] {
+					ptr = spans[spanIdx].first;
+					end = spans[spanIdx].second;
+				}
+				else {
+					ptr = end = nullptr;
+				}
 			}
 
 			inline void step() noexcept {
 				ptr += shift;
-				if (ptr == end) [[unlikely]] nextSpan();
+				if (ptr == end) [[unlikely]] { nextSpan(); }
 			}
 
 			std::byte* rawPtr() const noexcept { return ptr; }
@@ -184,7 +193,7 @@ namespace ecss::Memory {
 			std::byte* end{nullptr};
 		};
 
-		RangesCursor getRangesCursor(const EntitiesRanges& ranges, size_t size, bool checkBounds = true) const { return {this, ranges, size, checkBounds}; }
+		RangesCursor getRangesCursor(const EntitiesRanges& ranges, size_t size) const { return {this, ranges, size}; }
 
 	public:
 		// copy
@@ -221,8 +230,8 @@ namespace ecss::Memory {
 		}
 
 	public:
-		Sector* operator[](size_t index) const { return reinterpret_cast<Sector*>(static_cast<std::byte*>(mChunks[calcChunkIndex(index)]) + calcInChunkShift(index)); }
-		Sector* at(size_t index)         const { return reinterpret_cast<Sector*>(static_cast<std::byte*>(mChunks[calcChunkIndex(index)]) + calcInChunkShift(index)); }
+		Sector* operator[](size_t index) const { return reinterpret_cast<Sector*>(static_cast<std::byte*>(mChunks[calcChunkIndex(index)]) + calcInChunkShift(index, mSectorSize)); }
+		Sector* at(size_t index)         const { return reinterpret_cast<Sector*>(static_cast<std::byte*>(mChunks[calcChunkIndex(index)]) + calcInChunkShift(index, mSectorSize)); }
 
 		void moveSectors(size_t dst, size_t src, size_t n) const {
 			if (!n || dst == src) return;
@@ -329,7 +338,7 @@ namespace ecss::Memory {
 
 	private:
 		inline static constexpr size_t calcChunkIndex(size_t sectorIdx) { return sectorIdx >> mChunkShift; }
-		inline constexpr size_t calcInChunkShift(size_t sectorIdx) const { return (sectorIdx & (mChunkCapacity - 1)) * mSectorSize; }
+		inline static constexpr size_t calcInChunkShift(size_t sectorIdx, size_t sectorSize) { return (sectorIdx & (mChunkCapacity - 1)) * sectorSize; }
 
 		template<uint32_t OC>
 		void copyCommonData(const ChunksAllocator<OC>& other)  {

@@ -148,21 +148,21 @@ namespace ecss::Memory {
 
 	public:
 		/// \brief Common iterator typedefs injected into iterator classes.
-#define ITERATOR_COMMON_USING(IteratorName)														\
-		using iterator_concept  = std::forward_iterator_tag;									\
-		using iterator_category = std::forward_iterator_tag;									\
-		using value_type = Sector*;																\
-		using difference_type = std::ptrdiff_t;													\
-		using pointer = Sector*;																\
-		using reference = Sector*;																\
-		IteratorName() = default;																\
-		inline IteratorName operator++(int) { auto tmp = *this; ++(*this); return tmp; }		\
-		inline bool operator!=(const IteratorName& other) const { return !(*this == other); }	\
-		inline bool operator==(const IteratorName& other) const { return mIt == other.mIt; }	\
-		inline value_type operator*() const { return *mIt; }									\
-		inline value_type operator->() const { return *mIt; }									\
-		inline size_t linearIndex() const { return mIt.linearIndex(); }							\
-		inline std::byte* rawPtr()  const { return mIt.rawPtr(); }
+#define ITERATOR_COMMON_USING(IteratorName)															\
+		using iterator_concept  = std::forward_iterator_tag;										\
+		using iterator_category = std::forward_iterator_tag;										\
+		using value_type = Sector*;																	\
+		using difference_type = std::ptrdiff_t;														\
+		using pointer = Sector*;																	\
+		using reference = Sector*;																	\
+		IteratorName() = default;																	\
+		inline IteratorName operator++(int) { auto tmp = *this; ++(*this); return cursor; }			\
+		inline bool operator!=(const IteratorName& other) const { return !(*this == other); }		\
+		inline bool operator==(const IteratorName& other) const { return cursor == other.cursor; }	\
+		inline value_type operator*() const { return *cursor; }										\
+		inline value_type operator->() const { return *cursor; }									\
+		inline size_t linearIndex() const { return cursor.linearIndex(); }							\
+		inline std::byte* rawPtr()  const { return cursor.rawPtr(); }
 
 		 /**
 		 * \brief Linear iterator over sectors (includes dead sectors).
@@ -172,16 +172,16 @@ namespace ecss::Memory {
 		public:
 			ITERATOR_COMMON_USING(Iterator)
 
-			Iterator(const SectorsArray* array, size_t idx)  : mIt(array->mAllocator.getCursor(std::min(idx, array->sizeImpl()))) { }
+			Iterator(const SectorsArray* array, size_t idx) : cursor(array->mAllocator.getCursor(std::min(idx, array->sizeImpl()))) { }
 
-			inline Iterator& operator++() noexcept { return ++mIt, *this; }
-			Iterator& operator+=(difference_type n) noexcept { mIt = mIt + n; return *this; }
+			inline Iterator& operator++() noexcept { return ++cursor, *this; }
+			Iterator& operator+=(difference_type n) noexcept { cursor = cursor + n; return *this; }
 			Iterator operator+(difference_type n) const noexcept { Iterator t(*this); t += n; return t; }
 			friend Iterator operator+(difference_type n, Iterator it) noexcept { it += n; return it; }
 
 			reference operator[](difference_type n) const noexcept { return *(*this + n); }
 		private:
-			typename Allocator::Cursor mIt;
+			typename Allocator::Cursor cursor;
 		};
 
 		template<bool TS = ThreadSafe> Iterator begin() const { TS_GUARD(TS, SHARED, return Iterator(this, 0);); }
@@ -196,24 +196,24 @@ namespace ecss::Memory {
 			ITERATOR_COMMON_USING(IteratorAlive)
 
 			IteratorAlive(const SectorsArray* array, size_t idx, size_t sz, uint32_t aliveMask)
-				: mIt(array->mAllocator.getRangesCursor(EntitiesRanges{{EntitiesRanges::range{idx, sz}}}, array->sizeImpl())), mTypeAliveMask(aliveMask)
-			{
-				while (mIt && !(reinterpret_cast<Sector*>(mIt.rawPtr())->isAliveData & mTypeAliveMask)) { mIt.step(); }
+			: IteratorAlive(array, EntitiesRanges{{ EntitiesRanges::range{static_cast<uint32_t>(idx), static_cast<uint32_t>(sz)} } }, aliveMask) {}
+
+			IteratorAlive(const SectorsArray* array, const EntitiesRanges& range, uint32_t aliveMask) : cursor(array->mAllocator.getRangesCursor(range, array->sizeImpl())), mTypeAliveMask(aliveMask) {
+				while (cursor && !(cursor->isAliveData & mTypeAliveMask)) { cursor.step(); }
 			}
 
-			inline IteratorAlive& operator++()
-			{
-				do { mIt.step(); } while (mIt && !(reinterpret_cast<Sector*>(mIt.rawPtr())->isAliveData & mTypeAliveMask));
-				return *this;
-			}
+			inline IteratorAlive& operator++() { do { cursor.step(); } while (cursor && !(cursor->isAliveData & mTypeAliveMask)); return *this; }
 
 		private:
-			typename Allocator::RangesCursor mIt;
+			typename Allocator::RangesCursor cursor;
 			uint32_t mTypeAliveMask = 0;
 		};
 
-		template<typename T, bool TS = ThreadSafe>
+		template<class T, bool TS = ThreadSafe>
 		IteratorAlive beginAlive()								const { TS_GUARD(TS, SHARED, return IteratorAlive(this, 0, sizeImpl(), getLayoutData<T>().isAliveMask);); }
+		template<class T, bool TS = ThreadSafe>
+		IteratorAlive beginAlive(const EntitiesRanges& ranges)  const { TS_GUARD(TS, SHARED, return IteratorAlive( this, ranges, getLayoutData<T>().isAliveMask );); }
+
 		template<bool TS = ThreadSafe> IteratorAlive endAlive() const { TS_GUARD(TS, SHARED, return IteratorAlive();); }
 
 		/**
@@ -224,39 +224,16 @@ namespace ecss::Memory {
 		public:
 			ITERATOR_COMMON_USING(RangedIterator)
 
-			RangedIterator(const SectorsArray* a, const EntitiesRanges& r) : mIt(a->mAllocator.getRangesCursor(r, a->sizeImpl())) {}
-			inline RangedIterator& operator++() noexcept { mIt.step(); return *this; }
+			RangedIterator(const SectorsArray* a, const EntitiesRanges& r) : cursor(a->mAllocator.getRangesCursor(r, a->sizeImpl())) {}
+
+			inline RangedIterator& operator++() noexcept { cursor.step(); return *this; }
 
 		private:
-			typename Allocator::RangesCursor mIt;
+			typename Allocator::RangesCursor cursor;
 		};
 
 		template<bool TS = ThreadSafe> RangedIterator beginRanged(const EntitiesRanges& ranges) const { TS_GUARD(TS, SHARED, return RangedIterator(this, ranges);); }
 		template<bool TS = ThreadSafe> RangedIterator endRanged()   const { TS_GUARD(TS, SHARED, return RangedIterator();); }
-
-		/**
-		 * \brief Ranged iterator that also filters by alive mask.
-		 * \see beginRangedAlive(), endRangedAlive()
-		 */
-		class RangedIteratorAlive {
-		public:
-			ITERATOR_COMMON_USING(RangedIteratorAlive)
-
-			RangedIteratorAlive(const SectorsArray* a, const EntitiesRanges& r, uint32_t aliveMask)
-				: mIt(a->mAllocator.getRangesCursor(r, a->sizeImpl())), mTypeAliveMask(aliveMask) {
-				while (mIt && !(reinterpret_cast<Sector*>(mIt.rawPtr())->isAliveData & mTypeAliveMask)) { mIt.step(); }
-			}
-
-			inline RangedIteratorAlive& operator++() noexcept { do { mIt.step(); } while (mIt && !(reinterpret_cast<Sector*>(mIt.rawPtr())->isAliveData & mTypeAliveMask)); return *this; }
-
-		private:
-			typename Allocator::RangesCursor mIt;
-			uint32_t mTypeAliveMask = 0;
-		};
-
-		template<typename T, bool TS = ThreadSafe>
-		RangedIteratorAlive beginRangedAlive(const EntitiesRanges& ranges)  const { TS_GUARD(TS, SHARED, return RangedIteratorAlive( this, ranges, getLayoutData<T>().isAliveMask );); }
-		template<bool TS = ThreadSafe> RangedIteratorAlive endRangedAlive() const { TS_GUARD(TS, SHARED, return RangedIteratorAlive();); }
 
 	public:
 		// copy

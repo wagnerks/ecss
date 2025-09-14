@@ -415,7 +415,7 @@ namespace RegistryTests {
 		}
 		auto t1 = std::chrono::high_resolution_clock::now();
 
-		int counter = 0;
+		volatile int counter = 0;
 		auto t2 = std::chrono::high_resolution_clock::now();
 
 		for (auto [e, hel, vel] : registry.view<Health, Velocity>()) {

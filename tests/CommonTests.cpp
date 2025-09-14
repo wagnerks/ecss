@@ -285,8 +285,8 @@ namespace CommonTests {
 		
 		{
 			std::vector<SectorId> got;
-			auto it = arr->beginRangedAlive<Pos>(ranges);
-			auto end = arr->endRangedAlive();
+			auto it = arr->beginAlive<Pos>(ranges);
+			auto end = arr->endAlive();
 			for (; it != end; ++it) got.push_back((*it)->id);
 			for (auto id : got) {
 				EXPECT_EQ(id % 2, 0u);

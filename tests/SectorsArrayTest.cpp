@@ -221,7 +221,7 @@ TEST(SectorsArray, IteratorsTest) {
 
 	size_t counterRangedAliveIt = 0;
 	std::vector<ecss::SectorId> rangedAliveIt;
-	for (auto it = arr->beginRangedAlive<Trivial>(ranges), itEnd = arr->endRangedAlive(); it != itEnd; ++it) {
+	for (auto it = arr->beginAlive<Trivial>(ranges), itEnd = arr->endAlive(); it != itEnd; ++it) {
 		EXPECT_EQ(alivesRanged[counterRangedAliveIt], it->id);
 		counterRangedAliveIt++;
 	}
@@ -363,7 +363,7 @@ TEST(SectorsArray_perfTest, IteratorRangedAliveStress) {
 	volatile size_t counter = 0;
 	auto l = arr->getLayoutData<Trivial>();
 	auto ranges = ecss::EntitiesRanges{ {ecss::EntitiesRanges::range{0, 100}, ecss::EntitiesRanges::range{110, 500}, ecss::EntitiesRanges::range{540, 99'000'000}, ecss::EntitiesRanges::range{99'000'002, 100'000'000}} };
-	for (auto it = arr->beginRangedAlive<Trivial>(ranges), itEnd = arr->endRangedAlive(); it != itEnd; ++it) {
+	for (auto it = arr->beginAlive<Trivial>(ranges), itEnd = arr->endAlive(); it != itEnd; ++it) {
 		sum += static_cast<Trivial*>(Sector::getMemberPtr(it.rawPtr(), l.offset))->a;
 		counter = counter + 1;
 	}
