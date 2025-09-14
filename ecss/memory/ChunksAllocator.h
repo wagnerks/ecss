@@ -49,7 +49,7 @@ namespace ecss::Memory {
 				setLinear(index);
 			}
 
-			Cursor& operator++() noexcept { return stepFast(), *this; }
+			Cursor& operator++() noexcept { return step(), *this; }
 			Cursor& operator+(size_t value) noexcept { return setLinear(linIdx + value), *this; }
 
 			Sector* operator*()  const noexcept { return reinterpret_cast<Sector*>(curB); }
@@ -77,7 +77,7 @@ namespace ecss::Memory {
 			size_t shift = 0;
 			size_t chunkStride = 0;
 
-			inline void stepFast() noexcept {
+			inline void step() noexcept {
 				linIdx += 1;
 				curB += shift;
 				if (curB == chunkEnd) {
@@ -112,6 +112,80 @@ namespace ecss::Memory {
 
 		Cursor getCursor(size_t index = 0) const { return { this, index }; }
 
+		struct RangesCursor {
+			RangesCursor() = default;
+			RangesCursor(const ChunksAllocator* alloc, const EntitiesRanges& ranges, size_t size, bool checkBounds = true)
+				: shift(alloc->mSectorSize)
+				, chunkStride(shift * ChunksAllocator<ChunkCapacity>::mChunkCapacity)
+			{
+				spans.reserve(ranges.ranges.size() + alloc->mChunks.size());
+
+				// split each logical [first,last) into per-chunk [b,e)
+				for (auto [first, last] : ranges.ranges) {
+					if (checkBounds) {
+						first = std::min(first, static_cast<EntityId>(size));
+						last  = std::min(last,  static_cast<EntityId>(size));
+					}
+
+					while (first < last) {
+						const size_t q = first >> std::countr_zero(ChunksAllocator<ChunkCapacity>::mChunkCapacity);
+						const size_t r = first & (ChunksAllocator<ChunkCapacity>::mChunkCapacity - 1);
+						std::byte* base = q >= alloc->mChunks.size() ? nullptr : static_cast<std::byte*>(alloc->mChunks[q]);
+						if (!base) break;
+
+						const size_t chunkEndIndex = (q + 1) << std::countr_zero(ChunksAllocator<ChunkCapacity>::mChunkCapacity);
+						const size_t upto = (last < chunkEndIndex) ? last : chunkEndIndex;
+						const size_t count = upto - first;
+
+						std::byte* b = base + r * shift;
+						std::byte* e = b    + count * shift;
+						if (b != e) { spans.emplace_back(b, e); }
+
+						first = static_cast<decltype(first)>(upto);
+					}
+				}
+
+				if (!spans.empty()) {
+					spanIdx = 0;
+					ptr = spans[0].first;
+					end = spans[0].second;
+				}
+			}
+
+			inline void nextSpan() noexcept {
+				++spanIdx;
+				if (spanIdx >= spans.size()) [[unlikely]] { ptr = end = nullptr; return; }
+				ptr = spans[spanIdx].first;
+				end = spans[spanIdx].second;
+			}
+
+			inline void step() noexcept {
+				ptr += shift;
+				if (ptr == end) [[unlikely]] nextSpan();
+			}
+
+			std::byte* rawPtr() const noexcept { return ptr; }
+			explicit operator bool() const noexcept { return ptr != nullptr; }
+
+			Sector* operator*()  const noexcept { return reinterpret_cast<Sector*>(ptr); }
+			Sector* operator->() const noexcept { return reinterpret_cast<Sector*>(ptr); }
+
+			bool operator==(const RangesCursor& other) const noexcept { return ptr == other.ptr; }
+			bool operator!=(const RangesCursor& other) const noexcept { return !(*this == other); }
+
+		private:
+			std::vector<std::pair<std::byte*, std::byte*>> spans{}; // all ranges as [beginPtr, endPtr)
+			size_t spanIdx{0};
+
+			size_t shift{0};
+			size_t chunkStride{0};
+
+			std::byte* ptr{nullptr};
+			std::byte* end{nullptr};
+		};
+
+		RangesCursor getRangesCursor(const EntitiesRanges& ranges, size_t size, bool checkBounds = true) const { return {this, ranges, size, checkBounds}; }
+
 	public:
 		// copy
 		template<uint32_t OC>
@@ -140,9 +214,9 @@ namespace ecss::Memory {
 		SectorLayoutMeta* getSectorLayout() const { return mSectorLayout; }
 
 		void init(SectorLayoutMeta* layoutMeta) { assert(layoutMeta);
-		    mSectorLayout = layoutMeta;
+			mSectorLayout = layoutMeta;
 
-		    mSectorSize = mSectorLayout->getTotalSize();
+			mSectorSize = mSectorLayout->getTotalSize();
 			mIsSectorTrivial = mSectorLayout->isTrivial();
 		}
 

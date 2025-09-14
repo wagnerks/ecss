@@ -296,7 +296,7 @@ namespace ecss {
 		{
 			if (entities.empty()) { return; }
 			auto f = std::forward<Func>(func);
-		    for (const auto& entity : entities) { withPinned<Components...>(entity, f); }
+			for (const auto& entity : entities) { withPinned<Components...>(entity, f); }
 		}
 
 	public:
@@ -561,18 +561,17 @@ namespace ecss {
 			auto pins = std::make_tuple(pinComponent<Ts>(entity)...);
 			std::apply([&](auto&... pc) { std::forward<F>(f)(entity, pc.get()...); }, pins);
 		}
-        
-        template<typename T, class ArraysArr>
-        static Memory::PinnedSector pinSector(SectorId pinId, const ArraysArr& arrays, Memory::SectorsArray<ThreadSafe, Allocator>* lockedArr, size_t index) {
-            auto container = arrays[index];
-            if (lockedArr == container){
-                return Memory::PinnedSector(container->mPinsCounter, nullptr, pinId);
-            }
-            
-            auto lock = container->readLock();
-            return Memory::PinnedSector(container->mPinsCounter, nullptr, pinId);
-        }
-        
+
+		template<typename T, class ArraysArr>
+		static Memory::PinnedSector pinSector(SectorId pinId, const ArraysArr& arrays, Memory::SectorsArray<ThreadSafe, Allocator>* lockedArr, size_t index) {
+			auto container = arrays[index];
+			if (lockedArr == container){
+				return Memory::PinnedSector(container->mPinsCounter, nullptr, pinId);
+			}
+
+			auto lock = container->readLock();
+			return Memory::PinnedSector(container->mPinsCounter, nullptr, pinId);
+		}
 
 		template <class... T>
 		static std::array<Memory::PinnedSector, sizeof...(T)> pinContainers(SectorId pinId, const std::array<Memory::SectorsArray<ThreadSafe, Allocator>*, sizeof...(T)>& arrays, Memory::SectorsArray<ThreadSafe, Allocator>* lockedArr) noexcept requires(ThreadSafe) {
@@ -658,7 +657,7 @@ namespace ecss {
 	 */
 	template <bool ThreadSafe, typename Allocator, bool Ranged, typename T, typename ...ComponentTypes>
 	class ArraysView final {
-        using SectorItType = std::conditional_t<Ranged, typename Memory::SectorsArray<ThreadSafe, Allocator>::RangedIteratorAlive, typename Memory::SectorsArray<ThreadSafe, Allocator>::IteratorAlive>;
+		using SectorItType = std::conditional_t<Ranged, typename Memory::SectorsArray<ThreadSafe, Allocator>::RangedIteratorAlive, typename Memory::SectorsArray<ThreadSafe, Allocator>::IteratorAlive>;
 	public:
 		class Iterator {
 		public:
@@ -709,12 +708,12 @@ namespace ecss {
 			std::tuple<TypeAccessInfo<ThreadSafe, Allocator>, decltype((void)sizeof(ComponentTypes), TypeAccessInfo<ThreadSafe, Allocator>{})...> mTypeAccessInfo;
 		};
 
-        inline Iterator begin() noexcept {
-            return Iterator{ mArrays, beginIt };
+		inline Iterator begin() noexcept {
+			return Iterator{ mArrays, beginIt };
 		}
 
 		inline Iterator end() noexcept {
-            return Iterator{ mArrays, endIt };
+			return Iterator{ mArrays, endIt };
 		}
 
 	public:
@@ -733,7 +732,7 @@ namespace ecss {
 				}
 
 				beginIt = SectorItType(mArrays[getIndex<T>()], 0, mLast, mArrays[getIndex<T>()]->template getLayoutData<T>().isAliveMask);
-				endIt = SectorItType(mArrays[getIndex<T>()], mLast);
+				endIt = SectorItType();
 			}
 
 			if constexpr (ThreadSafe) {
@@ -762,7 +761,7 @@ namespace ecss {
 				mLast = mRanges.empty() ? 0 : mRanges.back().second;
 
 				beginIt = SectorItType(mArrays[getIndex<T>()], mRanges, mArrays[getIndex<T>()]->template getLayoutData<T>().isAliveMask);
-				endIt = SectorItType(mArrays[getIndex<T>()], mLast);
+				endIt = SectorItType();
 			}
 
 			if constexpr (ThreadSafe) {
@@ -798,8 +797,8 @@ namespace ecss {
 		}
 
 	private:
-        SectorItType beginIt;
-        SectorItType endIt;
+		SectorItType beginIt;
+		SectorItType endIt;
 		std::array<Memory::SectorsArray<ThreadSafe, Allocator>*, sizeof...(ComponentTypes) + 1> mArrays;
 		std::array<Memory::PinnedSector, sizeof...(ComponentTypes) + 1> mPins;
 		size_t mLast = 0;

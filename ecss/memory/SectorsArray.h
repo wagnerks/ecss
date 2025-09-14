@@ -174,7 +174,7 @@ namespace ecss::Memory {
 
 			Iterator(const SectorsArray* array, size_t idx, bool checkBounds = true)  : mIt(array->mAllocator.getCursor(checkBounds ? std::min(idx, array->sizeImpl()) : idx)) { }
 
-			Iterator& operator++() noexcept { return ++mIt, *this; }
+			inline Iterator& operator++() noexcept { return ++mIt, *this; }
 			Iterator& operator+=(difference_type n) noexcept { mIt = mIt + n; return *this; }
 			Iterator operator+(difference_type n) const noexcept { Iterator t(*this); t += n; return t; }
 			friend Iterator operator+(difference_type n, Iterator it) noexcept { it += n; return it; }
@@ -196,25 +196,25 @@ namespace ecss::Memory {
 			ITERATOR_COMMON_USING(IteratorAlive)
 
 			IteratorAlive(const SectorsArray* array, size_t idx, size_t sz, uint32_t aliveMask, bool checkBounds = true)
-				: mIt(array, idx, checkBounds), mLastIt(array, sz, checkBounds), typeAliveMask(aliveMask)
+				: mIt(array->mAllocator.getRangesCursor(EntitiesRanges{{EntitiesRanges::range{idx, sz}}}, array->sizeImpl(), checkBounds)), mTypeAliveMask(aliveMask)
 			{
-				while (mIt != mLastIt && !(mIt->isAliveData & typeAliveMask)) { ++mIt; }
+				while (mIt && !(reinterpret_cast<Sector*>(mIt.rawPtr())->isAliveData & mTypeAliveMask)) { mIt.step(); }
 			}
 
-			IteratorAlive(const SectorsArray* array, size_t idx, bool checkBounds = true)  : mIt(array, idx, checkBounds) {}
-
-			inline IteratorAlive& operator++() { do { ++mIt; } while (mIt != mLastIt && !(mIt->isAliveData & typeAliveMask)); return *this; }
+			inline IteratorAlive& operator++()
+			{
+				do { mIt.step(); } while (mIt && !(reinterpret_cast<Sector*>(mIt.rawPtr())->isAliveData & mTypeAliveMask));
+				return *this;
+			}
 
 		private:
-			Iterator mIt;
-			Iterator mLastIt{};
-
-			uint32_t typeAliveMask = 0;
+			typename Allocator::RangesCursor mIt;
+			uint32_t mTypeAliveMask = 0;
 		};
 
 		template<typename T, bool TS = ThreadSafe>
 		IteratorAlive beginAlive()								const { TS_GUARD(TS, SHARED, return IteratorAlive(this, 0, sizeImpl(), getLayoutData<T>().isAliveMask);); }
-		template<bool TS = ThreadSafe> IteratorAlive endAlive() const { TS_GUARD(TS, SHARED, return IteratorAlive(this, sizeImpl());); }
+		template<bool TS = ThreadSafe> IteratorAlive endAlive() const { TS_GUARD(TS, SHARED, return IteratorAlive();); }
 
 		/**
 		 * \brief Iterator that walks a set of index ranges.
@@ -224,40 +224,15 @@ namespace ecss::Memory {
 		public:
 			ITERATOR_COMMON_USING(RangedIterator)
 
-			RangedIterator(const SectorsArray* array, const EntitiesRanges& ranges, bool checkBounds = true) : mIt(array, 0, checkBounds) {
-				if (ranges.ranges.empty()) { return; }
-
-				mIterators.reserve(ranges.ranges.size() * 2);
-				for (auto it = ranges.ranges.rbegin(), endIt = ranges.ranges.rend(); it != endIt; ++it) {
-					mIterators.emplace_back(array, it->second, checkBounds);
-					mIterators.emplace_back(array, it->first, checkBounds);
-				}
-				mIt = std::move(mIterators.back());
-				mIterators.pop_back();
-			}
-
-			RangedIterator(const SectorsArray* array, size_t idx, bool checkBounds = true) : mIt(array, idx, checkBounds) {}
-
-			inline RangedIterator& operator++() {
-				++mIt;
-				if (mIt == mIterators.back()) [[unlikely]] {
-					mIterators.pop_back();
-					if (mIterators.empty()) [[unlikely]] {
-						return *this;
-					}
-					mIt = std::move(mIterators.back());
-					mIterators.pop_back();
-				}
-				return *this;
-			}
+			RangedIterator(const SectorsArray* a, const EntitiesRanges& r, bool cb=true) : mIt(a->mAllocator.getRangesCursor(r, a->sizeImpl(), cb)) {}
+			inline RangedIterator& operator++() noexcept { mIt.step(); return *this; }
 
 		private:
-			Iterator mIt;
-			std::vector<Iterator> mIterators;
+			typename Allocator::RangesCursor mIt;
 		};
 
 		template<bool TS = ThreadSafe> RangedIterator beginRanged(const EntitiesRanges& ranges) const { TS_GUARD(TS, SHARED, return RangedIterator(this, ranges);); }
-		template<bool TS = ThreadSafe> RangedIterator endRanged(const EntitiesRanges& ranges)   const { TS_GUARD(TS, SHARED, return RangedIterator(this, ranges.empty() ? 0 : ranges.back().second);); }
+		template<bool TS = ThreadSafe> RangedIterator endRanged()   const { TS_GUARD(TS, SHARED, return RangedIterator();); }
 
 		/**
 		 * \brief Ranged iterator that also filters by alive mask.
@@ -267,27 +242,21 @@ namespace ecss::Memory {
 		public:
 			ITERATOR_COMMON_USING(RangedIteratorAlive)
 
-			RangedIteratorAlive(const SectorsArray* array, const EntitiesRanges& ranges, uint32_t aliveMask, bool checkBounds = true)
-			: mIt{ array, ranges, checkBounds }
-			, mLast{ array, ranges.empty() ? 0 : ranges.back().second }
-			, mAliveMask(aliveMask)
-			{
-				while (mIt != mLast && !(mIt->isAliveData & mAliveMask)) { ++mIt; }
+			RangedIteratorAlive(const SectorsArray* a, const EntitiesRanges& r, uint32_t aliveMask, bool cb=true)
+				: mIt(a->mAllocator.getRangesCursor(r, a->sizeImpl(), cb)), mTypeAliveMask(aliveMask) {
+				while (mIt && !(reinterpret_cast<Sector*>(mIt.rawPtr())->isAliveData & mTypeAliveMask)) { mIt.step(); }
 			}
 
-			RangedIteratorAlive(const SectorsArray* array, size_t idx, bool checkBounds = true)  : mIt(array, idx, checkBounds) {}
-
-			inline RangedIteratorAlive& operator++() { do { ++mIt; } while (mIt != mLast && !(mIt->isAliveData & mAliveMask)); return *this; }
+			inline RangedIteratorAlive& operator++() noexcept { do { mIt.step(); } while (mIt && !(reinterpret_cast<Sector*>(mIt.rawPtr())->isAliveData & mTypeAliveMask)); return *this; }
 
 		private:
-			RangedIterator mIt;
-			RangedIterator mLast = {};
-			uint32_t mAliveMask = 0;
+			typename Allocator::RangesCursor mIt;
+			uint32_t mTypeAliveMask = 0;
 		};
 
 		template<typename T, bool TS = ThreadSafe>
-		RangedIteratorAlive beginRangedAlive(const EntitiesRanges& ranges)								const { TS_GUARD(TS, SHARED, return RangedIteratorAlive( this, ranges, getLayoutData<T>().isAliveMask );); }
-		template<bool TS = ThreadSafe> RangedIteratorAlive endRangedAlive(const EntitiesRanges& ranges) const { TS_GUARD(TS, SHARED, return RangedIteratorAlive( this, ranges.empty() ? 0 : ranges.back().second );); }
+		RangedIteratorAlive beginRangedAlive(const EntitiesRanges& ranges)  const { TS_GUARD(TS, SHARED, return RangedIteratorAlive( this, ranges, getLayoutData<T>().isAliveMask );); }
+		template<bool TS = ThreadSafe> RangedIteratorAlive endRangedAlive() const { TS_GUARD(TS, SHARED, return RangedIteratorAlive();); }
 
 	public:
 		// copy
