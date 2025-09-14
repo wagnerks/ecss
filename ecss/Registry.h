@@ -674,7 +674,7 @@ namespace ecss {
 			Iterator(const SectorArrays& arrays, typename Memory::SectorsArray<ThreadSafe, Allocator>::RangedIteratorAlive iterator) noexcept requires (Ranged) : mIterator(std::move(iterator)) { initTypeAccessInfo<T, ComponentTypes...>(arrays); }
 			Iterator(const SectorArrays& arrays, typename Memory::SectorsArray<ThreadSafe, Allocator>::IteratorAlive iterator) noexcept requires (!Ranged) : mIterator(std::move(iterator)) { initTypeAccessInfo<T, ComponentTypes...>(arrays); }
 
-			inline value_type operator*() noexcept { return { (*mIterator)->id, reinterpret_cast<T*>(reinterpret_cast<char*>(*mIterator) + getTypeAccessInfo<T>().typeOffsetInSector), getComponent<ComponentTypes>((*mIterator)->id)... }; }
+			inline value_type operator*() noexcept { return { mIterator->id, reinterpret_cast<T*>(mIterator.rawPtr() + getTypeAccessInfo<T>().typeOffsetInSector), getComponent<ComponentTypes>(mIterator->id)... }; }
 
 			inline Iterator& operator++() noexcept { return ++mIterator, * this; }
 
@@ -698,10 +698,10 @@ namespace ecss {
 			}
 
 			template<typename ComponentType>
-			inline ComponentType* getComponent(EntityId sectorId) noexcept { return Iterator::getComponent<ComponentType>((getTypeAccessInfo<ComponentType>().isMain ? *mIterator : getTypeAccessInfo<ComponentType>().array->template findSector<false>(sectorId)), getTypeAccessInfo<ComponentType>()); }
+			inline ComponentType* getComponent(EntityId sectorId) noexcept { return Iterator::getComponent<ComponentType>((getTypeAccessInfo<ComponentType>().isMain ? *mIterator : getTypeAccessInfo<ComponentType>().array->template findSector<false>(sectorId)),(getTypeAccessInfo<ComponentType>().isMain ? mIterator.rawPtr() : reinterpret_cast<std::byte*>(getTypeAccessInfo<ComponentType>().array->template findSector<false>(sectorId))), getTypeAccessInfo<ComponentType>()); }
 
 			template<typename ComponentType>
-			inline static ComponentType* getComponent(Memory::Sector* sector, const TypeAccessInfo<ThreadSafe, Allocator>& meta) noexcept { return sector && (sector->isAliveData & meta.typeAliveMask) ? reinterpret_cast<ComponentType*>(reinterpret_cast<char*>(sector) + meta.typeOffsetInSector) : nullptr; }
+			inline static ComponentType* getComponent(Memory::Sector* sector, std::byte* rawSector, const TypeAccessInfo<ThreadSafe, Allocator>& meta) noexcept { return sector && (sector->isAliveData & meta.typeAliveMask) ? reinterpret_cast<ComponentType*>(rawSector + meta.typeOffsetInSector) : nullptr; }
 
 		private:
 			std::conditional_t<Ranged, typename Memory::SectorsArray<ThreadSafe, Allocator>::RangedIteratorAlive, typename Memory::SectorsArray<ThreadSafe, Allocator>::IteratorAlive> mIterator;

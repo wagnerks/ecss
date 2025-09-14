@@ -160,7 +160,9 @@ namespace ecss::Memory {
 		inline bool operator!=(const IteratorName& other) const { return !(*this == other); }	\
 		inline bool operator==(const IteratorName& other) const { return mIt == other.mIt; }	\
 		inline value_type operator*() const { return *mIt; }									\
-		inline value_type operator->() const { return *mIt; }
+		inline value_type operator->() const { return *mIt; }									\
+		inline size_t linearIndex() const { return mIt.linearIndex(); }							\
+		inline std::byte* rawPtr()  const { return mIt.rawPtr(); }
 
 		 /**
 		 * \brief Linear iterator over sectors (includes dead sectors).
@@ -172,14 +174,12 @@ namespace ecss::Memory {
 
 			Iterator(const SectorsArray* array, size_t idx, bool checkBounds = true)  : mIt(array->mAllocator.getCursor(checkBounds ? std::min(idx, array->sizeImpl()) : idx)) { }
 
-			Iterator& operator++() noexcept { ++mIt; return *this; }
+			Iterator& operator++() noexcept { return ++mIt, *this; }
 			Iterator& operator+=(difference_type n) noexcept { mIt = mIt + n; return *this; }
 			Iterator operator+(difference_type n) const noexcept { Iterator t(*this); t += n; return t; }
 			friend Iterator operator+(difference_type n, Iterator it) noexcept { it += n; return it; }
 
 			reference operator[](difference_type n) const noexcept { return *(*this + n); }
-
-			size_t linearIndex() const { return mIt.linearIndex(); }
 		private:
 			typename Allocator::Cursor mIt;
 		};

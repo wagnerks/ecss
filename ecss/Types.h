@@ -15,7 +15,7 @@ namespace ecss {
 	namespace types {
 		template <typename Base, typename... Types>
 		struct OffsetArray {
-			static constexpr std::size_t align_up(std::size_t n, std::size_t a) noexcept {
+			static constexpr uint32_t align_up(uint32_t n, uint32_t a) noexcept {
 				return (n + (a - 1)) / a * a;
 			}
 
@@ -23,26 +23,44 @@ namespace ecss {
 			static constexpr size_t baseSize = align_up(sizeof(Base), alignof(Base));
 
 			template <size_t I>
-			static constexpr uint32_t get() {
+			static consteval uint32_t get() {
 				using Tup = std::tuple<Types...>;
 				using Cur = std::tuple_element_t<I, Tup>;
 				if constexpr (I == 0) {
-					return static_cast<uint32_t>(baseSize);
+					return align_up(baseSize, alignof(Cur));
 				}
 				else {
 					using Prev = std::tuple_element_t<I - 1, Tup>;
-					constexpr uint32_t prev = get<I - 1>();
-					return static_cast<uint32_t>(align_up(align_up(prev + sizeof(Prev), alignof(Cur)), alignof(Base)));
+					constexpr size_t prev = get<I - 1>();
+					return align_up(prev + sizeof(Prev), alignof(Cur));
 				}
 			}
 
 			template <size_t... Is>
-			static constexpr std::array<uint32_t, count> make(std::index_sequence<Is...>) {
+			static consteval std::array<uint32_t, count> make(std::index_sequence<Is...>) {
 				return { get<Is>()... };
 			}
 
+			static constexpr uint32_t max_align = []{
+				uint32_t m = alignof(Base);
+				((m = m < alignof(Types) ? alignof(Types) : m), ...);
+				return m;
+			}();
+
 			static constexpr std::array<uint32_t, count> offsets = make(std::make_index_sequence<count>{});
-			static constexpr size_t totalSize = align_up(offsets.back() + sizeof(std::tuple_element_t<count - 1, std::tuple<Types...>>), alignof(Base));
+			static constexpr size_t totalSize = align_up(offsets.back() + sizeof(std::tuple_element_t<count - 1, std::tuple<Types...>>), max_align);
+
+			template<class T, std::size_t Off>
+			static consteval void check_one() {
+				static_assert(Off % alignof(T) == 0, "component misaligned");
+			}
+
+			static consteval void static_checks() {
+				[]<std::size_t... Is>(std::index_sequence<Is...>) {
+					(check_one<std::tuple_element_t<Is, std::tuple<Types...>>, offsets[Is]>(), ...);
+				}(std::make_index_sequence<count>{});
+				static_assert(totalSize % max_align == 0, "stride must be multiple of max_align");
+			}
 		};
 
 		template <typename T>

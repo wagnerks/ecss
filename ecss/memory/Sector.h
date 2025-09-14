@@ -16,7 +16,7 @@ namespace ecss::Memory {
 	 * \param id           Sector identifier.
 	 * \param isAliveData  Bitfield of component liveness; 32 bits => up to 32 components per sector.
 	 */
-	struct Sector final {
+	struct alignas(8) Sector final {
 		SectorId id;
 		uint32_t isAliveData;
 
@@ -65,6 +65,8 @@ namespace ecss::Memory {
 		inline static void* getMemberPtr(const Sector* sectorAdr, size_t offset) { return const_cast<char*>(reinterpret_cast<const char*>(sectorAdr) + offset); }
 		/** @overload */
 		inline static void* getMemberPtr(Sector* sectorAdr, size_t offset) { return reinterpret_cast<char*>(sectorAdr) + offset; }
+		/** @overload */
+		inline static void* getMemberPtr(std::byte* sectorAdr, size_t offset) { return sectorAdr + offset; }
 
 		/** @brief Fetch component pointer of type T from a sector using its layout; may be nullptr if not alive. */
 		template <typename T>

@@ -9,7 +9,7 @@
 namespace ecss::Memory {
 	namespace Dummy // Dummy sector for correct size calculation 
 	{
-		struct Sector { SectorId id; uint32_t isAliveData; };
+		struct alignas(8) Sector { SectorId id; uint32_t isAliveData; };
 	}
 
 	/** @brief Metadata describing how a component type is laid out within a Sector.

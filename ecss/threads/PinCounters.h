@@ -190,7 +190,8 @@ namespace ecss::Threads {
 			}
 		}
 
-		void waitUntilSectorChangeable(SectorId sid) const {
+		// this function is not safe until each sector pin guarantees that sector is not moved
+		/*void waitUntilSectorChangeable(SectorId sid) const {
 			assert(sid != INVALID_ID);
 			for (;;) {
 				auto& var = get(sid);
@@ -201,7 +202,7 @@ namespace ecss::Threads {
 				}
 				return;
 			}
-		}
+		}*/
 
 		bool isPinned(SectorId id) const {
 			return get(id).load(std::memory_order_acquire) != 0;
