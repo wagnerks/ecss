@@ -703,7 +703,7 @@ namespace ecss {
 			inline static ComponentType* getComponent(Memory::Sector* sector, std::byte* rawSector, const TypeAccessInfo<ThreadSafe, Allocator>& meta) noexcept { return sector && (sector->isAliveData & meta.typeAliveMask) ? reinterpret_cast<ComponentType*>(rawSector + meta.typeOffsetInSector) : nullptr; }
 
 		private:
-			std::conditional_t<Ranged, typename Memory::SectorsArray<ThreadSafe, Allocator>::RangedIteratorAlive, typename Memory::SectorsArray<ThreadSafe, Allocator>::IteratorAlive> mIterator;
+			SectorItType mIterator;
 
 			std::tuple<TypeAccessInfo<ThreadSafe, Allocator>, decltype((void)sizeof(ComponentTypes), TypeAccessInfo<ThreadSafe, Allocator>{})...> mTypeAccessInfo;
 		};

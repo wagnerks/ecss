@@ -172,7 +172,7 @@ namespace ecss::Memory {
 		public:
 			ITERATOR_COMMON_USING(Iterator)
 
-			Iterator(const SectorsArray* array, size_t idx, bool checkBounds = true)  : mIt(array->mAllocator.getCursor(checkBounds ? std::min(idx, array->sizeImpl()) : idx)) { }
+			Iterator(const SectorsArray* array, size_t idx)  : mIt(array->mAllocator.getCursor(std::min(idx, array->sizeImpl()))) { }
 
 			inline Iterator& operator++() noexcept { return ++mIt, *this; }
 			Iterator& operator+=(difference_type n) noexcept { mIt = mIt + n; return *this; }
@@ -195,8 +195,8 @@ namespace ecss::Memory {
 		public:
 			ITERATOR_COMMON_USING(IteratorAlive)
 
-			IteratorAlive(const SectorsArray* array, size_t idx, size_t sz, uint32_t aliveMask, bool checkBounds = true)
-				: mIt(array->mAllocator.getRangesCursor(EntitiesRanges{{EntitiesRanges::range{idx, sz}}}, array->sizeImpl(), checkBounds)), mTypeAliveMask(aliveMask)
+			IteratorAlive(const SectorsArray* array, size_t idx, size_t sz, uint32_t aliveMask)
+				: mIt(array->mAllocator.getRangesCursor(EntitiesRanges{{EntitiesRanges::range{idx, sz}}}, array->sizeImpl())), mTypeAliveMask(aliveMask)
 			{
 				while (mIt && !(reinterpret_cast<Sector*>(mIt.rawPtr())->isAliveData & mTypeAliveMask)) { mIt.step(); }
 			}
@@ -224,7 +224,7 @@ namespace ecss::Memory {
 		public:
 			ITERATOR_COMMON_USING(RangedIterator)
 
-			RangedIterator(const SectorsArray* a, const EntitiesRanges& r, bool cb=true) : mIt(a->mAllocator.getRangesCursor(r, a->sizeImpl(), cb)) {}
+			RangedIterator(const SectorsArray* a, const EntitiesRanges& r) : mIt(a->mAllocator.getRangesCursor(r, a->sizeImpl())) {}
 			inline RangedIterator& operator++() noexcept { mIt.step(); return *this; }
 
 		private:
@@ -242,8 +242,8 @@ namespace ecss::Memory {
 		public:
 			ITERATOR_COMMON_USING(RangedIteratorAlive)
 
-			RangedIteratorAlive(const SectorsArray* a, const EntitiesRanges& r, uint32_t aliveMask, bool cb=true)
-				: mIt(a->mAllocator.getRangesCursor(r, a->sizeImpl(), cb)), mTypeAliveMask(aliveMask) {
+			RangedIteratorAlive(const SectorsArray* a, const EntitiesRanges& r, uint32_t aliveMask)
+				: mIt(a->mAllocator.getRangesCursor(r, a->sizeImpl())), mTypeAliveMask(aliveMask) {
 				while (mIt && !(reinterpret_cast<Sector*>(mIt.rawPtr())->isAliveData & mTypeAliveMask)) { mIt.step(); }
 			}
 
