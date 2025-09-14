@@ -5,7 +5,6 @@
 
 #include <ecss/memory/Sector.h>
 #include <ecss/memory/RetireAllocator.h>
-#include <ecss/memory/AssumeAlligned.h>
 
 namespace ecss::Memory {
 
@@ -93,7 +92,6 @@ namespace ecss::Memory {
 					return;
 				}
 				chunkBase = static_cast<std::byte*>(chunks[chunkIdx]);
-				chunkBase = ecss::assume_aligned<64>(chunkBase);
 				curB      = chunkBase;
 				chunkEnd  = chunkBase + chunkStride;
 			}
@@ -107,7 +105,6 @@ namespace ecss::Memory {
 
 				const size_t in = newIdx - chunkIdx * ChunksAllocator<ChunkCapacity>::mChunkCapacity;
 				chunkBase = static_cast<std::byte*>(chunks[chunkIdx]);
-				chunkBase = ecss::assume_aligned<64>(chunkBase);
 				curB      = chunkBase + in * shift;
 				chunkEnd  = chunkBase + chunkStride;
 			}
