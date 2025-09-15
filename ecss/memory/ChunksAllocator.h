@@ -42,7 +42,7 @@ namespace ecss::Memory {
 		struct Cursor {
 			Cursor() = default;
 
-			Cursor(const ChunksAllocator* allocator, size_t index = 0) noexcept : shift(allocator->mSectorSize), chunkStride(shift * ChunksAllocator<ChunkCapacity>::mChunkCapacity)
+			Cursor(const ChunksAllocator* allocator, size_t index = 0) noexcept : shift(allocator->mSectorSize)
 			{
 				chunks.assign(allocator->mChunks.begin(), allocator->mChunks.end());
 				chunksCount = chunks.size();
@@ -75,7 +75,6 @@ namespace ecss::Memory {
 			std::byte* chunkEnd  = nullptr;
 
 			size_t shift = 0;
-			size_t chunkStride = 0;
 
 			inline void step() noexcept {
 				linIdx += 1;
@@ -93,7 +92,7 @@ namespace ecss::Memory {
 				}
 				chunkBase = static_cast<std::byte*>(chunks[chunkIdx]);
 				curB      = chunkBase;
-				chunkEnd  = chunkBase + chunkStride;
+				chunkEnd  = chunkBase + shift * ChunksAllocator<ChunkCapacity>::mChunkCapacity;
 			}
 
 			inline void setLinear(size_t newIdx) noexcept {
@@ -106,7 +105,7 @@ namespace ecss::Memory {
 				const size_t in = newIdx - chunkIdx * ChunksAllocator<ChunkCapacity>::mChunkCapacity;
 				chunkBase = static_cast<std::byte*>(chunks[chunkIdx]);
 				curB      = chunkBase + in * shift;
-				chunkEnd  = chunkBase + chunkStride;
+				chunkEnd  = chunkBase + shift * ChunksAllocator<ChunkCapacity>::mChunkCapacity;
 			}
 		};
 
@@ -114,10 +113,7 @@ namespace ecss::Memory {
 
 		struct RangesCursor {
 			RangesCursor() = default;
-			RangesCursor(const ChunksAllocator* alloc, const EntitiesRanges& ranges, size_t size)
-				: shift(alloc->mSectorSize)
-				, chunkStride(shift * ChunksAllocator<ChunkCapacity>::mChunkCapacity)
-			{
+			RangesCursor(const ChunksAllocator* alloc, const EntitiesRanges& ranges, size_t size) : shift(alloc->mSectorSize) {
 				std::vector<void*> chunks;
 				chunks.assign(alloc->mChunks.begin(), alloc->mChunks.end());
 				if (chunks.empty()) {
@@ -185,9 +181,7 @@ namespace ecss::Memory {
 		private:
 			std::vector<std::pair<std::byte*, std::byte*>> spans{}; // all ranges as [beginPtr, endPtr)
 			size_t spanIdx{0};
-
 			size_t shift{0};
-			size_t chunkStride{0};
 
 			std::byte* ptr{nullptr};
 			std::byte* end{nullptr};

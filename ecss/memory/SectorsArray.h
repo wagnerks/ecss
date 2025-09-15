@@ -226,6 +226,8 @@ namespace ecss::Memory {
 
 			RangedIterator(const SectorsArray* a, const EntitiesRanges& r) : cursor(a->mAllocator.getRangesCursor(r, a->sizeImpl())) {}
 
+			void advanceToId(SectorId id) {	while (cursor && cursor->id < id) { cursor.step(); } }
+
 			inline RangedIterator& operator++() noexcept { cursor.step(); return *this; }
 
 		private:
@@ -385,6 +387,7 @@ namespace ecss::Memory {
 
 		template<bool TS = ThreadSafe> bool containsSector(SectorId id)					     const { TS_GUARD(TS, SHARED, return containsSectorImpl(id)); }
 		template<bool TS = ThreadSafe> Sector* at(size_t sectorIndex)						 const { TS_GUARD(TS, SHARED, return atImpl(sectorIndex)); }
+		//todo make it faster (avoid atomic load twice)
 		template<bool TS = ThreadSafe> Sector* findSector(SectorId id)						 const { TS_GUARD(TS, SHARED, return findSectorImpl(id)); }
 		template<bool TS = ThreadSafe> Sector* getSector(SectorId id)						 const { TS_GUARD(TS, SHARED, return getSectorImpl(id)); }
 
@@ -605,7 +608,7 @@ namespace ecss::Memory {
 		bool containsSectorImpl(SectorId id)	const { return findSectorImpl(id) != nullptr; }
 
 		Sector* atImpl(size_t sectorIndex)		const { assert(sectorIndex < mSize); return mAllocator.at(sectorIndex); }
-		Sector* findSectorImpl(SectorId id)		const { return id < mSectorsMapView.load().size ? mSectorsMapView.load().vectorData[id] : nullptr; }
+		Sector* findSectorImpl(SectorId id)		const { auto map = mSectorsMapView.load(); return id < map.size ? map.vectorData[id] : nullptr; }
 		Sector* getSectorImpl(SectorId id)		const { assert(id < mSectorsMapView.load().size); return mSectorsMapView.load().vectorData[id]; }
 		// return INVALID_ID if not found
 		size_t getSectorIndexImpl(SectorId id)	const { return mAllocator.find(findSectorImpl(id)); }

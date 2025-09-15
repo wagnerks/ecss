@@ -49,10 +49,10 @@ namespace ecss::Memory {
 		*  \return Pointer to T or nullptr if not alive.
 		*/
 		template<typename T>
-		inline constexpr T* getMember(size_t offset, size_t mask) const { return isAliveData & mask ? static_cast<T*>(getMemberPtr(this, offset)) : nullptr; }
+		inline constexpr T* getMember(uint16_t offset, uint32_t mask) const { return isAliveData & mask ? static_cast<T*>(getMemberPtr(this, offset)) : nullptr; }
 		/** @overload */
 		template<typename T>
-		inline constexpr T* getMember(size_t offset, size_t mask) { return isAliveData & mask ? static_cast<T*>(getMemberPtr(this, offset)) : nullptr; }
+		inline constexpr T* getMember(uint16_t offset, uint32_t mask) { return isAliveData & mask ? static_cast<T*>(getMemberPtr(this, offset)) : nullptr; }
 
 		/** @brief Get a member pointer using layout metadata; returns nullptr if not alive. */
 		template<typename T>
@@ -62,11 +62,11 @@ namespace ecss::Memory {
 		inline constexpr T* getMember(const LayoutData& layout) { return getMember<T>(layout.offset, layout.isAliveMask); }
 
 		/** @brief Raw member address by byte offset from the sector base. */
-		inline static void* getMemberPtr(const Sector* sectorAdr, size_t offset) { return const_cast<char*>(reinterpret_cast<const char*>(sectorAdr) + offset); }
+		inline static void* getMemberPtr(const Sector* sectorAdr, uint16_t offset) { return const_cast<char*>(reinterpret_cast<const char*>(sectorAdr) + offset); }
 		/** @overload */
-		inline static void* getMemberPtr(Sector* sectorAdr, size_t offset) { return reinterpret_cast<char*>(sectorAdr) + offset; }
+		inline static void* getMemberPtr(Sector* sectorAdr, uint16_t offset) { return reinterpret_cast<char*>(sectorAdr) + offset; }
 		/** @overload */
-		inline static void* getMemberPtr(std::byte* sectorAdr, size_t offset) { return sectorAdr + offset; }
+		inline static void* getMemberPtr(std::byte* sectorAdr, uint16_t offset) { return sectorAdr + offset; }
 
 		/** @brief Fetch component pointer of type T from a sector using its layout; may be nullptr if not alive. */
 		template <typename T>

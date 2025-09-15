@@ -34,10 +34,10 @@ namespace ecss::Memory {
 
 		FunctionTable functionTable; // Type-erased operations for this component.
 		size_t typeHash = 0;         // Optional: stable hash/ID of the component type.
-		uint32_t offset = 0;         // Byte offset of the component within the Sector payload.
-		uint16_t index = 0;          // Index of this component within the Sector layout.
 		uint32_t isAliveMask = 0;    // Bit(s) set when the component is alive/present.
 		uint32_t isNotAliveMask = 0; // Bit mask used to clear liveness (often ~isAliveMask & mask_width).
+		uint16_t offset = 0;	     // Byte offset of the component within the Sector payload.
+		uint16_t index = 0;          // Index of this component within the Sector layout.
 		bool isTrivial = false;      // True if the component is trivially destructible/copiable/movable.
 	};
 
