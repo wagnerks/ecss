@@ -719,7 +719,7 @@ namespace ecss {
 				}
 				else {
 					if (info.isMain) {
-						return reinterpret_cast<ComponentType*>(mIterator.rawPtr() + info.typeOffsetInSector);
+						return mIterator->template getMember<ComponentType>(info.typeOffsetInSector, info.typeAliveMask);
 					}
 
 					auto sector = **info.iterator;
