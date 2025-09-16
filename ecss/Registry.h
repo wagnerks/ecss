@@ -789,17 +789,23 @@ namespace ecss {
 				beginIt = SectorItType(mArrays[getIndex<T>()], 0, mLast + 1, mArrays[getIndex<T>()]->template getLayoutData<T>().isAliveMask);
 			}
 
+			mArraysIterators.reserve(mArrays.size() - 1);
+			auto range = EntitiesRanges{{EntitiesRanges::range{0u, static_cast<EntityId>(mLast) + 1}}};
+			for (auto i = 1u; i < mArrays.size(); i++) {
+				auto arr = mArrays[i];
+				if (arr == mArrays[0]) {
+					continue;
+				}
+				if (mArraysIterators.contains(arr)) {
+					continue;
+				}
+				auto lock = arr->readLock();
+				mArraysIterators.try_emplace(arr, arr, range);
+			}
+
 			if constexpr (ThreadSafe) {
 				auto oldPin = std::move(mPins[0]);
 				mPins = manager->template pinContainers<T, ComponentTypes...>(oldPin.getId(), mArrays, mArrays[getIndex<T>()]);
-			}
-
-			mArraysIterators.reserve(mArrays.size() - 1);
-			for (auto i = 1u; i < mArrays.size(); i++) {
-				if (mArrays[i] == mArrays[0]) {
-					continue;
-				}
-				mArraysIterators.try_emplace(mArrays[i], mArrays[i], EntitiesRanges{{EntitiesRanges::range{0u, static_cast<EntityId>(mLast) + 1}}});
 			}
 		}
 
@@ -825,17 +831,22 @@ namespace ecss {
 				beginIt = SectorItType(mArrays[getIndex<T>()], mRanges, mArrays[getIndex<T>()]->template getLayoutData<T>().isAliveMask);
 			}
 
+			mArraysIterators.reserve(mArrays.size() - 1);
+			for (auto i = 1u; i < mArrays.size(); i++) {
+				auto arr = mArrays[i];
+				if (arr == mArrays[0]) {
+					continue;
+				}
+				if (mArraysIterators.contains(arr)) {
+					continue;
+				}
+				auto lock = arr->readLock();
+				mArraysIterators.try_emplace(arr, arr, mRanges);
+			}
+
 			if constexpr (ThreadSafe) {
 				auto oldPin = std::move(mPins[0]);
 				mPins = manager->template pinContainers<T, ComponentTypes...>(oldPin.getId(), mArrays, mArrays[getIndex<T>()]);
-			}
-
-			mArraysIterators.reserve(mArrays.size() - 1);
-			for (auto i = 1u; i < mArrays.size(); i++) {
-				if (mArrays[i] == mArrays[0]) {
-					continue;
-				}
-				mArraysIterators.try_emplace(mArrays[i], mArrays[i], mRanges);
 			}
 		}
 
