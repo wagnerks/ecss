@@ -376,7 +376,7 @@ namespace ecss::Memory {
 		 * @return PinnedSector (empty if sector==nullptr).
 		 */
 		template<bool Lock = true>
-		[[nodiscard]] PinnedSector pinSector(Sector* sector) const requires(ThreadSafe) { TS_GUARD(Lock, SHARED, return (sector ? PinnedSector{ mPinsCounter, sector, sector->id } : PinnedSector{});); }
+		[[nodiscard]] PinnedSector pinSector(Sector* sector) const requires(ThreadSafe) { TS_GUARD(Lock, SHARED, return pinSectorImpl(sector)); }
 
 		/**
 		 * @brief Pin sector by id if found.
