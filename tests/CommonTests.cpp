@@ -265,7 +265,7 @@ namespace CommonTests {
 			if (id % 3 == 0) arr->insert<Vel>(id, Vel{ float(id) });
 		}
 
-		EntitiesRanges ranges;
+		Ranges ranges;
 		
 		ranges.ranges.push_back({ 3, 10 });
 		ranges.ranges.push_back({ 8, 15 });
@@ -471,7 +471,7 @@ namespace CommonTests {
 		}
 
 		
-		EntitiesRanges ranges;
+		Ranges ranges;
 		ranges.ranges.push_back({ 10, 25 });
 		ranges.ranges.push_back({ 20, 35 });
 		ranges.mergeIntersections();

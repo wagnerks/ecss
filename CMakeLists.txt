@@ -18,7 +18,8 @@ option(ECSS_BUILD_TESTS "Build unit tests" ${BUILD_TESTING})
 
 if(ECSS_BUILD_TESTS)
     include(FetchContent)
-
+    set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
+    set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
     FetchContent_Declare(
         googletest
         URL        https://github.com/google/googletest/archive/refs/tags/v1.17.0.zip

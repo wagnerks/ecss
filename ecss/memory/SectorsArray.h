@@ -8,7 +8,7 @@
 #include <vector>
 
 #include <ecss/memory/Sector.h>
-#include <ecss/EntitiesRanges.h>
+#include <ecss/Ranges.h>
 #include <ecss/threads/SyncManager.h>
 #include <ecss/threads/PinCounters.h>
 #include <ecss/memory/ChunksAllocator.h>
@@ -156,13 +156,13 @@ namespace ecss::Memory {
 		using pointer = Sector*;																	\
 		using reference = Sector*;																	\
 		IteratorName() = default;																	\
-		inline IteratorName operator++(int) { auto tmp = *this; ++(*this); return cursor; }			\
-		inline bool operator!=(const IteratorName& other) const { return !(*this == other); }		\
-		inline bool operator==(const IteratorName& other) const { return cursor == other.cursor; }	\
-		inline value_type operator*() const { return *cursor; }										\
-		inline value_type operator->() const { return *cursor; }									\
-		inline size_t linearIndex() const { return cursor.linearIndex(); }							\
-		inline std::byte* rawPtr()  const { return cursor.rawPtr(); }
+		FORCE_INLINE IteratorName operator++(int) { auto tmp = *this; ++(*this); return *this; }	\
+		FORCE_INLINE bool operator!=(const IteratorName& other) const { return !(*this == other); }	\
+		FORCE_INLINE bool operator==(const IteratorName& other) const { return cursor == other.cursor; }	\
+		FORCE_INLINE value_type operator*() const { return *cursor; }								\
+		FORCE_INLINE value_type operator->() const { return *cursor; }								\
+		FORCE_INLINE size_t linearIndex() const { return cursor.linearIndex(); }					\
+		FORCE_INLINE std::byte* rawPtr()  const { return cursor.rawPtr(); }
 
 		 /**
 		 * \brief Linear iterator over sectors (includes dead sectors).
@@ -174,12 +174,12 @@ namespace ecss::Memory {
 
 			Iterator(const SectorsArray* array, size_t idx) : cursor(array->mAllocator.getCursor(std::min(idx, array->sizeImpl()))) { }
 
-			inline Iterator& operator++() noexcept { return ++cursor, *this; }
-			Iterator& operator+=(difference_type n) noexcept { cursor = cursor + n; return *this; }
-			Iterator operator+(difference_type n) const noexcept { Iterator t(*this); t += n; return t; }
+			FORCE_INLINE Iterator& operator++() noexcept { return ++cursor, *this; }
+			FORCE_INLINE Iterator& operator+=(difference_type n) noexcept { cursor = cursor + n; return *this; }
+			FORCE_INLINE Iterator operator+(difference_type n) const noexcept { Iterator t(*this); t += n; return t; }
 			friend Iterator operator+(difference_type n, Iterator it) noexcept { it += n; return it; }
 
-			reference operator[](difference_type n) const noexcept { return *(*this + n); }
+			FORCE_INLINE reference operator[](difference_type n) const noexcept { return *(*this + n); }
 		private:
 			typename Allocator::Cursor cursor;
 		};
@@ -196,13 +196,13 @@ namespace ecss::Memory {
 			ITERATOR_COMMON_USING(IteratorAlive)
 
 			IteratorAlive(const SectorsArray* array, size_t idx, size_t sz, uint32_t aliveMask)
-			: IteratorAlive(array, EntitiesRanges{{ EntitiesRanges::range{static_cast<uint32_t>(idx), static_cast<uint32_t>(sz)} } }, aliveMask) {}
+			: IteratorAlive(array, Ranges<SectorId>{Ranges<SectorId>::Range{ static_cast<SectorId>(idx), static_cast<SectorId>(sz) } }, aliveMask) {}
 
-			IteratorAlive(const SectorsArray* array, const EntitiesRanges& range, uint32_t aliveMask) : cursor(array->mAllocator.getRangesCursor(range, array->sizeImpl())), mTypeAliveMask(aliveMask) {
+			IteratorAlive(const SectorsArray* array, const Ranges<SectorId>& range, uint32_t aliveMask) : cursor(array->mAllocator.getRangesCursor(range, array->sizeImpl())), mTypeAliveMask(aliveMask) {
 				while (cursor && !(cursor->isAliveData & mTypeAliveMask)) { cursor.step(); }
 			}
 
-			inline IteratorAlive& operator++() { do { cursor.step(); } while (cursor && !(cursor->isAliveData & mTypeAliveMask)); return *this; }
+			FORCE_INLINE IteratorAlive& operator++() { do { cursor.step(); } while (cursor && !(cursor->isAliveData & mTypeAliveMask)); return *this; }
 
 		private:
 			typename Allocator::RangesCursor cursor;
@@ -212,7 +212,7 @@ namespace ecss::Memory {
 		template<class T, bool TS = ThreadSafe>
 		IteratorAlive beginAlive()								const { TS_GUARD(TS, SHARED, return IteratorAlive(this, 0, sizeImpl(), getLayoutData<T>().isAliveMask);); }
 		template<class T, bool TS = ThreadSafe>
-		IteratorAlive beginAlive(const EntitiesRanges& ranges)  const { TS_GUARD(TS, SHARED, return IteratorAlive( this, ranges, getLayoutData<T>().isAliveMask );); }
+		IteratorAlive beginAlive(const Ranges<SectorId>& ranges)  const { TS_GUARD(TS, SHARED, return IteratorAlive( this, ranges, getLayoutData<T>().isAliveMask );); }
 
 		template<bool TS = ThreadSafe> IteratorAlive endAlive() const { TS_GUARD(TS, SHARED, return IteratorAlive();); }
 
@@ -224,17 +224,17 @@ namespace ecss::Memory {
 		public:
 			ITERATOR_COMMON_USING(RangedIterator)
 
-			RangedIterator(const SectorsArray* a, const EntitiesRanges& r) : cursor(a->mAllocator.getRangesCursor(r, a->sizeImpl())) {}
+			RangedIterator(const SectorsArray* a, const Ranges<SectorId>& r) : cursor(a->mAllocator.getRangesCursor(r, a->sizeImpl())) {}
 
-			void advanceToId(SectorId id) {	while (cursor && cursor->id < id) { cursor.step(); } }
+			FORCE_INLINE void advanceToId(SectorId id) {	cursor.advanceToId(id); }
 
-			inline RangedIterator& operator++() noexcept { cursor.step(); return *this; }
+			FORCE_INLINE RangedIterator& operator++() noexcept { cursor.step(); return *this; }
 
 		private:
 			typename Allocator::RangesCursor cursor;
 		};
 
-		template<bool TS = ThreadSafe> RangedIterator beginRanged(const EntitiesRanges& ranges) const { TS_GUARD(TS, SHARED, return RangedIterator(this, ranges);); }
+		template<bool TS = ThreadSafe> RangedIterator beginRanged(const Ranges<SectorId>& ranges) const { TS_GUARD(TS, SHARED, return RangedIterator(this, ranges);); }
 		template<bool TS = ThreadSafe> RangedIterator endRanged()   const { TS_GUARD(TS, SHARED, return RangedIterator();); }
 
 	public:
@@ -278,8 +278,8 @@ namespace ecss::Memory {
 		}
 	public: // sector helpers
 		template<typename T>
-		const LayoutData& getLayoutData() const { return getLayout()->template getLayoutData<T>(); }
-		SectorLayoutMeta* getLayout()	  const { return mAllocator.getSectorLayout(); }
+		FORCE_INLINE const LayoutData& getLayoutData() const { return getLayout()->template getLayoutData<T>(); }
+		FORCE_INLINE SectorLayoutMeta* getLayout()	  const { return mAllocator.getSectorLayout(); }
 
 	public:
 		/**
@@ -383,22 +383,22 @@ namespace ecss::Memory {
 		}
 
 		/// \brief Find the first sector index at or to the right of \p sectorId.
-		template<bool TS = ThreadSafe> size_t findRightNearestSectorIndex(SectorId sectorId) const { TS_GUARD(TS, SHARED, return findRightNearestSectorIndexImpl(sectorId)); }
+		template<bool TS = ThreadSafe> size_t findRightNearestSectorIndex(SectorId sectorId)  const { TS_GUARD(TS, SHARED, return findRightNearestSectorIndexImpl(sectorId)); }
 
-		template<bool TS = ThreadSafe> bool containsSector(SectorId id)					     const { TS_GUARD(TS, SHARED, return containsSectorImpl(id)); }
-		template<bool TS = ThreadSafe> Sector* at(size_t sectorIndex)						 const { TS_GUARD(TS, SHARED, return atImpl(sectorIndex)); }
+		template<bool TS = ThreadSafe> bool containsSector(SectorId id)						  const { TS_GUARD(TS, SHARED, return containsSectorImpl(id)); }
+		template<bool TS = ThreadSafe> Sector* at(size_t sectorIndex)						  const { TS_GUARD(TS, SHARED, return atImpl(sectorIndex)); }
 		//todo make it faster (avoid atomic load twice)
-		template<bool TS = ThreadSafe> Sector* findSector(SectorId id)						 const { TS_GUARD(TS, SHARED, return findSectorImpl(id)); }
-		template<bool TS = ThreadSafe> Sector* getSector(SectorId id)						 const { TS_GUARD(TS, SHARED, return getSectorImpl(id)); }
+		template<bool TS = ThreadSafe> Sector* findSector(SectorId id)						  const { TS_GUARD(TS, SHARED, return findSectorImpl(id)); }
+		template<bool TS = ThreadSafe> Sector* getSector(SectorId id)						  const { TS_GUARD(TS, SHARED, return getSectorImpl(id)); }
 
 		// return INVALID_ID if not found
-		template<bool TS = ThreadSafe> size_t getSectorIndex(SectorId id)					 const { TS_GUARD(TS, SHARED, return getSectorIndexImpl(id)); }
-		template<bool TS = ThreadSafe> size_t getSectorIndex(Sector* sector)			     const { TS_GUARD(TS, SHARED, return getSectorIndexImpl(sector)); }
-		template<bool TS = ThreadSafe> size_t sectorsMapCapacity()							 const { TS_GUARD(TS, SHARED, return sectorsMapCapacityImpl()); }
-		template<bool TS = ThreadSafe> size_t capacity()									 const { TS_GUARD(TS, SHARED, return capacityImpl()); }
-		template<bool TS = ThreadSafe> size_t size()										 const { TS_GUARD(TS, SHARED, return sizeImpl()); }
-		template<bool TS = ThreadSafe> bool empty()										     const { TS_GUARD(TS, SHARED, return emptyImpl()); }
-		template<bool TS = ThreadSafe> void shrinkToFit()										   { TS_GUARD(TS, UNIQUE, shrinkToFitImpl()); }
+		template<bool TS = ThreadSafe> size_t getSectorIndex(SectorId id)					  const { TS_GUARD(TS, SHARED, return getSectorIndexImpl(id)); }
+		template<bool TS = ThreadSafe> size_t getSectorIndex(Sector* sector)			      const { TS_GUARD(TS, SHARED, return getSectorIndexImpl(sector)); }
+		template<bool TS = ThreadSafe> size_t sectorsMapCapacity()							  const { TS_GUARD(TS, SHARED, return sectorsMapCapacityImpl()); }
+		template<bool TS = ThreadSafe> size_t capacity()									  const { TS_GUARD(TS, SHARED, return capacityImpl()); }
+		template<bool TS = ThreadSafe> size_t size()										  const { TS_GUARD(TS, SHARED, return sizeImpl()); }
+		template<bool TS = ThreadSafe> bool empty()											  const { TS_GUARD(TS, SHARED, return emptyImpl()); }
+		template<bool TS = ThreadSafe> void shrinkToFit()										    { TS_GUARD(TS, UNIQUE, shrinkToFitImpl()); }
 
 		template<bool TS = ThreadSafe> void reserve(uint32_t newCapacity) { TS_GUARD(TS, UNIQUE, reserveImpl(newCapacity)); }
 		template<bool TS = ThreadSafe> void clear()					      { TS_GUARD_S(TS, UNIQUE, mPinsCounter.waitUntilChangeable();, clearImpl(););}
@@ -605,21 +605,21 @@ namespace ecss::Memory {
 			return mSize;
 		}
 
-		bool containsSectorImpl(SectorId id)	const { return findSectorImpl(id) != nullptr; }
+		FORCE_INLINE bool containsSectorImpl(SectorId id)	const { return findSectorImpl(id) != nullptr; }
 
-		Sector* atImpl(size_t sectorIndex)		const { assert(sectorIndex < mSize); return mAllocator.at(sectorIndex); }
-		Sector* findSectorImpl(SectorId id)		const { auto map = mSectorsMapView.load(); return id < map.size ? map.vectorData[id] : nullptr; }
-		Sector* getSectorImpl(SectorId id)		const { assert(id < mSectorsMapView.load().size); return mSectorsMapView.load().vectorData[id]; }
+		FORCE_INLINE Sector* atImpl(size_t sectorIndex)		const { assert(sectorIndex < mSize); return mAllocator.at(sectorIndex); }
+		FORCE_INLINE Sector* findSectorImpl(SectorId id)		const { auto map = mSectorsMapView.load(); return id < map.size ? map.vectorData[id] : nullptr; }
+		FORCE_INLINE Sector* getSectorImpl(SectorId id)		const { assert(id < mSectorsMapView.load().size); return mSectorsMapView.load().vectorData[id]; }
 		// return INVALID_ID if not found
-		size_t getSectorIndexImpl(SectorId id)	const { return mAllocator.find(findSectorImpl(id)); }
-		size_t getSectorIndexImpl(Sector* sector)	const { return mAllocator.find(sector); }
+		FORCE_INLINE size_t getSectorIndexImpl(SectorId id)	const { return mAllocator.find(findSectorImpl(id)); }
+		FORCE_INLINE size_t getSectorIndexImpl(Sector* sector)	const { return mAllocator.find(sector); }
 
-		size_t sectorsMapCapacityImpl()			const { return mSectorsMapView.load().size; }
-		size_t capacityImpl()					const { return mAllocator.capacity(); }
-		size_t sizeImpl()						const { return mSize; }
-		bool   emptyImpl()						const { return !mSize; }
+		FORCE_INLINE size_t sectorsMapCapacityImpl()			const { return mSectorsMapView.load().size; }
+		FORCE_INLINE size_t capacityImpl()					const { return mAllocator.capacity(); }
+		FORCE_INLINE size_t sizeImpl()						const { return mSize; }
+		FORCE_INLINE bool   emptyImpl()						const { return !mSize; }
 
-		void shrinkToFitImpl() { mAllocator.deallocate(mSize, mAllocator.capacity()); }
+		FORCE_INLINE void shrinkToFitImpl() { mAllocator.deallocate(mSize, mAllocator.capacity()); }
 
 		void clearImpl() {
 			if (mSize) {

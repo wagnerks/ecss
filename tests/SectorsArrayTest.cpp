@@ -168,7 +168,7 @@ TEST(SectorsArray, IteratorsTest) {
 	}
 
 	size_t alivesCount = alives.size();
-	auto ranges = ecss::EntitiesRanges{ {ecss::EntitiesRanges::range{0, 10}, ecss::EntitiesRanges::range{11, 50}, ecss::EntitiesRanges::range{54, 99}, ecss::EntitiesRanges::range{99, 100}} };
+	auto ranges = ecss::Ranges<>{ {ecss::Ranges<>::Range{0, 10}, ecss::Ranges<>::Range{11, 50}, ecss::Ranges<>::Range{54, 99}, ecss::Ranges<>::Range{99, 100}} };
 	ranges.mergeIntersections();
 
 	auto allEnts = ranges.getAll();

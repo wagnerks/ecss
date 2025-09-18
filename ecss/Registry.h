@@ -461,7 +461,7 @@ namespace ecss {
 		/**
 		 * \brief Destroy a batch of entities and all their components.
 		 * \param entities Entity ids to delete; vector content is not modified.
-		 * \note Thread-safe build runs per-array work in parallel (one thread per array).
+		 * \note This operation is performed sequentially to ensure stability.
 		 */
 		void destroyEntities(std::vector<EntityId>& entities) noexcept {
 			if (entities.empty()) {
@@ -469,7 +469,6 @@ namespace ecss {
 			}
 
 			if constexpr (ThreadSafe) {
-				std::vector<std::thread> destroyThreads;
 				decltype(mComponentsArrays) compArrays;
 				{
 					auto lock = ecss::Threads::sharedLock(componentsArrayMapMutex, ThreadSafe);
@@ -477,48 +476,39 @@ namespace ecss {
 				}
 
 				for (auto* array : compArrays) {
-					//todo too much threads
-					destroyThreads.emplace_back([array = array, entities = entities]() mutable
-					{
-						const auto layout = array->getLayout();
-
-						auto arrLock = array->writeLock();
-						prepareEntities(entities, array->template sectorsMapCapacity<false>());
-						if (entities.empty()) {
-							return;
-						}
-
-						array->mPinsCounter.waitUntilChangeable(entities.front());
-						array->incDefragmentSize(static_cast<uint32_t>(entities.size()));
-
-						for (const auto sectorId : entities) {
-							Memory::Sector::destroySector(array->template findSector<false>(sectorId), layout);
-						}
-					});
-				}
-
-				{
-					auto lock = ecss::Threads::uniqueLock(mEntitiesMutex, ThreadSafe);
-					for (auto id : entities) {
-						mEntities.erase(id);
+					// Each array is locked and modified sequentially.
+					auto arrLock = array->writeLock();
+					const auto layout = array->getLayout();
+					
+					// Use a local copy for each array since prepareEntities modifies it.
+					auto localEntities = entities;
+					prepareEntities(localEntities, array->template sectorsMapCapacity<false>());
+					if (localEntities.empty()) {
+						continue;
 					}
-				}
 
-				for (auto& thread : destroyThreads) {
-					thread.join();
+					array->mPinsCounter.waitUntilChangeable(localEntities.front());
+					array->incDefragmentSize(static_cast<uint32_t>(localEntities.size()));
+
+					for (const auto sectorId : localEntities) {
+						Memory::Sector::destroySector(array->template findSector<false>(sectorId), layout);
+					}
 				}
 			}
 			else {
 				for (auto* array : mComponentsArrays) {
-					auto ents = entities;
-					prepareEntities(ents, array->template sectorsMapCapacity<false>());
+					auto localEntities = entities;
+					prepareEntities(localEntities, array->template sectorsMapCapacity<false>());
 					const auto layout = array->getLayout();
-					for (const auto sectorId : ents) {
+					for (const auto sectorId : localEntities) {
 						Memory::Sector::destroySector(array->template findSector<false>(sectorId), layout);
 						array->incDefragmentSize();
 					}
 				}
-				
+			}
+
+			{
+				auto lock = ecss::Threads::uniqueLock(mEntitiesMutex, ThreadSafe);
 				for (auto id : entities) {
 					mEntities.erase(id);
 				}

@@ -4,6 +4,7 @@
 #include <iostream>
 #include <mutex>
 
+#include "ecss/Ranges.h"
 #include <ecss/Registry.h>
 
 #include <gtest/gtest.h>
@@ -380,7 +381,7 @@ namespace RegistryTests {
 		}
 
 		int count = 0;
-		for (auto [e, pos] : registry.view<Position>(ecss::EntitiesRanges{ {ids[2],ids[3],ids[4]}})) {
+		for (auto [e, pos] : registry.view<Position>(ecss::Ranges{ {ids[2],ids[3],ids[4]}})) {
 			EXPECT_GE(e, ids[2]);
 			EXPECT_LT(e, ids[5]);
 			++count;
@@ -401,14 +402,15 @@ namespace RegistryTests {
 	}
 #define	REGISTRY_PERF_TESTS 0
 #if REGISTRY_PERF_TESTS
+	constexpr size_t perfElementsCount = 100'000'000;
+
 	TEST(Registry_perfTest, CreatingAndIteratingNotOneSector) {
 		ecss::Registry<false> registry;
-		constexpr size_t size = 100'000'000;
-		registry.reserve<Health>(size);
-		registry.reserve<Velocity>(size);
+		registry.reserve<Health>(perfElementsCount);
+		registry.reserve<Velocity>(perfElementsCount);
 
 		auto t0 = std::chrono::high_resolution_clock::now();
-		for (auto i = 0; i < size; i++) {
+		for (auto i = 0u; i < perfElementsCount; i++) {
 			auto e = registry.takeEntity();
 			registry.addComponent<Health>(e, 1);
 			registry.addComponent<Velocity>(e, (float)1, (float)2);
@@ -433,22 +435,21 @@ namespace RegistryTests {
 		std::cout << "[StressTest] Create time: " << create_us << " ms\n";
 		std::cout << "[StressTest] Iterate time: " << iterate_us << " ms\n";
 
-		EXPECT_EQ(size, counter);
+		EXPECT_EQ(perfElementsCount, counter);
 	}
 
 	TEST(Registry_perfTest, CreatingAndIteratingOneComponent) {
 		ecss::Registry<false> registry;
-		constexpr size_t size = 100'000'000;
 
 		registry.registerArray<Health>();
-		registry.reserve<Health>(size);
+		registry.reserve<Health>(perfElementsCount);
 
 		auto t0 = std::chrono::high_resolution_clock::now();
-		for (auto i = 0; i < size; i++) {
+		for (auto i = 0; i < perfElementsCount; i++) {
 			registry.addComponent<Health>(registry.takeEntity(), 1);
 		}
 		auto t1 = std::chrono::high_resolution_clock::now();
-		EXPECT_EQ(size, registry.getComponentContainer<Health>()->size());
+		EXPECT_EQ(perfElementsCount, registry.getComponentContainer<Health>()->size());
 		int counter = 0;
 		auto t2 = std::chrono::high_resolution_clock::now();
 		for (auto [e, hel] : registry.view<Health>()) {
@@ -463,25 +464,24 @@ namespace RegistryTests {
 		std::cout << "[StressTest] Create time: " << create_us << " ms\n";
 		std::cout << "[StressTest] Iterate time: " << iterate_us << " ms\n";
 
-		EXPECT_EQ(size, counter);
+		EXPECT_EQ(perfElementsCount, counter);
 	}
 
 	TEST(Registry_perfTest, CreatingAndIteratingOneSector) {
 		ecss::Registry<false> registry;
-		constexpr size_t size = 100'000'000;
 
 		registry.registerArray<Health, Velocity>();
-		registry.reserve<Health>(size);
-		registry.reserve<Velocity>(size);
+		registry.reserve<Health>(perfElementsCount);
+		registry.reserve<Velocity>(perfElementsCount);
 
 		auto t0 = std::chrono::high_resolution_clock::now();
-		for (auto i = 0; i < size; i++) {
+		for (auto i = 0; i < perfElementsCount; i++) {
 			auto e = registry.takeEntity();
 			registry.addComponent<Health>(e, 1);
 			registry.addComponent<Velocity>(e, (float)1, (float)2);
 		}
 		auto t1 = std::chrono::high_resolution_clock::now();
-		EXPECT_EQ(size, registry.getComponentContainer<Health>()->size());
+		EXPECT_EQ(perfElementsCount, registry.getComponentContainer<Health>()->size());
 		int counter = 0;
 		auto t2 = std::chrono::high_resolution_clock::now();
 		for (auto [e, hel, vel] : registry.view<Health, Velocity>()) {
@@ -498,19 +498,18 @@ namespace RegistryTests {
 		std::cout << "[StressTest] Create time: " << create_us << " ms\n";
 		std::cout << "[StressTest] Iterate time: " << iterate_us << " ms\n";
 
-		EXPECT_EQ(size, counter);
+		EXPECT_EQ(perfElementsCount, counter);
 	}
 
 	TEST(Registry_perfTest, CreatingAndIteratingOneSectorRanges) {
 		ecss::Registry<false> registry;
-		constexpr size_t size = 100'000'000;
 
 		registry.registerArray<Health, Velocity>();
-		registry.reserve<Health>(size);
-		registry.reserve<Velocity>(size);
+		registry.reserve<Health>(perfElementsCount);
+		registry.reserve<Velocity>(perfElementsCount);
 
 		auto t0 = std::chrono::high_resolution_clock::now();
-		for (auto i = 0; i < size; i++) {
+		for (auto i = 0; i < perfElementsCount; i++) {
 			auto e = registry.takeEntity();
 			registry.addComponent<Health>(e, 1);
 			registry.addComponent<Velocity>(e, (float)1, (float)2);
@@ -519,7 +518,7 @@ namespace RegistryTests {
 
 		int counter = 0;
 		auto t2 = std::chrono::high_resolution_clock::now();
-		for (auto [e, hel, vel] : registry.view<Health, Velocity>(EntitiesRanges{ std::vector<EntitiesRanges::range>{{0,static_cast<SectorId>(size)}} })) {
+		for (auto [e, hel, vel] : registry.view<Health, Velocity>(Ranges{ std::vector<Ranges<>::Range>{{0,static_cast<SectorId>(perfElementsCount)}} })) {
 			hel->value += e;
 			vel->dx += e;
 			vel->dy += hel->value;
@@ -533,16 +532,15 @@ namespace RegistryTests {
 		std::cout << "[StressTest] Create time: " << create_us << " ms\n";
 		std::cout << "[StressTest] Iterate time: " << iterate_us << " ms\n";
 
-		EXPECT_EQ(size, counter);
+		EXPECT_EQ(perfElementsCount, counter);
 	}
 
 	TEST(Registry_perfTest, CreatingAndIteratingNotOneSectorNotReserved) {
 		ecss::Registry<false> registry;
-		constexpr size_t size = 100'000'000;
 		constexpr size_t itCount = 10;
 
 		auto t0 = std::chrono::high_resolution_clock::now();
-		for (auto i = 0; i < size; i++) {
+		for (auto i = 0; i < perfElementsCount; i++) {
 			auto e = registry.takeEntity();
 			registry.addComponent<Health>(e, 1);
 			registry.addComponent<Velocity>(e, (float)1, (float)2);
@@ -567,18 +565,17 @@ namespace RegistryTests {
 		std::cout << "[StressTest] Create time: " << create_us << " ms\n";
 		std::cout << "[StressTest] Iterate time: " << iterate_us << " ms\n";
 
-		EXPECT_EQ(size * itCount, counter);
+		EXPECT_EQ(perfElementsCount * itCount, counter);
 	}
 
 	TEST(Registry_perfTest, CreatingAndIteratingOneSectorNotReserved) {
 		ecss::Registry<false> registry;
-		constexpr size_t size = 100'000'000;
 		constexpr size_t itCount = 10;
 
 		registry.registerArray<Health, Velocity>();
 
 		auto t0 = std::chrono::high_resolution_clock::now();
-		for (auto i = 0; i < size; i++) {
+		for (auto i = 0; i < perfElementsCount; i++) {
 			auto e = registry.takeEntity();
 			registry.addComponent<Health>(e, 1);
 			registry.addComponent<Velocity>(e, (float)1, (float)2);
@@ -603,7 +600,7 @@ namespace RegistryTests {
 		std::cout << "[StressTest] Create time: " << create_us << " ms\n";
 		std::cout << "[StressTest] Iterate time: " << iterate_us << " ms\n";
 
-		EXPECT_EQ(size * itCount, counter);
+		EXPECT_EQ(perfElementsCount * itCount, counter);
 	}
 #endif
 	namespace Stress
@@ -661,7 +658,7 @@ namespace RegistryTests {
 
 			threads.emplace_back([&] {
 				while (!done) {
-					ecss::EntitiesRanges range;
+					ecss::Ranges range;
 					{
 						auto lock = std::shared_lock(mtx);
 						range = {ids};
@@ -1346,7 +1343,7 @@ namespace RegistryTests {
 		}
 
 		int i = first;
-		for (auto [ent, vel] : reg.view<Velocity>(EntitiesRanges{ std::vector<EntitiesRanges::range>{{first,count}}})) {
+		for (auto [ent, vel] : reg.view<Velocity>(Ranges{ std::vector<Ranges<>::Range>{{first,count}}})) {
 			EXPECT_EQ(ent, i++);
 		}
 
@@ -1562,14 +1559,127 @@ namespace RegistryTests {
 		
 		
 	}
-}
 
-#include "ecss/EntitiesRanges.h"
+	TEST(Registry_STRESS, ConcurrentDestroyAndIterate) {
+		ecss::Registry reg;
+		constexpr int N = 5000;
+		std::vector<ecss::EntityId> ids_to_keep;
+		std::vector<ecss::EntityId> ids_to_destroy;
+
+		for (int i = 0; i < N; ++i) {
+			auto e = reg.takeEntity();
+			reg.addComponent<Health>(e, i);
+			if (i % 2 == 0) {
+				ids_to_destroy.push_back(e);
+			}
+			else {
+				ids_to_keep.push_back(e);
+			}
+		}
+
+		std::atomic<bool> done_iterating = false;
+		std::thread reader([&] {
+			while (!done_iterating.load(std::memory_order_acquire)) {
+				int count = 0;
+				for (auto [e, h] : reg.view<Health>()) {
+					ASSERT_NE(h, nullptr); // A view should only yield valid components
+					count++;
+				}
+				// The count can be anything during the test, but the loop must not crash.
+				std::this_thread::yield();
+			}
+		});
+
+		std::thread destroyer([&] {
+			reg.destroyEntities(ids_to_destroy);
+			done_iterating.store(true, std::memory_order_release);
+		});
+
+		destroyer.join();
+		reader.join();
+
+		// Final verification
+		EXPECT_EQ(reg.getAllEntities().size(), ids_to_keep.size());
+		int final_count = 0;
+		for (auto [e, h] : reg.view<Health>()) {
+			final_count++;
+			EXPECT_EQ(h->value % 2, 1); // Only odd-valued health components should remain
+		}
+		EXPECT_EQ(final_count, N / 2);
+	}
+
+	TEST(Registry_STRESS, ConcurrentDestroyOverlappingSets) {
+		ecss::Registry reg;
+		constexpr int N = 3000;
+		std::vector<ecss::EntityId> all_ids;
+		for (int i = 0; i < N; ++i) {
+			auto e = reg.takeEntity();
+			reg.addComponent<Position>(e, (float)i, (float)i);
+			all_ids.push_back(e);
+		}
+
+		std::vector<ecss::EntityId> set1, set2;
+		for (int i = 0; i < N; ++i) {
+			if (i < 2000) set1.push_back(all_ids[i]); // {0..1999}
+			if (i >= 1000) set2.push_back(all_ids[i]); // {1000..2999}
+		}
+
+		std::thread t1([&] { reg.destroyEntities(set1); });
+		std::thread t2([&] { reg.destroyEntities(set2); });
+
+		t1.join();
+		t2.join();
+
+		// After both threads complete, all entities should be gone.
+		EXPECT_TRUE(reg.getAllEntities().empty());
+		int count = 0;
+		for (auto [e, p] : reg.view<Position>()) {
+			count++;
+		}
+		EXPECT_EQ(count, 0);
+	}
+
+	TEST(Registry, ViewWithEmptyComponentArray) {
+		ecss::Registry reg;
+		// Register Health but don't add any components.
+		reg.registerArray<Health>();
+
+		auto e = reg.takeEntity();
+		reg.addComponent<Position>(e, 1.0f, 1.0f);
+
+		int count = 0;
+		// This view should still work, yielding a nullptr for the Health component.
+		for (auto [entity, pos, health] : reg.view<Position, Health>()) {
+			ASSERT_NE(pos, nullptr);
+			EXPECT_EQ(entity, e);
+			EXPECT_EQ(health, nullptr);
+			count++;
+		}
+		EXPECT_EQ(count, 1);
+	}
+
+	TEST(Registry, ViewWithEmptyPrimaryComponentArray) {
+		ecss::Registry reg;
+		// Register Health but don't add any components.
+		reg.registerArray<Health>();
+
+		auto e = reg.takeEntity();
+		reg.addComponent<Position>(e, 1.0f, 1.0f);
+
+		int count = 0;
+		// The view is driven by the first component type. Since Health is empty,
+		// this loop should execute zero times.
+		for (auto [entity, health, pos] : reg.view<Health, Position>()) {
+			count++;
+		}
+		EXPECT_EQ(count, 0);
+	}
+}
 
 namespace EntitiesRangeTest
 {
-	using ER = ecss::EntitiesRanges;
-	using Range = ER::range;
+	using ER = ecss::Ranges<>;
+	using Range = ER::Range;
 
 	TEST(EntitiesRanges, EmptyInit) {
 		ER er;
@@ -1725,10 +1835,10 @@ namespace EntitiesRangeTest
 
 
 	TEST(EntitiesRanges, eraseFromCenter) {
-		ER er(std::vector<ER::range>{{0, 1200}, { 1210, 2000 }});
+		ER er(std::vector<ER::Range>{{0, 1200}, { 1210, 2000 }});
 		er.erase(1220);
 
-		auto res = std::vector<ER::range>{ {0, 1200}, { 1210, 1220 } ,{ 1221, 2000 } };
+		auto res = std::vector<ER::Range>{ {0, 1200}, { 1210, 1220 } ,{ 1221, 2000 } };
 		EXPECT_EQ(er.ranges, res);
 	}
 }

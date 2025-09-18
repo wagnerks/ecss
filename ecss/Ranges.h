@@ -6,22 +6,25 @@
 #include <ecss/Types.h>
 
 namespace ecss {
-	struct EntitiesRanges {
-		using range = std::pair<EntityId, EntityId>;
-		std::vector<range> ranges;
+	template<typename Type = uint32_t>
+	struct Ranges {
+		static_assert(std::is_arithmetic_v<Type>, "Not an arithmetic type");
+		using Range = std::pair<Type, Type>;
 
-		EntitiesRanges() = default;
+		std::vector<Range> ranges;
+
+		Ranges() = default;
 		
-		EntitiesRanges(const std::vector<EntityId>& sortedEntities) {
-			if (sortedEntities.empty()) {
+		Ranges(const std::vector<Type>& sortedRanges) {
+			if (sortedRanges.empty()) {
 				return;
 			}
 
-			EntityId previous = sortedEntities.front();
+			EntityId previous = sortedRanges.front();
 			EntityId begin = previous;
 
-			for (auto i = 1u; i < sortedEntities.size(); i++) {
-				const auto current = sortedEntities[i];
+			for (auto i = 1u; i < sortedRanges.size(); i++) {
+				const auto current = sortedRanges[i];
 				if (current == previous) {
 					continue;
 				}
@@ -35,12 +38,14 @@ namespace ecss {
 			ranges.emplace_back(begin, previous + 1);
 		}
 
-		EntitiesRanges(const std::vector<range>& range) {
+		Ranges(const std::vector<Range>& range) {
 			ranges = range;
 			mergeIntersections();
 		}
 
-		inline void mergeIntersections() {
+		Ranges(const Range& range) : Ranges(std::vector<Range>{range}) {}
+
+		FORCE_INLINE void mergeIntersections() {
 			if (ranges.empty()) {
 				return;
 			}
@@ -58,12 +63,13 @@ namespace ecss {
 			}
 		}
 
-		EntityId take() {
+		FORCE_INLINE Type take() {
 			if (ranges.empty()) {
 				ranges.push_back({ 0,0 });
 			}
 			auto id = ranges.front().second;
-			ranges.front().second++;
+			++ranges.front().second;
+
 			if (ranges.size() > 1) {
 				if (ranges[0].second == ranges[1].first) {
 					ranges[0].second = ranges[1].second;
@@ -75,7 +81,7 @@ namespace ecss {
 		}
 
 		void insert(EntityId id) {
-			auto it = std::lower_bound(ranges.begin(), ranges.end(), id, [](const range& r, EntityId id) {
+			auto it = std::lower_bound(ranges.begin(), ranges.end(), id, [](const Range& r, EntityId id) {
 				return r.second < id;
 			});
 
@@ -133,7 +139,7 @@ namespace ecss {
 				entRangeIt->first++;
 			}
 			else {
-				entRangeIt = ranges.insert(entRangeIt, range{});
+				entRangeIt = ranges.insert(entRangeIt, Range{});
 				entRangeIt->first = (entRangeIt + 1)->first;
 				(entRangeIt + 1)->first = id + 1;
 				entRangeIt->second = id;
@@ -144,7 +150,7 @@ namespace ecss {
 			}
 		}
 
-		static inline int binarySearchInRanges(const std::vector<range>& ranges, EntityId id) {
+		static int binarySearchInRanges(const std::vector<Range>& ranges, EntityId id) {
 			if (ranges.empty()) {
 				return -1;
 			}
@@ -177,21 +183,22 @@ namespace ecss {
 			return -1;
 		}
 
-		void clear() { ranges.clear(); }
-		size_t size() const { return ranges.size(); }
-		const range& front() const { return ranges.front(); }
-		const range& back() const { return ranges.back(); }
-		void pop_back() { ranges.pop_back(); }
-		bool empty() const { return !size(); }
-		bool contains(ecss::EntityId id) const { return binarySearchInRanges(ranges, id) != -1; }
-		std::vector<EntityId> getAll() const {
+		FORCE_INLINE void clear() { ranges.clear(); }
+		FORCE_INLINE size_t size() const { return ranges.size(); }
+		FORCE_INLINE const Range& front() const { return ranges.front(); }
+		FORCE_INLINE const Range& back() const { return ranges.back(); }
+		FORCE_INLINE void pop_back() { ranges.pop_back(); }
+		FORCE_INLINE bool empty() const { return !size(); }
+		FORCE_INLINE bool contains(Type value) const { return binarySearchInRanges(ranges, value) != -1; }
+
+		std::vector<Type> getAll() const {
 			size_t total = 0;
 			for (const auto& r : ranges) { total += static_cast<size_t>(r.second - r.first); }
 
-			std::vector<EntityId> res;
+			std::vector<Type> res;
 			res.resize(total);
 
-			EntityId* out = res.data();
+			Type* out = res.data();
 			for (const auto& r : ranges) {
 				const size_t len = static_cast<size_t>(r.second - r.first);
 				std::iota(out, out + len, r.first);
