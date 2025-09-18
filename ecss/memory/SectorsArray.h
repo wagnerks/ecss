@@ -743,6 +743,7 @@ namespace ecss::Memory {
 				publishNew(mSectorsMap);
 				mPendingErase.clear();
 				mSize = 0;
+				mDefragmentSize = 0;
 			}
 		}
 
@@ -940,7 +941,8 @@ namespace ecss::Memory {
 			}
 
 			mSize -= deleted;
-			mDefragmentSize = from != 0 && mDefragmentSize < static_cast<uint32_t>(deleted) ? mDefragmentSize - static_cast<uint32_t>(deleted) : 0;
+			mDefragmentSize -= std::min(mDefragmentSize, static_cast<uint32_t>(deleted));
+
 			shrinkToFitImpl();
 		}
 
