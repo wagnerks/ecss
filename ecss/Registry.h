@@ -259,7 +259,7 @@ namespace ecss {
 		template <class T, typename Func>
 		void addComponents(Func&& func) requires(ThreadSafe) {
 			auto container = getComponentContainer<T>();
-			container->writeLock();
+			auto lock = container->writeLock();
 			auto f = std::forward<Func>(func);
 			auto res = f();
 			while (res.first != INVALID_ID) {
@@ -467,10 +467,39 @@ namespace ecss {
 		 */
 		template<typename... ComponentTypes>
 		void registerArray(uint32_t capacity = 0, Allocator allocator = {}) noexcept {
-			Memory::SectorsArray<ThreadSafe, Allocator>* sectorsArray;
-			{
-				auto lock = ecss::Threads::uniqueLock(componentsArrayMapMutex, ThreadSafe);
+			if constexpr (ThreadSafe) {
+				Memory::SectorsArray<ThreadSafe, Allocator>* sectorsArray;
+				{
+					auto lock = ecss::Threads::uniqueLock(componentsArrayMapMutex, ThreadSafe);
 
+					bool anyPresent = ((mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()] != nullptr) || ...);
+					bool allPresent = ((mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()] != nullptr) && ...);
+					if (anyPresent && !allPresent) {
+						assert(false && "Partial registerArray across mixed components is not allowed");
+						return;
+					}
+
+					bool isCreated = true;
+					((isCreated = isCreated && mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()]), ...);
+					if (isCreated) {
+						return;
+					}
+
+					ECSType maxId = 0;
+					((maxId = std::max(maxId, componentTypeId<ComponentTypes>())), ...);
+					if (maxId >= mComponentsArraysMap.size()) {
+						mComponentsArraysMap.resize(maxId + 1);
+					}
+
+					sectorsArray = Memory::SectorsArray<ThreadSafe, Allocator>::template create<ComponentTypes...>(std::move(allocator));
+					mComponentsArrays.push_back(sectorsArray);
+					((mComponentsArraysMap[componentTypeId<ComponentTypes>()] = sectorsArray), ...);
+				}
+
+				sectorsArray->reserve(capacity);
+			}
+			else {
+				Memory::SectorsArray<ThreadSafe, Allocator>* sectorsArray;
 				bool anyPresent = ((mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()] != nullptr) || ...);
 				bool allPresent = ((mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()] != nullptr) && ...);
 				if (anyPresent && !allPresent) {
@@ -493,9 +522,9 @@ namespace ecss {
 				sectorsArray = Memory::SectorsArray<ThreadSafe, Allocator>::template create<ComponentTypes...>(std::move(allocator));
 				mComponentsArrays.push_back(sectorsArray);
 				((mComponentsArraysMap[componentTypeId<ComponentTypes>()] = sectorsArray), ...);
-			}
 
-			sectorsArray->reserve(capacity);
+				sectorsArray->reserve(capacity);
+			}
 		}
 
 		/**
@@ -530,13 +559,36 @@ namespace ecss {
 		// ===== Entities API ===================================================
 
 		/// @return True if registry currently owns entityId.
-		FORCE_INLINE bool contains(EntityId entityId) const noexcept { auto lock = ecss::Threads::sharedLock(mEntitiesMutex, ThreadSafe); return mEntities.contains(entityId); }
+		FORCE_INLINE bool contains(EntityId entityId) const noexcept {
+			if constexpr (ThreadSafe) {
+				auto lock = ecss::Threads::sharedLock(mEntitiesMutex, ThreadSafe); return mEntities.contains(entityId);
+			}
+			else {
+				return mEntities.contains(entityId);
+			}
+		}
 
 		/// @brief Allocate (take) a new entity id.
-		FORCE_INLINE EntityId takeEntity() noexcept { auto lock = ecss::Threads::uniqueLock(mEntitiesMutex, ThreadSafe); return mEntities.take(); }
+		FORCE_INLINE EntityId takeEntity() noexcept
+		{
+			if constexpr (ThreadSafe) {
+				auto lock = ecss::Threads::uniqueLock(mEntitiesMutex, ThreadSafe); return mEntities.take();
+			}
+			else {
+				return mEntities.take();
+			}
+		}
 
 		/// @brief Snapshot all entity ids (copy).
-		FORCE_INLINE std::vector<EntityId> getAllEntities() const noexcept { auto lock = ecss::Threads::sharedLock(mEntitiesMutex, ThreadSafe); return mEntities.getAll(); }
+		FORCE_INLINE std::vector<EntityId> getAllEntities() const noexcept
+		{
+			if constexpr (ThreadSafe) {
+				auto lock = ecss::Threads::uniqueLock(mEntitiesMutex, ThreadSafe); return mEntities.getAll();
+			}
+			else {
+				return mEntities.getAll();
+			}
+		}
 
 		/**
 		 * @brief Destroy a single entity and all of its components.
@@ -548,8 +600,11 @@ namespace ecss {
 				return;
 			}
 
-			{
+			if constexpr (ThreadSafe) {
 				auto lock = ecss::Threads::uniqueLock(mEntitiesMutex, ThreadSafe);
+				mEntities.erase(entityId);
+			}
+			else {
 				mEntities.erase(entityId);
 			}
 
@@ -604,8 +659,13 @@ namespace ecss {
 				}
 			}
 
-			{
+			if constexpr(ThreadSafe) {
 				auto lock = ecss::Threads::uniqueLock(mEntitiesMutex, ThreadSafe);
+				for (auto id : entities) {
+					mEntities.erase(id);
+				}
+			}
+			else {
 				for (auto id : entities) {
 					mEntities.erase(id);
 				}
@@ -626,21 +686,23 @@ namespace ecss {
 		 * @param entityId Entity id.
 		 */
 		void destroySector(EntityId entityId) noexcept {
-			decltype(mComponentsArrays) arrays;
-			{
-				auto lock = ecss::Threads::uniqueLock(componentsArrayMapMutex, ThreadSafe);
-				arrays = mComponentsArrays;
-			}
+			if constexpr (ThreadSafe) {
+				decltype(mComponentsArrays) arrays;
+				{
+					auto lock = ecss::Threads::uniqueLock(componentsArrayMapMutex, ThreadSafe);
+					arrays = mComponentsArrays;
+				}
 
-			for (auto array : arrays) {
-				if constexpr (ThreadSafe) {
+				for (auto array : arrays) {
 					auto lock = array->writeLock();
 					array->mPinsCounter.waitUntilChangeable(entityId);
 
 					Memory::Sector::destroySector(array->template findSector<false>(entityId), array->getLayout());
 					array->incDefragmentSize();
 				}
-				else {
+			}
+			else {
+				for (auto array : mComponentsArrays) {
 					Memory::Sector::destroySector(array->findSector(entityId), array->getLayout());
 					array->incDefragmentSize();
 				}
@@ -669,7 +731,7 @@ namespace ecss {
 		 * @return PinnedSector handle (may be empty if sector not found).
 		 */
 		template<typename T, class ArraysArr>
-		static Memory::PinnedSector pinSector(SectorId pinId, const ArraysArr& arrays, Memory::SectorsArray<ThreadSafe, Allocator>* lockedArr, size_t index) {
+		static Memory::PinnedSector pinSector(SectorId pinId, const ArraysArr& arrays, Memory::SectorsArray<ThreadSafe, Allocator>* lockedArr, size_t index) requires(ThreadSafe) {
 			auto container = arrays[index];
 			if (lockedArr == container) {
 				return Memory::PinnedSector(container->mPinsCounter, nullptr, pinId);
@@ -717,8 +779,9 @@ namespace ecss {
 		/// @brief Flat list of all unique sectors arrays for iteration/maintenance.
 		std::vector<Memory::SectorsArray<ThreadSafe, Allocator>*> mComponentsArrays;
 
-		mutable std::shared_mutex mEntitiesMutex;          ///< Protects entities container (ThreadSafe build).
-		mutable std::shared_mutex componentsArrayMapMutex; ///< Protects component arrays map/list (ThreadSafe build).
+		struct Dummy{};
+		mutable std::conditional_t<ThreadSafe, std::shared_mutex, Dummy> mEntitiesMutex;          ///< Protects entities container (ThreadSafe build).
+		mutable std::conditional_t<ThreadSafe, std::shared_mutex, Dummy> componentsArrayMapMutex; ///< Protects component arrays map/list (ThreadSafe build).
 	};
 
 	/**
@@ -980,7 +1043,8 @@ namespace ecss {
 		}
 
 	private:
-		std::array<Memory::PinnedSector, TypesCount> mPins; ///< Back-sector pinning for bound safety (thread-safe build).
+		struct Dummy{};
+		std::conditional_t<ThreadSafe, std::array<Memory::PinnedSector, TypesCount>, Dummy> mPins;  ///< Back-sector pinning for bound safety (thread-safe build).
 		Iterator mBeginIt;                                   ///< Cached begin iterator.
 	};
 } // namespace ecss

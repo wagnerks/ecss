@@ -49,12 +49,62 @@ namespace ecss
 
 namespace ecss::Memory {
 
+namespace detail {
+	template<bool TS>
+	struct SectorsMap;
+
+	template<>
+	struct SectorsMap<true> {
+		FORCE_INLINE Sector* findSector(SectorId id) const {
+			auto map = sectorsMapView.load(std::memory_order_acquire);
+			return id < map.size ? map.vectorData[id] : nullptr;
+		}
+
+		FORCE_INLINE Sector* getSector(SectorId id)	const {
+			assert(id < sectorsMapView.load().size);
+			return sectorsMapView.load(std::memory_order_acquire).vectorData[id];
+		}
+
+		FORCE_INLINE size_t capacity() const { return sectorsMapView.load(std::memory_order_acquire).size; }
+		FORCE_INLINE void storeVector() {
+			sectorsMapView.store(SectorsView { sectorsMap.data(), sectorsMap.size() }, std::memory_order_release);
+			bin.drainAll();
+		}
+
+	private:
+		mutable Memory::RetireBin bin; ///< Retirement bin for old buffers (ThreadSafe).
+
+	public:
+		// Allocator for sector map (retirement-aware in ThreadSafe builds)
+		std::vector<Sector*, Memory::RetireAllocator<Sector*>> sectorsMap{ Memory::RetireAllocator<Sector*>{&bin} }; ///< Id -> Sector* map (sparse).
+
+	private:
+		/// @brief Atomic snapshot view for lock-free read of sector pointers (no iteration guarantees).
+		struct SectorsView {
+			Sector* const* vectorData;
+			size_t  size;
+		};
+
+		mutable std::atomic<SectorsView> sectorsMapView{ SectorsView{nullptr, 0} };
+	};
+
+	template<>
+	struct SectorsMap<false> {
+		FORCE_INLINE Sector* findSector(SectorId id) const { return id < sectorsMap.size() ? sectorsMap[id] : nullptr; }
+		FORCE_INLINE Sector* getSector(SectorId id)	const {	assert(id < sectorsMap.size());	return sectorsMap[id]; }
+		FORCE_INLINE size_t capacity() const { return sectorsMap.size(); }
+		FORCE_INLINE void storeVector() {} //dummy
+
+		std::vector<Sector*> sectorsMap;
+	};
+} // namespace ecss::Memory::detail
+
 /**
  * @name Internal lock helper macros
  * @warning Intended only inside this header; not for external use.
  * @{ */
-#define SHARED_LOCK() auto lock = ecss::Threads::sharedLock(mtx, true)
-#define UNIQUE_LOCK() auto lock = ecss::Threads::uniqueLock(mtx, true)
+#define SHARED_LOCK() auto lock = readLock()
+#define UNIQUE_LOCK() auto lock = writeLock()
 /** @} */
 
 /**
@@ -64,7 +114,7 @@ namespace ecss::Memory {
  * @param EXPR Expression executed under the lock (or directly if TS_FLAG==false).
  */
 #define TS_GUARD(TS_FLAG, LOCK_MACRO, EXPR) \
-	do {if constexpr (TS_FLAG) { LOCK_MACRO##_LOCK(); EXPR; } else { EXPR; }} while(0)
+	do {enforceTSMode<TS>(); if constexpr (TS_FLAG) { LOCK_MACRO##_LOCK(); EXPR; } else { EXPR; }} while(0)
 
 /**
  * @brief Same as TS_GUARD but allows an additional pre-expression executed under the lock.
@@ -74,7 +124,7 @@ namespace ecss::Memory {
  * @param EXPR Main expression executed under the same lock.
  */
 #define TS_GUARD_S(TS_FLAG, LOCK_MACRO, ADDITIONAL_SINK, EXPR) \
-	do {if constexpr (TS_FLAG) { LOCK_MACRO##_LOCK(); ADDITIONAL_SINK; EXPR; } else { EXPR; }} while(0)
+	do {enforceTSMode<TS>(); if constexpr (TS_FLAG) { LOCK_MACRO##_LOCK(); ADDITIONAL_SINK; EXPR; } else { EXPR; }} while(0)
 
 /**
  * @brief RAII pin for a sector to prevent relocation / destruction while in use.
@@ -340,7 +390,7 @@ namespace ecss::Memory {
 		 * @param allocator Allocator instance.
 		 */
 		SectorsArray(SectorLayoutMeta* meta, Allocator&& allocator = {}) : mAllocator(std::move(allocator)) { mAllocator.init(meta);
-			publishNew(mSectorsMap);
+			mSectorsMap.storeVector();
 		}
 
 	public:
@@ -371,39 +421,39 @@ namespace ecss::Memory {
 
 		/**
 		 * @brief Pin a specific sector pointer (if not null).
-		 * @tparam Lock If false, skip acquiring a shared lock (caller must ensure safety).
+		 * @tparam TS If false, skip acquiring a shared lock (caller must ensure safety).
 		 * @param sector Sector pointer (maybe null).
 		 * @return PinnedSector (empty if sector==nullptr).
 		 */
-		template<bool Lock = true>
-		[[nodiscard]] PinnedSector pinSector(Sector* sector) const requires(ThreadSafe) { TS_GUARD(Lock, SHARED, return pinSectorImpl(sector)); }
+		template<bool TS = true>
+		[[nodiscard]] PinnedSector pinSector(Sector* sector) const requires(ThreadSafe) { TS_GUARD(TS, SHARED, return pinSectorImpl(sector)); }
 
 		/**
 		 * @brief Pin sector by id if found.
-		 * @tparam Lock If false, expect external synchronization.
+		 * @tparam TS If false, expect external synchronization.
 		 * @param id Sector id.
 		 * @return PinnedSector or empty if not present.
 		 */
-		template<bool Lock = true>
-		[[nodiscard]] PinnedSector pinSector(SectorId id)	 const requires(ThreadSafe) { TS_GUARD(Lock, SHARED, return pinSectorImpl(findSectorImpl(id));); }
+		template<bool TS = true>
+		[[nodiscard]] PinnedSector pinSector(SectorId id)	 const requires(ThreadSafe) { TS_GUARD(TS, SHARED, return pinSectorImpl(findSectorImpl(id));); }
 
 		/**
 		 * @brief Pin sector at a given linear index.
-		 * @tparam Lock If false, skip locking.
+		 * @tparam TS If false, skip locking.
 		 * @param idx Linear index (0..size()).
 		 * @return PinnedSector (empty if out-of-range).
 		 */
-		template<bool Lock = true>
-		[[nodiscard]] PinnedSector pinSectorAt(size_t idx)	 const requires(ThreadSafe) { TS_GUARD(Lock, SHARED, return pinSectorImpl(mAllocator.at(idx));); }
+		template<bool TS = true>
+		[[nodiscard]] PinnedSector pinSectorAt(size_t idx)	 const requires(ThreadSafe) { TS_GUARD(TS, SHARED, return pinSectorImpl(mAllocator.at(idx));); }
 
 		/**
 		 * @brief Pin last sector (by linear order).
-		 * @tparam Lock If false, skip locking.
+		 * @tparam TS If false, skip locking.
 		 * @return Last sector pinned or empty if array empty.
 		 */
-		template<bool Lock = true>
+		template<bool TS = true>
 		[[nodiscard]] PinnedSector pinBackSector()			 const requires(ThreadSafe) {
-			TS_GUARD(Lock, SHARED, auto contSize = sizeImpl(); return contSize == 0 ? PinnedSector{} : pinSectorImpl(mAllocator.at(contSize - 1)););
+			TS_GUARD(TS, SHARED, auto contSize = sizeImpl(); return contSize == 0 ? PinnedSector{} : pinSectorImpl(mAllocator.at(contSize - 1)););
 		}
 
 	public: // ---- Erase & maintenance ----------------------------------------------------
@@ -416,7 +466,7 @@ namespace ecss::Memory {
 		 */
 		template<bool TS = ThreadSafe>
 		void erase(size_t beginIdx, size_t count = 1, bool defragment = false) {
-			if constexpr(TS) {
+			if constexpr(TS && ThreadSafe) {
 				UNIQUE_LOCK();
 				auto begin = Iterator(this, beginIdx);
 				if (!*begin) { return; }
@@ -447,7 +497,7 @@ namespace ecss::Memory {
 		template<bool TS = ThreadSafe>
 		Iterator erase(Iterator it, bool defragment = false) noexcept {
 			if (!(*it)) { return it; }
-			TS_GUARD_S(TS, UNIQUE, mPinsCounter.waitUntilChangeable(it->id);, return eraseImpl(it, defragment););
+			TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable(it->id);, return eraseImpl(it, defragment););
 		}
 
 		/**
@@ -460,7 +510,7 @@ namespace ecss::Memory {
 		template<bool TS = ThreadSafe>
 		Iterator erase(Iterator first, Iterator last, bool defragment = false) noexcept {
 			if (first == last || !(*first)) { return first; }
-			TS_GUARD_S(TS, UNIQUE, mPinsCounter.waitUntilChangeable(first->id);, return eraseImpl(first, last, defragment););
+			TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable(first->id);, return eraseImpl(first, last, defragment););
 		}
 
 		/**
@@ -471,7 +521,7 @@ namespace ecss::Memory {
 		template<typename Func, bool TS = ThreadSafe>
 		void erase_if(Iterator first, Iterator last, Func&& func, bool defragment = false) noexcept {
 			if (first == last || !(*first)) { return; }
-			TS_GUARD_S(TS, UNIQUE, mPinsCounter.waitUntilChangeable(first->id);, erase_ifImpl(first, last, std::forward<Func>(func), defragment););
+			TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable(first->id);, erase_ifImpl(first, last, std::forward<Func>(func), defragment););
 		}
 
 		/**
@@ -492,28 +542,28 @@ namespace ecss::Memory {
 		 * @brief Find the first linear index whose sector id >= sectorId.
 		 * @return Linear index or size() if none.
 		 */
-		template<bool TS = ThreadSafe> size_t findRightNearestSectorIndex(SectorId sectorId)  const { TS_GUARD(TS, SHARED, return findRightNearestSectorIndexImpl(sectorId)); }
-		template<bool TS = ThreadSafe> bool containsSector(SectorId id)						  const { TS_GUARD(TS, SHARED, return containsSectorImpl(id)); }
-		template<bool TS = ThreadSafe> Sector* at(size_t sectorIndex)						  const { TS_GUARD(TS, SHARED, return atImpl(sectorIndex)); }
-		template<bool TS = ThreadSafe> Sector* findSector(SectorId id)						  const { TS_GUARD(TS, SHARED, return findSectorImpl(id)); }
-		template<bool TS = ThreadSafe> Sector* getSector(SectorId id)						  const { TS_GUARD(TS, SHARED, return getSectorImpl(id)); }
+		template<bool TS = ThreadSafe> size_t findRightNearestSectorIndex(SectorId sectorId)  const { TS_GUARD(TS && ThreadSafe, SHARED, return findRightNearestSectorIndexImpl(sectorId)); }
+		template<bool TS = ThreadSafe> bool containsSector(SectorId id)						  const { TS_GUARD(TS && ThreadSafe, SHARED, return containsSectorImpl(id)); }
+		template<bool TS = ThreadSafe> Sector* at(size_t sectorIndex)						  const { TS_GUARD(TS && ThreadSafe, SHARED, return atImpl(sectorIndex)); }
+		template<bool TS = ThreadSafe> Sector* findSector(SectorId id)						  const { TS_GUARD(TS && ThreadSafe, SHARED, return findSectorImpl(id)); }
+		template<bool TS = ThreadSafe> Sector* getSector(SectorId id)						  const { TS_GUARD(TS && ThreadSafe, SHARED, return getSectorImpl(id)); }
 		/// @}
 
 		/// @name Index and capacity queries
 		/// @{
-		template<bool TS = ThreadSafe> size_t getSectorIndex(SectorId id)					  const { TS_GUARD(TS, SHARED, return getSectorIndexImpl(id)); }
-		template<bool TS = ThreadSafe> size_t getSectorIndex(Sector* sector)			      const { TS_GUARD(TS, SHARED, return getSectorIndexImpl(sector)); }
-		template<bool TS = ThreadSafe> size_t sectorsMapCapacity()							  const { TS_GUARD(TS, SHARED, return sectorsMapCapacityImpl()); }
-		template<bool TS = ThreadSafe> size_t capacity()									  const { TS_GUARD(TS, SHARED, return capacityImpl()); }
-		template<bool TS = ThreadSafe> size_t size()										  const { TS_GUARD(TS, SHARED, return sizeImpl()); }
-		template<bool TS = ThreadSafe> bool empty()											  const { TS_GUARD(TS, SHARED, return emptyImpl()); }
-		template<bool TS = ThreadSafe> void shrinkToFit()										    { TS_GUARD(TS, UNIQUE, shrinkToFitImpl()); }
+		template<bool TS = ThreadSafe> size_t getSectorIndex(SectorId id)					  const { TS_GUARD(TS && ThreadSafe, SHARED, return getSectorIndexImpl(id)); }
+		template<bool TS = ThreadSafe> size_t getSectorIndex(Sector* sector)			      const { TS_GUARD(TS && ThreadSafe, SHARED, return getSectorIndexImpl(sector)); }
+		template<bool TS = ThreadSafe> size_t sectorsMapCapacity()							  const { TS_GUARD(TS && ThreadSafe, SHARED, return sectorsMapCapacityImpl()); }
+		template<bool TS = ThreadSafe> size_t capacity()									  const { TS_GUARD(TS && ThreadSafe, SHARED, return capacityImpl()); }
+		template<bool TS = ThreadSafe> size_t size()										  const { TS_GUARD(TS && ThreadSafe, SHARED, return sizeImpl()); }
+		template<bool TS = ThreadSafe> bool empty()											  const { TS_GUARD(TS && ThreadSafe, SHARED, return emptyImpl()); }
+		template<bool TS = ThreadSafe> void shrinkToFit()										    { TS_GUARD(TS && ThreadSafe, UNIQUE, shrinkToFitImpl()); }
 		/// @}
 
 		/// @name Storage management
 		/// @{
-		template<bool TS = ThreadSafe> void reserve(uint32_t newCapacity) { TS_GUARD(TS, UNIQUE, reserveImpl(newCapacity)); }
-		template<bool TS = ThreadSafe> void clear()					      { TS_GUARD_S(TS, UNIQUE, mPinsCounter.waitUntilChangeable();, clearImpl(););}
+		template<bool TS = ThreadSafe> void reserve(uint32_t newCapacity) { TS_GUARD(TS && ThreadSafe, UNIQUE, reserveImpl(newCapacity)); }
+		template<bool TS = ThreadSafe> void clear()					      { TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable();, clearImpl(););}
 		/// @}
 
 		/**
@@ -521,27 +571,27 @@ namespace ecss::Memory {
 		 * @note Blocks until all pins are released (ThreadSafe build).
 		 */
 		template<bool TS = ThreadSafe>
-		void defragment() { TS_GUARD_S(TS, UNIQUE, mPinsCounter.waitUntilChangeable(); , defragmentImpl();); }
+		void defragment() { TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable(); , defragmentImpl();); }
 		
 		/**
 		 * @brief Attempt a defragment only if array not logically pinned (non-blocking attempt).
 		 */
 		template<bool TS = ThreadSafe>
-		void tryDefragment() { TS_GUARD_S(TS, UNIQUE, if (mPinsCounter.isArrayLocked()){ return;} , defragmentImpl();); }
+		void tryDefragment() { TS_GUARD_S(TS && ThreadSafe, UNIQUE, if (mPinsCounter.isArrayLocked()){ return;} , defragmentImpl();); }
 
 		/// @brief Increment deferred defragment bytes counter.
 		void incDefragmentSize(uint32_t count = 1) { mDefragmentSize += count; }
 
 		/// @name Defragment metrics / thresholds
 		/// @{
-		template<bool TS = ThreadSafe> auto getDefragmentationSize()			const { TS_GUARD(TS, SHARED, return mDefragmentSize; ); }
-		template<bool TS = ThreadSafe> auto getDefragmentationRatio()			const { TS_GUARD(TS, SHARED, return mSize ? (static_cast<float>(mDefragmentSize) / static_cast<float>(mSize)) : 0.f;); }
-		template<bool TS = ThreadSafe> bool needDefragment()					const { TS_GUARD(TS, SHARED, return getDefragmentationRatio<false>() > mDefragThreshold; ); }
+		template<bool TS = ThreadSafe> auto getDefragmentationSize()	const { TS_GUARD(TS && ThreadSafe, SHARED, return mDefragmentSize; ); }
+		template<bool TS = ThreadSafe> auto getDefragmentationRatio()	const { TS_GUARD(TS && ThreadSafe, SHARED, return mSize ? (static_cast<float>(mDefragmentSize) / static_cast<float>(mSize)) : 0.f;); }
+		template<bool TS = ThreadSafe> bool needDefragment()			const { TS_GUARD(TS && ThreadSafe, SHARED, return getDefragmentationRatio<false>() > mDefragThreshold; ); }
 		/**
 		 * @brief Set ratio threshold (0..1) above which needDefragment()==true.
 		 * @param threshold Clamped into [0..1].
 		 */
-		template<bool TS = ThreadSafe> void setDefragmentThreshold(float threshold)	  { TS_GUARD(TS, UNIQUE, mDefragThreshold = std::max(0.f, std::min(threshold, 1.f)); ); }
+		template<bool TS = ThreadSafe> void setDefragmentThreshold(float threshold)	  { TS_GUARD(TS && ThreadSafe, UNIQUE, mDefragThreshold = std::max(0.f, std::min(threshold, 1.f)); ); }
 		/// @}
 
 		/**
@@ -553,7 +603,7 @@ namespace ecss::Memory {
 		 */
 		template<typename T, bool TS = ThreadSafe>
 		std::remove_cvref_t<T>* insert(SectorId sectorId, T&& data) {
-			TS_GUARD_S(TS, UNIQUE, mPinsCounter.waitUntilChangeable(sectorId);, return insertImpl(sectorId, std::forward<T>(data)););
+			TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable(sectorId);, return insertImpl(sectorId, std::forward<T>(data)););
 		}
 
 		/**
@@ -565,7 +615,7 @@ namespace ecss::Memory {
 		 */
 		template<typename T, bool TS = ThreadSafe, class... Args>
 		T* emplace(SectorId sectorId, Args&&... args)  {
-			TS_GUARD_S(TS, UNIQUE, mPinsCounter.waitUntilChangeable(sectorId);, return emplaceImpl<T>(sectorId, std::forward<Args>(args)...););
+			TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable(sectorId);, return emplaceImpl<T>(sectorId, std::forward<Args>(args)...););
 		}
 
 		/**
@@ -609,7 +659,7 @@ namespace ecss::Memory {
 				if (mPinsCounter.canMoveSector(id)) {
 					Sector::destroySector(getSectorImpl(id), getLayout());
 					incDefragmentSize();
-					mSectorsMap[id] = nullptr;
+					mSectorsMap.sectorsMap[id] = nullptr;
 				}
 				else {
 					mPendingErase.emplace_back(id);
@@ -627,9 +677,9 @@ namespace ecss::Memory {
 	private: // ---- High-level copy / move wrappers (locking aware) ----------------------
 		template<bool T, typename Alloc, bool TS = ThreadSafe>
 		void copy(const SectorsArray<T, Alloc>& other)  {
-			if constexpr (TS) {
-				auto lock = ecss::Threads::uniqueLock(mtx, true);
-				auto otherLock = ecss::Threads::sharedLock(other.mtx, true);
+			if constexpr (TS || T) {
+				auto lock = writeLock();
+				auto otherLock = other.readLock();
 				mPinsCounter.waitUntilChangeable();
 				copyImpl(other);
 			}
@@ -641,8 +691,8 @@ namespace ecss::Memory {
 		template<bool T, typename Alloc, bool TS = ThreadSafe>
 		void move(SectorsArray<T, Alloc>&& other) {
 			if constexpr (TS || T) {
-				auto lock = ecss::Threads::uniqueLock(mtx, true);
-				auto otherLock = ecss::Threads::uniqueLock(other.mtx, true);
+				auto lock = writeLock();
+				auto otherLock = other.writeLock();
 				mPinsCounter.waitUntilChangeable();
 				other.mPinsCounter.waitUntilChangeable();
 				moveImpl(std::move(other));
@@ -654,11 +704,11 @@ namespace ecss::Memory {
 
 	private: // ---- Internal erase / shift / defrag primitives ---------------------------
 		Iterator eraseImpl(Iterator it, bool defragment = false) noexcept {
-			if (!(*it) || mSectorsMapView.load().size <= it->id) {
+			if (!(*it) || sectorsMapCapacityImpl() <= it->id) {
 				return it;
 			}
 			auto idx = it.linearIndex();
-			mSectorsMap[it->id] = nullptr;
+			mSectorsMap.sectorsMap[it->id] = nullptr;
 			Sector::destroySector(*it, getLayout());
 			if (defragment) {
 				shiftSectorsImpl<Left>(idx + 1);
@@ -676,8 +726,8 @@ namespace ecss::Memory {
 			auto idx = first.linearIndex();
 			auto lastIdx = last.linearIndex();
 			for (auto it = first; it != last; ++it) {
-				if (mSectorsMap.size() > it->id) {
-					mSectorsMap[it->id] = nullptr;
+				if (mSectorsMap.sectorsMap.size() > it->id) {
+					mSectorsMap.sectorsMap[it->id] = nullptr;
 				}
 				Sector::destroySector(*it, getLayout());
 			}
@@ -697,7 +747,7 @@ namespace ecss::Memory {
 			auto lastIdx = last.linearIndex();
 			for (auto it = first; it != last; ++it) {
 				if (std::forward<Func>(func)(*it)) {
-					mSectorsMap[it->id] = nullptr;
+					mSectorsMap.sectorsMap[it->id] = nullptr;
 					Sector::destroySector(*it, getLayout());
 					incDefragmentSize();
 				}
@@ -708,8 +758,8 @@ namespace ecss::Memory {
 		}
 
 		size_t findRightNearestSectorIndexImpl(SectorId sectorId) const {
-			if (sectorId < mSectorsMapView.load().size) {
-				for (auto it = mSectorsMap.begin() + sectorId, end = mSectorsMap.end(); it != end; ++it) {
+			if (sectorId < sectorsMapCapacityImpl()) {
+				for (auto it = mSectorsMap.sectorsMap.begin() + sectorId, end = mSectorsMap.sectorsMap.end(); it != end; ++it) {
 					if (*it) {
 						return mAllocator.find(*it);
 					}
@@ -720,11 +770,12 @@ namespace ecss::Memory {
 
 		FORCE_INLINE bool containsSectorImpl(SectorId id)	const { return findSectorImpl(id) != nullptr; }
 		FORCE_INLINE Sector* atImpl(size_t sectorIndex)		const { assert(sectorIndex < mSize); return mAllocator.at(sectorIndex); }
-		FORCE_INLINE Sector* findSectorImpl(SectorId id)	const { auto map = mSectorsMapView.load(); return id < map.size ? map.vectorData[id] : nullptr; }
-		FORCE_INLINE Sector* getSectorImpl(SectorId id)		const { assert(id < mSectorsMapView.load().size); return mSectorsMapView.load().vectorData[id]; }
+		FORCE_INLINE Sector* findSectorImpl(SectorId id)	const { return mSectorsMap.findSector(id); }
+
+		FORCE_INLINE Sector* getSectorImpl(SectorId id)		const { return mSectorsMap.getSector(id); }
 		FORCE_INLINE size_t getSectorIndexImpl(SectorId id)	const { return mAllocator.find(findSectorImpl(id)); }
 		FORCE_INLINE size_t getSectorIndexImpl(Sector* sector)	const { return mAllocator.find(sector); }
-		FORCE_INLINE size_t sectorsMapCapacityImpl()			const { return mSectorsMapView.load().size; }
+		FORCE_INLINE size_t sectorsMapCapacityImpl()			const { return mSectorsMap.capacity(); }
 		FORCE_INLINE size_t capacityImpl()					const { return mAllocator.capacity(); }
 		FORCE_INLINE size_t sizeImpl()						const { return mSize; }
 		FORCE_INLINE bool   emptyImpl()						const { return !mSize; }
@@ -736,11 +787,10 @@ namespace ecss::Memory {
 				if (!getLayout()->isTrivial()) {
 					for (auto it = Iterator(this, 0), endIt = Iterator(this, sizeImpl()); it != endIt; ++it) {
 						Sector::destroySector(*it, getLayout());
-						incDefragmentSize();
 					}
 				}
-				mSectorsMap.clear();
-				publishNew(mSectorsMap);
+				mSectorsMap.sectorsMap.clear();
+				mSectorsMap.storeVector();
 				mPendingErase.clear();
 				mSize = 0;
 				mDefragmentSize = 0;
@@ -750,9 +800,9 @@ namespace ecss::Memory {
 		void reserveImpl(uint32_t newCapacity) {
 			if (mAllocator.capacity() < newCapacity) {
 				mAllocator.allocate(newCapacity);
-				if (newCapacity > mSectorsMapView.load().size) {
-					mSectorsMap.resize(newCapacity, nullptr);
-					publishNew(mSectorsMap);
+				if (newCapacity > sectorsMapCapacityImpl()) {
+					mSectorsMap.sectorsMap.resize(newCapacity, nullptr);
+					mSectorsMap.storeVector();
 				}
 			}
 		}
@@ -792,11 +842,11 @@ namespace ecss::Memory {
 			}
 			mSize = other.mSize;
 			mAllocator = other.mAllocator;
-			mSectorsMap.resize(other.mSectorsMap.size(), nullptr);
-			publishNew(mSectorsMap);
+			mSectorsMap.sectorsMap.resize(other.mSectorsMap.sectorsMap.size(), nullptr);
+			mSectorsMap.storeVector();
 			for (auto it = Iterator(this, 0), endIt = Iterator(this, sizeImpl()); it != endIt; ++it) {
 				auto sector = *it;
-				mSectorsMap[sector->id] = sector;
+				mSectorsMap.sectorsMap[sector->id] = sector;
 			}
 			defragmentImpl();
 		}
@@ -811,13 +861,13 @@ namespace ecss::Memory {
 			}
 			mSize = other.mSize;
 			mAllocator = std::move(other.mAllocator);
-			mSectorsMap.assign(other.mSectorsMap.size(), nullptr);
-			publishNew(mSectorsMap);
+			mSectorsMap.sectorsMap.assign(other.mSectorsMap.sectorsMap.size(), nullptr);
+			mSectorsMap.storeVector();
 
 			size_t i = 0;
 			auto cursor = mAllocator.getCursor(0);
 			while (cursor && i++ < sizeImpl()) {
-				mSectorsMap[cursor->id] = *cursor;
+				mSectorsMap.sectorsMap[cursor->id] = *cursor;
 				++cursor;
 			}
 
@@ -844,7 +894,7 @@ namespace ecss::Memory {
 				if (auto tail = from > mSize ? 0 : mSize - from) {
 					mAllocator.moveSectors(from - count, from, tail);
 					for (auto it = Iterator(this, from - count), end = Iterator(this, from + tail); it != end; ++it) {
-						mSectorsMap[it->id] = *it;
+						mSectorsMap.sectorsMap[it->id] = *it;
 					}
 				}
 			}
@@ -853,7 +903,7 @@ namespace ecss::Memory {
 				if (const size_t tail = oldSize > from ? (oldSize - from) : 0) {
 					mAllocator.moveSectors(from + count, from, tail);
 					for (auto it = Iterator(this, from + count), end = Iterator(this, from + count + tail); it != end; ++it) {
-						mSectorsMap[it->id] = *it;
+						mSectorsMap.sectorsMap[it->id] = *it;
 					}
 				}
 			}
@@ -875,13 +925,13 @@ namespace ecss::Memory {
 		}
 
 		Sector* acquireSectorImpl(SectorId sectorId) {
-			if (sectorId >= mSectorsMapView.load().size) [[unlikely]] {
-				mSectorsMap.resize(static_cast<size_t>(sectorId) + 1, nullptr);
-				publishNew(mSectorsMap);
+			if (sectorId >= sectorsMapCapacityImpl()) [[unlikely]] {
+				mSectorsMap.sectorsMap.resize(static_cast<size_t>(sectorId) + 1, nullptr);
+				mSectorsMap.storeVector();
 			}
 			mAllocator.allocate(mSize + 1);
 
-			auto& sector = mSectorsMap[sectorId];
+			auto& sector = mSectorsMap.sectorsMap[sectorId];
 			if (sector) [[unlikely]] {
 				return sector;
 			}
@@ -913,7 +963,7 @@ namespace ecss::Memory {
 				while (read < n) {
 					auto s = mAllocator.at(read);
 					if (s->isSectorAlive()) break;
-					mSectorsMap[s->id] = nullptr;
+					mSectorsMap.sectorsMap[s->id] = nullptr;
 					++read; ++deleted;
 				}
 				if (read >= n) break;
@@ -929,12 +979,12 @@ namespace ecss::Memory {
 					mAllocator.moveSectors(write, runBeg, runLen);
 					for (size_t i = 0; i < runLen; ++i) {
 						auto ns = mAllocator.at(write + i);
-						mSectorsMap[ns->id] = ns;
+						mSectorsMap.sectorsMap[ns->id] = ns;
 					}
 				} else {
 					for (size_t i = 0; i < runLen; ++i) {
 						auto ns = mAllocator.at(write + i);
-						mSectorsMap[ns->id] = ns;
+						mSectorsMap.sectorsMap[ns->id] = ns;
 					}
 				}
 				write += runLen;
@@ -955,7 +1005,7 @@ namespace ecss::Memory {
 					if (auto sector = findSector<false>(id)) {
 						Sector::destroySector(sector, getLayout());
 						incDefragmentSize();
-						mSectorsMap[id] = nullptr;
+						mSectorsMap.sectorsMap[id] = nullptr;
 					}
 				}
 			}
@@ -967,50 +1017,31 @@ namespace ecss::Memory {
 
 		[[nodiscard]] PinnedSector pinSectorImpl(Sector* sector) const requires(ThreadSafe) { return sector ? PinnedSector{ mPinsCounter, sector, sector->id } : PinnedSector{}; }
 
-		/**
-		 * @brief Publish a new raw view (atomic) of the id->Sector* mapping.
-		 * @tparam T Vector-like container (with data()/size()).
-		 * @param v New vector reference.
-		 */
-		template<typename T>
-		void publishNew(const T& v) const {
-			mSectorsMapView.store(SectorsView{v.data(), v.size()}, std::memory_order_release);
-			if constexpr (ThreadSafe) {
-				mBin.drainAll();
+	private:
+		/// @return Shared read lock if ThreadSafe, otherwise a dummy object.
+		auto readLock()  const requires(ThreadSafe) { return ecss::Threads::sharedLock(mtx, ThreadSafe); }
+		auto readLock()  const requires(!ThreadSafe) { return Dummy{}; }
+		/// @return Unique write lock if ThreadSafe, otherwise a dummy object.
+		auto writeLock() const requires(ThreadSafe) { return ecss::Threads::uniqueLock(mtx, ThreadSafe); }
+		auto writeLock() const requires(!ThreadSafe) { return Dummy{}; }
+
+		template<bool UseLock>
+		static consteval void enforceTSMode() {
+			if constexpr (!ThreadSafe && UseLock) {
+				static_assert(!UseLock, "Invalid use: TS=true on SectorsArray<ThreadSafe=false>. "
+					"Either instantiate a thread-safe SectorsArray or call with TS=false.");
 			}
 		}
 
 	private:
-		/// @return Shared read lock if ThreadSafe, otherwise a dummy object.
-		auto readLock()  const { return ecss::Threads::sharedLock(mtx, ThreadSafe); }
-		/// @return Unique write lock if ThreadSafe, otherwise a dummy object.
-		auto writeLock() const { return ecss::Threads::uniqueLock(mtx, ThreadSafe); }
-
-	private:
 		Allocator mAllocator;                         ///< Underlying memory & cursor provider.
 
-		mutable std::shared_mutex mtx;                ///< Container-level RW mutex (ThreadSafe builds).
+		struct Dummy{};
 
-		mutable Threads::PinCounters mPinsCounter;    ///< Per-sector pin counters + global array lock state.
+		mutable std::conditional_t<ThreadSafe, std::shared_mutex, Dummy> mtx;                ///< Container-level RW mutex (ThreadSafe builds).
+		mutable std::conditional_t<ThreadSafe, Threads::PinCounters, Dummy> mPinsCounter;    ///< Per-sector pin counters + global array lock state.
 
-		// Allocator for sector map (retirement-aware in ThreadSafe builds)
-		using SectorsMapAlloc =	std::conditional_t<ThreadSafe, Memory::RetireAllocator<Sector*>, std::allocator<Sector*>>;
-
-		struct EmptyBin {};
-		using RetireBinT = std::conditional_t<ThreadSafe, Memory::RetireBin, EmptyBin>;
-
-		static SectorsMapAlloc makeSectorsMapAlloc(RetireBinT* bin) { if constexpr (ThreadSafe) { return SectorsMapAlloc{ bin }; } else { return SectorsMapAlloc{}; } }
-		
-		mutable RetireBinT mBin;                                          ///< Retirement bin for old buffers (ThreadSafe).
-
-		std::vector<Sector*, SectorsMapAlloc> mSectorsMap{ makeSectorsMapAlloc(&mBin) }; ///< Id -> Sector* map (sparse).
-
-		/// @brief Atomic snapshot view for lock-free read of sector pointers (no iteration guarantees).
-		struct SectorsView {
-			Sector* const * vectorData;
-			size_t  size;
-		};
-		mutable std::atomic<SectorsView> mSectorsMapView{ SectorsView{nullptr, 0} };
+		detail::SectorsMap<ThreadSafe> mSectorsMap;   ///< Id -> Sector* map (sparse).
 
 		std::vector<SectorId> mPendingErase;          ///< Deferred erase queue (ThreadSafe).
 
