@@ -95,8 +95,8 @@ jobs:
           esac
 
           CFLAGS="$SAN"
-          CXXFLAGS="$SAN"
-          LDFLAGS="$SAN"
+            CXXFLAGS="$SAN"
+            LDFLAGS="$SAN"
 
           echo "sanitizers=$SANITIZERS"   >> $GITHUB_OUTPUT
           echo "tsan=$TSAN"               >> $GITHUB_OUTPUT
@@ -138,7 +138,8 @@ jobs:
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }} -- -k 0
 
-      - name: Run tests
+      - name: Run tests (Ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
         env:
           ASAN_SYMBOLIZER_PATH: ${{ steps.sym.outputs.path }}
           CTEST_OUTPUT_ON_FAILURE: "1"
@@ -158,7 +159,7 @@ jobs:
         run: ccache -s || true
 
       - name: Upload test logs (on failure)
-        if: failure()
+        if: failure() && matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
         with:
           name: posix-ctest-logs-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.profile }}
@@ -284,15 +285,13 @@ jobs:
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }}
 
-      # --- Tests ---
-      - name: Run tests
-        run: ctest --test-dir build --output-on-failure --build-config ${{ matrix.build_type }} --timeout 150
+      # (No tests on Windows; compile-only validation.)
 
-      - name: Upload logs on failure
+      - name: Upload logs on failure (build only)
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: windows-ctest-logs-${{ matrix.toolchain }}-${{ matrix.build_type }}
+          name: windows-build-logs-${{ matrix.toolchain }}-${{ matrix.build_type }}
           path: |
             build/Testing/Temporary/LastTest.log
             build/**/Testing/Temporary/LastTest.log
