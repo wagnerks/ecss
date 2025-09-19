@@ -34,7 +34,7 @@ jobs:
           - { os: ubuntu-latest, build_type: Debug,   profile: tsan }
 
     env:
-      CCACHE_DIR: ${{ runner.temp }}/ccache
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
       CCACHE_MAXSIZE: 500M
 
     steps:
