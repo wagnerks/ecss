@@ -404,7 +404,7 @@ namespace detail {
 		 * @return Newly allocated heap object (caller owns via delete).
 		 */
 		template <typename... Types>
-		static SectorsArray* create(Allocator&& allocator = {}) { static_assert(types::areUnique<Types...>(), "Duplicates detected in SectorsArray types!");
+		static SectorsArray* create(Allocator&& allocator = {}) { static_assert(types::areUnique<Types...>, "Duplicates detected in SectorsArray types!");
 			static SectorLayoutMeta* meta = SectorLayoutMeta::create<Types...>();
 			return new SectorsArray(meta, std::move(allocator));
 		}
