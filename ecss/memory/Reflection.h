@@ -1,6 +1,6 @@
 ﻿#pragma once
 
-#include <xcall_once.h>
+#include <mutex> // for std::once_flag
 #include <ecss/Types.h>
 
 namespace ecss::Memory {
