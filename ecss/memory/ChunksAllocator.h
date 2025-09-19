@@ -8,324 +8,455 @@
 
 namespace ecss::Memory {
 
-    template<typename T>
-    static void* toAdr(T* ptr) {
-        if constexpr (std::is_const_v<T>) {
-            return const_cast<void*>(reinterpret_cast<const void*>(ptr));
-        }
-        else {
-            return reinterpret_cast<void*>(ptr);
-        }
-    }
+	template<typename T>
+	static void* toAdr(T* ptr) {
+		if constexpr (std::is_const_v<T>) {
+			return const_cast<void*>(reinterpret_cast<const void*>(ptr));
+		}
+		else {
+			return reinterpret_cast<void*>(ptr);
+		}
+	}
 
 	template<typename T1, typename T2>
 	static bool isSameAdr(T1* ptr1, T2* ptr2) {
-        return toAdr(ptr1) == toAdr(ptr2);
-    }
+		return toAdr(ptr1) == toAdr(ptr2);
+	}
 
-    static constexpr uint32_t nextPowerOfTwo(uint32_t x) {
-        if (x == 0) return 1;
-        --x;
-        x |= x >> 1;
-        x |= x >> 2;
-        x |= x >> 4;
-        x |= x >> 8;
-        x |= x >> 16;
-        return ++x;
-    }
+	static constexpr uint32_t nextPowerOfTwo(uint32_t x) {
+		if (x == 0) return 1;
+		--x;
+		x |= x >> 1;
+		x |= x >> 2;
+		x |= x >> 4;
+		x |= x >> 8;
+		x |= x >> 16;
+		return ++x;
+	}
 
-    template<uint32_t ChunkCapacity = 8192>
-    struct ChunksAllocator {
-        template<uint32_t>
-        friend struct ChunksAllocator;
+	template<uint32_t ChunkCapacity = 8192>
+	struct ChunksAllocator {
+		template<uint32_t>
+		friend struct ChunksAllocator;
 
-        struct Cursor {
-            Cursor() = default;
+		struct Cursor {
+			Cursor() = default;
 
-            Cursor(const ChunksAllocator* allocator, size_t index = 0) : shift(allocator->mSectorSize), alloc(allocator) {
-                chunkIdx = ChunksAllocator<ChunkCapacity>::calcChunkIndex(index);
-                inChunkIdx = index - chunkIdx * ChunksAllocator<ChunkCapacity>::mChunkCapacity;
+			Cursor(const ChunksAllocator* allocator, size_t index = 0) noexcept : shift(allocator->mSectorSize)
+			{
+				chunks.assign(allocator->mChunks.begin(), allocator->mChunks.end());
+				chunksCount = chunks.size();
+				setLinear(index);
+			}
 
-                cur = reinterpret_cast<Sector*>(alloc->mChunks.size() > chunkIdx ? static_cast<std::byte*>(alloc->mChunks[chunkIdx]) + inChunkIdx * shift : nullptr);
-            }
+			FORCE_INLINE Cursor& operator++() noexcept { return step(), *this; }
+			FORCE_INLINE Cursor& operator+(size_t value) noexcept { return setLinear(linIdx + value), *this; }
 
-            Sector* step() {
-                inChunkIdx++;
-                if (inChunkIdx == ChunksAllocator<ChunkCapacity>::mChunkCapacity) {
-                    inChunkIdx = 0;
-                    chunkIdx++;
-                    return cur = reinterpret_cast<Sector*>(alloc->mChunks.size() > chunkIdx ? static_cast<std::byte*>(alloc->mChunks[chunkIdx]) : nullptr), cur;
-                }
+			FORCE_INLINE Sector* operator*()  const noexcept { return reinterpret_cast<Sector*>(curB); }
+			FORCE_INLINE Sector* operator->() const noexcept { return reinterpret_cast<Sector*>(curB); }
 
-                return cur = reinterpret_cast<Sector*>(reinterpret_cast<std::byte*>(cur) + shift), cur;
-            }
+			FORCE_INLINE bool operator==(const Cursor& other) const noexcept { return linIdx == other.linIdx; }
+			FORCE_INLINE bool operator!=(const Cursor& other) const noexcept { return !(*this == other); }
 
-            Cursor& operator++() { return step(), *this; }
+			FORCE_INLINE explicit operator bool() const noexcept { return curB != nullptr; }
 
-            Cursor& operator+(size_t value) {
-                if (value == 1) {
-                    return ++(*this);
-                }
+			FORCE_INLINE size_t linearIndex() const noexcept { return linIdx; }
+			FORCE_INLINE std::byte* rawPtr()  const noexcept { return curB; }
 
-                auto newIndex = linearIndex() + value;
-                chunkIdx = ChunksAllocator<ChunkCapacity>::calcChunkIndex(newIndex);
-                inChunkIdx = newIndex - chunkIdx * ChunksAllocator<ChunkCapacity>::mChunkCapacity;
+		private:
+			std::vector<void*> chunks;
+			size_t chunksCount = 0;
 
-                cur = reinterpret_cast<Sector*>(alloc->mChunks.size() > chunkIdx ? static_cast<std::byte*>(alloc->mChunks[chunkIdx]) + inChunkIdx * shift : nullptr);
+			size_t chunkIdx = 0;
+			size_t linIdx   = 0;
 
-                return *this;
-            }
+			std::byte* curB      = nullptr;
+			std::byte* chunkBase = nullptr;
+			std::byte* chunkEnd  = nullptr;
 
-            Sector* operator*() const { return cur; }
-            Sector* operator->() const { return cur; }
+			size_t shift = 0;
 
-            inline bool operator==(const Cursor& other) const { return inChunkIdx == other.inChunkIdx && chunkIdx == other.chunkIdx; }
-            inline bool operator!=(const Cursor& other) const { return !(*this == other); }
+			FORCE_INLINE void step() noexcept {
+				linIdx += 1;
+				curB += shift;
+				if (curB == chunkEnd) {
+					nextChunk();
+				}
+			}
 
-        	operator bool() const { return cur; }
+			FORCE_INLINE void nextChunk() noexcept {
+				++chunkIdx;
+				if (chunkIdx >= chunksCount) {
+					curB = chunkBase = chunkEnd = nullptr;
+					return;
+				}
+				chunkBase = static_cast<std::byte*>(chunks[chunkIdx]);
+				curB      = chunkBase;
+				chunkEnd  = chunkBase + shift * ChunksAllocator<ChunkCapacity>::mChunkCapacity;
+			}
 
-            size_t linearIndex() const { return chunkIdx * ChunksAllocator<ChunkCapacity>::mChunkCapacity + inChunkIdx; }
+			FORCE_INLINE void setLinear(size_t newIdx) noexcept {
+				linIdx = newIdx;
+				if (chunksCount == 0) { curB = chunkBase = chunkEnd = nullptr; return; }
 
-        private:
-            size_t shift = 0;
+				chunkIdx = newIdx / ChunksAllocator<ChunkCapacity>::mChunkCapacity;
+				if (chunkIdx >= chunksCount) { curB = chunkBase = chunkEnd = nullptr; return; }
 
-            const ChunksAllocator* alloc = nullptr;
-            Sector* cur = nullptr;
-            size_t chunkIdx = 0;
-            size_t inChunkIdx = 0;            
-        };
+				const size_t in = newIdx - chunkIdx * ChunksAllocator<ChunkCapacity>::mChunkCapacity;
+				chunkBase = static_cast<std::byte*>(chunks[chunkIdx]);
+				curB      = chunkBase + in * shift;
+				chunkEnd  = chunkBase + shift * ChunksAllocator<ChunkCapacity>::mChunkCapacity;
+			}
+		};
 
-        Cursor getCursor(size_t index = 0) const { return { this, index }; }
+		FORCE_INLINE Cursor getCursor(size_t index = 0) const { return { this, index }; }
 
-    public:
-        // copy
-        template<uint32_t OC>
-        ChunksAllocator(const ChunksAllocator<OC>& other) { *this = other; }
-        ChunksAllocator(const ChunksAllocator& other) { *this = other; }
+		struct RangesCursor {
+			RangesCursor() = default;
+			RangesCursor(const ChunksAllocator* alloc, const Ranges<SectorId>& ranges, size_t size) : shift(alloc->mSectorSize) {
+				std::vector<void*> chunks;
+				chunks.assign(alloc->mChunks.begin(), alloc->mChunks.end());
+				if (chunks.empty()) {
+					return;
+				}
+				size = std::min(size, alloc->capacity());
 
-        template<uint32_t OC>
-        ChunksAllocator& operator=(const ChunksAllocator<OC>& other) { if (isSameAdr(this, &other)) { copy(other); } return *this; }
-        ChunksAllocator& operator=(const ChunksAllocator& other) { if (this != &other) { copy(other); } return *this; }
+				// precompute all spans as [beginPtr, endPtr)
+				spans.reserve(ranges.ranges.size() + chunks.size());
 
-        // move
-        template<uint32_t OC>
-        ChunksAllocator(ChunksAllocator<OC>&& other) noexcept { *this = std::move(other); }
-        ChunksAllocator(ChunksAllocator&& other) noexcept { *this = std::move(other); }
+				// split each logical [first,last) into per-chunk [b,e)
+				for (auto [first, last] : ranges.ranges) {
+					first = std::min(first, static_cast<EntityId>(size));
+					last  = std::min(last,  static_cast<EntityId>(size));
 
-        template<uint32_t OC>
-        ChunksAllocator& operator=(ChunksAllocator<OC>&& other) noexcept { if (isSameAdr(this, &other)) { move(std::move(other)); } return *this; }
-        ChunksAllocator& operator=(ChunksAllocator&& other) noexcept { if (this != &other) { move(std::move(other)); } return *this; }
+					while (first < last) {
+						const auto chunkIndex = ChunksAllocator<ChunkCapacity>::calcChunkIndex(first);
+						std::byte* base = chunkIndex >= chunks.size() ? nullptr : static_cast<std::byte*>(chunks[chunkIndex]);
+						if (!base) break;
 
-    public:
-        ChunksAllocator() = default;
-        ~ChunksAllocator() {
-        	deallocate(0, capacity());
-            mBin.drainAll();
-        }
+						const auto chunkEndIndex = (chunkIndex + 1) << ChunksAllocator<ChunkCapacity>::mChunkShift;
+						const auto upto = (last < chunkEndIndex) ? last : chunkEndIndex;
+						const auto count = upto - first;
 
-        SectorLayoutMeta* getSectorLayout() const { return mSectorLayout; }
+						auto beginPtr = base + ChunksAllocator<ChunkCapacity>::calcInChunkShift(first, shift);
+						auto endPtr = beginPtr + count * shift;
+						if (beginPtr != endPtr) { spans.emplace_back(beginPtr, endPtr); }
 
-        void init(SectorLayoutMeta* layoutMeta) { assert(layoutMeta);
-            mSectorLayout = layoutMeta;
+						first = static_cast<decltype(first)>(upto);
+					}
+				}
+				spans.shrink_to_fit();
 
-            mSectorSize = mSectorLayout->getTotalSize();
-            mIsSectorTrivial = mSectorLayout->isTrivial();
-        }
+				if (!spans.empty()) {
+					spanIdx = 0;
+					ptr = spans[0].first;
+					end = spans[0].second;
+				}
+			}
 
-    public:
-        Sector* operator[](size_t index) const { return reinterpret_cast<Sector*>(static_cast<std::byte*>(mChunks[calcChunkIndex(index)]) + calcInChunkShift(index)); }
-        Sector* at(size_t index)         const { return reinterpret_cast<Sector*>(static_cast<std::byte*>(mChunks[calcChunkIndex(index)]) + calcInChunkShift(index)); }
+			FORCE_INLINE void nextSpan() noexcept {
+				if (++spanIdx < spans.size()) [[likely]] {
+					ptr = spans[spanIdx].first;
+					end = spans[spanIdx].second;
+				}
+				else {
+					ptr = end = nullptr;
+				}
+			}
 
-        void moveSectors(size_t dst, size_t src, size_t n) const {
-            if (!n || dst == src) return;
+			FORCE_INLINE void step() noexcept {
+				ptr += shift;
+				if (ptr == end) [[unlikely]] { nextSpan(); }
+			}
 
-            if (dst < src) {
-                // forward
-                while (n) {
-                    const size_t srcRoom = mChunkCapacity - (src & (mChunkCapacity - 1));
-                    const size_t dstRoom = mChunkCapacity - (dst & (mChunkCapacity - 1));
-                    const size_t run = std::min({ n, srcRoom, dstRoom });
-                    if (mIsSectorTrivial) {
-                        std::memmove(at(dst), at(src), run * static_cast<size_t>(mSectorSize));
-                    }
-                    else {
-                        for (size_t i = 0; i < run; ++i) {
-                            Sector::moveSector(at(src + i), at(dst + i), mSectorLayout);
-                        }
-                    }
-                    dst += run; src += run; n -= run;
-                }
-            }
-            else {
-                // back
-                size_t srcEnd = src + n;
-                size_t dstEnd = dst + n;
-                while (n) {
-                    const size_t srcIn = srcEnd & (mChunkCapacity - 1);
-                    const size_t dstIn = dstEnd & (mChunkCapacity - 1);
-                    const size_t srcRoom = srcIn ? srcIn : mChunkCapacity;
-                    const size_t dstRoom = dstIn ? dstIn : mChunkCapacity;
-                    const size_t run = std::min({ n, srcRoom, dstRoom });
+			FORCE_INLINE void advanceToId(SectorId target, size_t linear_threshold = 4) noexcept {
+				// linear search for a few steps
+				while (linear_threshold-- > 0 && ptr && idAt(ptr) < target) [[unlikely]] { step(); }
+				jumpToChunkWithId(target);
+				if (!ptr || idAt(ptr) >= target) [[likely]] { return; }
+				jumpToSectorInChunkWithId(target);
+			}
 
-                    const size_t srcBeg = srcEnd - run;
-                    const size_t dstBeg = dstEnd - run;
-                    if (mIsSectorTrivial) {
-                        std::memmove(at(dstBeg), at(srcBeg), run * static_cast<size_t>(mSectorSize));
-                    }
-                    else {
-                        for (size_t i = run; i-- > 0; ) {
-                            Sector::moveSector(at(srcBeg + i), at(dstBeg + i), mSectorLayout);
-                        }
-                    }
+			FORCE_INLINE std::byte* rawPtr() const noexcept { return ptr; }
+			FORCE_INLINE explicit operator bool() const noexcept { return ptr != nullptr; }
 
-                    srcEnd -= run; dstEnd -= run; n -= run;
-                }
-            }
-        }
+			FORCE_INLINE Sector* operator*()  const noexcept { return reinterpret_cast<Sector*>(ptr); }
+			FORCE_INLINE Sector* operator->() const noexcept { return reinterpret_cast<Sector*>(ptr); }
 
-        void deallocate(size_t from, size_t to) {
-            from = std::min(mChunks.size(), calcChunkIndex(from) + static_cast<size_t>((from & (mChunkCapacity - 1)) > 0)); // chunkIndex returns chunk in which "from" exists, we need to delete next chunk if it is not the chunk start
-            to = std::min(mChunks.size(), calcChunkIndex(to));
-            if (from < to) {
-                for (auto i = from; i < to; i++) { std::free(mChunks[i]); }
+			FORCE_INLINE bool operator==(const RangesCursor& other) const noexcept { return ptr == other.ptr; }
+			FORCE_INLINE bool operator!=(const RangesCursor& other) const noexcept { return !(*this == other); }
 
-                mChunks.erase(mChunks.begin() + static_cast<int64_t>(from), mChunks.begin() + static_cast<int64_t>(to));
-                mChunks.shrink_to_fit();
-                mBin.drainAll();
-            }
-        }
+		private:
+			FORCE_INLINE static SectorId idAt(std::byte* p) noexcept {
+				return reinterpret_cast<Sector*>(p)->id;
+			}
 
-        void allocate(size_t newCapacity) {
-            const auto oldCapacity = capacity();
-            const auto need = newCapacity > oldCapacity ? (newCapacity - oldCapacity) : 0;
-            const auto count = (need + mChunkCapacity - 1) / mChunkCapacity;
+			FORCE_INLINE void jumpToChunkWithId(SectorId target) {
+				// binary search of chunk
+				if (ptr && idAt(end - shift) < target) [[unlikely]] {
+					size_t lo = spanIdx + 1;
+					size_t hi = spans.size();
+					while (lo < hi) [[likely]] {
+						size_t mid = (lo + hi) >> 1;
+						if (idAt(spans[mid].second - shift) < target) { lo = mid + 1;} else { hi = mid;}
+					}
 
-            mChunks.reserve(mChunks.size() + count);
-            for (auto i = 0u; i < count; i++) {
-                void* ptr = calloc(mChunkCapacity, mSectorSize); assert(ptr);
-                mChunks.emplace_back(ptr);
-            }
-        }
+					if (lo == spans.size()) [[unlikely]] {  ptr = end = nullptr;	return;}
 
-        size_t capacity() const { return mChunkCapacity * mChunks.size(); }
+					spanIdx = lo;
+					ptr = spans[lo].first;
+					end = spans[lo].second;
+				}
+			}
 
-        size_t find(const Sector* sectorPtr) const {
-            if (!sectorPtr || mChunks.empty()) return static_cast<size_t>(INVALID_ID);
+			FORCE_INLINE void jumpToSectorInChunkWithId(SectorId target) {
+				// binary search in chunk
+				auto hi = end;
+				while (ptr < hi) [[likely]] {
+					auto mid = ptr + (((hi - ptr) / shift) >> 1) * shift;
+					if (idAt(mid) < target) { ptr = mid + shift; } else { hi = mid; }
+				}
+			}
 
-            const size_t stride = static_cast<size_t>(mChunkCapacity) * static_cast<size_t>(mSectorSize);
-            const std::byte* p = reinterpret_cast<const std::byte*>(sectorPtr);
+			std::vector<std::pair<std::byte*, std::byte*>> spans{}; // all ranges as [beginPtr, endPtr)
+			size_t spanIdx{0};
+			size_t shift{0};
 
-            {
-                const std::byte* base0 = static_cast<const std::byte*>(mChunks.front());
-                if (p >= base0 && p < base0 + stride) {
-                    const size_t local = (p - base0) / static_cast<size_t>(mSectorSize);
-                    return local;
-                }
-                const std::byte* baseL = static_cast<const std::byte*>(mChunks.back());
-                if (p >= baseL && p < baseL + stride) {
-                    const size_t local = (p - baseL) / static_cast<size_t>(mSectorSize);
-                    return (mChunks.size() - 1) * static_cast<size_t>(mChunkCapacity) + local;
-                }
-            }
+			std::byte* ptr{nullptr};
+			std::byte* end{nullptr};
+		};
 
-            for (size_t ci = 1; ci + 1 < mChunks.size(); ++ci) {
-                const std::byte* base = static_cast<const std::byte*>(mChunks[ci]);
-                if (p >= base && p < base + stride) {
-                    const size_t local = (p - base) / static_cast<size_t>(mSectorSize);
-                    return ci * static_cast<size_t>(mChunkCapacity) + local;
-                }
-            }
-            return static_cast<size_t>(INVALID_ID);
-        }
+		FORCE_INLINE RangesCursor getRangesCursor(const Ranges<SectorId>& ranges, size_t size) const { return {this, ranges, size}; }
 
-    private:
-        inline static constexpr size_t calcChunkIndex(size_t sectorIdx) { return sectorIdx >> mChunkShift; }
-        inline constexpr size_t calcInChunkShift(size_t sectorIdx) const { return (sectorIdx & (mChunkCapacity - 1)) * mSectorSize; }
+	public:
+		// copy
+		template<uint32_t OC>
+		ChunksAllocator(const ChunksAllocator<OC>& other) { *this = other; }
+		ChunksAllocator(const ChunksAllocator& other) { *this = other; }
 
-        template<uint32_t OC>
-        void copyCommonData(const ChunksAllocator<OC>& other)  {
-            mSectorLayout = other.mSectorLayout;
-            mSectorSize = other.mSectorSize;
-            mIsSectorTrivial = other.mIsSectorTrivial;
-        }
+		template<uint32_t OC>
+		ChunksAllocator& operator=(const ChunksAllocator<OC>& other) { if (isSameAdr(this, &other)) { copy(other); } return *this; }
+		ChunksAllocator& operator=(const ChunksAllocator& other) { if (this != &other) { copy(other); } return *this; }
 
-        template<uint32_t OC>
-        void copy(const ChunksAllocator<OC>& other)  {
-            copyCommonData(other);
-            allocate(other.mChunks.size() * mChunkCapacity);
-            if (mIsSectorTrivial) {
-                if constexpr (OC == ChunkCapacity) {
-                    for (auto i = 0u; i < other.mChunks.size(); i++) {
-                        std::memcpy(mChunks[i], other.mChunks[i], mChunkCapacity * static_cast<size_t>(mSectorSize));
-                    }
-                }
-                else {
-                    const size_t srcTotalSectors = other.mChunks.size() * static_cast<size_t>(other.mChunkCapacity);
-                    const size_t dstTotalSectors = mChunks.size() * static_cast<size_t>(mChunkCapacity);
-                    const size_t total = (srcTotalSectors < dstTotalSectors) ? srcTotalSectors : dstTotalSectors;
+		// move
+		template<uint32_t OC>
+		ChunksAllocator(ChunksAllocator<OC>&& other) noexcept { *this = std::move(other); }
+		ChunksAllocator(ChunksAllocator&& other) noexcept { *this = std::move(other); }
 
-                    size_t src = 0;
-                    size_t dst = 0;
-                    while (dst < total) {
-                        const size_t srcIn = src & (other.mChunkCapacity - 1);
-                        const size_t dstIn = dst & (mChunkCapacity - 1);
-                        const size_t srcRoom = other.mChunkCapacity - srcIn;
-                        const size_t dstRoom = mChunkCapacity - dstIn;
-                        const size_t left = total - dst;
-                        const size_t run = (srcRoom < dstRoom ? (srcRoom < left ? srcRoom : left) : (dstRoom < left ? dstRoom : left));
+		template<uint32_t OC>
+		ChunksAllocator& operator=(ChunksAllocator<OC>&& other) noexcept { if (isSameAdr(this, &other)) { move(std::move(other)); } return *this; }
+		ChunksAllocator& operator=(ChunksAllocator&& other) noexcept { if (this != &other) { move(std::move(other)); } return *this; }
 
-                        auto* sChunk = static_cast<std::byte*>(other.mChunks[src / other.mChunkCapacity]);
-                        auto* dChunk = static_cast<std::byte*>(mChunks[dst / mChunkCapacity]);
+	public:
+		ChunksAllocator() = default;
+		~ChunksAllocator() {
+			deallocate(0, capacity());
+		}
 
-                        std::memcpy(dChunk + dstIn * mSectorSize, sChunk + srcIn * mSectorSize, run * mSectorSize);
+		FORCE_INLINE SectorLayoutMeta* getSectorLayout() const { return mSectorLayout; }
 
-                        src += run;
-                        dst += run;
-                    }
-                }
-            }
-            else {
-                auto from = other.getCursor();
-                auto to = getCursor();
-                for (auto i = 0u; i < capacity(); i++) {
-                    auto sector = Sector::copySector(*from, *to, mSectorLayout);
-                    ++from;
-                    ++to;
-                }
-            }
-        }
+		FORCE_INLINE void init(SectorLayoutMeta* layoutMeta) { assert(layoutMeta);
+			mSectorLayout = layoutMeta;
 
-        template<uint32_t OC>
-    	void move(ChunksAllocator<OC>&& other)  {
-            copyCommonData(other);
-            if constexpr (OC == ChunkCapacity) {
-                mChunks = std::move(other.mChunks);
-                other.mBin.drainAll();
-            }
-            else {
-                allocate(other.mChunks.size() * mChunkCapacity);
-                auto from = other.getCursor();
-                auto to = getCursor();
-                for (auto i = 0u; i < capacity(); i++) {
-                    auto sector = Sector::moveSector(*from, *to, mSectorLayout);
-                    ++from;
-                    ++to;
-                }
+			mSectorSize = mSectorLayout->getTotalSize();
+			mIsSectorTrivial = mSectorLayout->isTrivial();
+		}
 
-                other.deallocate(0, other.capacity());
-            }
-        }
+	public:
+		FORCE_INLINE Sector* operator[](size_t index) const { return reinterpret_cast<Sector*>(static_cast<std::byte*>(mChunks[calcChunkIndex(index)]) + calcInChunkShift(index, mSectorSize)); }
+		FORCE_INLINE Sector* at(size_t index)         const { return reinterpret_cast<Sector*>(static_cast<std::byte*>(mChunks[calcChunkIndex(index)]) + calcInChunkShift(index, mSectorSize)); }
 
-    public:
-        static constexpr uint32_t mChunkCapacity = nextPowerOfTwo(ChunkCapacity);
-        static constexpr uint32_t mChunkShift = std::countr_zero(mChunkCapacity);
+		void moveSectors(size_t dst, size_t src, size_t n) const {
+			if (!n || dst == src) return;
 
-        mutable Memory::RetireBin mBin;
-        std::vector<void*, Memory::RetireAllocator<void*>> mChunks { Memory::RetireAllocator<void*>{ &mBin } };
+			if (dst < src) {
+				// forward
+				while (n) {
+					const size_t srcRoom = mChunkCapacity - (src & (mChunkCapacity - 1));
+					const size_t dstRoom = mChunkCapacity - (dst & (mChunkCapacity - 1));
+					const size_t run = std::min({ n, srcRoom, dstRoom });
+					if (mIsSectorTrivial) {
+						std::memmove(at(dst), at(src), run * static_cast<size_t>(mSectorSize));
+					}
+					else {
+						for (size_t i = 0; i < run; ++i) {
+							Sector::moveSector(at(src + i), at(dst + i), mSectorLayout);
+						}
+					}
+					dst += run; src += run; n -= run;
+				}
+			}
+			else {
+				// back
+				size_t srcEnd = src + n;
+				size_t dstEnd = dst + n;
+				while (n) {
+					const size_t srcIn = srcEnd & (mChunkCapacity - 1);
+					const size_t dstIn = dstEnd & (mChunkCapacity - 1);
+					const size_t srcRoom = srcIn ? srcIn : mChunkCapacity;
+					const size_t dstRoom = dstIn ? dstIn : mChunkCapacity;
+					const size_t run = std::min({ n, srcRoom, dstRoom });
 
-        SectorLayoutMeta* mSectorLayout = nullptr;
-        uint16_t mSectorSize = 0;
+					const size_t srcBeg = srcEnd - run;
+					const size_t dstBeg = dstEnd - run;
+					if (mIsSectorTrivial) {
+						std::memmove(at(dstBeg), at(srcBeg), run * static_cast<size_t>(mSectorSize));
+					}
+					else {
+						for (size_t i = run; i-- > 0; ) {
+							Sector::moveSector(at(srcBeg + i), at(dstBeg + i), mSectorLayout);
+						}
+					}
 
-        bool mIsSectorTrivial = std::is_trivial_v<Sector>;
-    };
+					srcEnd -= run; dstEnd -= run; n -= run;
+				}
+			}
+		}
+
+		void deallocate(size_t from, size_t to) {
+			from = std::min(mChunks.size(), calcChunkIndex(from) + static_cast<size_t>((from & (mChunkCapacity - 1)) > 0)); // chunkIndex returns chunk in which "from" exists, we need to delete next chunk if it is not the chunk start
+			to = std::min(mChunks.size(), calcChunkIndex(to));
+			if (from < to) {
+				for (auto i = from; i < to; i++) { std::free(mChunks[i]); }
+
+				mChunks.erase(mChunks.begin() + static_cast<int64_t>(from), mChunks.begin() + static_cast<int64_t>(to));
+				mChunks.shrink_to_fit();
+				mBin.drainAll();
+			}
+		}
+
+		void allocate(size_t newCapacity) {
+			const auto oldCapacity = capacity();
+			const auto need = newCapacity > oldCapacity ? (newCapacity - oldCapacity) : 0;
+			const auto count = (need + mChunkCapacity - 1) / mChunkCapacity;
+
+			mChunks.reserve(mChunks.size() + count);
+			for (auto i = 0u; i < count; i++) {
+				void* ptr = calloc(mChunkCapacity, mSectorSize); assert(ptr);
+				mChunks.emplace_back(ptr);
+			}
+		}
+
+		FORCE_INLINE size_t capacity() const { return mChunkCapacity * mChunks.size(); }
+
+		size_t find(const Sector* sectorPtr) const {
+			if (!sectorPtr || mChunks.empty()) return capacity();
+
+			const size_t stride = static_cast<size_t>(mChunkCapacity) * static_cast<size_t>(mSectorSize);
+			const std::byte* p = reinterpret_cast<const std::byte*>(sectorPtr);
+
+			{
+				const std::byte* base0 = static_cast<const std::byte*>(mChunks.front());
+				if (p >= base0 && p < base0 + stride) {
+					const size_t local = (p - base0) / static_cast<size_t>(mSectorSize);
+					return local;
+				}
+				const std::byte* baseL = static_cast<const std::byte*>(mChunks.back());
+				if (p >= baseL && p < baseL + stride) {
+					const size_t local = (p - baseL) / static_cast<size_t>(mSectorSize);
+					return (mChunks.size() - 1) * static_cast<size_t>(mChunkCapacity) + local;
+				}
+			}
+
+			for (size_t ci = 1; ci + 1 < mChunks.size(); ++ci) {
+				const std::byte* base = static_cast<const std::byte*>(mChunks[ci]);
+				if (p >= base && p < base + stride) {
+					const size_t local = (p - base) / static_cast<size_t>(mSectorSize);
+					return ci * static_cast<size_t>(mChunkCapacity) + local;
+				}
+			}
+
+			return capacity();
+		}
+
+	private:
+		FORCE_INLINE static constexpr size_t calcChunkIndex(size_t sectorIdx) { return sectorIdx >> mChunkShift; }
+		FORCE_INLINE static constexpr size_t calcInChunkShift(size_t sectorIdx, size_t sectorSize) { return (sectorIdx & (mChunkCapacity - 1)) * sectorSize; }
+
+		template<uint32_t OC>
+		void copyCommonData(const ChunksAllocator<OC>& other)  {
+			mSectorLayout = other.mSectorLayout;
+			mSectorSize = other.mSectorSize;
+			mIsSectorTrivial = other.mIsSectorTrivial;
+		}
+
+		template<uint32_t OC>
+		void copy(const ChunksAllocator<OC>& other)  {
+			copyCommonData(other);
+			allocate(other.mChunks.size() * mChunkCapacity);
+			if (mIsSectorTrivial) {
+				if constexpr (OC == ChunkCapacity) {
+					for (auto i = 0u; i < other.mChunks.size(); i++) {
+						std::memcpy(mChunks[i], other.mChunks[i], mChunkCapacity * static_cast<size_t>(mSectorSize));
+					}
+				}
+				else {
+					const size_t srcTotalSectors = other.mChunks.size() * static_cast<size_t>(other.mChunkCapacity);
+					const size_t dstTotalSectors = mChunks.size() * static_cast<size_t>(mChunkCapacity);
+					const size_t total = (srcTotalSectors < dstTotalSectors) ? srcTotalSectors : dstTotalSectors;
+
+					size_t src = 0;
+					size_t dst = 0;
+					while (dst < total) {
+						const size_t srcIn = src & (other.mChunkCapacity - 1);
+						const size_t dstIn = dst & (mChunkCapacity - 1);
+						const size_t srcRoom = other.mChunkCapacity - srcIn;
+						const size_t dstRoom = mChunkCapacity - dstIn;
+						const size_t left = total - dst;
+						const size_t run = (srcRoom < dstRoom ? (srcRoom < left ? srcRoom : left) : (dstRoom < left ? dstRoom : left));
+
+						auto* sChunk = static_cast<std::byte*>(other.mChunks[src / other.mChunkCapacity]);
+						auto* dChunk = static_cast<std::byte*>(mChunks[dst / mChunkCapacity]);
+
+						std::memcpy(dChunk + dstIn * mSectorSize, sChunk + srcIn * mSectorSize, run * mSectorSize);
+
+						src += run;
+						dst += run;
+					}
+				}
+			}
+			else {
+				auto from = other.getCursor();
+				auto to = getCursor();
+				for (auto i = 0u; i < capacity(); i++) {
+					auto sector = Sector::copySector(*from, *to, mSectorLayout);
+					++from;
+					++to;
+				}
+			}
+		}
+
+		template<uint32_t OC>
+		void move(ChunksAllocator<OC>&& other)  {
+			copyCommonData(other);
+			if constexpr (OC == ChunkCapacity) {
+				mChunks = std::move(other.mChunks);
+				other.mChunks.clear();
+			}
+			else {
+				allocate(other.mChunks.size() * mChunkCapacity);
+				auto from = other.getCursor();
+				auto to = getCursor();
+				for (auto i = 0u; i < capacity(); i++) {
+					auto sector = Sector::moveSector(*from, *to, mSectorLayout);
+					++from;
+					++to;
+				}
+
+				other.deallocate(0, other.capacity());
+			}
+		}
+
+	public:
+		static constexpr uint32_t mChunkCapacity = nextPowerOfTwo(ChunkCapacity);
+		static constexpr uint32_t mChunkShift = std::countr_zero(mChunkCapacity);
+
+		mutable Memory::RetireBin mBin;
+		std::vector<void*, Memory::RetireAllocator<void*>> mChunks { Memory::RetireAllocator<void*>{ &mBin } };
+
+		SectorLayoutMeta* mSectorLayout = nullptr;
+		uint16_t mSectorSize = 0;
+
+		bool mIsSectorTrivial = std::is_trivial_v<Sector>;
+	};
 }

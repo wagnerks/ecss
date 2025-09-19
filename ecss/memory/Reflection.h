@@ -1,8 +1,6 @@
 ﻿#pragma once
 
-#include <functional>
-#include <mutex>
-
+#include <mutex> // for std::once_flag
 #include <ecss/Types.h>
 
 namespace ecss::Memory {
@@ -11,11 +9,11 @@ namespace ecss::Memory {
 		ReflectionHelper() : mCurrentInstance(mHelperInstances++) {}
 
 		template<typename T>
-		inline ECSType getTypeId() {
+		FORCE_INLINE ECSType getTypeId() {
 			return getTypeIdImpl<std::remove_const_t<std::remove_pointer_t<std::remove_reference_t<T>>>>();
 		}
 
-		inline ECSType getTypesCount() const {
+		FORCE_INLINE ECSType getTypesCount() const {
 			return mTypes[mCurrentInstance];
 		}
 
@@ -27,7 +25,7 @@ namespace ecss::Memory {
 		static constexpr ECSType INVALID_TYPE = std::numeric_limits<ECSType>::max();
 
 		template<typename T>
-		inline ECSType getTypeIdImpl() {
+		FORCE_INLINE ECSType getTypeIdImpl() {
 			static constexpr size_t maxInstancesCount = std::numeric_limits<decltype(mHelperInstances)>::max();
 			static ECSType types[maxInstancesCount];
 			static std::once_flag flags[maxInstancesCount];

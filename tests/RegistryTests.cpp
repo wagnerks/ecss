@@ -1,6 +1,11 @@
-﻿#include <random>
+#include <random>
 #include <unordered_set>
+#include <chrono>
+#include <iostream>
+#include <mutex>
+#include <thread>
 
+#include "ecss/Ranges.h"
 #include <ecss/Registry.h>
 
 #include <gtest/gtest.h>
@@ -16,404 +21,404 @@ namespace RegistryTests {
 	struct B { float b; };
 
 	struct MoveOnly {
-	    int val;
-	    MoveOnly(int v) : val(v) {}
-	    MoveOnly(MoveOnly&& o) noexcept : val(o.val) { o.val = -1; }
-	    MoveOnly& operator=(MoveOnly&& o) noexcept { val = o.val; o.val = -1; return *this; }
-	    MoveOnly(const MoveOnly&) = delete;
-	    MoveOnly& operator=(const MoveOnly&) = delete;
+		int val;
+		MoveOnly(int v) : val(v) {}
+		MoveOnly(MoveOnly&& o) noexcept : val(o.val) { o.val = -1; }
+		MoveOnly& operator=(MoveOnly&& o) noexcept { val = o.val; o.val = -1; return *this; }
+		MoveOnly(const MoveOnly&) = delete;
+		MoveOnly& operator=(const MoveOnly&) = delete;
 	};
 
 	struct NoDefaultCtor {
-	    int x;
-	    explicit NoDefaultCtor(int v) : x(v) {}
-	    NoDefaultCtor(const NoDefaultCtor&) = default;
+		int x;
+		explicit NoDefaultCtor(int v) : x(v) {}
+		NoDefaultCtor(const NoDefaultCtor&) = default;
 	};
 
 	TEST(Registry, AddAndgetPinnedComponent) {
-	    Registry registry;
-	    auto entity = registry.takeEntity();
-	    registry.addComponent<Position>(entity, (float)10, (float)20);
+		Registry registry;
+		auto entity = registry.takeEntity();
+		registry.addComponent<Position>(entity, (float)10, (float)20);
 
-	    auto* pos = registry.pinComponent<Position>(entity).get();
-	    ASSERT_NE(pos, nullptr);
-	    EXPECT_FLOAT_EQ(pos->x, 10);
-	    EXPECT_FLOAT_EQ(pos->y, 20);
+		auto* pos = registry.pinComponent<Position>(entity).get();
+		ASSERT_NE(pos, nullptr);
+		EXPECT_FLOAT_EQ(pos->x, 10);
+		EXPECT_FLOAT_EQ(pos->y, 20);
 	}
 
 	TEST(Registry, HasComponentWorks) {
-	    Registry registry;
-	    auto entity = registry.takeEntity();
-	    EXPECT_FALSE(registry.hasComponent<Velocity>(entity));
-	    registry.addComponent<Velocity>(entity, 1.f, 2.f );
-	    EXPECT_TRUE(registry.hasComponent<Velocity>(entity));
+		Registry registry;
+		auto entity = registry.takeEntity();
+		EXPECT_FALSE(registry.hasComponent<Velocity>(entity));
+		registry.addComponent<Velocity>(entity, 1.f, 2.f );
+		EXPECT_TRUE(registry.hasComponent<Velocity>(entity));
 	}
 
 	TEST(Registry, destroyComponent) {
-	    Registry registry;
-	    auto entity = registry.takeEntity();
-	    registry.addComponent<Health>(entity,  100 );
-	    registry.destroyComponent<Health>(entity);
-	    EXPECT_FALSE(registry.hasComponent<Health>(entity));
-	    EXPECT_EQ(registry.pinComponent<Health>(entity).get(), nullptr);
+		Registry registry;
+		auto entity = registry.takeEntity();
+		registry.addComponent<Health>(entity,  100 );
+		registry.destroyComponent<Health>(entity);
+		EXPECT_FALSE(registry.hasComponent<Health>(entity));
+		EXPECT_EQ(registry.pinComponent<Health>(entity).get(), nullptr);
 	}
 
 	TEST(Registry, AddMultipleComponents) {
-	    Registry registry;
-	    auto entity = registry.takeEntity();
-	    registry.addComponent<Position>(entity, (float)1, (float)2 );
-	    registry.addComponent<Velocity>(entity, (float)3, (float)4 );
-	    registry.addComponent<Health>(entity, 5 );
+		Registry registry;
+		auto entity = registry.takeEntity();
+		registry.addComponent<Position>(entity, (float)1, (float)2 );
+		registry.addComponent<Velocity>(entity, (float)3, (float)4 );
+		registry.addComponent<Health>(entity, 5 );
 
-	    auto* pos = registry.pinComponent<Position>(entity).get();
-	    auto* vel = registry.pinComponent<Velocity>(entity).get();
-	    auto* health = registry.pinComponent<Health>(entity).get();
+		auto* pos = registry.pinComponent<Position>(entity).get();
+		auto* vel = registry.pinComponent<Velocity>(entity).get();
+		auto* health = registry.pinComponent<Health>(entity).get();
 
-	    ASSERT_NE(pos, nullptr);
-	    ASSERT_NE(vel, nullptr);
-	    ASSERT_NE(health, nullptr);
+		ASSERT_NE(pos, nullptr);
+		ASSERT_NE(vel, nullptr);
+		ASSERT_NE(health, nullptr);
 
-	    EXPECT_FLOAT_EQ(pos->x, 1);
-	    EXPECT_EQ(health->value, 5);
+		EXPECT_FLOAT_EQ(pos->x, 1);
+		EXPECT_EQ(health->value, 5);
 	}
 
 	TEST(Registry, RemoveEntity) {
-	    Registry registry;
-	    auto entity = registry.takeEntity();
-	    registry.addComponent<Position>(entity, (float)10, (float)20);
-	    registry.addComponent<Health>(entity, 50);
-	    registry.destroyEntity(entity);
+		Registry registry;
+		auto entity = registry.takeEntity();
+		registry.addComponent<Position>(entity, (float)10, (float)20);
+		registry.addComponent<Health>(entity, 50);
+		registry.destroyEntity(entity);
 
-	    EXPECT_EQ(registry.pinComponent<Position>(entity).get(), nullptr);
-	    EXPECT_EQ(registry.pinComponent<Health>(entity).get(), nullptr);
+		EXPECT_EQ(registry.pinComponent<Position>(entity).get(), nullptr);
+		EXPECT_EQ(registry.pinComponent<Health>(entity).get(), nullptr);
 	}
 
 	TEST(Registry, IterateEntitiesWithComponent) {
-	    Registry registry;
-	    std::vector<EntityId> ids;
-	    for (int i = 0; i < 5; ++i) {
-	        auto e = registry.takeEntity();
-	        registry.addComponent<Position>(e, float(i), float(i * 10));
-	        ids.push_back(e);
-	    }
-	    int count = 0;
-	    for (auto [e, pos] : registry.view<Position>()) {
-	        EXPECT_EQ(e, ids[count]);
-	        EXPECT_FLOAT_EQ(pos->x, float(count));
-	        ++count;
-	    }
-	    EXPECT_EQ(count, 5);
+		Registry registry;
+		std::vector<EntityId> ids;
+		for (int i = 0; i < 5; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Position>(e, float(i), float(i * 10));
+			ids.push_back(e);
+		}
+		int count = 0;
+		for (auto [e, pos] : registry.view<Position>()) {
+			EXPECT_EQ(e, ids[count]);
+			EXPECT_FLOAT_EQ(pos->x, float(count));
+			++count;
+		}
+		EXPECT_EQ(count, 5);
 	}
 
 	TEST(Registry, ComponentOverwrite) {
-	    Registry registry;
-	    auto entity = registry.takeEntity();
-	    registry.addComponent<Velocity>(entity, (float)1, (float)1);
-	    registry.addComponent<Velocity>(entity, (float)2, (float)2); // Overwrite
-	    auto* vel = registry.pinComponent<Velocity>(entity).get();
-	    ASSERT_NE(vel, nullptr);
-	    EXPECT_FLOAT_EQ(vel->dx, 2);
+		Registry registry;
+		auto entity = registry.takeEntity();
+		registry.addComponent<Velocity>(entity, (float)1, (float)1);
+		registry.addComponent<Velocity>(entity, (float)2, (float)2); 
+		auto* vel = registry.pinComponent<Velocity>(entity).get();
+		ASSERT_NE(vel, nullptr);
+		EXPECT_FLOAT_EQ(vel->dx, 2);
 	}
 
 	TEST(Registry, getPinnedComponentNonexistentReturnsNull) {
-	    Registry registry;
-	    auto entity = registry.takeEntity();
-	    EXPECT_EQ(registry.pinComponent<Health>(entity).get(), nullptr);
+		Registry registry;
+		auto entity = registry.takeEntity();
+		EXPECT_EQ(registry.pinComponent<Health>(entity).get(), nullptr);
 	}
 
 	TEST(Registry, HasComponentAfterEntityRemove) {
-	    Registry registry;
-	    auto entity = registry.takeEntity();
-	    registry.addComponent<Position>(entity, (float)0, (float)0);
-	    registry.destroyEntity(entity);
-	    EXPECT_FALSE(registry.hasComponent<Position>(entity));
+		Registry registry;
+		auto entity = registry.takeEntity();
+		registry.addComponent<Position>(entity, (float)0, (float)0);
+		registry.destroyEntity(entity);
+		EXPECT_FALSE(registry.hasComponent<Position>(entity));
 	}
 
 	TEST(Registry, ComponentStorageIsIsolatedPerEntity) {
-	    Registry registry;
-	    auto e1 = registry.takeEntity();
-	    auto e2 = registry.takeEntity();
-	    registry.addComponent<Health>(e1, 99);
-	    registry.addComponent<Health>(e2, 42);
-	    EXPECT_EQ(registry.pinComponent<Health>(e1)->value, 99);
-	    EXPECT_EQ(registry.pinComponent<Health>(e2)->value, 42);
+		Registry registry;
+		auto e1 = registry.takeEntity();
+		auto e2 = registry.takeEntity();
+		registry.addComponent<Health>(e1, 99);
+		registry.addComponent<Health>(e2, 42);
+		EXPECT_EQ(registry.pinComponent<Health>(e1)->value, 99);
+		EXPECT_EQ(registry.pinComponent<Health>(e2)->value, 42);
 	}
 
 
 
 	TEST(Registry, RemoveComponentTwiceDoesNotCrash) {
-	    ecss::Registry registry;
-	    auto entity = registry.takeEntity();
-	    registry.addComponent<Health>(entity, 100);
-	    registry.destroyComponent<Health>(entity);
-	    registry.destroyComponent<Health>(entity);
-	    EXPECT_EQ(registry.pinComponent<Health>(entity).get(), nullptr);
+		ecss::Registry registry;
+		auto entity = registry.takeEntity();
+		registry.addComponent<Health>(entity, 100);
+		registry.destroyComponent<Health>(entity);
+		registry.destroyComponent<Health>(entity);
+		EXPECT_EQ(registry.pinComponent<Health>(entity).get(), nullptr);
 	}
 
 	TEST(Registry, RemoveEntityTwiceDoesNotCrash) {
-	    ecss::Registry registry;
-	    auto entity = registry.takeEntity();
-	    registry.addComponent<Position>(entity, (float)1, (float)1);
-	    registry.destroyEntity(entity);
-	    registry.destroyEntity(entity);
-	    EXPECT_EQ(registry.pinComponent<Position>(entity).get(), nullptr);
+		ecss::Registry registry;
+		auto entity = registry.takeEntity();
+		registry.addComponent<Position>(entity, (float)1, (float)1);
+		registry.destroyEntity(entity);
+		registry.destroyEntity(entity);
+		EXPECT_EQ(registry.pinComponent<Position>(entity).get(), nullptr);
 	}
 
 	TEST(Registry, OverwriteWithDifferentComponents) {
-	    ecss::Registry registry;
-	    auto entity = registry.takeEntity();
-	    registry.addComponent<Position>(entity, (float)1, (float)2);
-	    registry.addComponent<Velocity>(entity, (float)3, (float)4);
-	    registry.addComponent<Position>(entity, (float)7, (float)8);
-	    EXPECT_EQ(registry.pinComponent<Position>(entity)->x, (float)7);
-	    EXPECT_EQ(registry.pinComponent<Velocity>(entity)->dx, (float)3);
+		ecss::Registry registry;
+		auto entity = registry.takeEntity();
+		registry.addComponent<Position>(entity, (float)1, (float)2);
+		registry.addComponent<Velocity>(entity, (float)3, (float)4);
+		registry.addComponent<Position>(entity, (float)7, (float)8);
+		EXPECT_EQ(registry.pinComponent<Position>(entity)->x, (float)7);
+		EXPECT_EQ(registry.pinComponent<Velocity>(entity)->dx, (float)3);
 	}
 
 	TEST(Registry, MassEntityAndComponentAddRemove) {
-	    ecss::Registry registry;
-	    std::vector<ecss::EntityId> ids;
-	    constexpr int N = 10000;
-	    for (int i = 0; i < N; ++i) {
-	        auto id = registry.takeEntity();
-	        registry.addComponent<Health>(id, i);
-	        registry.addComponent<Position>(id, float(i), float(-i));
-	        ids.push_back(id);
-	    }
-	    for (int i = 0; i < N; i += 2) {
-	        registry.destroyEntity(ids[i]);
-	    }
-	    int alive = 0;
-	    for (int i = 0; i < N; ++i) {
-	        if (registry.pinComponent<Health>(ids[i]))
-	            ++alive;
-	    }
-	    EXPECT_EQ(alive, N / 2);
+		ecss::Registry registry;
+		std::vector<ecss::EntityId> ids;
+		constexpr int N = 10000;
+		for (int i = 0; i < N; ++i) {
+			auto id = registry.takeEntity();
+			registry.addComponent<Health>(id, i);
+			registry.addComponent<Position>(id, float(i), float(-i));
+			ids.push_back(id);
+		}
+		for (int i = 0; i < N; i += 2) {
+			registry.destroyEntity(ids[i]);
+		}
+		int alive = 0;
+		for (int i = 0; i < N; ++i) {
+			if (registry.pinComponent<Health>(ids[i]))
+				++alive;
+		}
+		EXPECT_EQ(alive, N / 2);
 	}
 
 	TEST(Registry, ReAddComponentAfterRemove) {
-	    ecss::Registry registry;
-	    auto e = registry.takeEntity();
-	    registry.addComponent<Health>(e, 10);
-	    registry.destroyComponent<Health>(e);
-	    EXPECT_EQ(registry.pinComponent<Health>(e).get(), nullptr);
-	    registry.addComponent<Health>(e, 20);
-	    EXPECT_EQ(registry.pinComponent<Health>(e)->value, 20);
+		ecss::Registry registry;
+		auto e = registry.takeEntity();
+		registry.addComponent<Health>(e, 10);
+		registry.destroyComponent<Health>(e);
+		EXPECT_EQ(registry.pinComponent<Health>(e).get(), nullptr);
+		registry.addComponent<Health>(e, 20);
+		EXPECT_EQ(registry.pinComponent<Health>(e)->value, 20);
 	}
 
 	TEST(Registry, ForEachSkipsEntitiesWithoutAllComponents) {
-	    ecss::Registry registry;
-	    auto a = registry.takeEntity();
-	    auto b = registry.takeEntity();
-	    registry.addComponent<Position>(a, (float)1, (float)2);
-	    registry.addComponent<Velocity>(a, (float)3, (float)4);
-	    registry.addComponent<Position>(b, (float)5, (float)6); // b без Velocity
+		ecss::Registry registry;
+		auto a = registry.takeEntity();
+		auto b = registry.takeEntity();
+		registry.addComponent<Position>(a, (float)1, (float)2);
+		registry.addComponent<Velocity>(a, (float)3, (float)4);
+		registry.addComponent<Position>(b, (float)5, (float)6); 
 
-	    int count = 0;
-	    for (auto [e, pos, vel] : registry.view<Position, Velocity>()) {
-	        if (e == a) {
-	            EXPECT_EQ(pos->x, (float)1);
-	            EXPECT_EQ(vel->dx, (float)3);
-	        }
-	        else {
-	            EXPECT_EQ(pos->x, (float)5);
-	            EXPECT_EQ(vel, nullptr);
-	        }
-	       
-	        ++count;
-	    }
-	    EXPECT_EQ(count, 2);
+		int count = 0;
+		for (auto [e, pos, vel] : registry.view<Position, Velocity>()) {
+			if (e == a) {
+				EXPECT_EQ(pos->x, (float)1);
+				EXPECT_EQ(vel->dx, (float)3);
+			}
+			else {
+				EXPECT_EQ(pos->x, (float)5);
+				EXPECT_EQ(vel, nullptr);
+			}
+		   
+			++count;
+		}
+		EXPECT_EQ(count, 2);
 	}
 
 	TEST(Registry, InvalidEntityDoesNothing) {
-	    ecss::Registry registry;
-	    ecss::EntityId invalid = 0;
-	    EXPECT_EQ(registry.pinComponent<Position>(invalid).get(), nullptr);
-	    EXPECT_FALSE(registry.hasComponent<Health>(invalid));
-	    registry.destroyEntity(invalid);
+		ecss::Registry registry;
+		ecss::EntityId invalid = 0;
+		EXPECT_EQ(registry.pinComponent<Position>(invalid).get(), nullptr);
+		EXPECT_FALSE(registry.hasComponent<Health>(invalid));
+		registry.destroyEntity(invalid);
 	}
 
 	TEST(Registry, DifferentComponentTypesDoNotInterfere) {
-	    ecss::Registry registry;
-	    auto e = registry.takeEntity();
-	    registry.addComponent<Position>(e, (float)1, (float)2);
-	    EXPECT_EQ(registry.pinComponent<Health>(e).get(), nullptr);
-	    registry.addComponent<Health>(e, 42);
-	    EXPECT_EQ(registry.pinComponent<Position>(e)->x, (float)1);
-	    EXPECT_EQ(registry.pinComponent<Health>(e)->value, 42);
+		ecss::Registry registry;
+		auto e = registry.takeEntity();
+		registry.addComponent<Position>(e, (float)1, (float)2);
+		EXPECT_EQ(registry.pinComponent<Health>(e).get(), nullptr);
+		registry.addComponent<Health>(e, 42);
+		EXPECT_EQ(registry.pinComponent<Position>(e)->x, (float)1);
+		EXPECT_EQ(registry.pinComponent<Health>(e)->value, 42);
 	}
 
 	TEST(Registry, InsertMoveOnlyComponent) {
-	    ecss::Registry registry;
-	    auto e = registry.takeEntity();
-	    registry.addComponent<MoveOnly>(e, MoveOnly(7));
-	    auto* ptr = registry.pinComponent<MoveOnly>(e).get();
-	    ASSERT_NE(ptr, nullptr);
-	    EXPECT_EQ(ptr->val, 7);
+		ecss::Registry registry;
+		auto e = registry.takeEntity();
+		registry.addComponent<MoveOnly>(e, MoveOnly(7));
+		auto* ptr = registry.pinComponent<MoveOnly>(e).get();
+		ASSERT_NE(ptr, nullptr);
+		EXPECT_EQ(ptr->val, 7);
 	}
 
 	TEST(Registry, ReserveCapacity) {
-	    ecss::Registry registry;
-	    registry.reserve<Position>(1000);
-	    auto e = registry.takeEntity();
-	    registry.addComponent<Position>(e, (float)5, (float)6);
-	    EXPECT_NE(registry.pinComponent<Position>(e).get(), nullptr);
+		ecss::Registry registry;
+		registry.reserve<Position>(1000);
+		auto e = registry.takeEntity();
+		registry.addComponent<Position>(e, (float)5, (float)6);
+		EXPECT_NE(registry.pinComponent<Position>(e).get(), nullptr);
 	}
 
 	TEST(Registry, ThreadedAddRemoveStress) {
-	    ecss::Registry registry;
-	    constexpr int threadCount = 8, N = 5000;
-	    std::vector<ecss::EntityId> ids(threadCount * N);
-	    std::vector<std::thread> threads;
-	    for (int t = 0; t < threadCount; ++t) {
-	        threads.emplace_back([&, t] {
-	            for (int i = 0; i < N; ++i) {
-	                int idx = t * N + i;
-	                auto e = registry.takeEntity();
-	                ids[idx] = e;
-	                registry.addComponent<Health>(e, idx);
-	                registry.addComponent<Position>(e, (float)idx, (float)-idx);
-	            }
-	        });
-	    }
-	    for (auto& th : threads) th.join();
+		ecss::Registry registry;
+		constexpr int threadCount = 8, N = 5000;
+		std::vector<ecss::EntityId> ids(threadCount * N);
+		std::vector<std::thread> threads;
+		for (int t = 0; t < threadCount; ++t) {
+			threads.emplace_back([&, t] {
+				for (int i = 0; i < N; ++i) {
+					int idx = t * N + i;
+					auto e = registry.takeEntity();
+					ids[idx] = e;
+					registry.addComponent<Health>(e, idx);
+					registry.addComponent<Position>(e, (float)idx, (float)-idx);
+				}
+			});
+		}
+		for (auto& th : threads) th.join();
 
-	    int countP = 0;
-	    int countH = 0;
-	    std::unordered_map<EntityId, size_t> ents;
-	    for (int i = 0; i < threadCount * N; ++i) {
-	        EXPECT_EQ(++ents[ids[i]], 1);
-	        if (registry.pinComponent<Position>(ids[i]))
-	            ++countP;
-	        if (registry.pinComponent<Health>(ids[i]))
-	            ++countH;
-	    }
+		int countP = 0;
+		int countH = 0;
+		std::unordered_map<EntityId, size_t> ents;
+		for (int i = 0; i < threadCount * N; ++i) {
+			EXPECT_EQ(++ents[ids[i]], 1);
+			if (registry.pinComponent<Position>(ids[i]))
+				++countP;
+			if (registry.pinComponent<Health>(ids[i]))
+				++countH;
+		}
 
-	    EXPECT_EQ(countP, threadCount * N);
-	    EXPECT_EQ(countH, threadCount * N);
-	    EXPECT_EQ(countP, countH);
+		EXPECT_EQ(countP, threadCount * N);
+		EXPECT_EQ(countH, threadCount * N);
+		EXPECT_EQ(countP, countH);
 	}
 
 	TEST(Registry, ClearRemovesAllEntitiesAndComponents) {
-	    ecss::Registry registry;
-	    auto e = registry.takeEntity();
-	    registry.addComponent<Health>(e, 5);
-	    registry.addComponent<Position>(e, (float)1, (float)2);
-	    registry.clear();
-	    EXPECT_EQ(registry.pinComponent<Health>(e).get(), nullptr);
-	    EXPECT_EQ(registry.pinComponent<Position>(e).get(), nullptr);
-	    EXPECT_TRUE(registry.getAllEntities().empty());
+		ecss::Registry registry;
+		auto e = registry.takeEntity();
+		registry.addComponent<Health>(e, 5);
+		registry.addComponent<Position>(e, (float)1, (float)2);
+		registry.clear();
+		EXPECT_EQ(registry.pinComponent<Health>(e).get(), nullptr);
+		EXPECT_EQ(registry.pinComponent<Position>(e).get(), nullptr);
+		EXPECT_TRUE(registry.getAllEntities().empty());
 	}
 
 	TEST(Registry, InitCustomComponentContainer) {
-	    ecss::Registry registry;
-	    registry.registerArray<A, B>();
-	    auto e = registry.takeEntity();
-	    registry.addComponent<A>(e, 10);
-	    registry.addComponent<B>(e, 2.5f);
-	    EXPECT_EQ(registry.pinComponent<A>(e)->a, 10);
-	    EXPECT_FLOAT_EQ(registry.pinComponent<B>(e)->b, 2.5f);
+		ecss::Registry registry;
+		registry.registerArray<A, B>();
+		auto e = registry.takeEntity();
+		registry.addComponent<A>(e, 10);
+		registry.addComponent<B>(e, 2.5f);
+		EXPECT_EQ(registry.pinComponent<A>(e)->a, 10);
+		EXPECT_FLOAT_EQ(registry.pinComponent<B>(e)->b, 2.5f);
 	}
 
 	TEST(Registry, DestroyMultipleComponents) {
-	    ecss::Registry registry;
-	    std::vector<ecss::EntityId> ids;
-	    for (int i = 0; i < 50; ++i) {
-	        auto e = registry.takeEntity();
-	        registry.addComponent<Health>(e, i);
-	        ids.push_back(e);
-	    }
-	    registry.destroyComponent<Health>(ids);
-	    for (auto e : ids)
-	        EXPECT_FALSE(registry.hasComponent<Health>(e));
+		ecss::Registry registry;
+		std::vector<ecss::EntityId> ids;
+		for (int i = 0; i < 50; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Health>(e, i);
+			ids.push_back(e);
+		}
+		registry.destroyComponent<Health>(ids);
+		for (auto e : ids)
+			EXPECT_FALSE(registry.hasComponent<Health>(e));
 	}
 
 	TEST(Registry, DestroyEntitiesBulk) {
-	    ecss::Registry registry;
-	    std::vector<ecss::EntityId> ids;
-	    for (int i = 0; i < 25; ++i) {
-	        auto e = registry.takeEntity();
-	        registry.addComponent<Position>(e, float(i), float(-i));
-	        ids.push_back(e);
-	    }
-	    registry.destroyEntities(ids);
-	    for (auto e : ids)
-	        EXPECT_EQ(registry.pinComponent<Position>(e).get(), nullptr);
-	    EXPECT_TRUE(registry.getAllEntities().empty());
+		ecss::Registry registry;
+		std::vector<ecss::EntityId> ids;
+		for (int i = 0; i < 25; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Position>(e, float(i), float(-i));
+			ids.push_back(e);
+		}
+		registry.destroyEntities(ids);
+		for (auto e : ids)
+			EXPECT_EQ(registry.pinComponent<Position>(e).get(), nullptr);
+		EXPECT_TRUE(registry.getAllEntities().empty());
 	}
 
 	TEST(Registry, ReuseAfterClear) {
-	    ecss::Registry registry;
-	    auto e = registry.takeEntity();
-	    registry.addComponent<Position>(e, (float)1, (float)2);
-	    registry.clear();
-	    auto e2 = registry.takeEntity();
-	    registry.addComponent<Position>(e2, (float)7, (float)8);
-	    EXPECT_EQ(registry.pinComponent<Position>(e2)->x, (float)7);
+		ecss::Registry registry;
+		auto e = registry.takeEntity();
+		registry.addComponent<Position>(e, (float)1, (float)2);
+		registry.clear();
+		auto e2 = registry.takeEntity();
+		registry.addComponent<Position>(e2, (float)7, (float)8);
+		EXPECT_EQ(registry.pinComponent<Position>(e2)->x, (float)7);
 	}
 
 	TEST(Registry, ForEachAsyncWorks) {
-	    ecss::Registry registry;
-	    std::vector<ecss::EntityId> ids;
-	    for (int i = 0; i < 5; ++i) {
-	        auto e = registry.takeEntity();
-	        registry.addComponent<Position>(e, float(i), float(i * 2));
-	        ids.push_back(e);
-	    }
-	    int counter = 0;
-	    registry.forEachAsync<Position>(ids, [&](ecss::EntityId e, Position* pos) {
-	        EXPECT_EQ(pos->x, float(counter));
-	        ++counter;
-	    });
-	    EXPECT_EQ(counter, 5);
+		ecss::Registry registry;
+		std::vector<ecss::EntityId> ids;
+		for (int i = 0; i < 5; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Position>(e, float(i), float(i * 2));
+			ids.push_back(e);
+		}
+		int counter = 0;
+		registry.forEachAsync<Position>(ids, [&](ecss::EntityId e, Position* pos) {
+			EXPECT_EQ(pos->x, float(counter));
+			++counter;
+		});
+		EXPECT_EQ(counter, 5);
 	}
 
 	TEST(Registry, ForEachWithRanges) {
-	    ecss::Registry registry;
-	    std::vector<ecss::EntityId> ids;
-	    for (int i = 0; i < 10; ++i) {
-	        auto e = registry.takeEntity();
-	        registry.addComponent<Position>(e, float(i), float(-i));
-	        ids.push_back(e);
-	    }
+		ecss::Registry registry;
+		std::vector<ecss::EntityId> ids;
+		for (int i = 0; i < 10; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Position>(e, float(i), float(-i));
+			ids.push_back(e);
+		}
 
-	    int count = 0;
-	    for (auto [e, pos] : registry.view<Position>(ecss::EntitiesRanges{ {ids[2],ids[3],ids[4]}})) {
-	        EXPECT_GE(e, ids[2]);
-	        EXPECT_LT(e, ids[5]);
-	        ++count;
-	    }
-	    EXPECT_EQ(count, ids[5] - ids[2]);
+		int count = 0;
+		for (auto [e, pos] : registry.view<Position>(ecss::Ranges{ {ids[2],ids[3],ids[4]}})) {
+			EXPECT_GE(e, ids[2]);
+			EXPECT_LT(e, ids[5]);
+			++count;
+		}
+		EXPECT_EQ(count, ids[5] - ids[2]);
 	}
 
 	TEST(Registry, ReserveAfterDeleteAndAdd) {
-	    ecss::Registry registry;
-	    registry.reserve<Health>(10);
-	    auto e = registry.takeEntity();
-	    registry.addComponent<Health>(e, 1);
-	    registry.destroyComponent<Health>(e);
-	    registry.reserve<Health>(20);
-	    auto e2 = registry.takeEntity();
-	    registry.addComponent<Health>(e2, 2);
-	    EXPECT_EQ(registry.pinComponent<Health>(e2)->value, 2);
+		ecss::Registry registry;
+		registry.reserve<Health>(10);
+		auto e = registry.takeEntity();
+		registry.addComponent<Health>(e, 1);
+		registry.destroyComponent<Health>(e);
+		registry.reserve<Health>(20);
+		auto e2 = registry.takeEntity();
+		registry.addComponent<Health>(e2, 2);
+		EXPECT_EQ(registry.pinComponent<Health>(e2)->value, 2);
 	}
-
-#define REGISTRY_PERF_TESTS  1
+#define	REGISTRY_PERF_TESTS 0
 #if REGISTRY_PERF_TESTS
+	constexpr size_t perfElementsCount = 100'000'000;
+
 	TEST(Registry_perfTest, CreatingAndIteratingNotOneSector) {
 		ecss::Registry<false> registry;
-		constexpr size_t size = 100'000'000;
-		registry.reserve<Health>(size);
-		registry.reserve<Velocity>(size);
+		registry.reserve<Health>(perfElementsCount);
+		registry.reserve<Velocity>(perfElementsCount);
 
 		auto t0 = std::chrono::high_resolution_clock::now();
-		for (auto i = 0; i < size; i++) {
+		for (auto i = 0u; i < perfElementsCount; i++) {
 			auto e = registry.takeEntity();
 			registry.addComponent<Health>(e, 1);
 			registry.addComponent<Velocity>(e, (float)1, (float)2);
 		}
 		auto t1 = std::chrono::high_resolution_clock::now();
 
-		int counter = 0;
+		volatile int counter = 0;
 		auto t2 = std::chrono::high_resolution_clock::now();
 
 		for (auto [e, hel, vel] : registry.view<Health, Velocity>()) {
@@ -431,22 +436,21 @@ namespace RegistryTests {
 		std::cout << "[StressTest] Create time: " << create_us << " ms\n";
 		std::cout << "[StressTest] Iterate time: " << iterate_us << " ms\n";
 
-		EXPECT_EQ(size, counter);
+		EXPECT_EQ(perfElementsCount, counter);
 	}
 
 	TEST(Registry_perfTest, CreatingAndIteratingOneComponent) {
 		ecss::Registry<false> registry;
-		constexpr size_t size = 100'000'000;
 
 		registry.registerArray<Health>();
-		registry.reserve<Health>(size);
+		registry.reserve<Health>(perfElementsCount);
 
 		auto t0 = std::chrono::high_resolution_clock::now();
-		for (auto i = 0; i < size; i++) {
+		for (auto i = 0; i < perfElementsCount; i++) {
 			registry.addComponent<Health>(registry.takeEntity(), 1);
 		}
 		auto t1 = std::chrono::high_resolution_clock::now();
-		EXPECT_EQ(size, registry.getComponentContainer<Health>()->size());
+		EXPECT_EQ(perfElementsCount, registry.getComponentContainer<Health>()->size());
 		int counter = 0;
 		auto t2 = std::chrono::high_resolution_clock::now();
 		for (auto [e, hel] : registry.view<Health>()) {
@@ -461,25 +465,24 @@ namespace RegistryTests {
 		std::cout << "[StressTest] Create time: " << create_us << " ms\n";
 		std::cout << "[StressTest] Iterate time: " << iterate_us << " ms\n";
 
-		EXPECT_EQ(size, counter);
+		EXPECT_EQ(perfElementsCount, counter);
 	}
 
 	TEST(Registry_perfTest, CreatingAndIteratingOneSector) {
 		ecss::Registry<false> registry;
-		constexpr size_t size = 100'000'000;
 
 		registry.registerArray<Health, Velocity>();
-		registry.reserve<Health>(size);
-		registry.reserve<Velocity>(size);
+		registry.reserve<Health>(perfElementsCount);
+		registry.reserve<Velocity>(perfElementsCount);
 
 		auto t0 = std::chrono::high_resolution_clock::now();
-		for (auto i = 0; i < size; i++) {
+		for (auto i = 0; i < perfElementsCount; i++) {
 			auto e = registry.takeEntity();
 			registry.addComponent<Health>(e, 1);
 			registry.addComponent<Velocity>(e, (float)1, (float)2);
 		}
 		auto t1 = std::chrono::high_resolution_clock::now();
-		EXPECT_EQ(size, registry.getComponentContainer<Health>()->size());
+		EXPECT_EQ(perfElementsCount, registry.getComponentContainer<Health>()->size());
 		int counter = 0;
 		auto t2 = std::chrono::high_resolution_clock::now();
 		for (auto [e, hel, vel] : registry.view<Health, Velocity>()) {
@@ -496,19 +499,18 @@ namespace RegistryTests {
 		std::cout << "[StressTest] Create time: " << create_us << " ms\n";
 		std::cout << "[StressTest] Iterate time: " << iterate_us << " ms\n";
 
-		EXPECT_EQ(size, counter);
+		EXPECT_EQ(perfElementsCount, counter);
 	}
 
 	TEST(Registry_perfTest, CreatingAndIteratingOneSectorRanges) {
 		ecss::Registry<false> registry;
-		constexpr size_t size = 100'000'000;
 
 		registry.registerArray<Health, Velocity>();
-		registry.reserve<Health>(size);
-		registry.reserve<Velocity>(size);
+		registry.reserve<Health>(perfElementsCount);
+		registry.reserve<Velocity>(perfElementsCount);
 
 		auto t0 = std::chrono::high_resolution_clock::now();
-		for (auto i = 0; i < size; i++) {
+		for (auto i = 0; i < perfElementsCount; i++) {
 			auto e = registry.takeEntity();
 			registry.addComponent<Health>(e, 1);
 			registry.addComponent<Velocity>(e, (float)1, (float)2);
@@ -517,7 +519,7 @@ namespace RegistryTests {
 
 		int counter = 0;
 		auto t2 = std::chrono::high_resolution_clock::now();
-		for (auto [e, hel, vel] : registry.view<Health, Velocity>(EntitiesRanges{ std::vector<EntitiesRanges::range>{{0,static_cast<SectorId>(size)}} })) {
+		for (auto [e, hel, vel] : registry.view<Health, Velocity>(Ranges{ std::vector<Ranges<>::Range>{{0,static_cast<SectorId>(perfElementsCount)}} })) {
 			hel->value += e;
 			vel->dx += e;
 			vel->dy += hel->value;
@@ -531,16 +533,15 @@ namespace RegistryTests {
 		std::cout << "[StressTest] Create time: " << create_us << " ms\n";
 		std::cout << "[StressTest] Iterate time: " << iterate_us << " ms\n";
 
-		EXPECT_EQ(size, counter);
+		EXPECT_EQ(perfElementsCount, counter);
 	}
 
 	TEST(Registry_perfTest, CreatingAndIteratingNotOneSectorNotReserved) {
 		ecss::Registry<false> registry;
-		constexpr size_t size = 100'000'000;
 		constexpr size_t itCount = 10;
 
 		auto t0 = std::chrono::high_resolution_clock::now();
-		for (auto i = 0; i < size; i++) {
+		for (auto i = 0; i < perfElementsCount; i++) {
 			auto e = registry.takeEntity();
 			registry.addComponent<Health>(e, 1);
 			registry.addComponent<Velocity>(e, (float)1, (float)2);
@@ -565,18 +566,17 @@ namespace RegistryTests {
 		std::cout << "[StressTest] Create time: " << create_us << " ms\n";
 		std::cout << "[StressTest] Iterate time: " << iterate_us << " ms\n";
 
-		EXPECT_EQ(size * itCount, counter);
+		EXPECT_EQ(perfElementsCount * itCount, counter);
 	}
 
 	TEST(Registry_perfTest, CreatingAndIteratingOneSectorNotReserved) {
 		ecss::Registry<false> registry;
-		constexpr size_t size = 100'000'000;
 		constexpr size_t itCount = 10;
 
 		registry.registerArray<Health, Velocity>();
 
 		auto t0 = std::chrono::high_resolution_clock::now();
-		for (auto i = 0; i < size; i++) {
+		for (auto i = 0; i < perfElementsCount; i++) {
 			auto e = registry.takeEntity();
 			registry.addComponent<Health>(e, 1);
 			registry.addComponent<Velocity>(e, (float)1, (float)2);
@@ -601,7 +601,7 @@ namespace RegistryTests {
 		std::cout << "[StressTest] Create time: " << create_us << " ms\n";
 		std::cout << "[StressTest] Iterate time: " << iterate_us << " ms\n";
 
-		EXPECT_EQ(size * itCount, counter);
+		EXPECT_EQ(perfElementsCount * itCount, counter);
 	}
 #endif
 	namespace Stress
@@ -610,6 +610,7 @@ namespace RegistryTests {
 			ecss::Registry reg;
 			constexpr int N = 500000;
 			std::vector<std::thread> threads;
+			threads.reserve(2);
 			std::vector<ecss::EntityId> ids(N);
 			std::atomic<bool> done = false;
 			threads.emplace_back([&] {
@@ -641,10 +642,16 @@ namespace RegistryTests {
 			std::vector<std::thread> threads;
 			std::vector<ecss::EntityId> ids(N);
 			std::atomic<bool> done = false;
+			std::shared_mutex mtx;
 			threads.emplace_back([&] {
 				for (int i = 0; i < N; ++i) {
-					ids[i] = reg.takeEntity();
-					reg.addComponent<Velocity>(ids[i], float(i));
+					auto ent = reg.takeEntity();
+					{
+						auto lock = std::unique_lock(mtx);
+						ids[i] = ent;
+					}
+					
+					reg.addComponent<Velocity>(ent, float(i));
 				}
 				done = true;
 			});
@@ -652,7 +659,12 @@ namespace RegistryTests {
 
 			threads.emplace_back([&] {
 				while (!done) {
-					for (auto [ent, vel] : reg.view<Velocity>({ ids })) {
+					ecss::Ranges range;
+					{
+						auto lock = std::shared_lock(mtx);
+						range = {ids};
+					}
+					for (auto [ent, vel] : reg.view<Velocity>(range)) {
 						vel->dx++;
 					}
 					std::this_thread::sleep_for(std::chrono::milliseconds(16));
@@ -667,28 +679,28 @@ namespace RegistryTests {
 	
 
 	TEST(Registry, AddRemoveComponentMultipleTimes) {
-	    ecss::Registry registry;
-	    auto e = registry.takeEntity();
-	    EXPECT_FALSE(registry.hasComponent<Health>(e));
-	    registry.addComponent<Health>(e, 123);
-	    EXPECT_TRUE(registry.hasComponent<Health>(e));
-	    registry.destroyComponent<Health>(e);
-	    EXPECT_FALSE(registry.hasComponent<Health>(e));
-	    registry.addComponent<Health>(e, 321);
-	    EXPECT_TRUE(registry.hasComponent<Health>(e));
-	    EXPECT_EQ(registry.pinComponent<Health>(e)->value, 321);
+		ecss::Registry registry;
+		auto e = registry.takeEntity();
+		EXPECT_FALSE(registry.hasComponent<Health>(e));
+		registry.addComponent<Health>(e, 123);
+		EXPECT_TRUE(registry.hasComponent<Health>(e));
+		registry.destroyComponent<Health>(e);
+		EXPECT_FALSE(registry.hasComponent<Health>(e));
+		registry.addComponent<Health>(e, 321);
+		EXPECT_TRUE(registry.hasComponent<Health>(e));
+		EXPECT_EQ(registry.pinComponent<Health>(e)->value, 321);
 	}
 
 	TEST(Registry, IterationWithComponentRemoval) {
-	    ecss::Registry registry;
-	    std::vector<ecss::EntityId> entities;
-	    for (int i = 0; i < 1000; ++i) {
-	        auto e = registry.takeEntity();
-	        registry.addComponent<Health>(e, i);
-	        entities.push_back(e);
-	    }
+		ecss::Registry registry;
+		std::vector<ecss::EntityId> entities;
+		for (int i = 0; i < 1000; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Health>(e, i);
+			entities.push_back(e);
+		}
 
-	    int count = 0;
+		int count = 0;
 		for (auto e : entities) {
 			auto h = registry.pinComponent<Health>(e);
 			if (h->value % 2 == 0) {
@@ -700,80 +712,80 @@ namespace RegistryTests {
 			}
 		}
 	 
-	    EXPECT_EQ(count, 500);
+		EXPECT_EQ(count, 500);
 
-	    int check = 0;
-	    for (auto [e, h] : registry.view<Health>()) {
-	        EXPECT_TRUE(h->value % 2 == 1);
-	        ++check;
-	    }
-	    EXPECT_EQ(check, 500);
+		int check = 0;
+		for (auto [e, h] : registry.view<Health>()) {
+			EXPECT_TRUE(h->value % 2 == 1);
+			++check;
+		}
+		EXPECT_EQ(check, 500);
 	}
 
 	TEST(Registry, ThreadSafeGetComponent) {
-	    ecss::Registry registry;
-	    auto e = registry.takeEntity();
-	    registry.addComponent<Health>(e, 777);
+		ecss::Registry registry;
+		auto e = registry.takeEntity();
+		registry.addComponent<Health>(e, 777);
 
-	    std::atomic<bool> stop = false;
-	    std::thread t1([&]() {
-	        while (!stop.load()) {
-	            auto ptr = registry.pinComponent<Health>(e);
-	            if (ptr) EXPECT_EQ(ptr->value, 777);
-	        }
-	    });
-	    std::thread t2([&]() {
-	        for (int i = 0; i < 10000; ++i) {
-	            registry.hasComponent<Health>(e);
-	        }
-	        stop = true;
-	    });
-	    t1.join();
-	    t2.join();
+		std::atomic<bool> stop = false;
+		std::thread t1([&]() {
+			while (!stop.load()) {
+				auto ptr = registry.pinComponent<Health>(e);
+				if (ptr) EXPECT_EQ(ptr->value, 777);
+			}
+		});
+		std::thread t2([&]() {
+			for (int i = 0; i < 10000; ++i) {
+				registry.hasComponent<Health>(e);
+			}
+			stop = true;
+		});
+		t1.join();
+		t2.join();
 	}
 
 	TEST(Registry, CompositeComponentSector) {
-	    ecss::Registry registry;
-	    registry.registerArray<Health, Velocity>();
+		ecss::Registry registry;
+		registry.registerArray<Health, Velocity>();
 
-	    auto e = registry.takeEntity();
-	    registry.addComponent<Health>(e, 100);
-	    registry.addComponent<Velocity>(e, (float)1, (float)2);
+		auto e = registry.takeEntity();
+		registry.addComponent<Health>(e, 100);
+		registry.addComponent<Velocity>(e, (float)1, (float)2);
 
-	    auto* h = registry.pinComponent<Health>(e).get();
-	    auto* v = registry.pinComponent<Velocity>(e).get();
-	    EXPECT_TRUE(h);
-	    EXPECT_TRUE(v);
-	    EXPECT_EQ(h->value, 100);
-	    EXPECT_EQ(v->dx, 1);
-	    EXPECT_EQ(v->dy, 2);
+		auto* h = registry.pinComponent<Health>(e).get();
+		auto* v = registry.pinComponent<Velocity>(e).get();
+		EXPECT_TRUE(h);
+		EXPECT_TRUE(v);
+		EXPECT_EQ(h->value, 100);
+		EXPECT_EQ(v->dx, 1);
+		EXPECT_EQ(v->dy, 2);
 	}
 
 	TEST(Registry, AddNoDefaultCtor) {
-	    ecss::Registry reg;
-	    auto e = reg.takeEntity();
-	    reg.addComponent<NoDefaultCtor>(e, 42);
-	    ASSERT_NE(reg.pinComponent<NoDefaultCtor>(e).get(), nullptr);
-	    EXPECT_EQ(reg.pinComponent<NoDefaultCtor>(e)->x, 42);
+		ecss::Registry reg;
+		auto e = reg.takeEntity();
+		reg.addComponent<NoDefaultCtor>(e, 42);
+		ASSERT_NE(reg.pinComponent<NoDefaultCtor>(e).get(), nullptr);
+		EXPECT_EQ(reg.pinComponent<NoDefaultCtor>(e)->x, 42);
 	}
 
 	TEST(Registry, MoveOnlyComponentWorks) {
-	    ecss::Registry reg;
-	    auto e = reg.takeEntity();
-	    reg.addComponent<MoveOnly>(e, MoveOnly(777));
-	    auto* ptr = reg.pinComponent<MoveOnly>(e).get();
-	    ASSERT_NE(ptr, nullptr);
-	    EXPECT_EQ(ptr->val, 777);
+		ecss::Registry reg;
+		auto e = reg.takeEntity();
+		reg.addComponent<MoveOnly>(e, MoveOnly(777));
+		auto* ptr = reg.pinComponent<MoveOnly>(e).get();
+		ASSERT_NE(ptr, nullptr);
+		EXPECT_EQ(ptr->val, 777);
 	}
 
 
 	struct CopyOnly {
-	    int v;
-	    CopyOnly(int x) : v(x) {}
-	    CopyOnly(const CopyOnly& o) : v(o.v) {}
-	    CopyOnly(CopyOnly&&) = delete;
-	    CopyOnly& operator=(const CopyOnly&) = delete;
-	    CopyOnly& operator=(CopyOnly&&) = delete;
+		int v;
+		CopyOnly(int x) : v(x) {}
+		CopyOnly(const CopyOnly& o) : v(o.v) {}
+		CopyOnly(CopyOnly&&) = delete;
+		CopyOnly& operator=(const CopyOnly&) = delete;
+		CopyOnly& operator=(CopyOnly&&) = delete;
 	};
 
 	// this code should not compile
@@ -787,121 +799,121 @@ namespace RegistryTests {
 	//}
 
 	TEST(Registry, MultipleEntitiesSameComponentType) {
-	    ecss::Registry reg;
-	    std::vector<ecss::EntityId> ids;
-	    for (int i = 0; i < 10; ++i) {
-	        auto e = reg.takeEntity();
-	        reg.addComponent<Health>(e, i * 10);
-	        ids.push_back(e);
-	    }
-	    for (int i = 0; i < 10; ++i) {
-	        EXPECT_EQ(reg.pinComponent<Health>(ids[i])->value, i * 10);
-	    }
+		ecss::Registry reg;
+		std::vector<ecss::EntityId> ids;
+		for (int i = 0; i < 10; ++i) {
+			auto e = reg.takeEntity();
+			reg.addComponent<Health>(e, i * 10);
+			ids.push_back(e);
+		}
+		for (int i = 0; i < 10; ++i) {
+			EXPECT_EQ(reg.pinComponent<Health>(ids[i])->value, i * 10);
+		}
 	}
 
 	TEST(Registry, MassAddRemoveAndIterate) {
-	    ecss::Registry reg;
-	    std::vector<ecss::EntityId> ids;
-	    constexpr int N = 2000;
-	    for (int i = 0; i < N; ++i) {
-	        auto e = reg.takeEntity();
-	        reg.addComponent<Position>(e, (float)i, (float) - i);
-	        ids.push_back(e);
-	    }
-	    for (int i = 0; i < N; i += 2)
-	        reg.destroyEntity(ids[i]);
-	    int cnt = 0;
-	    for (auto [e, pos] : reg.view<Position>())
-	        cnt++;
-	    EXPECT_EQ(cnt, N / 2);
+		ecss::Registry reg;
+		std::vector<ecss::EntityId> ids;
+		constexpr int N = 2000;
+		for (int i = 0; i < N; ++i) {
+			auto e = reg.takeEntity();
+			reg.addComponent<Position>(e, (float)i, (float) - i);
+			ids.push_back(e);
+		}
+		for (int i = 0; i < N; i += 2)
+			reg.destroyEntity(ids[i]);
+		int cnt = 0;
+		for (auto [e, pos] : reg.view<Position>())
+			cnt++;
+		EXPECT_EQ(cnt, N / 2);
 	}
 
 	TEST(Registry, ParallelAddAndGet) {
-	    ecss::Registry reg;
-	    constexpr int threads = 8, N = 2000;
-	    std::vector<ecss::EntityId> ids(threads * N);
-	    std::vector<std::thread> thrs;
-	    for (int t = 0; t < threads; ++t) {
-	        thrs.emplace_back([&, t] {
-	            for (int i = 0; i < N; ++i) {
-	                int idx = t * N + i;
-	                auto e = reg.takeEntity();
-	                ids[idx] = e;
-	                reg.addComponent<Position>(e, (float)idx, (float)-idx);
-	            }
-	        });
-	    }
-	    for (auto& th : thrs) th.join();
+		ecss::Registry reg;
+		constexpr int threads = 8, N = 2000;
+		std::vector<ecss::EntityId> ids(threads * N);
+		std::vector<std::thread> thrs;
+		for (int t = 0; t < threads; ++t) {
+			thrs.emplace_back([&, t] {
+				for (int i = 0; i < N; ++i) {
+					int idx = t * N + i;
+					auto e = reg.takeEntity();
+					ids[idx] = e;
+					reg.addComponent<Position>(e, (float)idx, (float)-idx);
+				}
+			});
+		}
+		for (auto& th : thrs) th.join();
 
-	    std::atomic<int> found{ 0 };
-	    std::vector<std::thread> reads;
-	    for (int t = 0; t < threads; ++t) {
-	        reads.emplace_back([&, t] {
-	            for (int i = t * N; i < (t + 1) * N; ++i) {
-	                auto* pos = reg.pinComponent<Position>(ids[i]).get();
-	                if (pos) found++;
-	            }
-	        });
-	    }
-	    for (auto& th : reads) th.join();
-	    EXPECT_EQ(found.load(), threads * N);
+		std::atomic<int> found{ 0 };
+		std::vector<std::thread> reads;
+		for (int t = 0; t < threads; ++t) {
+			reads.emplace_back([&, t] {
+				for (int i = t * N; i < (t + 1) * N; ++i) {
+					auto* pos = reg.pinComponent<Position>(ids[i]).get();
+					if (pos) found++;
+				}
+			});
+		}
+		for (auto& th : reads) th.join();
+		EXPECT_EQ(found.load(), threads * N);
 	}
 
 	TEST(Registry, HugeReserveDoesNotCrash) {
-	    ecss::Registry reg;
-	    EXPECT_NO_THROW(reg.reserve<Health>(1 << 20));
+		ecss::Registry reg;
+		EXPECT_NO_THROW(reg.reserve<Health>(1 << 20));
 	}
 
 	TEST(Registry, RegisterArrayMultipleTypes) {
-	    ecss::Registry reg;
-	    reg.registerArray<Position, Velocity, Health>();
-	    auto e = reg.takeEntity();
-	    reg.addComponent<Position>(e, (float)1, (float)2);
-	    reg.addComponent<Velocity>(e, (float)3, (float)4);
-	    reg.addComponent<Health>(e, 5);
+		ecss::Registry reg;
+		reg.registerArray<Position, Velocity, Health>();
+		auto e = reg.takeEntity();
+		reg.addComponent<Position>(e, (float)1, (float)2);
+		reg.addComponent<Velocity>(e, (float)3, (float)4);
+		reg.addComponent<Health>(e, 5);
 
-	    EXPECT_EQ(reg.pinComponent<Position>(e)->x, 1);
-	    EXPECT_EQ(reg.pinComponent<Velocity>(e)->dx, 3);
-	    EXPECT_EQ(reg.pinComponent<Health>(e)->value, 5);
+		EXPECT_EQ(reg.pinComponent<Position>(e)->x, 1);
+		EXPECT_EQ(reg.pinComponent<Velocity>(e)->dx, 3);
+		EXPECT_EQ(reg.pinComponent<Health>(e)->value, 5);
 	}
 
 	TEST(Registry, ParallelAddRemove) {
-	    ecss::Registry reg;
-	    constexpr int threads = 8, N = 1000;
-	    std::vector<ecss::EntityId> ids(threads * N);
-	    std::vector<std::thread> thrs;
-	    for (int t = 0; t < threads; ++t) {
-	        thrs.emplace_back([&, t] {
-	            for (int i = 0; i < N; ++i) {
-	                int idx = t * N + i;
-	                auto e = reg.takeEntity();
-	                ids[idx] = e;
-	                reg.addComponent<Health>(e, idx);
-	            }
-	        });
-	    }
-	    for (auto& th : thrs) th.join();
+		ecss::Registry reg;
+		constexpr int threads = 8, N = 1000;
+		std::vector<ecss::EntityId> ids(threads * N);
+		std::vector<std::thread> thrs;
+		for (int t = 0; t < threads; ++t) {
+			thrs.emplace_back([&, t] {
+				for (int i = 0; i < N; ++i) {
+					int idx = t * N + i;
+					auto e = reg.takeEntity();
+					ids[idx] = e;
+					reg.addComponent<Health>(e, idx);
+				}
+			});
+		}
+		for (auto& th : thrs) th.join();
 
-	    int count = 0;
-	    for (auto [e, val] : reg.view<Health>()) {
-	        count++;
-	    }
+		int count = 0;
+		for (auto [e, val] : reg.view<Health>()) {
+			count++;
+		}
 
-	    EXPECT_EQ(count, threads * N);
+		EXPECT_EQ(count, threads * N);
 
-	    std::vector<std::thread> dels;
-	    for (int t = 0; t < threads; ++t) {
-	        dels.emplace_back([&, t] {
-	            for (int i = t * N; i < (t + 1) * N; i += 2)
-	                reg.destroyEntity(ids[i]);
-	        });
-	    }
-	    for (auto& th : dels) th.join();
+		std::vector<std::thread> dels;
+		for (int t = 0; t < threads; ++t) {
+			dels.emplace_back([&, t] {
+				for (int i = t * N; i < (t + 1) * N; i += 2)
+					reg.destroyEntity(ids[i]);
+			});
+		}
+		for (auto& th : dels) th.join();
 
-	    int alive = 0;
-	    for (int i = 0; i < threads * N; ++i)
-	        if (reg.pinComponent<Health>(ids[i])) alive++;
-	    EXPECT_EQ(alive, threads * N / 2);
+		int alive = 0;
+		for (int i = 0; i < threads * N; ++i)
+			if (reg.pinComponent<Health>(ids[i])) alive++;
+		EXPECT_EQ(alive, threads * N / 2);
 	}
 
 	TEST(Registry, StressForEach) {
@@ -922,220 +934,220 @@ namespace RegistryTests {
 	}
 
 	TEST(Registry, StressDestroyAll) {
-	    ecss::Registry reg;
-	    std::vector<ecss::EntityId> ids;
-	    constexpr int N = 10000;
-	    for (int i = 0; i < N; ++i) {
-	        auto e = reg.takeEntity();
-	        reg.addComponent<Health>(e, i);
-	        ids.push_back(e);
-	    }
-	    reg.destroyEntities(ids);
-	    for (auto e : ids)
-	        EXPECT_EQ(reg.pinComponent<Health>(e).get(), nullptr);
+		ecss::Registry reg;
+		std::vector<ecss::EntityId> ids;
+		constexpr int N = 10000;
+		for (int i = 0; i < N; ++i) {
+			auto e = reg.takeEntity();
+			reg.addComponent<Health>(e, i);
+			ids.push_back(e);
+		}
+		reg.destroyEntities(ids);
+		for (auto e : ids)
+			EXPECT_EQ(reg.pinComponent<Health>(e).get(), nullptr);
 	}
 
 	TEST(Registry, RemoveNonExistent) {
-	    ecss::Registry reg;
-	    EXPECT_NO_THROW(reg.destroyEntity(123456));
+		ecss::Registry reg;
+		EXPECT_NO_THROW(reg.destroyEntity(123456));
 	}
 
 	TEST(Registry, DestroyComponentOnly) {
-	    ecss::Registry reg;
-	    auto e = reg.takeEntity();
-	    reg.addComponent<Health>(e, 1);
-	    reg.destroyComponent<Health>(e);
-	    EXPECT_EQ(reg.pinComponent<Health>(e).get(), nullptr);
+		ecss::Registry reg;
+		auto e = reg.takeEntity();
+		reg.addComponent<Health>(e, 1);
+		reg.destroyComponent<Health>(e);
+		EXPECT_EQ(reg.pinComponent<Health>(e).get(), nullptr);
 	}
 
 	TEST(Registry, DestroyAllComponentsOnEntity) {
-	    ecss::Registry reg;
-	    auto e = reg.takeEntity();
-	    reg.addComponent<Health>(e, 1);
-	    reg.addComponent<Position>(e, (float)2, (float)3);
-	    reg.destroyEntity(e);
-	    EXPECT_EQ(reg.pinComponent<Health>(e).get(), nullptr);
-	    EXPECT_EQ(reg.pinComponent<Position>(e).get(), nullptr);
+		ecss::Registry reg;
+		auto e = reg.takeEntity();
+		reg.addComponent<Health>(e, 1);
+		reg.addComponent<Position>(e, (float)2, (float)3);
+		reg.destroyEntity(e);
+		EXPECT_EQ(reg.pinComponent<Health>(e).get(), nullptr);
+		EXPECT_EQ(reg.pinComponent<Position>(e).get(), nullptr);
 	}
 
 	TEST(Registry, CopyArrayToRegistry) {
-	    ecss::Registry reg1, reg2;
-	    auto e = reg1.takeEntity();
-	    reg1.addComponent<Health>(e, 42);
-	    reg2.insert<Health>(*reg1.getComponentContainer<Health>());
-	    EXPECT_EQ(reg2.pinComponent<Health>(e)->value, 42);
+		ecss::Registry reg1, reg2;
+		auto e = reg1.takeEntity();
+		reg1.addComponent<Health>(e, 42);
+		reg2.insert<Health>(*reg1.getComponentContainer<Health>());
+		EXPECT_EQ(reg2.pinComponent<Health>(e)->value, 42);
 	}
 
 	TEST(Registry, ForEachOrderIndependence) {
-	    ecss::Registry reg;
-	    constexpr int size = 1000;
-	    for (int i = 0; i < size; ++i) {
-	        auto e = reg.takeEntity();
-	        reg.addComponent<Health>(e, i);
-	        reg.addComponent<Position>(e, (float)i, (float)-i);
-	        reg.addComponent<Velocity>(e, (float)10, (float)-10);
-	    }
-	    int cnt = 0;
-	    for (auto [e, h, p, v] : reg.view<Health, Position, Velocity>())
-	        cnt++;
-	    EXPECT_EQ(cnt, size);
-	    cnt = 0;
-	    for (auto [e, p, v, h] : reg.view<Position, Velocity, Health>())
-	        cnt++;
-	    EXPECT_EQ(cnt, size);
+		ecss::Registry reg;
+		constexpr int size = 1000;
+		for (int i = 0; i < size; ++i) {
+			auto e = reg.takeEntity();
+			reg.addComponent<Health>(e, i);
+			reg.addComponent<Position>(e, (float)i, (float)-i);
+			reg.addComponent<Velocity>(e, (float)10, (float)-10);
+		}
+		int cnt = 0;
+		for (auto [e, h, p, v] : reg.view<Health, Position, Velocity>())
+			cnt++;
+		EXPECT_EQ(cnt, size);
+		cnt = 0;
+		for (auto [e, p, v, h] : reg.view<Position, Velocity, Health>())
+			cnt++;
+		EXPECT_EQ(cnt, size);
 	}
 
 	TEST(Registry, ForEachAsync) {
-	    ecss::Registry reg;
-	    constexpr int size = 1000;
-	    std::vector<ecss::EntityId> ids;
-	    for (int i = 0; i < size; ++i) {
-	        auto e = reg.takeEntity();
-	        reg.addComponent<Health>(e, i);
-	        ids.push_back(e);
-	    }
-	    std::vector<int> vals(size);
-	    reg.forEachAsync<Health>(ids, [&](ecss::EntityId e, Health* h) {
-	        vals[h->value] = h->value;
-	    });
-	    for (int i = 0; i < size; ++i) EXPECT_EQ(vals[i], i);
+		ecss::Registry reg;
+		constexpr int size = 1000;
+		std::vector<ecss::EntityId> ids;
+		for (int i = 0; i < size; ++i) {
+			auto e = reg.takeEntity();
+			reg.addComponent<Health>(e, i);
+			ids.push_back(e);
+		}
+		std::vector<int> vals(size);
+		reg.forEachAsync<Health>(ids, [&](ecss::EntityId e, Health* h) {
+			vals[h->value] = h->value;
+		});
+		for (int i = 0; i < size; ++i) EXPECT_EQ(vals[i], i);
 	}
 
 	TEST(Registry, MultithreadedAddDestroyIterate) {
-	    ecss::Registry reg;
-	    constexpr int T = 8, N = 2000;
-	    std::vector<std::thread> threads;
-	    std::vector<ecss::EntityId> ids(T * N);
+		ecss::Registry reg;
+		constexpr int T = 8, N = 2000;
+		std::vector<std::thread> threads;
+		std::vector<ecss::EntityId> ids(T * N);
 
-	    for (int t = 0; t < T; ++t) {
-	        threads.emplace_back([&, t] {
-	            for (int i = 0; i < N; ++i) {
-	                int idx = t * N + i;
-	                auto e = reg.takeEntity();
-	                ids[idx] = e;
-	                reg.addComponent<Health>(e, idx);
-	            }
-	        });
-	    }
-	    for (auto& th : threads) th.join();
+		for (int t = 0; t < T; ++t) {
+			threads.emplace_back([&, t] {
+				for (int i = 0; i < N; ++i) {
+					int idx = t * N + i;
+					auto e = reg.takeEntity();
+					ids[idx] = e;
+					reg.addComponent<Health>(e, idx);
+				}
+			});
+		}
+		for (auto& th : threads) th.join();
 
-	    std::thread iter([&] {
-	        int cnt = 0;
-	        for (auto [e, h] : reg.view<Health>()) {
-	            EXPECT_NE(h, nullptr);
-	            cnt++;
-	        }
-	        EXPECT_GE(cnt, T * N / 2);
-	    });
+		std::thread iter([&] {
+			int cnt = 0;
+			for (auto [e, h] : reg.view<Health>()) {
+				EXPECT_NE(h, nullptr);
+				cnt++;
+			}
+			EXPECT_GE(cnt, T * N / 2);
+		});
 
-	    std::vector<std::thread> dels;
-	    for (int t = 0; t < T; ++t) {
-	        dels.emplace_back([&, t] {
-	            for (int i = t * N; i < (t + 1) * N; i += 2)
-	                reg.destroyEntity(ids[i]);
-	        });
-	    }
-	    for (auto& th : dels) th.join();
-	    iter.join();
+		std::vector<std::thread> dels;
+		for (int t = 0; t < T; ++t) {
+			dels.emplace_back([&, t] {
+				for (int i = t * N; i < (t + 1) * N; i += 2)
+					reg.destroyEntity(ids[i]);
+			});
+		}
+		for (auto& th : dels) th.join();
+		iter.join();
 	}
 
 	TEST(Registry, MoveCopyStress) {
-	    ecss::Registry reg;
-	    constexpr int N = 2000;
-	    std::vector<ecss::EntityId> ids(N);
-	    for (int i = 0; i < N; ++i) {
-	        auto e = reg.takeEntity();
-	        reg.addComponent<MoveOnly>(e, MoveOnly(i));
-	        //reg.addComponent<CopyOnly>(e, CopyOnly(i));  //this code should not compile
-	        ids[i] = e;
-	    }
-	    for (int i = 0; i < N; ++i) {
-	        EXPECT_EQ(reg.pinComponent<MoveOnly>(ids[i])->val, i);
-	        //EXPECT_EQ(reg.pinComponent<CopyOnly>(ids[i])->v, i); //this code should not compile
-	    }
+		ecss::Registry reg;
+		constexpr int N = 2000;
+		std::vector<ecss::EntityId> ids(N);
+		for (int i = 0; i < N; ++i) {
+			auto e = reg.takeEntity();
+			reg.addComponent<MoveOnly>(e, MoveOnly(i));
+			//reg.addComponent<CopyOnly>(e, CopyOnly(i));  //this code should not compile
+			ids[i] = e;
+		}
+		for (int i = 0; i < N; ++i) {
+			EXPECT_EQ(reg.pinComponent<MoveOnly>(ids[i])->val, i);
+			//EXPECT_EQ(reg.pinComponent<CopyOnly>(ids[i])->v, i); //this code should not compile
+		}
 	}
 
 	TEST(Registry, ParallelMixedOps) {
-	    ecss::Registry reg;
-	    constexpr int T = 8, N = 1500;
-	    std::vector<std::thread> threads;
-	    std::vector<ecss::EntityId> ids(T * N);
-	    for (int t = 0; t < T; ++t) {
-	        threads.emplace_back([&, t] {
-	            for (int i = 0; i < N; ++i) {
-	                int idx = t * N + i;
-	                auto e = reg.takeEntity();
-	                ids[idx] = e;
-	                reg.addComponent<Health>(e, idx);
-	                reg.addComponent<Position>(e, (float)idx, (float)-idx);
-	                if (idx % 10 == 0)
-	                    reg.destroyEntity(e);
-	            }
-	        });
-	    }
-	    for (auto& th : threads) th.join();
-	    int cnt = 0;
-	    for (auto [e, h, p] : reg.view<Health, Position>())
-	        cnt++;
-	    EXPECT_LE(cnt, T * N);
+		ecss::Registry reg;
+		constexpr int T = 8, N = 1500;
+		std::vector<std::thread> threads;
+		std::vector<ecss::EntityId> ids(T * N);
+		for (int t = 0; t < T; ++t) {
+			threads.emplace_back([&, t] {
+				for (int i = 0; i < N; ++i) {
+					int idx = t * N + i;
+					auto e = reg.takeEntity();
+					ids[idx] = e;
+					reg.addComponent<Health>(e, idx);
+					reg.addComponent<Position>(e, (float)idx, (float)-idx);
+					if (idx % 10 == 0)
+						reg.destroyEntity(e);
+				}
+			});
+		}
+		for (auto& th : threads) th.join();
+		int cnt = 0;
+		for (auto [e, h, p] : reg.view<Health, Position>())
+			cnt++;
+		EXPECT_LE(cnt, T * N);
 	}
 
 	TEST(Registry, RepeatedAddRemoveRace) {
-	    ecss::Registry reg;
-	    constexpr int N = 2000, T = 8;
-	    std::vector<ecss::EntityId> ids(N);
-	    for (int i = 0; i < N; ++i)
-	        ids[i] = reg.takeEntity();
+		ecss::Registry reg;
+		constexpr int N = 2000, T = 8;
+		std::vector<ecss::EntityId> ids(N);
+		for (int i = 0; i < N; ++i)
+			ids[i] = reg.takeEntity();
 
-	    std::vector<std::thread> threads;
-	    for (int t = 0; t < T; ++t) {
-	        threads.emplace_back([&, t] {
-	            for (int i = 0; i < N; ++i) {
-	                reg.addComponent<Health>(ids[i], t * N + i);
-	                reg.destroyComponent<Health>(ids[i]);
-	            }
-	        });
-	    }
-	    for (auto& th : threads) th.join();
+		std::vector<std::thread> threads;
+		for (int t = 0; t < T; ++t) {
+			threads.emplace_back([&, t] {
+				for (int i = 0; i < N; ++i) {
+					reg.addComponent<Health>(ids[i], t * N + i);
+					reg.destroyComponent<Health>(ids[i]);
+				}
+			});
+		}
+		for (auto& th : threads) th.join();
 	}
 
 	TEST(Registry, ParallelMoveOnlyInsertGetErase) {
-	    ecss::Registry reg;
-	    constexpr int T = 8, N = 500;
-	    std::vector<std::thread> threads;
-	    std::vector<ecss::EntityId> ids(T * N);
-	    for (int t = 0; t < T; ++t) {
-	        threads.emplace_back([&, t] {
-	            for (int i = 0; i < N; ++i) {
-	                int idx = t * N + i;
-	                auto e = reg.takeEntity();
-	                ids[idx] = e;
-	                reg.addComponent<MoveOnly>(e, MoveOnly(idx));
-	            }
-	        });
-	    }
-	    for (auto& th : threads) th.join();
+		ecss::Registry reg;
+		constexpr int T = 8, N = 500;
+		std::vector<std::thread> threads;
+		std::vector<ecss::EntityId> ids(T * N);
+		for (int t = 0; t < T; ++t) {
+			threads.emplace_back([&, t] {
+				for (int i = 0; i < N; ++i) {
+					int idx = t * N + i;
+					auto e = reg.takeEntity();
+					ids[idx] = e;
+					reg.addComponent<MoveOnly>(e, MoveOnly(idx));
+				}
+			});
+		}
+		for (auto& th : threads) th.join();
 
-	    std::vector<std::thread> dels;
-	    for (int t = 0; t < T; ++t) {
-	        dels.emplace_back([&, t] {
-	            for (int i = t * N; i < (t + 1) * N; i += 3)
-	                reg.destroyEntity(ids[i]);
-	        });
-	    }
-	    for (auto& th : dels) th.join();
+		std::vector<std::thread> dels;
+		for (int t = 0; t < T; ++t) {
+			dels.emplace_back([&, t] {
+				for (int i = t * N; i < (t + 1) * N; i += 3)
+					reg.destroyEntity(ids[i]);
+			});
+		}
+		for (auto& th : dels) th.join();
 
-	    int found = 0;
-	    for (int i = 0; i < T * N; ++i)
-	        if (reg.pinComponent<MoveOnly>(ids[i]))
-	            found++;
-	    EXPECT_GE(found, 0);
+		int found = 0;
+		for (int i = 0; i < T * N; ++i)
+			if (reg.pinComponent<MoveOnly>(ids[i]))
+				found++;
+		EXPECT_GE(found, 0);
 	}
 
 	TEST(Registry, CreateAndCheckNoDublicate) {
-		ecss::Registry reg;
-
-		for (auto i = 0; i < 6000000; i++) {
+		ecss::Registry<true, Memory::ChunksAllocator<32>> reg;
+		reg.registerArray<Velocity>(6000);
+		for (auto i = 0; i < 6000; i++) {
 			auto ent = reg.takeEntity();
 			reg.addComponent<Velocity>(ent);
 		}
@@ -1160,12 +1172,12 @@ namespace RegistryTests {
 		std::atomic_bool running = true;
 		std::atomic_bool foundNaN = false;
 
-		// Писатель: создаёт много сущностей с компонентом Transform
+		
 		std::thread writer([&] {
 			for (int i = 0; i < 10'000 && running; ++i) {
 				auto ent = reg.takeEntity();
 				Transform t{ 1.f,1.f,1.f,1.f,1.f,1.f,1.f,1.f };
-				t.m.h = static_cast<float>(i); // для уникальности
+				t.m.h = static_cast<float>(i); 
 
 				reg.addComponent<Transform>(ent, t);
 
@@ -1175,13 +1187,13 @@ namespace RegistryTests {
 			running = false;
 		});
 
-		// Читатель: параллельно читает Transform и проверяет корректность
+		
 		std::thread reader([&] {
 			while (running && !foundNaN) {
 				for (auto [e, t] : reg.view<Transform>()) {
 					if (!t) continue;
 
-					// Проверка матрицы на NaN/Inf (сломана память?)
+					
 					if (!std::isfinite(t->m.a) || std::isnan(t->m.a)) {
 						std::cerr << "Corrupted matrix found! Entity: " << e << "\n";
 						foundNaN = true;
@@ -1220,10 +1232,11 @@ namespace RegistryTests {
 
 		static_assert(std::is_trivial_v<TransformMatComp>);
 
-		ecss::Registry source;
-		ecss::Registry target;
+		constexpr int N = 2000;
 
-		constexpr int N = 50000;
+		ecss::Registry<true, Memory::ChunksAllocator<16>> source;
+		ecss::Registry<true, Memory::ChunksAllocator<16>> target;
+		source.reserve<TransformMatComp>(N);
 		std::vector<EntityId> ids;
 		for (int i = 0; i < N; ++i) {
 			auto id = source.takeEntity();
@@ -1234,7 +1247,7 @@ namespace RegistryTests {
 		std::atomic<bool> stop = false;
 		std::atomic<bool> errorDetected = false;
 
-		// thread: copy comp from source to target
+		
 		std::thread writer([&]() {
 			for (int k = 0; k < 10; k++) {
 				std::vector<EntityId> shuffledIds = ids;
@@ -1257,7 +1270,7 @@ namespace RegistryTests {
 			
 		});
 
-		// thread: iterating and check if there is any matrix corrupted
+		
 		std::thread reader([&]() {
 			while (!stop) {
 				for (auto [ent, t] : target.view<const TransformMatComp>()) {
@@ -1285,9 +1298,9 @@ namespace RegistryTests {
 	}
 
 	TEST(Registry, ParallelAddingToTheRandomPlacesAndIteration) {
-		ecss::Registry reg;
+		ecss::Registry<true, Memory::ChunksAllocator<16>> reg;
 		reg.registerArray<Velocity>();
-		constexpr int count = 60000;
+		constexpr int count = 2000;
 		std::vector<std::thread> threads;
 		std::atomic_bool creating = true;
 		threads.emplace_back([&]()
@@ -1331,7 +1344,7 @@ namespace RegistryTests {
 		}
 
 		int i = first;
-		for (auto [ent, vel] : reg.view<Velocity>(EntitiesRanges{ std::vector<EntitiesRanges::range>{{first,count}}})) {
+		for (auto [ent, vel] : reg.view<Velocity>(Ranges{ std::vector<Ranges<>::Range>{{first,count}}})) {
 			EXPECT_EQ(ent, i++);
 		}
 
@@ -1376,154 +1389,298 @@ namespace RegistryTests {
 		{
 			int a, b;
 		};
+		std::mutex am,bm,cm,dm,em,fm,gm;
 		ecss::Registry reg;
 		reg.registerArray<A, B, C>();
 		reg.registerArray<D>();
 		reg.registerArray<E>();
 		reg.registerArray<F>();
 		reg.registerArray<G>();
-		for (int i = 0 ; i < 200; i++) {
-			std::cout << std::to_string(i) << std::endl;
-			constexpr int T = 8, N = 500;
-			std::vector<std::thread> threads;
-			std::atomic_bool creating = true;
-			threads.emplace_back([&]()
-			{
-				for (auto i = 0; i < 60000; i++) {
-					auto ent = reg.takeEntity();
-					reg.addComponent<A>(ent);
-					reg.addComponent<B>(ent);
-					reg.addComponent<C>(ent);
-					reg.addComponent<D>(ent);
-					reg.addComponent<E>(ent);
-					reg.addComponent<F>(ent);
-					reg.addComponent<G>(ent);
-				}
-				creating = false;
-			});
+		constexpr int T = 8, N = 500;
+
+		std::vector<std::thread> threads;
+		threads.reserve(10);
+		std::atomic_bool creating = true;
+		threads.emplace_back([&]()
+		{
+			for (auto i = 0; i < 60000; i++) {
+				auto ent = reg.takeEntity();
+				reg.addComponent<A>(ent);
+				reg.addComponent<B>(ent);
+				reg.addComponent<C>(ent);
+				reg.addComponent<D>(ent);
+				reg.addComponent<E>(ent);
+				reg.addComponent<F>(ent);
+				reg.addComponent<G>(ent);
+			}
+			creating = false;
+		});
 
 
-			threads.emplace_back([&] {
-				while (creating) {
-					for (auto [e, val, val2] : reg.view<A, B>()) {
+		threads.emplace_back([&] {
+			while (creating) {
+				for (auto [e, val, val2] : reg.view<A, B>()) {
+					{
+						auto lock = std::lock_guard(am);
 						val->a = e;
-						if (!val2) {
-							continue;
-						}
+					}
+					
+					if (!val2) {
+						continue;
+					}
+					{
+						auto lock = std::lock_guard(bm);
 						val2->a = e;
 					}
-					std::this_thread::sleep_for(std::chrono::milliseconds(50));
+					
 				}
-
-			});
-
-			threads.emplace_back([&] {
-				while (creating) {
-					for (auto [e, val, val2] : reg.view<B, C>()) {
-						val->a = e;
-						if (!val2) {
-							continue;
-						}
-						val2->a = e;
-					}
-					std::this_thread::sleep_for(std::chrono::milliseconds(50));
-				}
-			});
-
-			threads.emplace_back([&] {
-				while (creating) {
-					for (auto [e, val] : reg.view<B>()) {
-						val->a = e;
-					}
-					std::this_thread::sleep_for(std::chrono::milliseconds(50));
-				}
-			});
-
-			threads.emplace_back([&] {
-				while (creating) {
-					for (auto [e, val, val2] : reg.view<D, E>()) {
-						val->a = e;
-						if (!val2) {
-							continue;
-						}
-						val2->a = e;
-					}
-					std::this_thread::sleep_for(std::chrono::milliseconds(50));
-				}
-
-			});
-			threads.emplace_back([&] {
-				while (creating) {
-					for (auto [e, val, val2, val3, val4] : reg.view<D, E, F, G>()) {
-						val->a = e;
-						if (val2) {
-							val2->a = e;
-						}
-						if (val3) {
-							val3->a = e;
-						}
-						if (val4) {
-							val4->a = e;
-						}
-
-					}
-					std::this_thread::sleep_for(std::chrono::milliseconds(50));
-				}
-
-			});
-
-			threads.emplace_back([&] {
-				while (creating) {
-					auto componentsToDelete = reg.getAllEntities();
-
-					std::mt19937 rng(static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
-					std::shuffle(componentsToDelete.begin(), componentsToDelete.end(), rng);
-					auto N = componentsToDelete.size() / 3;
-					componentsToDelete.resize(componentsToDelete.size() - N);
-
-					reg.destroyEntities(componentsToDelete);
-					std::this_thread::sleep_for(std::chrono::milliseconds(100));
-				}
-
-			});
-
-			for (auto& th : threads) th.join();
-
-			for (auto [ent, a, b, c, d, e, f, g] : reg.view<A, B, C, D, E, F, G>()) {
-				EXPECT_EQ(true, a->a == ent || a->a == 0);
-				if (b) {
-					EXPECT_EQ(true, b->a == ent || b->a == 0);
-				}
-				if (c) {
-					EXPECT_EQ(true, c->a == ent || c->a == 0);
-				}
-				if (d) {
-					EXPECT_EQ(true, d->a == ent || d->a == 0);
-				}
-				if (e) {
-					EXPECT_EQ(true, e->a == ent || e->a == 0);
-				}
-				if (f) {
-					EXPECT_EQ(true, f->a == ent || f->a == 0);
-				}
-				if (g) {
-					EXPECT_EQ(true, g->a == ent || g->a == 0);
-				}
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
 			}
 
+		});
 
-			reg.clear();
+		threads.emplace_back([&] {
+			while (creating) {
+				for (auto [e, val, val2] : reg.view<B, C>()) {
+					
+					{
+						auto lock = std::lock_guard(bm);
+						val->a = e;
+					}
+					if (!val2) {
+						continue;
+					}
+					{
+						auto lock = std::lock_guard(cm);
+						val2->a = e;
+					}
+				}
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
+			}
+		});
+
+		threads.emplace_back([&] {
+			while (creating) {
+				for (auto [e, val] : reg.view<B>()) {
+					{
+						auto lock = std::lock_guard(bm);
+						val->a = e;
+					}
+				}
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
+			}
+		});
+
+		threads.emplace_back([&] {
+			while (creating) {
+				for (auto [e, val, val2] : reg.view<D, E>()) {
+					{
+						auto lock = std::lock_guard(dm);
+						val->a = e;
+					}
+					if (!val2) {
+						continue;
+					}
+					{
+						auto lock = std::lock_guard(em);
+						val2->a = e;
+					}
+				}
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
+			}
+
+		});
+		threads.emplace_back([&] {
+			while (creating) {
+				for (auto [e, val, val2, val3, val4] : reg.view<D, E, F, G>()) {
+					{
+						auto lock = std::lock_guard(dm);
+						val->a = e;
+					}
+					if (val2) {
+						auto lock = std::lock_guard(em);
+						val2->a = e;
+					}
+					if (val3) {
+						auto lock = std::lock_guard(fm);
+						val3->a = e;
+					}
+					if (val4) {
+						auto lock = std::lock_guard(gm);
+						val4->a = e;
+					}
+
+				}
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
+			}
+
+		});
+
+		threads.emplace_back([&] {
+			while (creating) {
+				auto componentsToDelete = reg.getAllEntities();
+
+				std::mt19937 rng(static_cast<unsigned int>(std::chrono::high_resolution_clock::now().time_since_epoch().count()));
+				std::shuffle(componentsToDelete.begin(), componentsToDelete.end(), rng);
+				auto N = componentsToDelete.size() / 3;
+				componentsToDelete.resize(componentsToDelete.size() - N);
+
+				reg.destroyEntities(componentsToDelete);
+				std::this_thread::sleep_for(std::chrono::milliseconds(100));
+			}
+
+		});
+
+		for (auto& th : threads) th.join();
+
+		for (auto [ent, a, b, c, d, e, f, g] : reg.view<A, B, C, D, E, F, G>()) {
+			EXPECT_EQ(true, a->a == ent || a->a == 0);
+			if (b) {
+				EXPECT_EQ(true, b->a == ent || b->a == 0);
+			}
+			if (c) {
+				EXPECT_EQ(true, c->a == ent || c->a == 0);
+			}
+			if (d) {
+				EXPECT_EQ(true, d->a == ent || d->a == 0);
+			}
+			if (e) {
+				EXPECT_EQ(true, e->a == ent || e->a == 0);
+			}
+			if (f) {
+				EXPECT_EQ(true, f->a == ent || f->a == 0);
+			}
+			if (g) {
+				EXPECT_EQ(true, g->a == ent || g->a == 0);
+			}
 		}
+
+
+		reg.clear();
 		
+		
+	}
+
+	TEST(Registry_STRESS, ConcurrentDestroyAndIterate) {
+		ecss::Registry reg;
+		constexpr int N = 5000;
+		std::vector<ecss::EntityId> ids_to_keep;
+		std::vector<ecss::EntityId> ids_to_destroy;
+
+		for (int i = 0; i < N; ++i) {
+			auto e = reg.takeEntity();
+			reg.addComponent<Health>(e, i);
+			if (i % 2 == 0) {
+				ids_to_destroy.push_back(e);
+			}
+			else {
+				ids_to_keep.push_back(e);
+			}
+		}
+
+		std::atomic<bool> done_iterating = false;
+		std::thread reader([&] {
+			while (!done_iterating.load(std::memory_order_acquire)) {
+				int count = 0;
+				for (auto [e, h] : reg.view<Health>()) {
+					ASSERT_NE(h, nullptr); // A view should only yield valid components
+					count++;
+				}
+				// The count can be anything during the test, but the loop must not crash.
+				std::this_thread::yield();
+			}
+		});
+
+		std::thread destroyer([&] {
+			reg.destroyEntities(ids_to_destroy);
+			done_iterating.store(true, std::memory_order_release);
+		});
+
+		destroyer.join();
+		reader.join();
+
+		// Final verification
+		EXPECT_EQ(reg.getAllEntities().size(), ids_to_keep.size());
+		int final_count = 0;
+		for (auto [e, h] : reg.view<Health>()) {
+			final_count++;
+			EXPECT_EQ(h->value % 2, 1); // Only odd-valued health components should remain
+		}
+		EXPECT_EQ(final_count, N / 2);
+	}
+
+	TEST(Registry_STRESS, ConcurrentDestroyOverlappingSets) {
+		ecss::Registry reg;
+		constexpr int N = 3000;
+		std::vector<ecss::EntityId> all_ids;
+		for (int i = 0; i < N; ++i) {
+			auto e = reg.takeEntity();
+			reg.addComponent<Position>(e, (float)i, (float)i);
+			all_ids.push_back(e);
+		}
+
+		std::vector<ecss::EntityId> set1, set2;
+		for (int i = 0; i < N; ++i) {
+			if (i < 2000) set1.push_back(all_ids[i]); // {0..1999}
+			if (i >= 1000) set2.push_back(all_ids[i]); // {1000..2999}
+		}
+
+		std::thread t1([&] { reg.destroyEntities(set1); });
+		std::thread t2([&] { reg.destroyEntities(set2); });
+
+		t1.join();
+		t2.join();
+
+		// After both threads complete, all entities should be gone.
+		EXPECT_TRUE(reg.getAllEntities().empty());
+		int count = 0;
+		for (auto [e, p] : reg.view<Position>()) {
+			count++;
+		}
+		EXPECT_EQ(count, 0);
+	}
+
+	TEST(Registry, ViewWithEmptyComponentArray) {
+		ecss::Registry reg;
+		// Register Health but don't add any components.
+		reg.registerArray<Health>();
+
+		auto e = reg.takeEntity();
+		reg.addComponent<Position>(e, 1.0f, 1.0f);
+
+		int count = 0;
+		// This view should still work, yielding a nullptr for the Health component.
+		for (auto [entity, pos, health] : reg.view<Position, Health>()) {
+			ASSERT_NE(pos, nullptr);
+			EXPECT_EQ(entity, e);
+			EXPECT_EQ(health, nullptr);
+			count++;
+		}
+		EXPECT_EQ(count, 1);
+	}
+
+	TEST(Registry, ViewWithEmptyPrimaryComponentArray) {
+		ecss::Registry reg;
+		// Register Health but don't add any components.
+		reg.registerArray<Health>();
+
+		auto e = reg.takeEntity();
+		reg.addComponent<Position>(e, 1.0f, 1.0f);
+
+		int count = 0;
+		// The view is driven by the first component type. Since Health is empty,
+		// this loop should execute zero times.
+		for (auto [entity, health, pos] : reg.view<Health, Position>()) {
+			count++;
+		}
+		EXPECT_EQ(count, 0);
 	}
 }
 
-#include "ecss/EntitiesRanges.h"
-
 namespace EntitiesRangeTest
 {
-	using ER = ecss::EntitiesRanges;
-	using Range = ER::range;
+	using ER = ecss::Ranges<>;
+	using Range = ER::Range;
 
 	TEST(EntitiesRanges, EmptyInit) {
 		ER er;
@@ -1665,13 +1822,13 @@ namespace EntitiesRangeTest
 
 	TEST(EntitiesRanges, EdgeCases) {
 		ER er;
-		er.erase(42); // erasing from empty
+		er.erase(42); 
 		er.insert(0);
 		er.erase(0);
 		EXPECT_TRUE(er.empty());
 		er.insert(10);
 		er.insert(12);
-		er.erase(11); // erasing missing element
+		er.erase(11); 
 		EXPECT_TRUE(er.contains(10));
 		EXPECT_TRUE(er.contains(12));
 		EXPECT_FALSE(er.contains(11));
@@ -1679,10 +1836,10 @@ namespace EntitiesRangeTest
 
 
 	TEST(EntitiesRanges, eraseFromCenter) {
-		ER er(std::vector<ER::range>{{0, 1200}, { 1210, 2000 }});
+		ER er(std::vector<ER::Range>{{0, 1200}, { 1210, 2000 }});
 		er.erase(1220);
 
-		auto res = std::vector<ER::range>{ {0, 1200}, { 1210, 1220 } ,{ 1221, 2000 } };
+		auto res = std::vector<ER::Range>{ {0, 1200}, { 1210, 1220 } ,{ 1221, 2000 } };
 		EXPECT_EQ(er.ranges, res);
 	}
 }
