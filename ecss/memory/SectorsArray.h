@@ -954,6 +954,10 @@ namespace detail {
 		 * @param from Linear index to start scanning.
 		 */
 		void defragmentImpl(size_t from = 0)  {
+			if constexpr (ThreadSafe) {
+				if (mPinsCounter.isArrayLocked()) { return; }
+			}
+
 			size_t read = from;
 			size_t write = from;
 			size_t deleted = 0;

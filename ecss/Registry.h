@@ -1028,7 +1028,7 @@ namespace ecss {
 		template<typename ComponentType>
 		FORCE_INLINE static size_t consteval getIndex() noexcept {
 			if constexpr (std::is_same_v<T, ComponentType>) { return 0; }
-			else { return types::getIndex<ComponentType, CompTypes...>() + 1; }
+			else { return types::typeIndex<ComponentType, CompTypes...> + 1; }
 		}
 
 		/// @brief Resolve and fetch all involved sectors arrays (lazily creates if needed).
@@ -1036,7 +1036,7 @@ namespace ecss {
 		FORCE_INLINE std::array<Sectors*, TypesCount> initArrays(Registry<ThreadSafe, Allocator>* registry) noexcept {
 			std::array<Sectors*, TypesCount> arrays;
 
-			static_assert(types::areUnique<Types...>(), "Duplicates detected in types");
+			static_assert(types::areUnique<Types...>, "Duplicates detected in types");
 			((arrays[getIndex<Types>()] = registry->template getComponentContainer<Types>()), ...);
 
 			return arrays;
