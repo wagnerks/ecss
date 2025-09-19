@@ -1,183 +1,188 @@
-# ecss — High-performance C++ ECS with sector-based memory layout
+# ecss – Lightweight high‑speed C++ Entity Component System (sector / chunk based)
 
-> A data-oriented Entity-Component System focused on cache locality, predictable memory, and safe multithreading. MIT licensed.
+[![CI](https://github.com/wagnerks/ecss/actions/workflows/ci.yml/badge.svg)](https://github.com/wagnerks/ecss/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
 
-## Why ECSS?
+`ecss` is a minimal, performance‑oriented ECS that groups one or more component types for an entity into a single fixed layout memory block called a *sector*.  Storage is chunked, trivially indexable, and optionally thread‑safe.  All core logic lives in a handful of header files – no code generation, no heavy RTTI, no macro DSL.
 
-ECSS (Entity Component System with **Sectors**) groups multiple components of an entity into a single tightly-packed memory block (a *sector*). This improves cache behavior, reduces pointer chasing, and enables fast iteration (sync or async) over large worlds. The architecture centers on:
+## Goals
+- Lightweight: single header modules, no external dependencies beyond the STL / `<atomic>` / `<thread>`.
+- High speed: branch‑lean inner loops, cache friendly tightly packed sectors, O(1) id → sector* lookup.
+- Deterministic layouts: compile‑time offset computation (`Types.h` + `SectorLayoutMeta.h`).
+- Optional concurrency: per‑container shared/unique locking + fine grained pin counters (no global world lock).
+- Low fragmentation: chunk allocator + opportunistic / explicit defragmentation.
+- Safe structural mutation under readers: relocation waits on per‑sector pins (`PinCounters.h`).
 
-- **Sector-based layout** (components are packed together per entity)
-- **Chunked storage** for low fragmentation and stable addresses
-- **Reflection helpers** for generic operations without RTTI bloat
-- **Thread-safe access** with per-type shared/unique locking
-- **Iterators** tailored for dense traversal and filtered access
+## Core building blocks
+| File | Responsibility (summary) |
+|------|--------------------------|
+| `Types.h` | Fundamental typedefs (`SectorId`, `ECSType`), compile‑time uniqueness checks & offset helper. |
+| `SectorLayoutMeta.h` | Per grouped component layout metadata (offsets, masks, function tables). |
+| `Sector.h` | Trivial POD header (id + liveness bitfield) + type‑erased member construct / move / destroy helpers. |
+| `ChunksAllocator.h` | Chunked, power‑of‑two capacity growth, stable intra‑chunk addresses, cursor & ranged cursors. |
+| `RetireAllocator.h` | Deferred buffer reclamation (ABA avoidance for lock‑free read snapshots of pointer maps). |
+| `SectorsArray.h` | Sparse (id→ptr) + dense (linear) sector container: insert/emplace, erase, async erase, defrag, iterators. |
+| `PinCounters.h` | Hierarchical bit mask + per‑sector ref counts; waits & opportunistic movement checks. |
+| `Ranges.h` | Compact half‑open range set (merge, search, take, insert, erase) for entity id management & ranged views. |
+| `Reflection.h` | Per‑registry light type id assignment (dense `ECSType` values). |
+| `Registry.h` | High‑level orchestration: entities, component arrays, views, bulk ops, maintenance. |
 
----
-
-## Features
-
-- 🧱 **Sectors**: multiple components in one cache-friendly block  
-- 🧭 **Chunked allocation**: capacity planning, fewer reallocations  
-- 🔍 **Reflection table**: construct/copy/move/destroy by type id  
-- 🔒 **Concurrency**: shared/unique locks per component container  
-- 🔁 **Iterators**: dense `forEach<...>()` + async traversal by ID sets  
-- 🧹 **Compaction utilities**: remove empty sectors, recycle IDs  
-- 🧰 **Modern C++**: header/impl split with zero-overhead paths where possible
-
----
-
-## Getting started
-
-### 1) Add to your project
-
-**As a submodule**
-```bash
-git submodule add https://github.com/wagnerks/ecss external/ecss
+## Memory model
 ```
+[Chunk]
+  ├─ sector 0: [Sector header | CompA | CompB | ...]
+  ├─ sector 1: [Sector header | CompA | CompB | ...]
+  └─ ... up to chunk capacity (power‑of‑two)
+```
+- Sector header (id + 32‑bit liveness mask) precedes packed component payloads.
+- Offsets resolved at compile time (no per‑entity indirection table).
+- Grouping multiple components into the same sector eliminates pointer chasing for hot sets.
 
-**CMake**
+## Threading model (when `ThreadSafe == true`)
+- Read access: shared lock on a `SectorsArray` (cheap, short duration).
+- Structural write (insert / erase / defrag): unique lock + waits on `PinCounters` for impacted ids.
+- Lock‑free lookup path: atomic snapshot (`SectorsMap` view) for id→sector* reads (no iteration guarantees).
+- Memory reclamation: retired pointer maps freed only when no readers remain (`RetireBin`).
+
+## Pin counters & safety
+- `pinSector()` increments per‑sector ref count; destruction / relocation waits for counters to reach zero.
+- Opportunistic defragmentation early‑outs if any pin is active (constant time aggregate check).
+- Precise waiting (`waitUntilChangeable(id)`) for targeted sector range or full array.
+
+## Iteration forms
+- Linear (all sectors): `for (auto s : *array)`.
+- Alive filtered: `beginAlive<T>()` – skips sectors where `T` dead.
+- Ranged (sparse index windows): `beginRanged(ranges)`.
+- Views (`Registry::view<Main, Others...>()`): alive sectors of `Main` + fast projection of grouped or foreign components.
+
+## Defragmentation
+- Deferred erase marks holes and increments a fragmentation counter.
+- Ratio heuristic (`defragmentationSize / size > threshold`) triggers compaction.
+- Compaction moves only alive runs left; updates id→ptr map in O(moved) time.
+- Opportunistic variant aborts if any alive pinned sector detected.
+
+## Performance characteristics (representative intent)
+| Operation | Cost (amortized / typical) |
+|-----------|----------------------------|
+| Id→sector* lookup | O(1) (direct index) |
+| Insert (append id) | O(1) |
+| Insert (middle id) | O(N) worst (shift) but rare if ids monotonic |
+| Pin / Unpin | O(1) (atomic + optional hierarchy update) |
+| Defragment scan | O(S) where S = sectors (skips trivial sectors fast) |
+| Ranged iteration | O(runs + visited) |
+
+## Real-world numbers
+- **100M iterations in 156 ms** on an Intel i9-14900HX (Release, C++20, clang-cl).  
+- Scales linearly with entity count and remains cache-friendly due to tight sector packing.
+
+## Installation
+
+- **Requirements**: C++20 compiler (tested with MSVC 19.44 / clang 21 / GCC 14).  
+- **Dependencies**: none (only standard C++ library).  
+
+### Using CMake (FetchContent)
 ```cmake
-# In your CMakeLists.txt
+include(FetchContent)
+FetchContent_Declare(
+  ecss
+  GIT_REPOSITORY https://github.com/wagnerks/ecss.git
+  GIT_TAG v0.1.0 # use the latest release
+)
+FetchContent_MakeAvailable(ecss)
+
+target_link_libraries(my_app PRIVATE ecss)
+```
+### As a Git submodule
+```bash
+git submodule add https://github.com/wagnerks/ecss.git external/ecss
+```
+Then add to your CMakeLists.txt:
+
+```cmake
 add_subdirectory(external/ecss)
-target_link_libraries(your_app PRIVATE ecss)
+target_link_libraries(my_app PRIVATE ecss)
 ```
 
-### 2) Define components
+### Manual include
+Just copy the ecss/ headers into your project and add the folder to your include path:
 
-```cpp
-struct Transform { float x{}, y{}, z{}; };
-struct Velocity  { float vx{}, vy{}, vz{}; };
-struct Health    { int hp{100}; };
+```cmake
+target_include_directories(my_app PRIVATE path/to/ecss)
 ```
 
-### 3) Create a registry and spawn entities
+## Quick start
 
 ```cpp
 #include <ecss/Registry.h>
 
-using Registry = ecss::Registry</*ThreadSafe=*/true, ecss::Memory::ChunksAllocator>;
+struct Transform { float x,y,z; };
+struct Velocity  { float vx,vy,vz; };
 
-int main() {
-    Registry reg;
+using Reg = ecss::Registry<true>; // thread-safe
 
+int main(){
+    Reg reg;
     auto e = reg.takeEntity();
     reg.addComponent<Transform>(e, {0,0,0});
     reg.addComponent<Velocity >(e, {1,0,0});
-    reg.addComponent<Health   >(e, {100});
 
-    reg.forEach<Transform, Velocity>([&](auto id, Transform* t, Velocity* v) {
-        t->x += v->vx; t->y += v->vy; t->z += v->vz;
-    });
+    for (auto [id, t, v] : reg.view<Transform, Velocity>()) {
+        if (t && v) { t->x += v->vx; }
+    }
 
-    return 0;
+    reg.update(); // process deferred erases / optional defrag
 }
 ```
 
-### 4) Async / filtered traversal
-
+## Grouped sectors
 ```cpp
-std::vector<ecss::EntityId> visible;
-
-reg.forEachAsync<Transform, Velocity>(visible, [](auto id, Transform* t, Velocity* v){
-    // safe traversal with locks
-});
+reg.registerArray<Transform, Velocity>(); // same sector, single liveness mask update
 ```
+Grouping hot components improves spatial locality – both pointers computed from one base address.
 
-### 5) Reflection-driven ops
-
+## Deferred erase & maintenance
 ```cpp
-ecss::TypeId tid = resolveTypeId("Health");
-reg.destroyMember(tid, e);
+reg.destroyEntity(e);      // marks sector members dead
+reg.update();              // later: processes queued erasures + compaction heuristic
 ```
 
----
-
-## Concepts in a nutshell
-
-### Sectors
-A *Sector* is a tightly packed block containing all/selected components for a single entity, plus per-component flags and offsets.
-
-### SectorsArray
-Stores sectors in **chunks** to control fragmentation and keep addresses stable.
-
-### Reflection helpers
-Generates per-type function tables (construct, move, destroy, etc.) without RTTI.
-
-### Threading model
-Per-component containers use `shared_mutex` to allow multiple readers with exclusive writers when needed.
-
----
-
-## Build
-
-**Requirements**
-- C++20 (or newer)
-- CMake
-
-**Standard build**
-```bash
-cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
-cmake --build build -j
+## Ranged view
+```cpp
+ecss::Ranges<ecss::EntityId> subset({ {100, 200}, {400, 450} });
+for (auto [id, t] : reg.view<Transform>(subset)) { /* ... */ }
 ```
 
-**Tests**
-```bash
-cmake -S . -B build -DECSS_BUILD_TESTS=ON
-cmake --build build -j
-ctest --test-dir build
+## Why not archetypes?
+Sectors act like a fixed micro‑archetype of explicitly grouped types – no dynamic hash / relocation when an entity gains a new unrelated component; simply place that component in its own (possibly separate) `SectorsArray`.  You opt into grouping only where it wins.
+
+## Reflection & type ids
+`ReflectionHelper` assigns a dense `ECSType` per component type in a registry instance. Used for array mapping without RTTI or string hashing.
+
+## Lightweight design choices
+- No virtual dispatch in hot loops.
+- Trivial `Sector` enables raw `memmove` for defrag when all members trivial.
+- Per file responsibilities are sharply delimited (see table above).
+- All algorithms favor straight‑line predictable code paths.
+
+## When to defragment
+Call `update()` each frame (TS build) – internal heuristic decides; or force manually:
+```cpp
+for (auto* arr : /* your stored arrays */) arr->defragment();
+```
+Tune per type:
+```cpp
+reg.setDefragmentThreshold<Transform>(0.15f);
 ```
 
----
+## Error handling philosophy
+Assertions catch misuse in debug (invalid ids, duplicate grouping, layout mismatches). Release builds assume validated usage for speed.
 
-## Usage tips
-
-- Call `reserve` to avoid reallocations during spikes  
-- Group hot components together in the same sector  
-- Use `forEach<Ts...>` for fastest traversal  
-- Use async traversal for read-heavy systems  
-- Compact periodically if entities churn heavily
-
----
-
-## Roadmap
-
-- Serialization hooks  
-- Stable archetype hashes  
-- Lock-free read paths  
-- Debug UI with live sector maps  
-- More benchmarks
-
----
-
-## FAQ
-
-**Is ECSS an archetype ECS?**  
-It’s closer to a **sector-packed** design.
-
-**Does it require RTTI?**  
-No.
-
-**How do I mix TS and non-TS modes?**  
-`Registry` is templated: enable or disable thread-safety at compile time.
-
----
-
-## Contributing
-
-Contributions welcome. Include reasoning or benchmarks for perf changes.
-
----
+## Integration
+Add as a submodule or vendor the headers; include path root at `ecss/`. Only C++20 standard library required.
 
 ## License
+MIT – see `LICENSE`.
 
-MIT. See [`LICENSE`](./LICENSE).
-
----
-
-## Acknowledgements
-
-Built as part of the [**Stellar Forge Engine**](https://github.com/wagnerks/StelForge)  initiative and refined through real-world use.
-
-
-**Author**: [@wagnerks](https://github.com/wagnerks)  
-**License**: MIT
+## Status
+Actively evolving; API is intentionally small & stable.  Feedback and performance traces are welcome.
