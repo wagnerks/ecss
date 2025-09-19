@@ -1,6 +1,6 @@
 # ecss – Lightweight high‑speed C++ Entity Component System (sector / chunk based)
 
-[![CI](https://github.com/wagnerks/ecss/actions/workflows/ci.yml/badge.svg)](https://github.com/wagnerks/ecss/actions/workflows/ci.yml)
+[![CI (build & tests)](https://github.com/wagnerks/ecss/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wagnerks/ecss/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
 
