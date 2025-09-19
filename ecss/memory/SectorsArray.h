@@ -32,10 +32,10 @@
 #include <utility>
 #include <vector>
 
-#include <ecss/memory/Sector.h>
 #include <ecss/Ranges.h>
 #include <ecss/threads/PinCounters.h>
 #include <ecss/memory/ChunksAllocator.h>
+#include <ecss/memory/Sector.h>
 
 namespace ecss
 {
@@ -142,7 +142,7 @@ namespace detail {
 		/**
 		 * @brief Pin a sector.
 		 * @param o Pin counters container (PinCounters instance).
-		 * @param s Raw sector pointer (may be nullptr => empty pin).
+		 * @param s Raw sector pointer (may be nullptr).
 		 * @param sid Sector id (must not be INVALID_ID if s != nullptr).
 		 */
 		PinnedSector(const Threads::PinCounters& o, Sector* s, SectorId sid) : sec(s), owner(&o), id(sid) {
@@ -269,7 +269,7 @@ namespace detail {
 			friend Iterator operator+(difference_type n, Iterator it) noexcept { it += n; return it; }
 			FORCE_INLINE reference operator[](difference_type n) const noexcept { return *(*this + n); }
 		private:
-			typename Allocator::Cursor cursor;
+			Allocator::Cursor cursor;
 		};
 
 		/// @name Basic full-range iteration
@@ -311,7 +311,7 @@ namespace detail {
 			FORCE_INLINE IteratorAlive& operator++() { do { cursor.step(); } while (cursor && !(cursor->isAliveData & mTypeAliveMask)); return *this; }
 
 		private:
-			typename Allocator::RangesCursor cursor;
+			Allocator::RangesCursor cursor;
 			uint32_t mTypeAliveMask = 0;
 		};
 
@@ -346,7 +346,7 @@ namespace detail {
 			FORCE_INLINE RangedIterator& operator++() noexcept { cursor.step(); return *this; }
 
 		private:
-			typename Allocator::RangesCursor cursor;
+			Allocator::RangesCursor cursor;
 		};
 
 		/// @name Ranged iteration helpers
@@ -515,6 +515,9 @@ namespace detail {
 		/**
 		 * @brief Conditionally erase sectors in [first,last), invoking predicate on each Sector*.
 		 * @tparam Func Predicate (Sector*) returning bool; if true sector is destroyed.
+		 * @param first Begin iterator.
+		 * @param last End iterator (half-open).
+		 * @param func Predicate functor.
 		 * @param defragment If true, triggers defragment at end (if something erased).
 		 */
 		template<typename Func, bool TS = ThreadSafe>
@@ -636,7 +639,7 @@ namespace detail {
 		/**
 		 * @brief Drain deferred erase queue and optionally defragment.
 		 * @param withDefragment If true and ratio above threshold, compacts after processing.
-		 * @param sync If true acquire internal lock (set false if caller already holds lock).
+		 * @tparam Lock If true acquire internal lock (set false if caller already holds lock).
 		 * @note Old retired buffers freed at end (ThreadSafe only).
 		 */
 		template<bool Lock = false>

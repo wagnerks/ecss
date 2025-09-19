@@ -6,6 +6,10 @@ on:
   pull_request:
     branches: [ "main" ]
 
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
 permissions:
   contents: read
 
@@ -18,10 +22,20 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
+      # Reduced matrix: full (Debug+Release) only for default profile on both OS.
+      # Sanitizers only run on Linux (Debug). TSAN is Linux-only & Debug-only.
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        build_type: [Release, Debug]
-        profile: [default, asan-ubsan, tsan]
+        include:
+          - { os: ubuntu-latest, build_type: Debug,   profile: default }
+          - { os: ubuntu-latest, build_type: Release, profile: default }
+          - { os: macos-latest,  build_type: Debug,   profile: default }
+          - { os: macos-latest,  build_type: Release, profile: default }
+          - { os: ubuntu-latest, build_type: Debug,   profile: asan-ubsan }
+          - { os: ubuntu-latest, build_type: Debug,   profile: tsan }
+
+    env:
+      CCACHE_DIR: ${{ runner.temp }}/ccache
+      CCACHE_MAXSIZE: 500M
 
     steps:
       - name: Checkout repository
@@ -34,7 +48,7 @@ jobs:
         if: runner.os == 'Linux'
         run: |
           sudo apt-get update
-          sudo apt-get install -y cmake ninja-build g++-13 llvm
+          sudo apt-get install -y cmake ninja-build g++-13 llvm ccache
           sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
 
@@ -45,8 +59,18 @@ jobs:
         run: |
           brew update
           brew list --formula ninja  >/dev/null 2>&1 || brew install ninja
+          brew list --formula ccache >/dev/null 2>&1 || brew install ccache
           xcrun --find llvm-symbolizer || true
           cmake --version
+
+      - name: Restore ccache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ccache-${{ runner.os }}-${{ matrix.profile }}-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            ccache-${{ runner.os }}-${{ matrix.profile }}-
+            ccache-${{ runner.os }}-
 
       - name: Compute compiler & sanitizer flags
         id: flags
@@ -92,6 +116,9 @@ jobs:
           echo "path=${SYM}" >> $GITHUB_OUTPUT
           echo "llvm-symbolizer: ${SYM:-<not found>}"
 
+      - name: Show ccache stats (before)
+        run: ccache -s || true
+
       - name: Configure (CMake + Ninja)
         shell: bash
         env:
@@ -103,7 +130,9 @@ jobs:
             -G Ninja \
             -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
             -DECSS_BUILD_TESTS=ON \
-            -DCMAKE_VERBOSE_MAKEFILE=ON \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
             $([ "${{ steps.flags.outputs.sanitizers }}" = "true" ] && echo "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF")
 
       - name: Build
@@ -125,6 +154,9 @@ jobs:
           mkdir -p asan tsan
           ctest --test-dir build --output-on-failure --build-config ${{ matrix.build_type }} --timeout "${TEST_TIMEOUT}"
 
+      - name: Show ccache stats (after)
+        run: ccache -s || true
+
       - name: Upload test logs (on failure)
         if: failure()
         uses: actions/upload-artifact@v4
@@ -137,16 +169,22 @@ jobs:
             tsan/*
 
   # -----------------------
-  # Windows job (MSVC)
+  # Windows job (MSVC / clang-cl)
   # -----------------------
   windows-build-and-test:
     name: windows-latest • ${{ matrix.toolchain }} • ${{ matrix.build_type }}
     runs-on: windows-latest
     strategy:
       fail-fast: false
+      # Reduced matrix: Both build types for MSVC toolchains, Debug only for clang variants.
       matrix:
-        build_type: [Release, Debug]
-        toolchain: [msbuild, ninja, clang-msbuild, clang-ninja]
+        include:
+          - { toolchain: msbuild, build_type: Debug }
+          - { toolchain: msbuild, build_type: Release }
+          - { toolchain: ninja,   build_type: Debug }
+          - { toolchain: ninja,   build_type: Release }
+          - { toolchain: clang-msbuild, build_type: Debug }
+          - { toolchain: clang-ninja,   build_type: Debug }
 
     steps:
       - name: Checkout

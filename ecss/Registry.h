@@ -33,14 +33,13 @@
 #include <array>
 #include <ranges>
 #include <shared_mutex>
-#include <thread>
 #include <tuple>
 #include <vector>
 
 #include <ecss/Ranges.h>
+#include <ecss/memory/Reflection.h>
 #include <ecss/memory/SectorsArray.h>
 #include <ecss/memory/Sector.h>
-#include <ecss/threads/SyncManager.h>
 
 namespace ecss {
 
