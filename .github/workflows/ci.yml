@@ -1,0 +1,297 @@
+name: CI (build & tests)
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+# -----------------------
+# Linux & macOS matrix job
+# -----------------------
+jobs:
+  posix-build-and-test:
+    name: ${{ matrix.os }} • ${{ matrix.build_type }} • ${{ matrix.profile }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      # Reduced matrix: full (Debug+Release) only for default profile on both OS.
+      # Sanitizers only run on Linux (Debug). TSAN is Linux-only & Debug-only.
+      matrix:
+        include:
+          - { os: ubuntu-latest, build_type: Debug,   profile: default }
+          - { os: ubuntu-latest, build_type: Release, profile: default }
+          - { os: macos-latest,  build_type: Debug,   profile: default }
+          - { os: macos-latest,  build_type: Release, profile: default }
+          - { os: ubuntu-latest, build_type: Debug,   profile: asan-ubsan }
+          - { os: ubuntu-latest, build_type: Debug,   profile: tsan }
+
+    env:
+      CCACHE_DIR: ${{ github.workspace }}/.ccache
+      CCACHE_MAXSIZE: 500M
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # ---------- Deps ----------
+      - name: Install deps (Linux)
+        if: runner.os == 'Linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y cmake ninja-build g++-13 llvm ccache
+          sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-13 100
+          sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100
+
+      - name: Install deps (macOS)
+        if: runner.os == 'macOS'
+        env:
+          HOMEBREW_NO_INSTALL_CLEANUP: "1"
+        run: |
+          brew update
+          brew list --formula ninja  >/dev/null 2>&1 || brew install ninja
+          brew list --formula ccache >/dev/null 2>&1 || brew install ccache
+          xcrun --find llvm-symbolizer || true
+          cmake --version
+
+      - name: Restore ccache
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.CCACHE_DIR }}
+          key: ccache-${{ runner.os }}-${{ matrix.profile }}-${{ hashFiles('**/CMakeLists.txt') }}
+          restore-keys: |
+            ccache-${{ runner.os }}-${{ matrix.profile }}-
+            ccache-${{ runner.os }}-
+
+      - name: Compute compiler & sanitizer flags
+        id: flags
+        shell: bash
+        run: |
+          CFLAGS=""
+          CXXFLAGS=""
+          LDFLAGS=""
+          SANITIZERS="false"
+          TSAN="false"
+
+          case "${{ matrix.profile }}" in
+            asan-ubsan)
+              SAN="-fsanitize=address,undefined -fno-omit-frame-pointer -fno-sanitize-recover=all"
+              SANITIZERS="true"
+              ;;
+            tsan)
+              SAN="-fsanitize=thread -fno-omit-frame-pointer -fno-sanitize-recover=all"
+              SANITIZERS="true"
+              TSAN="true"
+              ;;
+          esac
+
+          CFLAGS="$SAN"
+            CXXFLAGS="$SAN"
+            LDFLAGS="$SAN"
+
+          echo "sanitizers=$SANITIZERS"   >> $GITHUB_OUTPUT
+          echo "tsan=$TSAN"               >> $GITHUB_OUTPUT
+          echo "cflags=$CFLAGS"           >> $GITHUB_OUTPUT
+          echo "cxxflags=$CXXFLAGS"       >> $GITHUB_OUTPUT
+          echo "ldflags=$LDFLAGS"         >> $GITHUB_OUTPUT
+
+      - name: Find llvm-symbolizer
+        id: sym
+        shell: bash
+        run: |
+          if [[ "$RUNNER_OS" == "Linux" ]]; then
+            SYM=$(command -v llvm-symbolizer || true)
+          else
+            SYM=$(xcrun --find llvm-symbolizer || true)
+          fi
+          echo "path=${SYM}" >> $GITHUB_OUTPUT
+          echo "llvm-symbolizer: ${SYM:-<not found>}"
+
+      - name: Show ccache stats (before)
+        run: ccache -s || true
+
+      - name: Configure (CMake + Ninja)
+        shell: bash
+        env:
+          CFLAGS: ${{ steps.flags.outputs.cflags }}
+          CXXFLAGS: ${{ steps.flags.outputs.cxxflags }}
+          LDFLAGS: ${{ steps.flags.outputs.ldflags }}
+        run: |
+          cmake -S . -B build \
+            -G Ninja \
+            -DCMAKE_BUILD_TYPE=${{ matrix.build_type }} \
+            -DECSS_BUILD_TESTS=ON \
+            -DCMAKE_EXPORT_COMPILE_COMMANDS=ON \
+            -DCMAKE_C_COMPILER_LAUNCHER=ccache \
+            -DCMAKE_CXX_COMPILER_LAUNCHER=ccache \
+            $([ "${{ steps.flags.outputs.sanitizers }}" = "true" ] && echo "-DCMAKE_INTERPROCEDURAL_OPTIMIZATION=OFF")
+
+      - name: Build
+        run: cmake --build build --config ${{ matrix.build_type }} -- -k 0
+
+      - name: Run tests (Ubuntu only)
+        if: matrix.os == 'ubuntu-latest'
+        env:
+          ASAN_SYMBOLIZER_PATH: ${{ steps.sym.outputs.path }}
+          CTEST_OUTPUT_ON_FAILURE: "1"
+          GTEST_COLOR: "1"
+          ASAN_OPTIONS: ${{ steps.flags.outputs.sanitizers == 'true' && matrix.profile == 'asan-ubsan' && (runner.os == 'Linux' && 'verify_asan_link_order=0:fast_unwind_on_malloc=0:strict_string_checks=1:detect_leaks=1:check_initialization_order=1:strict_init_order=1:halt_on_error=1:abort_on_error=1:alloc_dealloc_mismatch=1:log_to_syslog=1' || 'verify_asan_link_order=0:fast_unwind_on_malloc=0:strict_string_checks=1:detect_leaks=0:check_initialization_order=1:strict_init_order=1:halt_on_error=1:abort_on_error=1:alloc_dealloc_mismatch=1:log_to_syslog=1') || '' }}
+          UBSAN_OPTIONS: ${{ steps.flags.outputs.sanitizers == 'true' && matrix.profile == 'asan-ubsan' && 'print_stacktrace=1:halt_on_error=1:report_error_type=1' || '' }}
+          TSAN_OPTIONS: >-
+            halt_on_error=1:history_size=7:report_thread_leaks=1:
+            detect_deadlocks=1:symbolize=1:second_deadlock_stack=1:
+            external_symbolizer_path=${{ steps.sym.outputs.path }} 
+          TEST_TIMEOUT: ${{ steps.flags.outputs.tsan == 'true' && '900' || '150' }}
+        run: |
+          mkdir -p asan tsan
+          ctest --test-dir build --output-on-failure --build-config ${{ matrix.build_type }} --timeout "${TEST_TIMEOUT}"
+
+      - name: Show ccache stats (after)
+        run: ccache -s || true
+
+      - name: Upload test logs (on failure)
+        if: failure() && matrix.os == 'ubuntu-latest'
+        uses: actions/upload-artifact@v4
+        with:
+          name: posix-ctest-logs-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.profile }}
+          path: |
+            build/Testing/Temporary/LastTest.log
+            build/**/Testing/Temporary/LastTest.log
+            asan/*
+            tsan/*
+
+  # -----------------------
+  # Windows job (MSVC / clang-cl)
+  # -----------------------
+  windows-build-and-test:
+    name: windows-latest • ${{ matrix.toolchain }} • ${{ matrix.build_type }}
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      # Reduced matrix: Both build types for MSVC toolchains, Debug only for clang variants.
+      matrix:
+        include:
+          - { toolchain: msbuild, build_type: Debug }
+          - { toolchain: msbuild, build_type: Release }
+          - { toolchain: ninja,   build_type: Debug }
+          - { toolchain: ninja,   build_type: Release }
+          - { toolchain: clang-msbuild, build_type: Debug }
+          - { toolchain: clang-ninja,   build_type: Debug }
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Ensure LLVM (optional)
+        if: startsWith(matrix.toolchain, 'clang-')
+        shell: pwsh
+        run: |
+          if (-not (Get-Command clang-cl -ErrorAction SilentlyContinue)) {
+            choco upgrade llvm -y --no-progress
+          } else {
+            Write-Host "clang-cl already available"
+          }
+
+      - name: MSVC DevCmd
+        uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: x64
+
+      - name: Locate clang-cl
+        if: contains(matrix.toolchain, 'clang-')
+        id: clang
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+
+          $cand = & $vswhere -latest -products * `
+                  -requires Microsoft.VisualStudio.Component.VC.Llvm.Clang `
+                  -find **\VC\Tools\Llvm\x64\bin\clang-cl.exe
+
+          if (-not $cand) {
+            $cand = @(
+              "$env:VCToolsInstallDir\Llvm\x64\bin\clang-cl.exe",
+              "$env:VCToolsInstallDir\Llvm\bin\clang-cl.exe",
+              "C:\Program Files\Microsoft Visual Studio\2022\*\VC\Tools\Llvm\x64\bin\clang-cl.exe",
+              "C:\Program Files\Microsoft Visual Studio\2022\*\VC\Tools\Llvm\bin\clang-cl.exe"
+            ) | Get-ChildItem -ErrorAction SilentlyContinue |
+                Where-Object { $_.FullName -notmatch '\\ARM(64)?\\' } |
+                Select-Object -First 1 | ForEach-Object { $_.FullName }
+          }
+
+          if (-not $cand) { throw "clang-cl (x64) not found" }
+
+          echo "path=$cand" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          & "$cand" --version
+
+      - name: Show compilers
+        shell: pwsh
+        run: |
+          if (Get-Command cl -ErrorAction SilentlyContinue) { cl /Bv }
+          if (Get-Command clang-cl -ErrorAction SilentlyContinue) { clang-cl --version }
+          if (Get-Command ninja -ErrorAction SilentlyContinue) { ninja --version }
+
+      # --- Configure ---
+      - name: Configure (Ninja + MSVC)
+        if: matrix.toolchain == 'ninja'
+        shell: pwsh
+        run: >
+          cmake -S . -B build
+          -G Ninja
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -DECSS_BUILD_TESTS=ON
+          -DCMAKE_C_COMPILER=cl
+          -DCMAKE_CXX_COMPILER=cl
+
+      - name: Configure (MSBuild + MSVC)
+        if: matrix.toolchain == 'msbuild'
+        shell: pwsh
+        run: >
+          cmake -S . -B build
+          -G "Visual Studio 17 2022" -A x64
+          -DECSS_BUILD_TESTS=ON
+
+      - name: Configure (Ninja + clang-cl)
+        if: matrix.toolchain == 'clang-ninja'
+        shell: pwsh
+        run: >
+          cmake -S . -B build
+          -G Ninja
+          -DCMAKE_BUILD_TYPE=${{ matrix.build_type }}
+          -DECSS_BUILD_TESTS=ON
+          -DCMAKE_C_COMPILER="${{ steps.clang.outputs.path }}"
+          -DCMAKE_CXX_COMPILER="${{ steps.clang.outputs.path }}"
+
+      - name: Configure (MSBuild + clang-cl)
+        if: matrix.toolchain == 'clang-msbuild'
+        shell: pwsh
+        run: >
+          cmake -S . -B build
+          -G "Visual Studio 17 2022" -A x64 -T ClangCL
+          -DECSS_BUILD_TESTS=ON
+
+      # --- Build ---
+      - name: Build
+        run: cmake --build build --config ${{ matrix.build_type }}
+
+      # (No tests on Windows; compile-only validation.)
+
+      - name: Upload logs on failure (build only)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-build-logs-${{ matrix.toolchain }}-${{ matrix.build_type }}
+          path: |
+            build/Testing/Temporary/LastTest.log
+            build/**/Testing/Temporary/LastTest.log

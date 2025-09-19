@@ -1,16 +1,13 @@
 ﻿#pragma once
 
 #include <cstdint>
-#include <cstring>
 
-#include <ecss/memory/Reflection.h>
 #include <ecss/Types.h>
 
 namespace ecss::Memory {
 	namespace Dummy // Dummy sector for correct size calculation 
 	{
 		struct alignas(8) Sector { SectorId id; uint32_t isAliveData; };
-		inline constexpr size_t sectorSize = (sizeof(Dummy::Sector) + alignof(Dummy::Sector) - 1) / alignof(Dummy::Sector) * alignof(Dummy::Sector);
 	}
 
 	/** @brief Metadata describing how a component type is laid out within a Sector.
@@ -28,17 +25,17 @@ namespace ecss::Memory {
 	*/
 	struct LayoutData {
 		struct FunctionTable {
-			std::function<void(void* dest, void* src)> move;
-			std::function<void(void* dest, void* src)> copy;
-			std::function<void(void* src)> destructor;
+			void (*move)(void* dest, void* src);
+			void (*copy)(void* dest, const void* src);
+			void (*destructor)(void* src);
 		};
 
 		FunctionTable functionTable; // Type-erased operations for this component.
 		size_t typeHash = 0;         // Optional: stable hash/ID of the component type.
-		uint32_t offset = 0;         // Byte offset of the component within the Sector payload.
-		uint16_t index = 0;          // Index of this component within the Sector layout.
 		uint32_t isAliveMask = 0;    // Bit(s) set when the component is alive/present.
 		uint32_t isNotAliveMask = 0; // Bit mask used to clear liveness (often ~isAliveMask & mask_width).
+		uint16_t offset = 0;	     // Byte offset of the component within the Sector payload.
+		uint16_t index = 0;          // Index of this component within the Sector layout.
 		bool isTrivial = false;      // True if the component is trivially destructible/copiable/movable.
 	};
 
@@ -49,6 +46,7 @@ namespace ecss::Memory {
 		SectorLayoutMeta(SectorLayoutMeta&& other) noexcept = delete;
 		SectorLayoutMeta& operator=(const SectorLayoutMeta& other) = delete;
 		SectorLayoutMeta& operator=(SectorLayoutMeta&& other) noexcept = delete;
+		~SectorLayoutMeta() = default;
 
 		/**
 		 * @brief Initialize LayoutData for a single component type U.
@@ -68,7 +66,7 @@ namespace ecss::Memory {
 		 *          these must match the object lifetime semantics you expect.
 		 */
 		template<typename U>
-		inline void initLayoutData(LayoutData& data, uint8_t& index, uint32_t offset) const noexcept {
+		inline void initLayoutData(LayoutData& data, uint8_t& index, uint16_t offset) const noexcept {
 			static_assert(std::is_move_constructible_v<U>, "Type must be move-constructible for use in SectorsArray");
 
 			data.typeHash = SectorLayoutMeta::TypeId<U>();
@@ -97,13 +95,12 @@ namespace ecss::Memory {
 		* Uses the compile-time OffsetArray to compute per-type offsets and calls
 		* the single-type initializer for each entry.
 		*
-		* @tparam U... Component types to lay out in the sector.
-		* @param dataArray Pre-allocated array with at least sizeof...(U) entries.
+		* @tparam U ... Component types to lay out in the sector.
 		*/
 		template<typename... U>
-		inline void initLayoutData(LayoutData* dataArray) {
+		inline void initLayoutData() {
 			uint8_t counter = 0;
-			(initLayoutData<std::remove_const_t<std::remove_pointer_t<std::remove_reference_t<U>>>>(dataArray[counter], counter, types::OffsetArray<Dummy::sectorSize, U...>::offsets[counter]), ...);
+			(initLayoutData<std::remove_const_t<std::remove_pointer_t<std::remove_reference_t<U>>>>(layout[counter], counter, static_cast<uint16_t>(types::OffsetArray<Dummy::Sector, U...>::offsets[counter])), ...);
 		}
 
 		/**
@@ -142,7 +139,7 @@ namespace ecss::Memory {
 		/**
 		 * @brief Factory: allocate and initialize metadata for a set of component types.
 		 *
-		 * @tparam Types... Component types stored in a Sector.
+		 * @tparam Types ... Component types stored in a Sector.
 		 * @return Newly allocated SectorLayoutMeta*; caller owns and must delete.
 		 */
 		template<typename... Types>
@@ -165,23 +162,18 @@ namespace ecss::Memory {
 		*/
 		template<typename... Types>
 		void initData()	{
-			count = types::OffsetArray<Dummy::sectorSize, Types...>::count;
-			totalSize = types::OffsetArray<Dummy::sectorSize, Types...>::totalSize;
-			typeIds = new size_t[types::OffsetArray<Dummy::sectorSize, Types...>::count]{ TypeId<Types>()... };
+			count = types::OffsetArray<Dummy::Sector, Types...>::count;
+			totalSize = types::OffsetArray<Dummy::Sector, Types...>::totalSize;
+			size_t idx = 0;
+			((typeIds[idx++] = TypeId<Types>()), ...);
 
-			layout = new LayoutData[types::OffsetArray<Dummy::sectorSize, Types...>::count];
-			initLayoutData<Types...>(layout);
-			for (size_t i = 0; i < types::OffsetArray<Dummy::sectorSize, Types...>::count; i++) {
+			initLayoutData<Types...>();
+			for (size_t i = 0; i < count; i++) {
 				mIsTrivial = mIsTrivial && layout[i].isTrivial;
 				if (!mIsTrivial) {
 					break;
 				}
 			}
-		}
-
-		~SectorLayoutMeta() {
-			delete[] layout;
-			delete[] typeIds;
 		}
 
 		/// @return Total bytes consumed by the sector (header + component payloads).
@@ -244,8 +236,10 @@ namespace ecss::Memory {
 		uint8_t getTypesCount() const { return count; }
 
 	private:
-		LayoutData* layout = nullptr;
-		size_t* typeIds = nullptr;
+		inline static constexpr size_t maxComponentsPerSector = 32; // Arbitrary limit for sanity checks.
+
+		LayoutData	layout[maxComponentsPerSector];
+		size_t		typeIds[maxComponentsPerSector];
 
 		// Overall layout properties.
 		uint16_t totalSize = 0; ///< Total bytes required for the sector (header + payload).

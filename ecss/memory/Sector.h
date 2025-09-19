@@ -25,50 +25,52 @@ namespace ecss::Memory {
 		 *  \param value If true, sets the bits in `mask`; if false, clears them.
 		 *  \note expected that if value == false - mask is already ~mask
 		 */
-		inline constexpr void setAlive(size_t mask, bool value) { value ? isAliveData |= mask : isAliveData &= mask; }
+		FORCE_INLINE constexpr void setAlive(size_t mask, bool value) { value ? isAliveData |= mask : isAliveData &= mask; }
 		/** @brief Branch-free convenience for marking bits as alive (sets them to 1).
 		 *  \param mask Bitmask of bits to set in `isAliveData`.
 		 */
-		inline constexpr void markAlive(size_t mask) { isAliveData |= mask; }
+		FORCE_INLINE constexpr void markAlive(size_t mask) { isAliveData |= mask; }
 		/** @brief Branch-free convenience for marking bits as not alive (clears them to 0).
 		 *  \param mask Bitmask of bits to clear in `isAliveData`.
 		 */
-		inline constexpr void markNotAlive(size_t mask) { isAliveData &= mask; }
+		FORCE_INLINE constexpr void markNotAlive(size_t mask) { isAliveData &= mask; }
 		/** @brief Check whether any masked bit is marked alive.
 		 *  \param mask Bitmask to test against `isAliveData`.
 		 *  \return true if any of the masked bits are set; otherwise, false.
 		 */
-		inline constexpr bool isAlive(size_t mask) const { return isAliveData & mask; }
+		FORCE_INLINE constexpr bool isAlive(size_t mask) const { return isAliveData & mask; }
 		/** @brief Check whether any bit is marked alive.
 		 *  \return true if any of the bits are set; otherwise, false.
 		 */
-		inline constexpr bool isSectorAlive() const { return isAliveData != 0; }
+		FORCE_INLINE constexpr bool isSectorAlive() const { return isAliveData != 0; }
 
 	public:
 		/** @brief Get a member pointer by offset if the corresponding liveness bit is set.
 		*  \return Pointer to T or nullptr if not alive.
 		*/
 		template<typename T>
-		inline constexpr T* getMember(size_t offset, size_t mask) const { return isAliveData & mask ? static_cast<T*>(getMemberPtr(this, offset)) : nullptr; }
+		FORCE_INLINE constexpr T* getMember(uint16_t offset, uint32_t mask) const { return isAliveData & mask ? static_cast<T*>(getMemberPtr(this, offset)) : nullptr; }
 		/** @overload */
 		template<typename T>
-		inline constexpr T* getMember(size_t offset, size_t mask) { return isAliveData & mask ? static_cast<T*>(getMemberPtr(this, offset)) : nullptr; }
+		FORCE_INLINE constexpr T* getMember(uint16_t offset, uint32_t mask) { return isAliveData & mask ? static_cast<T*>(getMemberPtr(this, offset)) : nullptr; }
 
 		/** @brief Get a member pointer using layout metadata; returns nullptr if not alive. */
 		template<typename T>
-		inline constexpr T* getMember(const LayoutData& layout) const { return getMember<T>(layout.offset, layout.isAliveMask); }
+		FORCE_INLINE constexpr T* getMember(const LayoutData& layout) const { return getMember<T>(layout.offset, layout.isAliveMask); }
 		/** @overload */
 		template<typename T>
-		inline constexpr T* getMember(const LayoutData& layout) { return getMember<T>(layout.offset, layout.isAliveMask); }
+		FORCE_INLINE constexpr T* getMember(const LayoutData& layout) { return getMember<T>(layout.offset, layout.isAliveMask); }
 
 		/** @brief Raw member address by byte offset from the sector base. */
-		inline static void* getMemberPtr(const Sector* sectorAdr, size_t offset) { return const_cast<char*>(reinterpret_cast<const char*>(sectorAdr) + offset); }
+		FORCE_INLINE static void* getMemberPtr(const Sector* sectorAdr, uint16_t offset) { return const_cast<char*>(reinterpret_cast<const char*>(sectorAdr) + offset); }
 		/** @overload */
-		inline static void* getMemberPtr(Sector* sectorAdr, size_t offset) { return reinterpret_cast<char*>(sectorAdr) + offset; }
+		FORCE_INLINE static void* getMemberPtr(Sector* sectorAdr, uint16_t offset) { return reinterpret_cast<char*>(sectorAdr) + offset; }
+		/** @overload */
+		FORCE_INLINE static void* getMemberPtr(std::byte* sectorAdr, uint16_t offset) { return sectorAdr + offset; }
 
 		/** @brief Fetch component pointer of type T from a sector using its layout; may be nullptr if not alive. */
 		template <typename T>
-		inline static const T* getComponentFromSector(const Sector* sector, SectorLayoutMeta* sectorLayout) {
+		static const T* getComponentFromSector(const Sector* sector, SectorLayoutMeta* sectorLayout) {
 			if (!sector) {
 				return nullptr;
 			}
@@ -77,7 +79,7 @@ namespace ecss::Memory {
 		}
 		/** @overload */
 		template <typename T>
-		inline static T* getComponentFromSector(Sector* sector, SectorLayoutMeta* sectorLayout) {
+		static T* getComponentFromSector(Sector* sector, SectorLayoutMeta* sectorLayout) {
 			if (!sector) {
 				return nullptr;
 			}
@@ -87,7 +89,7 @@ namespace ecss::Memory {
 
 		/** @brief (Re)construct member T in place and mark it alive. Destroys previous value if present. */
 		template<typename T, class ...Args>
-		inline T* emplaceMember(const LayoutData& layout, Args&&... args) {
+		T* emplaceMember(const LayoutData& layout, Args&&... args) {
 			void* memberPtr = getMemberPtr(this, layout.offset);
 			if constexpr (!std::is_trivially_destructible_v<T>) {
 				if (isAlive(layout.isAliveMask)) {
@@ -102,7 +104,7 @@ namespace ecss::Memory {
 
 		/** @brief Static helper: emplace member into a given sector. */
 		template<typename T, class ...Args>
-		inline static T* emplaceMember(Sector* sector, const LayoutData& layout, Args&&... args) {
+		static T* emplaceMember(Sector* sector, const LayoutData& layout, Args&&... args) {
 			assert(sector);
 
 			void* memberPtr = getMemberPtr(sector, layout.offset);
@@ -119,7 +121,7 @@ namespace ecss::Memory {
 
 		/** @brief Copy-assign member T into \p to (replaces existing value) and mark alive. */
 		template<typename T>
-		inline static T* copyMember(const T& from, Sector* to, const LayoutData& layout) {
+		static T* copyMember(const T& from, Sector* to, const LayoutData& layout) {
 			assert(to);
 			to->destroyMember(layout);
 			to->setAlive(layout.isAliveMask, true);
@@ -127,7 +129,7 @@ namespace ecss::Memory {
 		}
 		/** @brief Move-assign member T into \p to (replaces existing value) and mark alive. */
 		template<typename T>
-		inline static T* moveMember(T&& from, Sector* to, const LayoutData& layout) {
+		static T* moveMember(T&& from, Sector* to, const LayoutData& layout) {
 			assert(to);
 			to->destroyMember(layout);
 			to->setAlive(layout.isAliveMask, true);
@@ -135,7 +137,7 @@ namespace ecss::Memory {
 		}
 
 		/** @brief Copy-assign an opaque member using layout function table; marks alive if \p from is non-null. */
-		inline static void* copyMember(const void* from, Sector* to, const LayoutData& layout) {
+		static void* copyMember(const void* from, Sector* to, const LayoutData& layout) {
 			assert(to);
 			to->destroyMember(layout);
 			
@@ -149,7 +151,7 @@ namespace ecss::Memory {
 		}
 
 		/** @brief Move-assign an opaque member using layout function table; marks alive if \p from is non-null. */
-		inline static void* moveMember(void* from, Sector* to, const LayoutData& layout) {
+		static void* moveMember(void* from, Sector* to, const LayoutData& layout) {
 			assert(to);
 			to->destroyMember(layout);
 			auto ptr = getMemberPtr(to, layout.offset);
@@ -163,7 +165,7 @@ namespace ecss::Memory {
 		}
 
 		/** @brief Copy-assign a sector using layout function table. */
-		inline static Sector* copySector(Sector* from, Sector* to, const SectorLayoutMeta* layouts) {
+		static Sector* copySector(Sector* from, Sector* to, const SectorLayoutMeta* layouts) {
 			assert(from != to);
 			assert(from && to);
 			assert(to);
@@ -188,7 +190,7 @@ namespace ecss::Memory {
 		}
 
 		/** @brief Move-assign a sector using layout function table. */
-		inline static Sector* moveSector(Sector* from, Sector* to, const SectorLayoutMeta* layouts) {
+		static Sector* moveSector(Sector* from, Sector* to, const SectorLayoutMeta* layouts) {
 			assert(from != to);
 			assert(from && to);
 			assert(to);
@@ -209,7 +211,7 @@ namespace ecss::Memory {
 		}
 
 		/** @brief Destroy all alive members in the sector using layout metadata and clear liveness bits. */
-		inline static void destroySector(Sector* sector, const SectorLayoutMeta* layouts) {
+		static void destroySector(Sector* sector, const SectorLayoutMeta* layouts) {
 			if (!sector || !sector->isSectorAlive()) {
 				return;
 			}
@@ -225,7 +227,7 @@ namespace ecss::Memory {
 		}
 
 		/** @brief Destroy a specific member if alive and clear its liveness bits. */
-		inline void destroyMember(const LayoutData& layout) {
+		void destroyMember(const LayoutData& layout) {
 			if (!layout.isTrivial) {
 				if (isAlive(layout.isAliveMask)) {
 					layout.functionTable.destructor(getMemberPtr(this, layout.offset));

@@ -1,30 +1,59 @@
-﻿#pragma once
+#pragma once
+/**
+ * @file
+ * @brief Core ECS registry and iterator/view implementation (sector-based storage).
+ *
+ * The Registry manages:
+ *   - Allocation and ownership of entity ids (dense id ranges via Ranges<>).
+ *   - Lazily created or pre-registered component sector arrays (SectorsArray).
+ *   - Thread-aware access and pinning (if ThreadSafe template parameter is true).
+ *   - Views (ArraysView) that iterate a "main" component and project other components.
+ *
+ * Storage model (Sector Based):
+ *   - Each component (or grouped component set) is stored in a SectorsArray (sparse sectors).
+ *   - A "sector" contains potentially multiple component types if registered together.
+ *   - Liveness is tracked by bitmasks; components can be destroyed in-place.
+ *
+ * Thread safety:
+ *   - When ThreadSafe == true:
+ *       * Public mutating APIs acquire internal shared / unique locks.
+ *       * Pinning uses a pin counter to defer destruction until safe.
+ *   - When ThreadSafe == false:
+ *       * No internal synchronization (caller is responsible).
+ *
+ * @see ArraysView for iteration semantics.
+ * @see PinnedComponent for safe temporary access in thread-safe builds.
+ */
 
-// ecss - Entity Component System with Sectors
-// "Sectors" refers to the logic of storing components.
-// Multiple components of different types can be stored in one memory location, which I've named a "sector."
+ // ecss - Entity Component System with Sectors
+ // "Sectors" refers to the logic of storing components.
+ // Multiple components of different types can be stored in one memory location, which I've named a "sector."
 
 #include <algorithm>
 #include <array>
 #include <ranges>
 #include <shared_mutex>
-#include <thread>
 #include <tuple>
 #include <vector>
 
-#include <ecss/EntitiesRanges.h>
+#include <ecss/Ranges.h>
+#include <ecss/memory/Reflection.h>
 #include <ecss/memory/SectorsArray.h>
 #include <ecss/memory/Sector.h>
-#include <ecss/threads/SyncManager.h>
 
 namespace ecss {
+
 	/**
-	 * \brief RAII wrapper that pins the sector containing T and exposes a pointer to T.
+	 * @brief RAII wrapper that pins the sector holding component T and exposes a typed pointer.
 	 *
-	 * \tparam T Component type stored in the sector.
+	 * @tparam T Component type stored in the pinned sector.
 	 *
-	 * \details Holds a \ref Memory::PinnedSector (sector-level pin) and a raw T*.
-	 * Releasing or destroying the object unpins the sector and nulls the pointer.
+	 * Pin semantics (thread-safe build):
+	 *   - Pin increments a pin counter preventing concurrent structural erase of the sector.
+	 *   - Releasing (explicitly via release() or implicitly in destructor) decrements the pin counter.
+	 *
+	 * @warning Never store the raw pointer `get()` beyond the lifetime of this wrapper.
+	 * @note In non-thread-safe builds pinning still exists conceptually but can be a no-op.
 	 */
 	template<class T>
 	struct PinnedComponent {
@@ -34,28 +63,66 @@ namespace ecss {
 		PinnedComponent& operator=(PinnedComponent&& other) noexcept = default;
 		PinnedComponent() = default;
 
+		/**
+		 * @brief Construct from a pinned sector and component pointer.
+		 * @param pinnedSector Sector pin handle (ownership transferred).
+		 * @param ptr Pointer to component T in that sector (may be nullptr).
+		 */
 		PinnedComponent(Memory::PinnedSector&& pinnedSector, T* ptr) : sec(std::move(pinnedSector)), ptr(ptr) {}
+
+		/// @brief Destructor automatically releases the pin and nulls pointer.
 		~PinnedComponent() { release(); }
+
+		/// @return The raw component pointer or nullptr if invalid.
 		T* get() const noexcept { return ptr; }
 
+		/// @return Operator access forwarding to underlying component pointer.
 		T* operator->() const noexcept { return ptr; }
+
+		/// @return Dereferenced component reference (UB if ptr is null – guard with bool()).
 		T& operator* () const noexcept { return *ptr; }
+
+		/// @return True if a valid component pointer is held.
 		explicit operator bool() const noexcept { return ptr != nullptr; }
+
+		/// @brief Release the pin early. After this call get() returns nullptr.
 		void release() { sec.release(); ptr = nullptr; }
 
 	private:
-		Memory::PinnedSector sec; // RAII pin сектора
-		T* ptr = nullptr;
+		Memory::PinnedSector sec;   ///< RAII handle for sector pin.
+		T* ptr = nullptr;           ///< Pointer to pinned component (or nullptr).
 	};
 
 	template <bool ThreadSafe, typename Allocator, bool Ranged, typename T, typename ...ComponentTypes>
 	class ArraysView;
 
 	/**
-	 * \brief Central ECS registry that owns per-type sector arrays, entities, and iteration helpers.
+	 * @brief Central ECS registry that owns component sector arrays, entities and iteration utilities.
 	 *
-	 * \tparam ThreadSafe If true, public APIs use internal synchronization and pinning rules.
-	 * \tparam Allocator  Sector allocator type used by component arrays.
+	 * @tparam ThreadSafe If true, operations use internal locks / pin counters for safe concurrent access.
+	 * @tparam Allocator  Allocator used by SectorsArray (defaults to chunked allocator).
+	 *
+	 * Responsibilities:
+	 *   - Entity lifecycle (allocate / erase ids).
+	 *   - Lazily create or explicitly register component arrays (can group types).
+	 *   - Component add / overwrite / remove (single or batch).
+	 *   - Bulk entity destruction with all their components.
+	 *   - Iteration via ArraysView over one or more component types.
+	 *
+	 * Thread safety modes:
+	 *   - ThreadSafe == true:
+	 *       * Shared mutex protects component array mapping and entity container.
+	 *       * Pin counters block structural mutation while components are in use.
+	 *   - ThreadSafe == false:
+	 *       * No internal synchronization – single-threaded performance focus.
+	 *
+	 * Performance notes:
+	 *   - Component insertion is O(1) amortized (sector-based).
+	 *   - hasComponent is O(1) (sector lookup + bit test).
+	 *   - destroyEntities (sequential version here) visits each array => O(A * log N) for sorting per array prep.
+	 *
+	 * @warning Entity ids are reused; do not cache them beyond system boundaries without validation.
+	 * @note Use reserve<Components...>() to pre-allocate sector capacity and reduce reallocations.
 	 */
 	template<bool ThreadSafe = true, typename Allocator = Memory::ChunksAllocator<8192>>
 	class Registry final {
@@ -66,7 +133,12 @@ namespace ecss {
 		friend class Registry;
 
 	public:
-		/// \brief Get a stable numeric type id for T within this registry.
+		/**
+		 * @brief Get a stable numeric type id for component T in this registry instance.
+		 * @tparam T Component type.
+		 * @return Integral id (dense, zero-based).
+		 * @note IDs may differ between different registry template instantiations.
+		 */
 		template<typename T>
 		ECSType componentTypeId() const noexcept { return mReflectionHelper.getTypeId<T>(); }
 
@@ -77,13 +149,17 @@ namespace ecss {
 		Registry& operator=(Registry&& other) noexcept = delete;
 
 	public:
+		/// @brief Default construct an empty registry (no arrays allocated until first use).
 		Registry() noexcept = default;
+
+		/// @brief Destroys all component arrays (each SectorsArray is deleted).
 		~Registry() noexcept { for (auto array : mComponentsArrays) delete array; }
 
 		/**
-		 * \brief Maintenance pass (thread-safe build): process deferred erases and optional defragmentation.
-		 * \param withDefragment If true, allows arrays to defragment when their thresholds are exceeded.
-		 * \note Should be called from “safe” points in your app (e.g., end of frame).
+		 * @brief Maintenance pass (thread-safe build): process deferred erases and optionally defragment.
+		 * @param withDefragment If true, arrays that exceed thresholds may compact themselves.
+		 * @note Recommended to call once per frame at a stable synchronization point.
+		 * @thread_safety Internally synchronized.
 		 */
 		void update(bool withDefragment = true) noexcept requires(ThreadSafe) {
 			decltype(mComponentsArrays) arrays;
@@ -98,8 +174,9 @@ namespace ecss {
 		}
 
 		/**
-		 * \brief Maintenance pass (single-threaded build): optional defragmentation only.
-		 * \param withDefragment If true, defragment arrays that report needDefragment().
+		 * @brief Maintenance pass (non-thread-safe build): optionally defragment arrays immediately.
+		 * @param withDefragment If true, compacts arrays that request it.
+		 * @thread_safety Caller must ensure exclusive access.
 		 */
 		void update(bool withDefragment = true) noexcept requires(!ThreadSafe) {
 			for (auto* array : mComponentsArrays) {
@@ -113,10 +190,12 @@ namespace ecss {
 
 	public:
 		/**
-		 * \brief Check if entity has a live component T.
-		 * \tparam T Component type.
-		 * \param entity Entity id.
-		 * \return True if sector exists and component’s liveness bit is set.
+		 * @brief Check if an entity has a live component T.
+		 * @tparam T Component type.
+		 * @param entity Entity id.
+		 * @return True if the component exists and is alive; false otherwise.
+		 * @complexity O(1).
+		 * @thread_safety Locking/pinning applied if ThreadSafe=true.
 		 */
 		template <class T>
 		bool hasComponent(EntityId entity) noexcept {
@@ -134,15 +213,16 @@ namespace ecss {
 					}
 				}
 			}
-			
+
 			return false;
 		}
 
 		/**
-		 * \brief Pin the sector for entity and return an RAII handle to T (thread-safe build).
-		 * \tparam T Component type.
-		 * \param entity Entity id.
-		 * \return \ref PinnedComponent<T> that unpins on destruction; empty if missing.
+		 * @brief Pin component T for an entity (thread-safe build only).
+		 * @tparam T Component type.
+		 * @param entity Entity id.
+		 * @return PinnedComponent<T> (empty if component missing).
+		 * @note The returned object must not outlive concurrent modification epochs.
 		 */
 		template<class T>
 		[[nodiscard]] PinnedComponent<T> pinComponent(EntityId entity) noexcept requires(ThreadSafe)  {
@@ -155,44 +235,50 @@ namespace ecss {
 		}
 
 		/**
-		 * \brief Add or overwrite component T for entity using perfect-forwarded arguments.
-		 * \tparam T Component type.
-		 * \param entity Entity id (used as sector id).
+		 * @brief Add or overwrite a component T for an entity.
+		 * @tparam T Component type.
+		 * @tparam Args Constructor argument types for T.
+		 * @param entity Entity id (also used logically as sector id).
+		 * @param args Construction / assignment arguments.
+		 * @return Pointer to the stored component.
+		 * @note Overwrites existing component instance (destructive assign semantics inside sector).
 		 */
 		template <class T, class ...Args>
-		T* addComponent(EntityId entity, Args&&... args) noexcept {
+		FORCE_INLINE T* addComponent(EntityId entity, Args&&... args) noexcept {
 			return getComponentContainer<T>()->template push<T>(entity, std::forward<Args>(args)...);
 		}
 
 		/**
-		 * \brief Add multiple components T under one write lock via a generator functor (thread-safe build).
-		 * \tparam T Component type.
-		 * \tparam Func Callable returning std::pair<EntityId, T>. When \c first==INVALID_ID the loop stops.
-		 * \param func Generator invoked repeatedly under the array write lock.
+		 * @brief Bulk add components via generator functor under a single write lock (thread-safe build).
+		 * @tparam T Component type.
+		 * @tparam Func Callable returning std::pair<EntityId,T>. Return {INVALID_ID, {}} to stop.
+		 * @param func Generator invoked repeatedly while lock is held.
+		 * @note Optimizes many insertions by avoiding enter/leave lock per element.
 		 */
 		template <class T, typename Func>
 		void addComponents(Func&& func) requires(ThreadSafe) {
 			auto container = getComponentContainer<T>();
-			container->writeLock();
-
-			auto res = std::forward<Func>(func)();
+			auto lock = container->writeLock();
+			auto f = std::forward<Func>(func);
+			auto res = f();
 			while (res.first != INVALID_ID) {
 				container->template push<T, false>(res.first, res.second);
-				res = std::forward<Func>(func)();
+				res = f();
 			}
 		}
 
 		/**
-		 * \brief Destroy component T for a single entity (no-op if missing).
-		 * \tparam T Component type.
-		 * \param entity Entity id.
+		 * @brief Destroy component T for a single entity (does nothing if not present).
+		 * @tparam T Component type.
+		 * @param entity Entity id.
+		 * @complexity O(1).
 		 */
 		template <class T>
 		void destroyComponent(EntityId entity) noexcept {
 			if (auto container = getComponentContainer<T>()) {
 				if constexpr (ThreadSafe) {
 					auto lock = container->writeLock();
-					container->mPinsCounter.waitUntilSectorChangeable(entity);
+					container->mPinsCounter.waitUntilChangeable(entity);
 
 					if (auto sector = container->template findSector<false>(entity)) {
 						auto before = sector->isAliveData;
@@ -215,8 +301,11 @@ namespace ecss {
 		}
 
 		/**
-		 * \brief Destroy component T for a batch of entities (in-place reorder & clamp by container capacity).
-		 * \param entities List of entity ids; will be sorted and truncated to valid ids.
+		 * @brief Destroy component T for a batch of entities.
+		 * @tparam T Component type.
+		 * @param entities Entity id list (will be sorted and truncated to valid sector capacity).
+		 * @note Modifies the input vector (sorting, trimming out-of-range ids).
+		 * @warning Pins are waited if thread-safe; call outside tight critical paths if possible.
 		 */
 		template <class T>
 		void destroyComponent(std::vector<EntityId>& entities) noexcept {
@@ -228,9 +317,12 @@ namespace ecss {
 					auto lock = container->writeLock();
 
 					prepareEntities(entities, container->template sectorsMapCapacity<false>());
+					if (entities.empty()) {
+						return;
+					}
 
+					container->mPinsCounter.waitUntilChangeable(entities.front());
 					for (const auto sectorId : entities) {
-						container->mPinsCounter.waitUntilSectorChangeable(sectorId);
 
 						if (auto sector = container->template findSector<false>(sectorId)) {
 							auto before = sector->isAliveData;
@@ -254,53 +346,66 @@ namespace ecss {
 						}
 					}
 				}
-				
 			}
 		}
 
-		/// \brief Replace component array for T by copy from an external array.
+		/// @brief Copy-in an externally built sectors array for component T.
 		template<typename T, bool TS, typename Alloc>
-		void insert(const Memory::SectorsArray<TS, Alloc>& array) noexcept { *getComponentContainer<T>() = array; }
+		FORCE_INLINE void insert(const Memory::SectorsArray<TS, Alloc>& array) noexcept { *getComponentContainer<T>() = array; }
 
-		/// \brief Replace component array for T by move from an external array.
+		/// @brief Move-in an externally built sectors array for component T.
 		template<typename T, bool TS, typename Alloc>
-		void insert(Memory::SectorsArray<TS, Alloc>&& array) noexcept { *getComponentContainer<T>() = std::move(array); }
+		FORCE_INLINE void insert(Memory::SectorsArray<TS, Alloc>&& array) noexcept { *getComponentContainer<T>() = std::move(array); }
 
 	public:
 		/**
-		 * \brief Create an iterable view limited to given entity ranges.
-		 * \tparam Components Component set to access per entity (first type drives iteration).
-		 * \param ranges Half-open ranges of entity ids to iterate.
+		 * @brief Create an iterable view limited to given entity ranges.
+		 * @tparam Components Component types to fetch; first drives iteration order.
+		 * @param ranges Half-open entity ranges.
+		 * @return ArraysView instance (ranged iteration).
 		 */
 		template<typename... Components>
-		auto view(const EntitiesRanges& ranges) noexcept { return ArraysView<ThreadSafe, Allocator, true, Components...>{ this, ranges }; }
+		FORCE_INLINE auto view(const Ranges<EntityId>& ranges) noexcept { return ArraysView<ThreadSafe, Allocator, true, Components...>{ this, ranges }; }
 
 		/**
-		 * \brief Create an iterable view over all entities for a component set.
-		 * \tparam Components Component set to access per entity (first type drives iteration).
+		 * @brief Create a full-range iterable view over all entities with the main component.
+		 * @tparam Components Component types to access; first drives iteration.
+		 * @return ArraysView instance (full range).
 		 */
 		template<typename... Components>
-		auto view() noexcept { return ArraysView<ThreadSafe, Allocator, false, Components...>{this}; }
+		FORCE_INLINE auto view() noexcept { return ArraysView<ThreadSafe, Allocator, false, Components...>{this}; }
 
 		/**
-		 * \brief Apply a functor to each entity in \p entities, passing pinned component pointers (thread-safe build).
-		 * \tparam Components Component set to pin for each entity.
-		 * \param entities List of entity ids.
-		 * \param func Callable with signature f(EntityId, Components*...).
+		 * @brief Apply a function to each entity in a list, pinning requested component types (thread-safe build).
+		 * @tparam Components Component types to pin.
+		 * @tparam Func Callable signature: void(EntityId, Components*...).
+		 * @param entities Entity ids to process.
+		 * @param func Function invoked per entity.
+		 * @note Skips entities missing any main pinned component (pointer passed may be nullptr for non-main).
 		 */
 		template<typename... Components, typename Func>
-		inline void forEachAsync(const std::vector<EntityId>& entities, Func&& func) noexcept requires(ThreadSafe) { for (auto entity : entities) withPinned<Components...>(entity, std::forward<Func>(func)); }
+		inline void forEachAsync(const std::vector<EntityId>& entities, Func&& func) noexcept requires(ThreadSafe)
+		{
+			if (entities.empty()) { return; }
+			auto f = std::forward<Func>(func);
+			for (const auto& entity : entities) { withPinned<Components...>(entity, f); }
+		}
 
 	public:
 		// ===== Container management ==========================================
 
+		/**
+		 * @brief Reserve capacity (in sectors array units) for each listed component type.
+		 * @tparam Components Component types to reserve for.
+		 * @param newCapacity Target capacity (implementation may round up).
+		 */
 		template <class... Components>
-		void reserve(uint32_t newCapacity) noexcept { (getComponentContainer<Components>()->reserve(newCapacity), ...); }
+		FORCE_INLINE void reserve(uint32_t newCapacity) noexcept { (getComponentContainer<Components>()->reserve(newCapacity), ...); }
 
 		/**
-		 * \brief Clear all component arrays and all entities.
-		 * \note In thread-safe build, each array is cleared under its own lock,
-		 *       then entity set is cleared under the registry lock.
+		 * @brief Clear all component arrays and remove all entities.
+		 * @note Does not shrink capacity.
+		 * @post contains(id)==false for any previously allocated entity.
 		 */
 		void clear() noexcept {
 			if constexpr (ThreadSafe) {
@@ -329,14 +434,14 @@ namespace ecss {
 		}
 
 		/**
-		 * \brief Defragment all component arrays.
-		 * \note In thread-safe build, snapshots container list then defrag under each array’s lock.
+		 * @brief Defragment all arrays (compacts fragmented dead slots).
+		 * @note Can be expensive if many arrays large – schedule during low frame-load moments.
 		 */
 		void defragment() noexcept {
 			if constexpr(ThreadSafe) {
 				decltype(mComponentsArrays) arrays;
 				{
-					auto lock = ecss::Threads::uniqueLock(componentsArrayMapMutex, ThreadSafe);
+					auto lock = std::unique_lock(componentsArrayMapMutex);
 					arrays = mComponentsArrays;
 				}
 
@@ -352,51 +457,83 @@ namespace ecss {
 		}
 
 		/**
-		 * \brief Pre-register a multi-component array (or single-type with reserved capacity).
-		 *
-		 * \details Must be called before \ref getComponentContainer for any of \p ComponentTypes...
-		 * to ensure they share the same underlying \ref Memory::SectorsArray.
-		 *
-		 * \param capacity  Optional initial capacity.
-		 * \param allocator Allocator instance to move into the array.
-		 * \note All \p ComponentTypes must be either entirely new or already mapped to the same array.
+		 * @brief Explicitly register (group) component types into a shared sectors array.
+		 * @tparam ComponentTypes Component types to co-locate.
+		 * @param capacity Initial reserve (optional).
+		 * @param allocator Allocator instance to move.
+		 * @note All types must either all be new or already co-grouped; partial mixes assert.
+		 * @warning Call before first implicit access to any of the grouped types.
 		 */
 		template<typename... ComponentTypes>
 		void registerArray(uint32_t capacity = 0, Allocator allocator = {}) noexcept {
-			auto lock = ecss::Threads::uniqueLock(componentsArrayMapMutex, ThreadSafe);
+			if constexpr (ThreadSafe) {
+				Memory::SectorsArray<ThreadSafe, Allocator>* sectorsArray;
+				{
+					auto lock = std::unique_lock(componentsArrayMapMutex);
 
-			bool anyPresent = ((mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()] != nullptr) || ...);
-			bool allPresent = ((mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()] != nullptr) && ...);
-			if (anyPresent && !allPresent) {
-				assert(false && "Partial registerArray across mixed components is not allowed");
-				return;
+					bool anyPresent = ((mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()] != nullptr) || ...);
+					bool allPresent = ((mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()] != nullptr) && ...);
+					if (anyPresent && !allPresent) {
+						assert(false && "Partial registerArray across mixed components is not allowed");
+						return;
+					}
+
+					bool isCreated = true;
+					((isCreated = isCreated && mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()]), ...);
+					if (isCreated) {
+						return;
+					}
+
+					ECSType maxId = 0;
+					((maxId = std::max(maxId, componentTypeId<ComponentTypes>())), ...);
+					if (maxId >= mComponentsArraysMap.size()) {
+						mComponentsArraysMap.resize(maxId + 1);
+					}
+
+					sectorsArray = Memory::SectorsArray<ThreadSafe, Allocator>::template create<ComponentTypes...>(std::move(allocator));
+					mComponentsArrays.push_back(sectorsArray);
+					((mComponentsArraysMap[componentTypeId<ComponentTypes>()] = sectorsArray), ...);
+				}
+
+				sectorsArray->reserve(capacity);
 			}
+			else {
+				Memory::SectorsArray<ThreadSafe, Allocator>* sectorsArray;
+				bool anyPresent = ((mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()] != nullptr) || ...);
+				bool allPresent = ((mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()] != nullptr) && ...);
+				if (anyPresent && !allPresent) {
+					assert(false && "Partial registerArray across mixed components is not allowed");
+					return;
+				}
 
-			bool isCreated = true;
-			((isCreated = isCreated && mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()]), ...);
-			if (isCreated) {
-				return;
+				bool isCreated = true;
+				((isCreated = isCreated && mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()]), ...);
+				if (isCreated) {
+					return;
+				}
+
+				ECSType maxId = 0;
+				((maxId = std::max(maxId, componentTypeId<ComponentTypes>())), ...);
+				if (maxId >= mComponentsArraysMap.size()) {
+					mComponentsArraysMap.resize(maxId + 1);
+				}
+
+				sectorsArray = Memory::SectorsArray<ThreadSafe, Allocator>::template create<ComponentTypes...>(std::move(allocator));
+				mComponentsArrays.push_back(sectorsArray);
+				((mComponentsArraysMap[componentTypeId<ComponentTypes>()] = sectorsArray), ...);
+
+				sectorsArray->reserve(capacity);
 			}
-
-			ECSType maxId = 0;
-			((maxId = std::max(maxId, componentTypeId<ComponentTypes>())), ...);
-			if (maxId >= mComponentsArraysMap.size()) {
-				mComponentsArraysMap.resize(maxId + 1);
-			}
-
-			auto sectorArray = Memory::SectorsArray<ThreadSafe, Allocator>::template create<ComponentTypes...>(std::move(allocator));
-			sectorArray->reserve(capacity);
-			mComponentsArrays.push_back(sectorArray);
-			((mComponentsArraysMap[componentTypeId<ComponentTypes>()] = sectorArray), ...);
 		}
 
 		/**
-		 * \brief Get (or lazily create) the component container for T.
-		 * \tparam T Component type.
-		 * \return Pointer to the owning \ref Memory::SectorsArray for T.
+		 * @brief Get (or lazily create) the sectors container for component T.
+		 * @tparam T Component type.
+		 * @return Pointer to container holding (possibly grouped) T.
+		 * @note Will implicitly register a single-type array if not pre-registered.
 		 */
 		template <class T>
-		Memory::SectorsArray<ThreadSafe, Allocator>* getComponentContainer() noexcept {
+		[[nodiscard]] Memory::SectorsArray<ThreadSafe, Allocator>* getComponentContainer() noexcept {
 			const auto componentType = componentTypeId<T>();
 			if constexpr (ThreadSafe) {
 				std::shared_lock readLock(componentsArrayMapMutex);
@@ -420,26 +557,55 @@ namespace ecss {
 	public:
 		// ===== Entities API ===================================================
 
-		/// \return True if the registry currently owns \p entityId.
-		bool contains(EntityId entityId) const noexcept { auto lock = ecss::Threads::sharedLock(mEntitiesMutex, ThreadSafe); return mEntities.contains(entityId); }
+		/// @return True if registry currently owns entityId.
+		FORCE_INLINE bool contains(EntityId entityId) const noexcept {
+			if constexpr (ThreadSafe) {
+				auto lock = std::shared_lock(mEntitiesMutex);
+				return mEntities.contains(entityId);
+			}
+			else {
+				return mEntities.contains(entityId);
+			}
+		}
 
-		/// \brief Take (allocate) a new entity id.
-		EntityId takeEntity() noexcept { auto lock = ecss::Threads::uniqueLock(mEntitiesMutex, ThreadSafe); return mEntities.take(); }
+		/// @brief Allocate (take) a new entity id.
+		FORCE_INLINE EntityId takeEntity() noexcept
+		{
+			if constexpr (ThreadSafe) {
+				auto lock = std::unique_lock(mEntitiesMutex);
+				return mEntities.take();
+			}
+			else {
+				return mEntities.take();
+			}
+		}
 
-		/// \brief Copy out all entity ids.
-		std::vector<EntityId> getAllEntities() const noexcept { auto lock = ecss::Threads::sharedLock(mEntitiesMutex, ThreadSafe); return mEntities.getAll(); }
+		/// @brief Snapshot all entity ids (copy).
+		FORCE_INLINE std::vector<EntityId> getAllEntities() const noexcept
+		{
+			if constexpr (ThreadSafe) {
+				auto lock = std::unique_lock(mEntitiesMutex); return mEntities.getAll();
+			}
+			else {
+				return mEntities.getAll();
+			}
+		}
 
 		/**
-		 * \brief Destroy one entity and all its components.
-		 * \param entityId Entity to delete (no-op if not owned).
+		 * @brief Destroy a single entity and all of its components.
+		 * @param entityId Entity to remove (ignored if not owned).
+		 * @complexity O(A) with A = number of component arrays.
 		 */
 		void destroyEntity(EntityId entityId) noexcept {
 			if (!contains(entityId)) {
 				return;
 			}
 
-			{
-				auto lock = ecss::Threads::uniqueLock(mEntitiesMutex, ThreadSafe);
+			if constexpr (ThreadSafe) {
+				auto lock = std::unique_lock(mEntitiesMutex);
+				mEntities.erase(entityId);
+			}
+			else {
 				mEntities.erase(entityId);
 			}
 
@@ -447,9 +613,10 @@ namespace ecss {
 		}
 
 		/**
-		 * \brief Destroy a batch of entities and all their components.
-		 * \param entities Entity ids to delete; vector content is not modified.
-		 * \note Thread-safe build runs per-array work in parallel (one thread per array).
+		 * @brief Destroy a batch of entities and all their components (sequential per-array).
+		 * @param entities List of entities (not modified).
+		 * @note Safe to call while other threads query (ThreadSafe=true).
+		 * @warning No parallelization here to avoid thread lifetime complexity.
 		 */
 		void destroyEntities(std::vector<EntityId>& entities) noexcept {
 			if (entities.empty()) {
@@ -457,91 +624,129 @@ namespace ecss {
 			}
 
 			if constexpr (ThreadSafe) {
-				std::vector<std::thread> destroyThreads;
+				decltype(mComponentsArrays) compArrays;
 				{
-					auto lock = ecss::Threads::sharedLock(componentsArrayMapMutex, ThreadSafe);
-					for (auto* array : mComponentsArrays) {
-						//todo too much threads
-						destroyThreads.emplace_back([array = array, entities = entities]() mutable
-						{
-							const auto layout = array->getLayout();
-
-							auto arrLock = array->writeLock();
-							prepareEntities(entities, array->template sectorsMapCapacity<false>());
-
-							for (const auto sectorId : entities) {
-								array->mPinsCounter.waitUntilSectorChangeable(sectorId);
-								Memory::Sector::destroySector(array->template findSector<false>(sectorId), layout);
-								array->incDefragmentSize();
-							}
-						});
-					}
+					auto lock = std::shared_lock(componentsArrayMapMutex);
+					compArrays = mComponentsArrays;
 				}
 
-				{
-					auto lock = ecss::Threads::uniqueLock(mEntitiesMutex, ThreadSafe);
-					for (auto id : entities) {
-						mEntities.erase(id);
-					}
-				}
+				for (auto* array : compArrays) {
+					auto arrLock = array->writeLock();
+					const auto layout = array->getLayout();
 
-				for (auto& thread : destroyThreads) {
-					thread.join();
+					auto localEntities = entities;
+					prepareEntities(localEntities, array->template sectorsMapCapacity<false>());
+					if (localEntities.empty()) {
+						continue;
+					}
+
+					array->mPinsCounter.waitUntilChangeable(localEntities.front());
+					array->incDefragmentSize(static_cast<uint32_t>(localEntities.size()));
+
+					for (const auto sectorId : localEntities) {
+						Memory::Sector::destroySector(array->template findSector<false>(sectorId), layout);
+					}
 				}
 			}
 			else {
 				for (auto* array : mComponentsArrays) {
-					auto ents = entities;
-					prepareEntities(ents, array->template sectorsMapCapacity<false>());
+					auto localEntities = entities;
+					prepareEntities(localEntities, array->template sectorsMapCapacity<false>());
 					const auto layout = array->getLayout();
-					for (const auto sectorId : ents) {
+					for (const auto sectorId : localEntities) {
 						Memory::Sector::destroySector(array->template findSector<false>(sectorId), layout);
 						array->incDefragmentSize();
 					}
 				}
-				
+			}
+
+			if constexpr(ThreadSafe) {
+				auto lock = std::unique_lock(mEntitiesMutex);
+				for (auto id : entities) {
+					mEntities.erase(id);
+				}
+			}
+			else {
 				for (auto id : entities) {
 					mEntities.erase(id);
 				}
 			}
 		}
 
-		/// \brief Defragment the container for component T.
+		/// @brief Defragment the container for component T (if it exists).
 		template<typename T>
-		void defragment() noexcept { if (auto container = getComponentContainer<T>()) { container->defragment();} }
+		FORCE_INLINE void defragment() noexcept { if (auto container = getComponentContainer<T>()) { container->defragment();} }
 
-		/// \brief Set defragment threshold for container of T.
+		/// @brief Set defragment threshold for component T container.
 		template<typename T>
-		void setDefragmentThreshold(float threshold) { if (auto container = getComponentContainer<T>()) { container->setDefragmentThreshold(threshold); } }
+		FORCE_INLINE void setDefragmentThreshold(float threshold) { if (auto container = getComponentContainer<T>()) { container->setDefragmentThreshold(threshold); } }
 
 	private:
+		/**
+		 * @brief Destroy a single entity across all arrays (internal helper).
+		 * @param entityId Entity id.
+		 */
 		void destroySector(EntityId entityId) noexcept {
-			for (auto array : mComponentsArrays) {
-				if constexpr (ThreadSafe) {
+			if constexpr (ThreadSafe) {
+				decltype(mComponentsArrays) arrays;
+				{
+					auto lock = std::unique_lock(componentsArrayMapMutex);
+					arrays = mComponentsArrays;
+				}
+
+				for (auto array : arrays) {
 					auto lock = array->writeLock();
-					array->mPinsCounter.waitUntilSectorChangeable(entityId);
+					array->mPinsCounter.waitUntilChangeable(entityId);
+
 					Memory::Sector::destroySector(array->template findSector<false>(entityId), array->getLayout());
 					array->incDefragmentSize();
 				}
-				else {
+			}
+			else {
+				for (auto array : mComponentsArrays) {
 					Memory::Sector::destroySector(array->findSector(entityId), array->getLayout());
 					array->incDefragmentSize();
 				}
 			}
 		}
 
+		/**
+		 * @brief Utility: pin multiple components and invoke f(entity, comps...).
+		 * @tparam Ts Component types to pin.
+		 * @tparam F Functor type.
+		 */
 		template<class... Ts, class F>
 		void withPinned(EntityId entity, F&& f) noexcept requires(ThreadSafe) {
 			auto pins = std::make_tuple(pinComponent<Ts>(entity)...);
 			std::apply([&](auto&... pc) { std::forward<F>(f)(entity, pc.get()...); }, pins);
 		}
 
-		template <class... T>
-		std::array<Memory::PinnedSector, sizeof...(T)> pinContainers(SectorId pinId) noexcept requires(ThreadSafe) {
-			using PinnedArr = std::array<Memory::PinnedSector, sizeof...(T)>;
-			return pinId != INVALID_ID ? PinnedArr{ Memory::PinnedSector(getComponentContainer<T>()->mPinsCounter, nullptr, pinId)... } : PinnedArr{};
+		/**
+		 * @brief Internal helper: pin a sector from one of several arrays (thread-safe build).
+		 * @tparam T Component type stored in the pinned sector.
+		 * @tparam ArraysArr Array-like container of SectorsArray*.
+		 * @param pinId Sector id to pin.
+		 * @param arrays Container of sectors arrays to search.
+		 * @param lockedArr If not null, this array is already write-locked (skip locking).
+		 * @param index Index in arrays to pin from.
+		 * @return PinnedSector handle (may be empty if sector not found).
+		 */
+		template<typename T, class ArraysArr>
+		static Memory::PinnedSector pinSector(SectorId pinId, const ArraysArr& arrays, Memory::SectorsArray<ThreadSafe, Allocator>* lockedArr, size_t index) requires(ThreadSafe) {
+			auto container = arrays[index];
+			if (lockedArr == container) {
+				return Memory::PinnedSector(container->mPinsCounter, nullptr, pinId);
+			}
+
+			auto lock = container->readLock();
+			return Memory::PinnedSector(container->mPinsCounter, nullptr, pinId);
 		}
 
+		/**
+		 * @brief Internal helper: ensure entities vector is sorted & clamped to valid capacity.
+		 * @param entities [in/out] Vector of entity ids.
+		 * @param sectorsCapacity Max valid sector index (exclusive).
+		 */
 		static void prepareEntities(std::vector<EntityId>& entities, size_t sectorsCapacity) {
 			if (entities.empty()) { return; }
 			std::ranges::sort(entities);
@@ -562,189 +767,285 @@ namespace ecss {
 
 				entities.erase(entities.begin() + distance, entities.end());
 			}
-
 		}
 
 	private:
-		mutable Memory::ReflectionHelper mReflectionHelper;
+		mutable Memory::ReflectionHelper mReflectionHelper; ///< Type id / layout reflection helper.
 
-		EntitiesRanges mEntities;
+		Ranges<EntityId> mEntities; ///< Dense range-managed entity id storage.
 
+		/// @brief Mapping: component type id -> sectors array (may group several component types).
 		std::vector<Memory::SectorsArray<ThreadSafe, Allocator>*> mComponentsArraysMap;
+
+		/// @brief Flat list of all unique sectors arrays for iteration/maintenance.
 		std::vector<Memory::SectorsArray<ThreadSafe, Allocator>*> mComponentsArrays;
 
-		mutable std::shared_mutex mEntitiesMutex;
-		mutable std::shared_mutex componentsArrayMapMutex;
+		struct Dummy{};
+		mutable std::conditional_t<ThreadSafe, std::shared_mutex, Dummy> mEntitiesMutex;          ///< Protects entities container (ThreadSafe build).
+		mutable std::conditional_t<ThreadSafe, std::shared_mutex, Dummy> componentsArrayMapMutex; ///< Protects component arrays map/list (ThreadSafe build).
 	};
 
 	/**
-	 * \brief Metadata for accessing a component type inside a sector array.
-	 * \tparam ThreadSafe Mirrors the owning array’s thread-safety flag.
-	 * \tparam Allocator  Mirrors the owning array’s allocator type.
+	 * @brief Metadata for accessing a component type inside a sectors array.
+	 *
+	 * Used internally by ArraysView iterator to map component offsets/masks.
 	 */
-	template<bool ThreadSafe, typename Allocator>
 	struct TypeAccessInfo {
-		Memory::SectorsArray<ThreadSafe, Allocator>* array = nullptr;
-		uint32_t typeAliveMask = 0;
-		uint16_t typeOffsetInSector = 0;
-		bool isMain = false;
+		static constexpr uint8_t kMainIteratorIdx = 255; ///< Sentinel for "main" component (no secondary iterator).
+
+		uint32_t typeAliveMask		= 0; ///< Bit mask for liveness.
+		uint16_t typeOffsetInSector = 0; ///< Byte offset within sector memory.
+		uint8_t  iteratorIdx		= kMainIteratorIdx; ///< Which secondary iterator provides this type (or 255 if main).
 	};
 
 	/**
-	 * \brief Iterable view over entities (⚠ may yield nullptr for missing non-main components) with a selected set of components.
-	 * \details Scans the container of the first template component (the "main" type) and,
-	 * for each sector, exposes pointers to the requested components as a tuple-like set.
-	 * Components live in separate containers, so non-main components may be missing for an entity.
-	 * \
+	 * @brief Iterable view over entities with one main component and optional additional components.
 	 *
-	 * Layout:\n
-	 * component1Cont    component2Cont    component3Cont\n
-	 * 0 [  data   ]     [   data   ]      [   data   ]\n
-	 * - [  null   ]     [   data   ]      [   data   ]\n
-	 * 1 [  data   ]     [   data   ]      [   data   ]\n
-	 * 2 [  data   ]     [   data   ]      [   null   ]\n
-	 * - [  null   ]     [   null   ]      [   data   ]\n
-	 * 3 [  data   ]     [   null   ]      [   data   ]\n
+	 * @tparam ThreadSafe      Mirrors Registry thread-safe flag (affects pinning).
+	 * @tparam Allocator       Allocator used by sectors.
+	 * @tparam Ranged          Whether this view limits iteration to provided ranges.
+	 * @tparam T               Main component type (drives iteration order).
+	 * @tparam CompTypes       Additional component types optionally retrieved per entity.
 	 *
-	 * Iteration follows indices of the main component's container: 0, 1, 2, 3, ...
+	 * Semantics:
+	 *   - Iterates only sectors where main component T is alive.
+	 *   - For each entity id, returns pointers (T*, optional others may be nullptr if absent).
+	 *   - In ranged mode, entity ranges are translated to nearest sector indices (clamped).
 	 *
-	 * \tparam ThreadSafe  Enable thread-safe iteration/pinning policy.
-	 * \tparam Allocator   Sector storage allocator type.
-	 * \tparam Ranged      If true, iterates only over provided entity ranges.
-	 * \tparam T           Main component type (drives iteration order).
-	 * \tparam ComponentTypes Other component types to fetch per entity.
+	 * Thread safety:
+	 *   - ThreadSafe=true: Back sector pinning ensures iteration upper bound stability.
+	 *   - Non-main components may be null if not present or not grouped in same array.
 	 *
-	 * \note In thread-safe mode, iteration is bounded by a snapshot (pinned back sector).
-	 * \see begin(), end(), beginRangedAlive(), beginAlive()
+	 * @warning Do not cache raw pointers across mutating frames unless externally synchronized.
 	 */
-	template <bool ThreadSafe, typename Allocator, bool Ranged, typename T, typename ...ComponentTypes>
+	template <bool ThreadSafe, typename Allocator, bool Ranged, typename T, typename ...CompTypes>
 	class ArraysView final {
+		using Sectors = Memory::SectorsArray<ThreadSafe, Allocator>;
+		using SectorsIt = Sectors::IteratorAlive;
+		using SectorsRangeIt = Sectors::RangedIterator;
+		using TypeInfo = TypeAccessInfo;
+
+		constexpr static size_t CTCount = sizeof...(CompTypes);
+		constexpr static size_t TypesCount = sizeof...(CompTypes) + 1;
+		static_assert(TypesCount <= TypeInfo::kMainIteratorIdx - 1, "Too many component types for int8_t iteratorIdx");
+
 	public:
+		/// @brief Sentinel end iterator tag.
+		struct EndIterator {};
+
+		/**
+		 * @brief Forward iterator over alive sectors of the main component type.
+		 *
+		 * Dereferencing produces a tuple (EntityId, T*, CompTypes*...).
+		 * Non-main pointers may be nullptr if component not present for that entity.
+		 *
+		 * @note Iterator validity is bounded by the pinned back-sector (thread-safe mode).
+		 */
 		class Iterator {
 		public:
+			using SectorArrays = std::array<Sectors*, TypesCount>;
+			using TypeAccessTuple = std::tuple<TypeInfo, decltype((void)sizeof(CompTypes), TypeInfo{})...>;
+
 			using iterator_category = std::forward_iterator_tag;
-			using value_type = std::tuple<EntityId, T*, ComponentTypes*...>;
+			using value_type = std::tuple<EntityId, T*, CompTypes*...>;
 			using difference_type = std::ptrdiff_t;
 			using pointer = value_type*;
 			using reference = value_type&;
 
 		public:
-			using SectorArrays = std::array<Memory::SectorsArray<ThreadSafe, Allocator>*, sizeof...(ComponentTypes) + 1>;
+			Iterator() noexcept = default;
 
-			Iterator(const SectorArrays& arrays, typename Memory::SectorsArray<ThreadSafe, Allocator>::RangedIteratorAlive iterator) noexcept requires (Ranged) : mIterator(std::move(iterator)) { initTypeAccessInfo<T, ComponentTypes...>(arrays); }
-			Iterator(const SectorArrays& arrays, typename Memory::SectorsArray<ThreadSafe, Allocator>::IteratorAlive iterator) noexcept requires (!Ranged) : mIterator(std::move(iterator)) { initTypeAccessInfo<T, ComponentTypes...>(arrays); }
+			/**
+			 * @brief Construct iterator with main iterator + auxiliary iterators.
+			 * @param arrays Array of sector arrays for all involved component types.
+			 * @param iterator Alive iterator for main component.
+			 * @param otherIterators Ranged iterators for other distinct arrays.
+			 */
+			Iterator(const SectorArrays& arrays, SectorsIt iterator, const std::vector<std::pair<Sectors*, SectorsRangeIt>>& otherIterators) : mIterator(std::move(iterator)) {
+				initTypeAccessInfo<T, CompTypes...>(arrays, otherIterators);
+				advanceAllIteratorsToMainId();
+			}
 
-			inline value_type operator*() noexcept { return { (*mIterator)->id, reinterpret_cast<T*>(reinterpret_cast<char*>(*mIterator) + getTypeAccessInfo<T>().typeOffsetInSector), getComponent<ComponentTypes>((*mIterator)->id)... }; }
+			FORCE_INLINE value_type operator*() const noexcept { auto id = mIterator->id; return { id, getComponent<T>(id), getComponent<CompTypes>(id)... }; }
+			FORCE_INLINE Iterator& operator++() noexcept { ++mIterator; advanceAllIteratorsToMainId(); return *this; }
 
-			inline Iterator& operator++() noexcept { return ++mIterator, * this; }
+			FORCE_INLINE bool operator!=(const Iterator& other) const noexcept { return mIterator != other.mIterator; }
+			FORCE_INLINE bool operator==(const Iterator& other) const noexcept { return mIterator == other.mIterator; }
 
-			bool operator!=(const Iterator& other) const noexcept { return mIterator != other.mIterator; }
-			bool operator==(const Iterator& other) const noexcept { return mIterator == other.mIterator; }
+			// Alive iterator self-checks end condition by returning nullptr.
+			FORCE_INLINE bool operator==(const EndIterator&) const noexcept { return *mIterator == nullptr; }
+			FORCE_INLINE bool operator!=(const EndIterator&) const noexcept { return *mIterator != nullptr; }
+			FORCE_INLINE friend bool operator==(const EndIterator endIt, const Iterator& it) noexcept { return it == endIt; }
+			FORCE_INLINE friend bool operator!=(const EndIterator endIt, const Iterator& it) noexcept { return it != endIt; }
 
 		private:
-			template <typename ComponentType>
-			inline constexpr TypeAccessInfo<ThreadSafe, Allocator>& getTypeAccessInfo() noexcept { return std::get<getIndex<ComponentType>()>(mTypeAccessInfo); }
+			/// @brief Align secondary iterators to the current main entity id.
+			FORCE_INLINE void advanceAllIteratorsToMainId() noexcept {
+				if constexpr (CTCount > 0) {
+					if (mIteratorsSize) {
+						if (auto sector = *mIterator) {
+							const auto id = sector->id;
+							for (size_t i = 0; i < mIteratorsSize; i++) {
+								mArraysIterators[i].advanceToId(id);
+							}
+						}
+					}
+				}
+			}
+
+			/// @brief Fetch component pointer for specific entity id (may be nullptr).
+			template<typename ComponentType>
+			FORCE_INLINE ComponentType* getComponent(EntityId sectorId) const noexcept {
+				const auto& info = std::get<getIndex<ComponentType>()>(mTypeAccessInfo);
+				if constexpr (std::is_same_v<ComponentType, T>) {
+					return reinterpret_cast<ComponentType*>(mIterator.rawPtr() + info.typeOffsetInSector);
+				}
+				else {
+					if (info.iteratorIdx == TypeInfo::kMainIteratorIdx) {
+						return mIterator->template getMember<ComponentType>(info.typeOffsetInSector, info.typeAliveMask);
+					}
+
+					auto sector = *mArraysIterators[info.iteratorIdx];
+					return sector && sector->id == sectorId ? sector->template getMember<ComponentType>(info.typeOffsetInSector, info.typeAliveMask) : nullptr;
+				}
+			}
 
 			template<typename... Types>
-			inline void initTypeAccessInfo(const SectorArrays& arrays) noexcept { (initTypeAccessInfoImpl<Types>(arrays[getIndex<Types>()]), ...); }
+			void initTypeAccessInfo(const SectorArrays& arrays, const std::vector<std::pair<Sectors*, SectorsRangeIt>>& otherIterators) noexcept {
+				uint8_t iteratorIndexes[TypesCount];
+				std::fill_n(iteratorIndexes, TypesCount, TypeInfo::kMainIteratorIdx);
 
-			template<typename ComponentType>
-			inline void initTypeAccessInfoImpl(Memory::SectorsArray<ThreadSafe, Allocator>* sectorArray) noexcept {
-				auto& info = getTypeAccessInfo<ComponentType>();
-				info.array = sectorArray;
-				info.typeAliveMask = sectorArray->template getLayoutData<ComponentType>().isAliveMask;
-				info.typeOffsetInSector = sectorArray->template getLayoutData<ComponentType>().offset;
-				info.isMain = sectorArray == getTypeAccessInfo<T>().array;
+				for (const auto& [arr, it ] : otherIterators) {
+					mArraysIterators[mIteratorsSize] = it;
+					for (size_t a = 0; a < TypesCount; ++a) {
+						if (arrays[a] == arr) {
+							iteratorIndexes[a] = mIteratorsSize;
+						}
+					}
+
+					++mIteratorsSize;
+				}
+
+				(initTypeAccessInfoImpl<Types>(arrays[getIndex<T>()], arrays[getIndex<Types>()], iteratorIndexes), ...);
 			}
 
 			template<typename ComponentType>
-			inline ComponentType* getComponent(EntityId sectorId) noexcept { return Iterator::getComponent<ComponentType>((getTypeAccessInfo<ComponentType>().isMain ? *mIterator : getTypeAccessInfo<ComponentType>().array->template findSector<false>(sectorId)), getTypeAccessInfo<ComponentType>()); }
-
-			template<typename ComponentType>
-			inline static ComponentType* getComponent(Memory::Sector* sector, const TypeAccessInfo<ThreadSafe, Allocator>& meta) noexcept { return sector && (sector->isAliveData & meta.typeAliveMask) ? reinterpret_cast<ComponentType*>(reinterpret_cast<char*>(sector) + meta.typeOffsetInSector) : nullptr; }
+			FORCE_INLINE void initTypeAccessInfoImpl(Sectors* main, Sectors* sectorArray, uint8_t* iteratorIndexes) noexcept {
+				constexpr auto idx = getIndex<ComponentType>();
+				auto& info = std::get<idx>(mTypeAccessInfo);
+				const auto& layout = sectorArray->template getLayoutData<ComponentType>();
+				info.typeAliveMask = layout.isAliveMask;
+				info.typeOffsetInSector = layout.offset;
+				if (sectorArray != main) {
+					info.iteratorIdx = iteratorIndexes[idx];
+				}
+			}
 
 		private:
-			std::conditional_t<Ranged, typename Memory::SectorsArray<ThreadSafe, Allocator>::RangedIteratorAlive, typename Memory::SectorsArray<ThreadSafe, Allocator>::IteratorAlive> mIterator;
-
-			std::tuple<TypeAccessInfo<ThreadSafe, Allocator>, decltype((void)sizeof(ComponentTypes), TypeAccessInfo<ThreadSafe, Allocator>{})...> mTypeAccessInfo;
+			TypeAccessTuple mTypeAccessInfo;
+			SectorsRangeIt	mArraysIterators[CTCount ? CTCount : 1];
+			SectorsIt		mIterator;
+			uint8_t			mIteratorsSize = 0;
 		};
 
-		inline Iterator begin() noexcept {
-			using SectorItType = std::conditional_t<Ranged, typename Memory::SectorsArray<ThreadSafe, Allocator>::RangedIteratorAlive, typename Memory::SectorsArray<ThreadSafe, Allocator>::IteratorAlive>;
-			if constexpr (Ranged) {
-				return Iterator{ mArrays, SectorItType(mArrays[getIndex<T>()], mRanges, mArrays[getIndex<T>()]->template getLayoutData<T>().isAliveMask) };
-			}
-			else {
-				return Iterator{ mArrays, SectorItType(mArrays[getIndex<T>()], 0, mLast, mArrays[getIndex<T>()]->template getLayoutData<T>().isAliveMask) };
-			}
-		}
+		/// @return Iterator to first alive element (or end if empty).
+		FORCE_INLINE Iterator begin() const noexcept { return mBeginIt; }
 
-		inline Iterator end() noexcept {
-			using SectorItType = std::conditional_t<Ranged, typename Memory::SectorsArray<ThreadSafe, Allocator>::RangedIteratorAlive, typename Memory::SectorsArray<ThreadSafe, Allocator>::IteratorAlive>;
-			return Iterator{ mArrays, SectorItType(mArrays[getIndex<T>()], mLast) };
-		}
+		/// @return Sentinel end marker.
+		FORCE_INLINE EndIterator end() const noexcept { return {}; }
 
 	public:
-		explicit ArraysView(Registry<ThreadSafe, Allocator>* manager) noexcept requires (!Ranged) {
-			initArrays<ComponentTypes..., T>(manager);
-			
-			if constexpr (ThreadSafe) {
-				auto pinnedBack = mArrays[getIndex<T>()]->pinBackSector();
-				auto index = pinnedBack.getId();
-				mPins = manager->template pinContainers<T, ComponentTypes...>(index);
-				mLast = index == INVALID_ID ? 0 : mArrays[getIndex<T>()]->template getSectorIndex<false>(index) + 1; // we pinned sector, but its size can be changed in other tread, use pinned index
+		/// @brief Construct a full-range view (Ranged=false specialization).
+		explicit ArraysView(Registry<ThreadSafe, Allocator>* manager) noexcept requires (!Ranged) { init(manager); }
+
+		/// @brief Construct a ranged view (Ranged=true specialization).
+		explicit ArraysView(Registry<ThreadSafe, Allocator>* manager, const Ranges<EntityId>& ranges = {}) noexcept requires (Ranged) { init(manager, ranges); }
+
+		/// @return True if there are no elements to iterate.
+		FORCE_INLINE bool empty() const noexcept { return mBeginIt == end(); }
+
+	private:
+		void init(Registry<ThreadSafe, Allocator>* manager, const Ranges<EntityId>& ranges = {}) {
+			auto arrays = initArrays<CompTypes..., T>(manager);
+			SectorsIt it;
+
+			{
+				auto mainArr = arrays[getIndex<T>()];
+				auto lock = mainArr->readLock();
+				it = SectorsIt(mainArr, initRange(mainArr, ranges, getIndex<T>()), mainArr->template getLayoutData<T>().isAliveMask);
 			}
-			else {
-				mLast = mArrays[getIndex<T>()]->size();
-			}
+
+			mBeginIt = Iterator{ arrays, it, fillOtherIterators(arrays, ranges) };
 		}
+		
+		/// @brief Initialize effective iteration ranges (and pin upper bound if thread-safe).
+		Ranges<EntityId> initRange(Sectors* sectorsArray, const Ranges<EntityId>& _ranges, size_t i = 0) {
+			Ranges<EntityId> ranges = _ranges;
 
-		explicit ArraysView(Registry<ThreadSafe, Allocator>* manager, EntitiesRanges ranges = {}) noexcept requires (Ranged) : mRanges(std::move(ranges)) {
-			initArrays<ComponentTypes..., T>(manager);
-			auto sectorsArray = mArrays[getIndex<T>()];
-
-			for (auto& range : mRanges.ranges) {
-				range.first = static_cast<EntityId>(sectorsArray->findRightNearestSectorIndex(range.first));
-				range.second = static_cast<EntityId>(sectorsArray->findRightNearestSectorIndex(range.second));
-			}
-			mRanges.mergeIntersections();
-
-			if constexpr (ThreadSafe) {
-				mPins = manager->template pinContainers<T, ComponentTypes...>(mRanges.empty() ? INVALID_ID : mRanges.back().second);
-			}
-			mLast = mRanges.empty() ? 0 : mRanges.back().second;
-		}
-
-		bool empty() const noexcept {
 			if constexpr (Ranged) {
-				return mRanges.empty() || mArrays[getIndex<T>()]->empty();
+				for (auto& range : ranges.ranges) {
+					range.first = static_cast<EntityId>(sectorsArray->template findRightNearestSectorIndex<false>(range.first));
+					range.second = static_cast<EntityId>(sectorsArray->template findRightNearestSectorIndex<false>(range.second));
+				}
+				ranges.mergeIntersections();
+
+				if constexpr (ThreadSafe) {
+					mPins[i] = ranges.empty() ? Memory::PinnedSector{} : Memory::PinnedSector(sectorsArray->mPinsCounter, nullptr, ranges.back().second);
+				}
 			}
 			else {
-				return mArrays[getIndex<T>()]->empty();
+				size_t last;
+				if constexpr (ThreadSafe) {
+					mPins[i] = sectorsArray->template pinBackSector<false>();
+					last = mPins[i].getId();
+					last = last == INVALID_ID ? 0 : sectorsArray->template getSectorIndex<false>(static_cast<SectorId>(last)) + 1;
+				}
+				else {
+					last = sectorsArray->size();
+				}
+				ranges.ranges.emplace_back(0u, static_cast<SectorId>(last));
 			}
+
+			return ranges;
 		}
 
-	private:
+		/// @brief Build secondary iterators for component arrays different from main.
+		std::vector<std::pair<Sectors*, SectorsRangeIt>> fillOtherIterators(const std::array<Sectors*, TypesCount>& arrays, const Ranges<EntityId>& ranges) {
+			std::vector<std::pair<Sectors*, SectorsRangeIt>> iterators;
+			iterators.reserve(TypesCount - 1);
+			auto main = arrays[0];
+			for (auto i = 1u; i < arrays.size(); i++) {
+				auto arr = arrays[i];
+				if (arr == main || std::find_if(iterators.begin(), iterators.end(), [arr](const auto& a){ return a.first == arr; }) != iterators.end()) { continue; }
+
+				auto lock = arr->readLock();
+				iterators.emplace_back(arr, SectorsRangeIt(arr, initRange(arr, ranges, i)));
+			}
+
+			return iterators;
+		}
+
+		/// @brief Get compile-time index of a given component type within the typelist.
 		template<typename ComponentType>
-		static inline size_t constexpr getIndex() noexcept {
-			if constexpr (std::is_same_v<T, ComponentType>) {
-				return 0;
-			}
-			else {
-				return types::getIndex<ComponentType, ComponentTypes...>() + 1;
-			}
+		FORCE_INLINE static size_t consteval getIndex() noexcept {
+			if constexpr (std::is_same_v<T, ComponentType>) { return 0; }
+			else { return types::typeIndex<ComponentType, CompTypes...> + 1; }
 		}
 
+		/// @brief Resolve and fetch all involved sectors arrays (lazily creates if needed).
 		template<typename... Types>
-		void initArrays(Registry<ThreadSafe, Allocator>* registry) noexcept {
-			static_assert(types::areUnique<Types...>(), "Duplicates detected in types");
-			((mArrays[getIndex<Types>()] = registry->template getComponentContainer<Types>()), ...);
+		FORCE_INLINE std::array<Sectors*, TypesCount> initArrays(Registry<ThreadSafe, Allocator>* registry) noexcept {
+			std::array<Sectors*, TypesCount> arrays;
+
+			static_assert(types::areUnique<Types...>, "Duplicates detected in types");
+			((arrays[getIndex<Types>()] = registry->template getComponentContainer<Types>()), ...);
+
+			return arrays;
 		}
 
 	private:
-		std::array<Memory::SectorsArray<ThreadSafe, Allocator>*, sizeof...(ComponentTypes) + 1> mArrays;
-		std::array<Memory::PinnedSector, sizeof...(ComponentTypes) + 1> mPins;
-		size_t mLast = 0;
-		EntitiesRanges mRanges;
+		struct Dummy{};
+		std::conditional_t<ThreadSafe, std::array<Memory::PinnedSector, TypesCount>, Dummy> mPins;  ///< Back-sector pinning for bound safety (thread-safe build).
+		Iterator mBeginIt;                                   ///< Cached begin iterator.
 	};
-}
+} // namespace ecss
