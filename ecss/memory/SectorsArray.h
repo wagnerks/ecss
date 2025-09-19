@@ -642,7 +642,7 @@ namespace detail {
 		 * @tparam Lock If true acquire internal lock (set false if caller already holds lock).
 		 * @note Old retired buffers freed at end (ThreadSafe only).
 		 */
-		template<bool Lock = false>
+		template<bool Lock = true>
 		void processPendingErases(bool withDefragment = true) requires(ThreadSafe) {
 			if constexpr(Lock) {
 				auto lock = std::unique_lock(mtx);
@@ -1023,6 +1023,9 @@ namespace detail {
 						incDefragmentSize();
 						mSectorsMap.sectorsMap[id] = nullptr;
 					}
+				}
+				else {
+					mPendingErase.push_back(id);
 				}
 			}
 			else {
