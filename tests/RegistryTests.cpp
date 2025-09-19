@@ -3,6 +3,7 @@
 #include <chrono>
 #include <iostream>
 #include <mutex>
+#include <thread>
 
 #include "ecss/Ranges.h"
 #include <ecss/Registry.h>

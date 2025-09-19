@@ -136,7 +136,7 @@ namespace ecss {
 				--entRangeIt->second;
 			}
 			else if (id == entRangeIt->first) {
-				--entRangeIt->first;
+				++entRangeIt->first;
 			}
 			else {
 				entRangeIt = ranges.insert(entRangeIt, Range{});
