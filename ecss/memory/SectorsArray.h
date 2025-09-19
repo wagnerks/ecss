@@ -34,7 +34,6 @@
 
 #include <ecss/memory/Sector.h>
 #include <ecss/Ranges.h>
-#include <ecss/threads/SyncManager.h>
 #include <ecss/threads/PinCounters.h>
 #include <ecss/memory/ChunksAllocator.h>
 
@@ -640,37 +639,14 @@ namespace detail {
 		 * @param sync If true acquire internal lock (set false if caller already holds lock).
 		 * @note Old retired buffers freed at end (ThreadSafe only).
 		 */
-		void processPendingErases(bool withDefragment = true, bool sync = ThreadSafe) requires(ThreadSafe) {
-			auto lock = ecss::Threads::uniqueLock(mtx, sync);
-			if (mPendingErase.empty()) {
-				if (needDefragment<false>()) {
-					if (withDefragment) {
-						mPinsCounter.waitUntilChangeable();
-						defragmentImpl();
-					}
-				}
-				return;
+		template<bool Lock = false>
+		void processPendingErases(bool withDefragment = true) requires(ThreadSafe) {
+			if constexpr(Lock) {
+				auto lock = std::unique_lock(mtx);
+				processPendingErasesImpl(withDefragment);
 			}
-
-			auto tmp = std::move(mPendingErase);
-			std::ranges::sort(tmp);
-			tmp.erase(std::ranges::unique(tmp).begin(), tmp.end());
-			for (auto id : tmp) {
-				if (mPinsCounter.canMoveSector(id)) {
-					Sector::destroySector(getSectorImpl(id), getLayout());
-					incDefragmentSize();
-					mSectorsMap.sectorsMap[id] = nullptr;
-				}
-				else {
-					mPendingErase.emplace_back(id);
-				}
-			}
-
-			if (needDefragment<false>()) {
-				if (withDefragment) {
-					mPinsCounter.waitUntilChangeable();
-					defragmentImpl();
-				}
+			else {
+				processPendingErasesImpl(withDefragment);
 			}
 		}
 
@@ -703,6 +679,39 @@ namespace detail {
 		}
 
 	private: // ---- Internal erase / shift / defrag primitives ---------------------------
+		void processPendingErasesImpl(bool withDefragment = true) requires(ThreadSafe) {
+			if (mPendingErase.empty()) {
+				if (needDefragment<false>()) {
+					if (withDefragment) {
+						mPinsCounter.waitUntilChangeable();
+						defragmentImpl();
+					}
+				}
+				return;
+			}
+
+			auto tmp = std::move(mPendingErase);
+			std::ranges::sort(tmp);
+			tmp.erase(std::ranges::unique(tmp).begin(), tmp.end());
+			for (auto id : tmp) {
+				if (mPinsCounter.canMoveSector(id)) {
+					Sector::destroySector(getSectorImpl(id), getLayout());
+					incDefragmentSize();
+					mSectorsMap.sectorsMap[id] = nullptr;
+				}
+				else {
+					mPendingErase.emplace_back(id);
+				}
+			}
+
+			if (needDefragment<false>()) {
+				if (withDefragment) {
+					mPinsCounter.waitUntilChangeable();
+					defragmentImpl();
+				}
+			}
+		}
+
 		Iterator eraseImpl(Iterator it, bool defragment = false) noexcept {
 			if (!(*it) || sectorsMapCapacityImpl() <= it->id) {
 				return it;
@@ -838,7 +847,7 @@ namespace detail {
 			clearImpl();
 			shrinkToFitImpl();
 			if constexpr (ThreadSafe || T) {
-				processPendingErases(true, false);
+				processPendingErases<false>(true);
 			}
 			mSize = other.mSize;
 			mAllocator = other.mAllocator;
@@ -856,8 +865,8 @@ namespace detail {
 			clearImpl();
 			shrinkToFitImpl();
 			if constexpr (ThreadSafe || T) {
-				processPendingErases(true, false);
-				other.processPendingErases(true, false);
+				processPendingErases<false>(true);
+				other.template processPendingErases<false>(true);
 			}
 			mSize = other.mSize;
 			mAllocator = std::move(other.mAllocator);
@@ -1023,10 +1032,10 @@ namespace detail {
 
 	private:
 		/// @return Shared read lock if ThreadSafe, otherwise a dummy object.
-		auto readLock()  const requires(ThreadSafe) { return ecss::Threads::sharedLock(mtx, ThreadSafe); }
+		auto readLock()  const requires(ThreadSafe) { return std::shared_lock(mtx); }
 		auto readLock()  const requires(!ThreadSafe) { return Dummy{}; }
 		/// @return Unique write lock if ThreadSafe, otherwise a dummy object.
-		auto writeLock() const requires(ThreadSafe) { return ecss::Threads::uniqueLock(mtx, ThreadSafe); }
+		auto writeLock() const requires(ThreadSafe) { return std::unique_lock(mtx); }
 		auto writeLock() const requires(!ThreadSafe) { return Dummy{}; }
 
 		template<bool UseLock>

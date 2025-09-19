@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include <deque>
+
 #include <vector>
 #include <numeric>
 
@@ -97,7 +97,7 @@ namespace ecss {
 			if (id >= begin && id < end) return; // уже есть
 
 			if (id == end) {
-				end++;
+				++end;
 				// check next range for merge
 				auto next = it + 1;
 				if (next != ranges.end() && next->first == end) {
@@ -108,7 +108,7 @@ namespace ecss {
 			}
 
 			if (id == begin - 1) {
-				begin--;
+				--begin;
 				// check prev range for merge
 				if (it != ranges.begin()) {
 					auto prev = it - 1;
@@ -133,10 +133,10 @@ namespace ecss {
 			std::advance(entRangeIt, index);
 
 			if (id == entRangeIt->second - 1) {
-				entRangeIt->second--;
+				--entRangeIt->second;
 			}
 			else if (id == entRangeIt->first) {
-				entRangeIt->first++;
+				--entRangeIt->first;
 			}
 			else {
 				entRangeIt = ranges.insert(entRangeIt, Range{});

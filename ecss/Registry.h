@@ -442,7 +442,7 @@ namespace ecss {
 			if constexpr(ThreadSafe) {
 				decltype(mComponentsArrays) arrays;
 				{
-					auto lock = ecss::Threads::uniqueLock(componentsArrayMapMutex, ThreadSafe);
+					auto lock = std::unique_lock(componentsArrayMapMutex);
 					arrays = mComponentsArrays;
 				}
 
@@ -470,7 +470,7 @@ namespace ecss {
 			if constexpr (ThreadSafe) {
 				Memory::SectorsArray<ThreadSafe, Allocator>* sectorsArray;
 				{
-					auto lock = ecss::Threads::uniqueLock(componentsArrayMapMutex, ThreadSafe);
+					auto lock = std::unique_lock(componentsArrayMapMutex);
 
 					bool anyPresent = ((mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()] != nullptr) || ...);
 					bool allPresent = ((mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()] != nullptr) && ...);
@@ -561,7 +561,8 @@ namespace ecss {
 		/// @return True if registry currently owns entityId.
 		FORCE_INLINE bool contains(EntityId entityId) const noexcept {
 			if constexpr (ThreadSafe) {
-				auto lock = ecss::Threads::sharedLock(mEntitiesMutex, ThreadSafe); return mEntities.contains(entityId);
+				auto lock = std::shared_lock(mEntitiesMutex);
+				return mEntities.contains(entityId);
 			}
 			else {
 				return mEntities.contains(entityId);
@@ -572,7 +573,8 @@ namespace ecss {
 		FORCE_INLINE EntityId takeEntity() noexcept
 		{
 			if constexpr (ThreadSafe) {
-				auto lock = ecss::Threads::uniqueLock(mEntitiesMutex, ThreadSafe); return mEntities.take();
+				auto lock = std::unique_lock(mEntitiesMutex);
+				return mEntities.take();
 			}
 			else {
 				return mEntities.take();
@@ -583,7 +585,7 @@ namespace ecss {
 		FORCE_INLINE std::vector<EntityId> getAllEntities() const noexcept
 		{
 			if constexpr (ThreadSafe) {
-				auto lock = ecss::Threads::uniqueLock(mEntitiesMutex, ThreadSafe); return mEntities.getAll();
+				auto lock = std::unique_lock(mEntitiesMutex); return mEntities.getAll();
 			}
 			else {
 				return mEntities.getAll();
@@ -601,7 +603,7 @@ namespace ecss {
 			}
 
 			if constexpr (ThreadSafe) {
-				auto lock = ecss::Threads::uniqueLock(mEntitiesMutex, ThreadSafe);
+				auto lock = std::unique_lock(mEntitiesMutex);
 				mEntities.erase(entityId);
 			}
 			else {
@@ -625,7 +627,7 @@ namespace ecss {
 			if constexpr (ThreadSafe) {
 				decltype(mComponentsArrays) compArrays;
 				{
-					auto lock = ecss::Threads::sharedLock(componentsArrayMapMutex, ThreadSafe);
+					auto lock = std::shared_lock(componentsArrayMapMutex);
 					compArrays = mComponentsArrays;
 				}
 
@@ -660,7 +662,7 @@ namespace ecss {
 			}
 
 			if constexpr(ThreadSafe) {
-				auto lock = ecss::Threads::uniqueLock(mEntitiesMutex, ThreadSafe);
+				auto lock = std::unique_lock(mEntitiesMutex);
 				for (auto id : entities) {
 					mEntities.erase(id);
 				}
@@ -689,7 +691,7 @@ namespace ecss {
 			if constexpr (ThreadSafe) {
 				decltype(mComponentsArrays) arrays;
 				{
-					auto lock = ecss::Threads::uniqueLock(componentsArrayMapMutex, ThreadSafe);
+					auto lock = std::unique_lock(componentsArrayMapMutex);
 					arrays = mComponentsArrays;
 				}
 
@@ -820,8 +822,8 @@ namespace ecss {
 	template <bool ThreadSafe, typename Allocator, bool Ranged, typename T, typename ...CompTypes>
 	class ArraysView final {
 		using Sectors = Memory::SectorsArray<ThreadSafe, Allocator>;
-		using SectorsIt = typename Sectors::IteratorAlive;
-		using SectorsRangeIt = typename Sectors::RangedIterator;
+		using SectorsIt = Sectors::IteratorAlive;
+		using SectorsRangeIt = Sectors::RangedIterator;
 		using TypeInfo = TypeAccessInfo;
 
 		constexpr static size_t CTCount = sizeof...(CompTypes);
