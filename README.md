@@ -73,6 +73,7 @@
 | Ranged iteration | O(runs + visited) |
 
 ## Real-world numbers
+📊 **Live results:** [ecss_benchmarks dashboard](https://wagnerks.github.io/ecss_benchmarks/)
 - **100M iterations in 156 ms** on an Intel i9-14900HX (Release, C++20, clang-cl).  
 - Scales linearly with entity count and remains cache-friendly due to tight sector packing.
 
