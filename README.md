@@ -74,7 +74,36 @@
 
 ## Real-world numbers
 📊 **Live results:** [ecss_benchmarks dashboard](https://wagnerks.github.io/ecss_benchmarks/)
-- **100M iterations in 156 ms** on an Intel i9-14900HX (Release, C++20, clang-cl).  
+
+<table>
+<tr>
+<td>
+
+### System Info
+CPU cores: 27904  
+Clock: 485  
+Cache: 2556  
+Build: 4701  
+</td>
+<td>
+
+### ecss – 1M entity results
+| Test               | Time (µs) |
+|--------------------|-----------|
+| insert             | 21805     |
+| create_entities    | 781       |
+| add_int_component  | 23962     |
+| add_struct_component | 30487   |
+| grouped_insert     | 39208     |
+| has_component      | 7816      |
+| destroy_entities   | 27904     |
+| iter_single_component | 485    |
+| iter_grouped_multi | 2556      |
+| iter_separate_multi | 4701     |
+</td>
+</tr>
+</table>
+
 - Scales linearly with entity count and remains cache-friendly due to tight sector packing.
 
 ## Installation
