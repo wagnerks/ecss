@@ -1,21 +1,20 @@
-# Основные настройки
 PROJECT_NAME           = ecss
 OUTPUT_DIRECTORY       = docs
 GENERATE_HTML          = YES
 GENERATE_LATEX         = NO
 HTML_EXTRA_STYLESHEET = ./docs/doxygen-awesome.css
 USE_MDFILE_AS_MAINPAGE = README.md
+OPTIMIZE_OUTPUT_FOR_C   = NO
+OPTIMIZE_OUTPUT_FOR_CXX = YES
+SEPARATE_MEMBER_SIGNATURES = NO
 
-# Исходники
 INPUT                  = ./ecss ./README.md
 RECURSIVE              = YES
 
-# Для красивых графов
 HAVE_DOT               = YES
 DOT_GRAPH_MAX_NODES    = 200
 CALL_GRAPH             = YES
 CALLER_GRAPH           = YES
 
-# Чтобы появились файлы в GitHub Pages
 GENERATE_TREEVIEW      = TRUE
 DISABLE_INDEX          = NO
