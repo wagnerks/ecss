@@ -3,22 +3,34 @@ name: CI (build & tests)
 on:
   push:
     branches: [ "main" ]
+    paths:
+      - 'ecss/**'
+      - 'tests/**'
+      - 'CMakeLists.txt'
+      - 'Doxyfile'
+      - 'docs/**'
   pull_request:
     branches: [ "main" ]
+    paths:
+      - 'ecss/**'
+      - 'tests/**'
+      - 'CMakeLists.txt'
+      - 'Doxyfile'
+      - 'docs/**'
 
 concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
 permissions:
-    contents: read
-    pages: write
-    id-token: write
+  contents: read
+  pages: write
+  id-token: write
 
-# -----------------------
-# Linux & macOS matrix job
-# -----------------------
 jobs:
+  # -----------------------
+  # Linux & macOS matrix job
+  # -----------------------
   posix-build-and-test:
     name: ${{ matrix.os }} • ${{ matrix.build_type }} • ${{ matrix.profile }}
     runs-on: ${{ matrix.os }}
@@ -40,7 +52,18 @@ jobs:
       CCACHE_MAXSIZE: 500M
 
     steps:
+      - name: Check if sources changed
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            sources:
+              - 'ecss/**'
+              - 'tests/**'
+              - 'CMakeLists.txt'
+
       - name: Checkout repository
+        if: steps.changes.outputs.sources == 'true'
         uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -190,11 +213,22 @@ jobs:
           - { toolchain: clang-ninja,   build_type: Debug }
 
     steps:
-      - name: Checkout
+      - name: Check if sources changed
+        id: changes
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            sources:
+              - 'ecss/**'
+              - 'tests/**'
+              - 'CMakeLists.txt'
+
+      - name: Checkout repository
+        if: steps.changes.outputs.sources == 'true'
         uses: actions/checkout@v4
         with:
           submodules: recursive
-
+      
       - name: Ensure LLVM (optional)
         if: startsWith(matrix.toolchain, 'clang-')
         shell: pwsh
@@ -304,7 +338,19 @@ jobs:
     name: Generate & Deploy Docs
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main'
-
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    on:
+      push:
+        branches: [ "main" ]
+        paths:
+          - 'Doxyfile'
+          - 'docs/**'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
