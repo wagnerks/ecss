@@ -12,9 +12,7 @@ on:
       - '.github/workflows/docs.yml'
 
 permissions:
-  contents: read
-  pages: write
-  id-token: write
+  contents: write
 
 concurrency:
   group: docs-${{ github.ref }}
@@ -24,9 +22,6 @@ jobs:
   docs:
     runs-on: ubuntu-latest
     if: contains(github.event.head_commit.message, '[skip-ci]') == false
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
       - name: Install Doxygen
@@ -35,10 +30,11 @@ jobs:
           sudo apt-get install -y doxygen graphviz
       - name: Build docs
         run: doxygen Doxyfile
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+
+      - name: Deploy to gh-pages branch
+        uses: peaceiris/actions-gh-pages@v3
         with:
-          path: ./docs/html
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages   # <- именно сюда будет пуш
+          publish_dir: ./docs/html
+          force_orphan: true
