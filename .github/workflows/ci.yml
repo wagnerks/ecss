@@ -7,8 +7,6 @@ on:
       - 'ecss/**'
       - 'tests/**'
       - 'CMakeLists.txt'
-      - 'Doxyfile'
-      - 'docs/**'
       - '.github/workflows/ci.yml'
 
   pull_request:
@@ -17,8 +15,6 @@ on:
       - 'ecss/**'
       - 'tests/**'
       - 'CMakeLists.txt'
-      - 'Doxyfile'
-      - 'docs/**'
       - '.github/workflows/ci.yml'
 
 concurrency:
@@ -334,43 +330,3 @@ jobs:
           path: |
             build/Testing/Temporary/LastTest.log
             build/**/Testing/Temporary/LastTest.log
-  # -----------------------
-  # Documentation (Doxygen → GitHub Pages)
-  # -----------------------
-  docs:
-    name: Generate & Deploy Docs
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-    on:
-      push:
-        branches: [ "main" ]
-        paths:
-          - 'Doxyfile'
-          - 'docs/**'
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Doxygen
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y doxygen graphviz
-
-      - name: Build docs
-        run: doxygen Doxyfile
-
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: ./docs/html
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
