@@ -9,7 +9,7 @@ on:
       - 'CMakeLists.txt'
       - 'Doxyfile'
       - 'docs/**'
-      - '.github/workflows/ci.yml'
+      - '.github/workflows/**'
 
   pull_request:
     branches: [ "main" ]
@@ -19,7 +19,7 @@ on:
       - 'CMakeLists.txt'
       - 'Doxyfile'
       - 'docs/**'
-      - '.github/workflows/ci.yml'
+      - '.github/workflows/**'
 
 concurrency:
   group: ci-${{ github.ref }}
