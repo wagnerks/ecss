@@ -295,3 +295,33 @@ jobs:
           path: |
             build/Testing/Temporary/LastTest.log
             build/**/Testing/Temporary/LastTest.log
+  # -----------------------
+  # Documentation (Doxygen → GitHub Pages)
+  # -----------------------
+  docs:
+    name: Generate & Deploy Docs
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main'   # Только при пуше в main
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0   # важно для gh-pages
+
+      - name: Install Doxygen
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y doxygen graphviz
+
+      - name: Build docs
+        run: |
+          doxygen Doxyfile
+
+      - name: Deploy to gh-pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./docs/html
+          force_orphan: true
