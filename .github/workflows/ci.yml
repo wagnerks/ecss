@@ -51,18 +51,7 @@ jobs:
       CCACHE_MAXSIZE: 500M
 
     steps:
-      - name: Check if sources changed
-        id: changes
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            sources:
-              - 'ecss/**'
-              - 'tests/**'
-              - 'CMakeLists.txt'
-
       - name: Checkout repository
-        if: steps.changes.outputs.sources == 'true'
         uses: actions/checkout@v4
         with:
           submodules: recursive
@@ -212,18 +201,7 @@ jobs:
           - { toolchain: clang-ninja,   build_type: Debug }
 
     steps:
-      - name: Check if sources changed
-        id: changes
-        uses: dorny/paths-filter@v3
-        with:
-          filters: |
-            sources:
-              - 'ecss/**'
-              - 'tests/**'
-              - 'CMakeLists.txt'
-
       - name: Checkout repository
-        if: steps.changes.outputs.sources == 'true'
         uses: actions/checkout@v4
         with:
           submodules: recursive
