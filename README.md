@@ -1,6 +1,6 @@
 # ecss – Lightweight high‑speed C++ Entity Component System (sector / chunk based)
 
-[![CI](https://github.com/wagnerks/ecss/actions/workflows/ci.yml/badge.svg)](https://github.com/wagnerks/ecss/actions/workflows/ci.yml)
+[![CI (build & tests)](https://github.com/wagnerks/ecss/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wagnerks/ecss/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
 
@@ -73,7 +73,37 @@
 | Ranged iteration | O(runs + visited) |
 
 ## Real-world numbers
-- **100M iterations in 156 ms** on an Intel i9-14900HX (Release, C++20, clang-cl).  
+📊 **Live results:** [ecss_benchmarks dashboard](https://wagnerks.github.io/ecss_benchmarks/)
+
+<table>
+<tr>
+<td>
+
+### System Info
+CPU cores: 27904  
+Clock: 485  
+Cache: 2556  
+Build: 4701  
+</td>
+<td>
+
+### ecss – 1M entity results
+| Test               | Time (µs) |
+|--------------------|-----------|
+| insert             | 21805     |
+| create_entities    | 781       |
+| add_int_component  | 23962     |
+| add_struct_component | 30487   |
+| grouped_insert     | 39208     |
+| has_component      | 7816      |
+| destroy_entities   | 27904     |
+| iter_single_component | 485    |
+| iter_grouped_multi | 2556      |
+| iter_separate_multi | 4701     |
+</td>
+</tr>
+</table>
+
 - Scales linearly with entity count and remains cache-friendly due to tight sector packing.
 
 ## Installation
