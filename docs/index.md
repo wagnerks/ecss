@@ -1,10 +1,10 @@
-# ecss — Lightweight high‑speed C++ Entity Component System
+# ECSS — Lightweight high‑speed C++ Entity Component System
 
 <p align="center">
-  <img src="logo.svg" alt="ecss logo" width="150" style="vertical-align: middle;"/>
+  <img src="logo.svg" alt="ECSS logo" width="150" style="vertical-align: middle;"/>
 </p>
 
-`ecss` is a minimal, performance‑oriented ECS for modern C++ that groups one or more component types for an entity into a single fixed layout memory block called a *sector*. Layouts are deterministic, iteration is cache‑friendly, structural mutation can be made thread‑safe, and the core stays small (a handful of headers, no codegen, no heavy RTTI).
+`ECSS` is a minimal, performance‑oriented ECS for modern C++ that groups one or more component types for an entity into a single fixed layout memory block called a *sector*. Layouts are deterministic, iteration is cache‑friendly, structural mutation can be made thread‑safe, and the core stays small (a handful of headers, no codegen, no heavy RTTI).
 
 ---
 
@@ -69,7 +69,7 @@ See: [Getting Started](getting_started.md)
 ---
 
 ## When To Use It
-Choose `ecss` if you want:
+Choose `ECSS` if you want:
 - Manual control over which components are co‑located
 - High iteration speed on hot component sets
 - Predictable memory & defrag you can reason about

@@ -1,6 +1,6 @@
-# ❓ FAQ
+# FAQ
 
-### Q: What is the core idea behind ecss?
+### Q: What is the core idea behind ECSS?
 A: A minimal sector (chunk) based ECS: each entity's grouped components live contiguously in a fixed layout "sector" to maximize cache locality and keep iteration branch‑lean, while leaving unrelated components in their own arrays.
 
 ---
@@ -65,7 +65,7 @@ A: One sector header (id + liveness mask) plus tightly packed component payloads
 
 ---
 
-### Q: Does ecss support multiple worlds?
+### Q: Does ECSS support multiple worlds?
 A: Yes—each `Registry` instance is independent with its own type id mapping and component arrays.
 
 ---
@@ -101,7 +101,7 @@ A: Actively evolving; core layout & iteration model are stable, APIs intentional
 ---
 
 ### Q: Where can I see more real usage?
-A: Browse the test suite in this repository and my pet project using ecss: https://github.com/wagnerks/StelForge . Both contain practical integration patterns.
+A: Browse the test suite in this repository and my pet project using ECSS: https://github.com/wagnerks/StelForge . Both contain practical integration patterns.
 
 ---
 
