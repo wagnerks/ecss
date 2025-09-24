@@ -1,6 +1,6 @@
-# 🏛 Architecture Overview
+# Architecture Overview
 
-`ecss` centers on a minimal set of cooperating header‑only primitives that implement a sector (chunk) based ECS with deterministic layout, optional component grouping, and explicit maintenance (update / defrag). This document drills into the main subsystems and their interaction.
+`ECSS` centers on a minimal set of cooperating header‑only primitives that implement a sector (chunk) based ECS with deterministic layout, optional component grouping, and explicit maintenance (update / defrag). This document drills into the main subsystems and their interaction.
 
 ---
 
@@ -101,7 +101,7 @@ No global registry; each `Registry` instance owns its own mapping, enabling mult
 ---
 
 ## 10. Differences vs Traditional Archetype ECS
-| Traditional Archetypes | `ecss` Approach |
+| Traditional Archetypes | `ECSS` Approach |
 |------------------------|-----------------|
 | Entity moves between full archetype tables when composition changes | Only grouped sets share storage; adding unrelated component just touches its own array |
 | Potential explosion of archetype combinations | Explicit opt‑in grouping keeps combination count controlled |
@@ -158,7 +158,7 @@ No variant visitation, no dynamic dispatch; only mask test + pointer arithmetic 
 ---
 
 ## 16. Summary
-`ecss` trades universal automatic archetype re‑composition for explicit, controllable grouping and deterministic low‑overhead memory management. The architecture emphasizes:
+`ECSS` trades universal automatic archetype re‑composition for explicit, controllable grouping and deterministic low‑overhead memory management. The architecture emphasizes:
 - Small surface area
 - Predictable cache behavior
 - Optional concurrency

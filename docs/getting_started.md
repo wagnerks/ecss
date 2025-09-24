@@ -1,6 +1,6 @@
-# 🚀 Getting Started with ecss
+# Getting Started with ECSS
 
-Welcome to **ecss** — a high-performance Entity Component System (ECS) for C++20.  
+Welcome to **ECSS** — a high-performance Entity Component System (ECS) for C++20.  
 This guide will help you install, set up, and run your first example in minutes.
 
 ---
