@@ -3,216 +3,171 @@
 [![CI (build & tests)](https://github.com/wagnerks/ecss/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wagnerks/ecss/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
+[![docs](https://img.shields.io/badge/docs-Doxygen-blue.svg)](https://wagnerks.github.io/ecss/)  
+`ecss` is a minimal, performance‑oriented ECS. One (or several explicitly grouped) component types for an entity are stored contiguously inside a fixed layout memory block called a **sector**:
+```
+[SectorHeader(id|mask) | CompA | CompB | ...]
+```
+Sectors live inside chunked storage that grows by powers of two. Offsets are computed at compile time (no RTTI / string hashing in hot loops) and the core stays small (a few headers, no code generation, no macro DSL).
 
-`ecss` is a minimal, performance‑oriented ECS that groups one or more component types for an entity into a single fixed layout memory block called a *sector*.  Storage is chunked, trivially indexable, and optionally thread‑safe.  All core logic lives in a handful of header files – no code generation, no heavy RTTI, no macro DSL.
+## 🔑 Core Characteristics
+- Sector (chunk) storage: tightly packed, deterministic offsets, low fragmentation
+- Explicit grouping: opt‑in only (avoid archetype explosion); unrelated types live in their own arrays
+- O(1) id → sector* lookup (direct pointer map, lock‑free snapshot view in TS build)
+- Optional thread safety: `Registry<true>` adds shared/unique locks + per‑sector pin counters
+- Deferred erase + opportunistic / explicit defragmentation (alive runs compacted left)
+- Dense reflection: lightweight type id per registry (no global state)
+- Header‑only style integration, no external deps (C++20/23 stdlib only)
 
-## Goals
-- Lightweight: single header modules, no external dependencies beyond the STL / `<atomic>` / `<thread>`.
-- High speed: branch‑lean inner loops, cache friendly tightly packed sectors, O(1) id → sector* lookup.
-- Deterministic layouts: compile‑time offset computation (`Types.h` + `SectorLayoutMeta.h`).
-- Optional concurrency: per‑container shared/unique locking + fine grained pin counters (no global world lock).
-- Low fragmentation: chunk allocator + opportunistic / explicit defragmentation.
-- Safe structural mutation under readers: relocation waits on per‑sector pins (`PinCounters.h`).
+## 🧠 Design Principles
+- Branch‑lean inner loops (mask test + pointer arithmetic only)
+- No virtual dispatch in hot iteration
+- Deterministic layout => stable perf tuning / profiling
+- Costs are per `SectorsArray`, never across whole registry
+- Favor trivial POD components (enables raw `memmove` for insertion / defrag)
 
-## Core building blocks
-| File | Responsibility (summary) |
-|------|--------------------------|
-| `Types.h` | Fundamental typedefs (`SectorId`, `ECSType`), compile‑time uniqueness checks & offset helper. |
-| `SectorLayoutMeta.h` | Per grouped component layout metadata (offsets, masks, function tables). |
-| `Sector.h` | Trivial POD header (id + liveness bitfield) + type‑erased member construct / move / destroy helpers. |
-| `ChunksAllocator.h` | Chunked, power‑of‑two capacity growth, stable intra‑chunk addresses, cursor & ranged cursors. |
-| `RetireAllocator.h` | Deferred buffer reclamation (ABA avoidance for lock‑free read snapshots of pointer maps). |
-| `SectorsArray.h` | Sparse (id→ptr) + dense (linear) sector container: insert/emplace, erase, async erase, defrag, iterators. |
-| `PinCounters.h` | Hierarchical bit mask + per‑sector ref counts; waits & opportunistic movement checks. |
-| `Ranges.h` | Compact half‑open range set (merge, search, take, insert, erase) for entity id management & ranged views. |
-| `Reflection.h` | Per‑registry light type id assignment (dense `ECSType` values). |
-| `Registry.h` | High‑level orchestration: entities, component arrays, views, bulk ops, maintenance. |
-
-## Memory model
+## 🧱 Memory Model (Conceptual)
 ```
 [Chunk]
-  ├─ sector 0: [Sector header | CompA | CompB | ...]
-  ├─ sector 1: [Sector header | CompA | CompB | ...]
-  └─ ... up to chunk capacity (power‑of‑two)
+  ├─ sector N   : [Hdr | CompA | CompB]
+  ├─ sector N+1 : [Hdr | CompA | CompB]
+  └─ ... (power‑of‑two growth)
 ```
-- Sector header (id + 32‑bit liveness mask) precedes packed component payloads.
-- Offsets resolved at compile time (no per‑entity indirection table).
-- Grouping multiple components into the same sector eliminates pointer chasing for hot sets.
+- Header: id + 32‑bit liveness bit mask (≤ 32 grouped types)
+- Group only hot, co‑accessed sets (e.g. Position + Velocity)
+- Random middle insert shifts are local to one array; trivial components => fast `memmove`
 
-## Threading model (when `ThreadSafe == true`)
-- Read access: shared lock on a `SectorsArray` (cheap, short duration).
-- Structural write (insert / erase / defrag): unique lock + waits on `PinCounters` for impacted ids.
-- Lock‑free lookup path: atomic snapshot (`SectorsMap` view) for id→sector* reads (no iteration guarantees).
-- Memory reclamation: retired pointer maps freed only when no readers remain (`RetireBin`).
+## 🧵 Threading (when `Registry<true>`)
+| Operation | Mechanism |
+|-----------|-----------|
+| Read / iterate | Shared lock (short) + optional pin
+| Insert / erase / defrag | Unique lock + wait on pins for affected ids
+| Id → sector lookup | Atomic snapshot pointer map (lock‑free read)
+| Reclamation | Retire old maps after last reader (deferred)
 
-## Pin counters & safety
-- `pinSector()` increments per‑sector ref count; destruction / relocation waits for counters to reach zero.
-- Opportunistic defragmentation early‑outs if any pin is active (constant time aggregate check).
-- Precise waiting (`waitUntilChangeable(id)`) for targeted sector range or full array.
+Pins block relocation only for sectors in use; opportunistic defrag aborts instantly if any active pin conflicts.
 
-## Iteration forms
-- Linear (all sectors): `for (auto s : *array)`.
-- Alive filtered: `beginAlive<T>()` – skips sectors where `T` dead.
-- Ranged (sparse index windows): `beginRanged(ranges)`.
-- Views (`Registry::view<Main, Others...>()`): alive sectors of `Main` + fast projection of grouped or foreign components.
+## 🧹 Defragmentation
+1. Erase marks liveness bits dead and increments per‑array fragmentation counter
+2. Heuristic: `(dead / size) > threshold` → compaction candidate
+3. Compaction moves alive runs left; updates id→ptr map only for moved sectors (O(moved))
+4. Trivial sectors copy via raw bytes; non‑trivial invoke move/dtor from layout function table
+5. Optional manual trigger per array or global `registry.defragment()`
 
-## Defragmentation
-- Deferred erase marks holes and increments a fragmentation counter.
-- Ratio heuristic (`defragmentationSize / size > threshold`) triggers compaction.
-- Compaction moves only alive runs left; updates id→ptr map in O(moved) time.
-- Opportunistic variant aborts if any alive pinned sector detected.
+## 🔍 Iteration Forms
+- Linear: `for (auto s : *array)` (may include dead bits)
+- Alive filtered: `beginAlive<T>()`
+- Ranged: `beginRanged(ranges)` on sparse id windows
+- Views: `reg.view<Main, Others...>()` (alive Main + projected grouped / foreign components)
+- Ranged View: `reg.view<Main, ...>(Ranges)`
 
-## Performance characteristics (representative intent)
-| Operation | Cost (amortized / typical) |
-|-----------|----------------------------|
-| Id→sector* lookup | O(1) (direct index) |
-| Insert (append id) | O(1) |
-| Insert (middle id) | O(N) worst (shift) but rare if ids monotonic |
-| Pin / Unpin | O(1) (atomic + optional hierarchy update) |
-| Defragment scan | O(S) where S = sectors (skips trivial sectors fast) |
-| Ranged iteration | O(runs + visited) |
+## ✅ Why Not Full Archetypes?
+Traditional archetypes relocate entities whenever composition changes & explode with many combos. `ecss` lets you group *only* where locality wins; adding an unrelated component touches only its dedicated array (no reshuffle of existing grouped data).
 
-## Real-world numbers
-📊 **Live results:** [ecss_benchmarks dashboard](https://wagnerks.github.io/ecss_benchmarks/)
+## ⚡ Representative Costs (intent)
+| Operation | Cost |
+|-----------|------|
+| Id → sector* | O(1)
+| Append insert | Amortized O(1)
+| Random insert (trivial types) | O(shift) raw `memmove` (local array only)
+| Defrag scan | O(sectors) early‑out per dead run
+| View iteration | O(alive visited) (mask + projections)
 
-<table>
-<tr>
-<td>
+## 🚀 Quick Start
+```cpp
+#include <ecss/Registry.h>
+struct Position { float x,y; }; struct Velocity { float dx,dy; };
+using Reg = ecss::Registry<true>; // thread-safe
+int main(){
+    Reg reg; auto e = reg.takeEntity();
+    reg.addComponent<Position>(e, {0,0});
+    reg.addComponent<Velocity>(e, {1,0});
+    reg.registerArray<Position, Velocity>(); // optional grouping (do before mass add ideally)
+    for (auto [id, p, v] : reg.view<Position, Velocity>()) {
+        if (p && v) p->x += v->dx;
+    }
+    reg.update(); // process deferred erases & maybe defrag
+}
+```
 
-### System Info
-CPU cores: 27904  
-Clock: 485  
-Cache: 2556  
-Build: 4701  
-</td>
-<td>
+### Deferred Erase & Maintenance
+```cpp
+reg.destroyEntity(e);  // marks dead; memory reclaimed later
+reg.update();          // drains + optional compaction
+```
 
-### ecss – 1M entity results
-| Test               | Time (µs) |
-|--------------------|-----------|
-| insert             | 21805     |
-| create_entities    | 781       |
-| add_int_component  | 23962     |
-| add_struct_component | 30487   |
-| grouped_insert     | 39208     |
-| has_component      | 7816      |
-| destroy_entities   | 27904     |
-| iter_single_component | 485    |
-| iter_grouped_multi | 2556      |
-| iter_separate_multi | 4701     |
-</td>
-</tr>
-</table>
+### Ranged View
+```cpp
+ecss::Ranges<ecss::EntityId> slice({ {100,200}, {400,450} });
+for (auto [id, p] : reg.view<Position>(slice)) { /* ... */ }
+```
 
-- Scales linearly with entity count and remains cache-friendly due to tight sector packing.
+### Per-Type Defrag Threshold
+```cpp
+reg.setDefragmentThreshold<Position>(0.15f); // 15% dead triggers
+```
 
-## Installation
-
-- **Requirements**: C++20 compiler (tested with MSVC 19.44 / clang 21 / GCC 14).  
-- **Dependencies**: none (only standard C++ library).  
-
-### Using CMake (FetchContent)
+## 🛠 Installation
+CMake (FetchContent):
 ```cmake
 include(FetchContent)
 FetchContent_Declare(
   ecss
   GIT_REPOSITORY https://github.com/wagnerks/ecss.git
-  GIT_TAG v0.1.0 # use the latest release
+  GIT_TAG v0.1.0 # or latest release
 )
 FetchContent_MakeAvailable(ecss)
 
 target_link_libraries(my_app PRIVATE ecss)
 ```
-### As a Git submodule
+Submodule:
 ```bash
-git submodule add https://github.com/wagnerks/ecss.git external/ecss
+git submodule add https://github.com/wagnerks/ecss external/ecss
 ```
-Then add to your CMakeLists.txt:
-
 ```cmake
 add_subdirectory(external/ecss)
 target_link_libraries(my_app PRIVATE ecss)
 ```
+Manual: copy headers & `target_include_directories()`.
 
-### Manual include
-Just copy the ecss/ headers into your project and add the folder to your include path:
+## 🧪 Benchmarks
+Live dashboard: https://wagnerks.github.io/ecss_benchmarks  (compares iteration & structural ops against other ECS libraries under large entity counts).
 
-```cmake
-target_include_directories(my_app PRIVATE path/to/ecss)
-```
+## 🔧 Tips
+- Keep grouped sets small & hot (avoid cold heavy data in same sector)
+- Make components trivially movable when possible
+- Call `update()` once per frame (TS build)
+- Use ranged views for sparse workloads to reduce cache waste
+- Tune per‑array defrag thresholds rather than forcing global compaction
 
-## Quick start
+## 🆚 Compared To entt / flecs (conceptual)
+| Aspect | ecss |
+|--------|------|
+| Grouping | Explicit, opt‑in micro groups (sectors) |
+| Moves on add/remove | Only arrays of affected types |
+| Hot iteration | Straight line, no variant dispatch |
+| Random insert | Local to one array; trivial => memmove |
+| Thread safety | Shared/unique + per‑sector pins |
+| Reflection | Dense ids per registry (no RTTI) |
 
-```cpp
-#include <ecss/Registry.h>
+## 📁 Key Files
+| File | Purpose |
+|------|---------|
+| `Sector.h` | Trivial sector header + type‑erased member ops |
+| `SectorLayoutMeta.h` | Compile‑time layout (offsets, masks, function table) |
+| `SectorsArray.h` | Sparse+linear container (insert/erase/defrag/iterators) |
+| `PinCounters.h` | Per‑sector pin tracking & wait primitives |
+| `Registry.h` | Entities, views, maintenance, grouping API |
+| `Ranges.h` | Half‑open range set for id windows |
 
-struct Transform { float x,y,z; };
-struct Velocity  { float vx,vy,vz; };
+## 📚 Documentation
+- Overview / Architecture: `docs/architecture.md`
+- Examples: `docs/examples.md` (more patterns; also see tests + https://github.com/wagnerks/StelForge )
+- FAQ: `docs/faq.md`
+- API Reference: `docs/api_reference.md`
 
-using Reg = ecss::Registry<true>; // thread-safe
-
-int main(){
-    Reg reg;
-    auto e = reg.takeEntity();
-    reg.addComponent<Transform>(e, {0,0,0});
-    reg.addComponent<Velocity >(e, {1,0,0});
-
-    for (auto [id, t, v] : reg.view<Transform, Velocity>()) {
-        if (t && v) { t->x += v->vx; }
-    }
-
-    reg.update(); // process deferred erases / optional defrag
-}
-```
-
-## Grouped sectors
-```cpp
-reg.registerArray<Transform, Velocity>(); // same sector, single liveness mask update
-```
-Grouping hot components improves spatial locality – both pointers computed from one base address.
-
-## Deferred erase & maintenance
-```cpp
-reg.destroyEntity(e);      // marks sector members dead
-reg.update();              // later: processes queued erasures + compaction heuristic
-```
-
-## Ranged view
-```cpp
-ecss::Ranges<ecss::EntityId> subset({ {100, 200}, {400, 450} });
-for (auto [id, t] : reg.view<Transform>(subset)) { /* ... */ }
-```
-
-## Why not archetypes?
-Sectors act like a fixed micro‑archetype of explicitly grouped types – no dynamic hash / relocation when an entity gains a new unrelated component; simply place that component in its own (possibly separate) `SectorsArray`.  You opt into grouping only where it wins.
-
-## Reflection & type ids
-`ReflectionHelper` assigns a dense `ECSType` per component type in a registry instance. Used for array mapping without RTTI or string hashing.
-
-## Lightweight design choices
-- No virtual dispatch in hot loops.
-- Trivial `Sector` enables raw `memmove` for defrag when all members trivial.
-- Per file responsibilities are sharply delimited (see table above).
-- All algorithms favor straight‑line predictable code paths.
-
-## When to defragment
-Call `update()` each frame (TS build) – internal heuristic decides; or force manually:
-```cpp
-for (auto* arr : /* your stored arrays */) arr->defragment();
-```
-Tune per type:
-```cpp
-reg.setDefragmentThreshold<Transform>(0.15f);
-```
-
-## Error handling philosophy
-Assertions catch misuse in debug (invalid ids, duplicate grouping, layout mismatches). Release builds assume validated usage for speed.
-
-## Integration
-Add as a submodule or vendor the headers; include path root at `ecss/`. Only C++20 standard library required.
-
-## License
+## ⚖️ License
 MIT – see `LICENSE`.
 
-## Status
-Actively evolving; API is intentionally small & stable.  Feedback and performance traces are welcome.
+## 📌 Status
+Active. Core layout & iteration model stable; expect additive utilities (instrumentation, bulk helpers) without heavy churn. Feedback & performance traces welcome.
