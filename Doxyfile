@@ -993,10 +993,12 @@ WARN_LOGFILE           =
 
 INPUT                  = ecss \
                         ./docs/index.md \
+                        ./docs/getting_started.md \
                         ./docs/examples.md \
-                        ./docs/faq.md \
                         ./docs/architecture.md \
-                        ./docs/getting_started.md 
+                        ./docs/faq.md
+                       
+                        
 
 # This tag can be used to specify the character encoding of the source files
 # that Doxygen parses. Internally Doxygen uses the UTF-8 encoding. Doxygen uses
