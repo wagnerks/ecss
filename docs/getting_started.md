@@ -69,4 +69,3 @@ int main() {
 ## ⚡ Next Steps
 - [Architecture Overview](architecture.md) — learn how the sector-based layout works  
 - [Examples](examples.md) — practical use cases and patterns  
----

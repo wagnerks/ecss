@@ -13,7 +13,7 @@
 - **PinCounters**: Lightweight safety gate for relocation / destruction while readers observe sectors.
 - **RetireAllocator / RetireBin**: Deferred reclamation of replaced pointer maps to avoid ABA / use‑after‑free in lock‑free read paths.
 
-> Note: Costs (insert / erase / defrag) are always scoped per `SectorsArray`, never across the entire registry. A random insertion only shifts within the affected array.
+> Note: Costs (insert / erase / defrag) are always scoped per `SectorsArray`, never across the entire registry. A random insertion only shifts within the affected array.  
 
 ---
 
