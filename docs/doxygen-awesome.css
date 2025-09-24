@@ -1156,9 +1156,7 @@ blockquote::before {
 }
 
 blockquote::after {
-    content: "”";
-    right: -8px;
-    bottom: -25px;
+  content: none !important;
 }
 
 blockquote p {
