@@ -2,7 +2,7 @@
 
 Practical patterns for using **ecss**. Each snippet is self‑contained and focuses on one aspect of the API.
 
-> More real‑world usage: explore the test suite in this repository (covers edge cases, iteration modes, defrag, threading) and my pet engine using ecss: https://github.com/wagnerks/StelForge
+> More real‑world usage: explore the test suite in this repository (covers edge cases, iteration modes, defrag, threading) and my pet engine using ecss: https://github.com/wagnerks/StelForge  
 
 ---
 
