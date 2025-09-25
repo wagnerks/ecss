@@ -1,0 +1,41 @@
+.benchmarks-frame {
+  width:100%; 
+  height:900px; 
+  border:0; 
+  border-radius:12px; 
+  overflow:hidden; 
+  padding: 4px; 
+
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35);
+}
+
+[data-md-color-scheme="default"] {
+  --md-primary-fg-color:        #1976d2; 
+  --md-primary-fg-color--light: #63a4ff;
+  --md-primary-fg-color--dark:  #004ba0;
+
+  --md-default-bg-color:        #e4e4e4;
+  --md-header-bg-color:         #f5f5f5;
+    
+  --md-code-bg-color:           #f5f5f5;
+  --md-code-fg-color:           #24292e;
+}
+
+[data-md-color-scheme="slate"] {
+  --md-primary-fg-color:        #36394d;
+  --md-primary-fg-color--light: #5b67a9;
+  --md-primary-fg-color--dark:  #575757;
+
+  --md-default-bg-color:        #2b2a2a;
+  --md-header-bg-color:         #a09595;
+
+  --md-code-bg-color:           #3c3c3c;
+  --md-code-fg-color:           #ffffff;
+
+  --md-typeset-a-color:         #9996d7;
+
+  --md-typeset-a-color--visited:#9e9e9e;
+
+  --md-accent-fg-color:         #448aff;
+}
+

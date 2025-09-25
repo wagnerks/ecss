@@ -1,7 +1,12 @@
+---
+hide:
+  - navigation
+---
+
 # ECSS — Lightweight high‑speed C++ Entity Component System
 
 <p align="center">
-  <img src="logo.svg" alt="ECSS logo" width="150" style="vertical-align: middle;"/>
+  <img src="img/logo.svg" alt="ECSS logo" width="150" style="vertical-align: middle;"/>
 </p>
 
 `ECSS` is a minimal, performance‑oriented ECS for modern C++ that groups one or more component types for an entity into a single fixed layout memory block called a *sector*. Layouts are deterministic, iteration is cache‑friendly, structural mutation can be made thread‑safe, and the core stays small (a handful of headers, no codegen, no heavy RTTI).
@@ -78,11 +83,12 @@ Choose `ECSS` if you want:
 ---
 
 ## Links & Further Docs
-- Architecture: [architecture.md](architecture.md)
-- Examples: [examples.md](examples.md)
-- Benchmarks: https://wagnerks.github.io/ecss_benchmarks
-- FAQ: [faq.md](faq.md)
-- Repository: https://github.com/wagnerks/ecss
+- [Architecture](architecture.md)
+- [Examples](examples.md)
+- [Benchmarks](https://wagnerks.github.io/ecss_benchmarks)
+- [FAQ](faq.md)
+- [API Reference](ecss/annotated.md)
+- [Repository](https://github.com/wagnerks/ecss)
 
 ---
 

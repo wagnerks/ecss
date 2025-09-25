@@ -1,0 +1,97 @@
+site_name: ECSS Documentation
+site_url: https://wagnerks.github.io/ecss/
+repo_name: wagnerks/ecss
+repo_url: https://github.com/wagnerks/ecss
+
+theme:
+  icon:
+    repo: fontawesome/brands/github
+  name: material
+  language: en
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: custom
+      accent: grey
+      toggle:
+        icon: material/lightbulb
+        name: Switch to light mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: custom
+      accent: grey
+      toggle:
+        icon: material/lightbulb-outline
+        name: Switch to dark mode
+
+  logo: img/logo.svg
+  favicon: img/logo.svg
+  features:
+    - navigation.tabs
+    - content.code.copy
+    - content.code.annotate
+    - header.autohide
+    - header.social
+
+nav:
+  - Home: index.md
+  - Getting Started: getting_started.md
+  - Architecture Overview: architecture.md
+  - Examples: examples.md
+  - Benchmarks: benchmarks.md
+  - FAQ: faq.md
+  - API Reference: ecss/
+  
+
+extra_css:
+  - stylesheets/extra.css
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/wagnerks/ecss
+      name: ECSS GitHub Repository
+    - icon: fontawesome/brands/github
+      link: https://github.com/wagnerks
+      name: Me
+
+markdown_extensions:
+  - admonition
+  - codehilite
+  - footnotes
+  - tables
+  - toc:
+      permalink: trueW
+
+plugins:
+  - search
+  - mkdoxy:
+      projects:
+        ecss:
+          src-dirs: ../ecss
+          full-doc: True
+          doxy-cfg:
+            FILE_PATTERNS: "*.h*"
+            RECURSIVE: True
+            GENERATE_TREEVIEW: YES
+            FULL_PATH_NAMES: NO
+            EXTRACT_ALL: NO
+            HIDE_UNDOC_MEMBERS: YES
+            HIDE_UNDOC_CLASSES: YES
+            HIDE_UNDOC_RELATIONS: YES
+            HIDE_FRIEND_COMPOUNDS: YES
+
+            SORT_BRIEF_DOCS: YES
+            SORT_BY_SCOPE_NAME: YES
+            INLINE_INHERITED_MEMB: YES
+            REFERENCED_BY_RELATION: YES
+            REFERENCES_RELATION: YES
+            SHOW_FILES: NO
+            SHOW_MODULES: NO
+            EXCLUDE_SYMBOLS: Dummy *::Dummy
+
+  - gen-files:
+      scripts:
+        - docs/.mkdocs-gen/generate_api_nav.py
+  - literate-nav
+  - section-index

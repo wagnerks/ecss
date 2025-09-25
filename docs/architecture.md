@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+---
+
 # Architecture Overview
 
 `ECSS` centers on a minimal set of cooperating header‑only primitives that implement a sector (chunk) based ECS with deterministic layout, optional component grouping, and explicit maintenance (update / defrag). This document drills into the main subsystems and their interaction.

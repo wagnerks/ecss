@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+---
+
 # Examples
 
 Practical patterns for using **ECSS**. Each snippet is self‑contained and focuses on one aspect of the API.

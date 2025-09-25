@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+---
+
 # FAQ
 
 ### Q: What is the core idea behind ECSS?

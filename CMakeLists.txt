@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.24)
 project(ecss LANGUAGES CXX)
 
-option(ECSS_BUILD_STATIC "Build ecss as a static library (developer mode)" TRUE)
+option(ECSS_BUILD_STATIC "Build ecss as a static library (developer mode)" FALSE)
 
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -51,6 +51,7 @@ include(CTest) # adds option BUILD_TESTING (ON by default)
 option(ECSS_BUILD_TESTS "Build unit tests" ${BUILD_TESTING})
 
 if(ECSS_BUILD_TESTS)
+    message(STATUS "ecss: with unit tests")
     include(FetchContent)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)

@@ -1,3 +1,8 @@
+---
+hide:
+  - navigation
+---
+
 # Getting Started with ECSS
 
 Welcome to **ECSS** — a high-performance Entity Component System (ECS) for C++20.  
