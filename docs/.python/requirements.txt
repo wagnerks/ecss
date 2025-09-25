@@ -1,8 +1,8 @@
-mkdocs=1.5
-mkdocs-material=9.5
-mkdocs-gen-files=0.5
-mkdocs-literate-nav=0.6
-mkdocs-awesome-pages-plugin=2.9
-mkdocs-section-index=0.3
-mkdocs-minify-plugin=0.7
-mkdoxy=0.2.7
+mkdocs
+mkdocs-material
+mkdocs-gen-files
+mkdocs-literate-nav
+mkdocs-awesome-pages-plugin
+mkdocs-section-index
+mkdocs-minify-plugin
+mkdoxy
