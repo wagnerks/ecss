@@ -71,6 +71,7 @@ plugins:
           src-dirs: ../ecss
           full-doc: True
           doxy-cfg:
+            INPUT: ./ecss
             FILE_PATTERNS: "*.h*"
             RECURSIVE: True
             GENERATE_TREEVIEW: YES
@@ -88,7 +89,7 @@ plugins:
             REFERENCES_RELATION: YES
             SHOW_FILES: NO
             SHOW_MODULES: NO
-            EXCLUDE_SYMBOLS: Dummy *::Dummy
+            EXCLUDE_SYMBOLS: Test Afterdoc_Test Fn_Test Enum_Test A B C D E Dummy *::Dummy
 
   - gen-files:
       scripts:
