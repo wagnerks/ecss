@@ -1,0 +1,344 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Ranges" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Ranges</compoundname>
+    <templateparamlist>
+      <param>
+        <type>typename Type</type>
+        <defval>uint32_t</defval>
+      </param>
+    </templateparamlist>
+    <sectiondef kind="public-type">
+      <memberdef kind="typedef" id="structecss_1_1Ranges_1acf5d8ba49720409e91f9419af722cdf1" prot="public" static="no">
+        <type>std::pair&lt; Type, Type &gt;</type>
+        <definition>using ecss::Ranges&lt; Type &gt;::Range =  std::pair&lt;Type, Type&gt;</definition>
+        <argsstring></argsstring>
+        <name>Range</name>
+        <qualifiedname>ecss::Ranges::Range</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="12" column="1" bodyfile="ecss/Ranges.h" bodystart="12" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Ranges_1a4ccbc000830283ad16a6892e5d80f4ff" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; Range &gt;</type>
+        <definition>std::vector&lt;Range&gt; ecss::Ranges&lt; Type &gt;::ranges</definition>
+        <argsstring></argsstring>
+        <name>ranges</name>
+        <qualifiedname>ecss::Ranges::ranges</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="14" column="13" bodyfile="ecss/Ranges.h" bodystart="14" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1Ranges_1ac0717b084588661ca9f70151e3b1d047" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE const Range &amp;</type>
+        <definition>FORCE_INLINE const Range &amp; ecss::Ranges&lt; Type &gt;::back</definition>
+        <argsstring>() const</argsstring>
+        <name>back</name>
+        <qualifiedname>ecss::Ranges::back</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="189" column="26" bodyfile="ecss/Ranges.h" bodystart="189" bodyend="189"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1ade445aec9ed4ecfe8e69ee679acc6558" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Ranges&lt; Type &gt;::clear</definition>
+        <argsstring>()</argsstring>
+        <name>clear</name>
+        <qualifiedname>ecss::Ranges::clear</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="186" column="19" bodyfile="ecss/Ranges.h" bodystart="186" bodyend="186"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1ae8f13a869c894882a6b5547b3582085c" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Ranges&lt; Type &gt;::contains</definition>
+        <argsstring>(Type value) const</argsstring>
+        <name>contains</name>
+        <qualifiedname>ecss::Ranges::contains</qualifiedname>
+        <param>
+          <type>Type</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="192" column="19" bodyfile="ecss/Ranges.h" bodystart="192" bodyend="192"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1abbc77897c06ab2c1caa3e62c71d69809" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Ranges&lt; Type &gt;::empty</definition>
+        <argsstring>() const</argsstring>
+        <name>empty</name>
+        <qualifiedname>ecss::Ranges::empty</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="191" column="19" bodyfile="ecss/Ranges.h" bodystart="191" bodyend="191"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1ada6dc4ad5bb241b8ae858ea3672c37a7" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Ranges&lt; Type &gt;::erase</definition>
+        <argsstring>(EntityId id)</argsstring>
+        <name>erase</name>
+        <qualifiedname>ecss::Ranges::erase</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="127" column="6" bodyfile="ecss/Ranges.h" bodystart="127" bodyend="151"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1a93b1e017fddef912246176bae550020b" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE const Range &amp;</type>
+        <definition>FORCE_INLINE const Range &amp; ecss::Ranges&lt; Type &gt;::front</definition>
+        <argsstring>() const</argsstring>
+        <name>front</name>
+        <qualifiedname>ecss::Ranges::front</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="188" column="26" bodyfile="ecss/Ranges.h" bodystart="188" bodyend="188"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1a103c05c13fde8b2ef0dd8331c4ad635d" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::vector&lt; Type &gt;</type>
+        <definition>std::vector&lt; Type &gt; ecss::Ranges&lt; Type &gt;::getAll</definition>
+        <argsstring>() const</argsstring>
+        <name>getAll</name>
+        <qualifiedname>ecss::Ranges::getAll</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="194" column="13" bodyfile="ecss/Ranges.h" bodystart="194" bodyend="209"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1a11df0fee42bb3b6bfad4f9ccaae40224" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Ranges&lt; Type &gt;::insert</definition>
+        <argsstring>(EntityId id)</argsstring>
+        <name>insert</name>
+        <qualifiedname>ecss::Ranges::insert</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="83" column="6" bodyfile="ecss/Ranges.h" bodystart="83" bodyend="125"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1a9f3f7b81a09114d1c90389ba3061256c" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Ranges&lt; Type &gt;::mergeIntersections</definition>
+        <argsstring>()</argsstring>
+        <name>mergeIntersections</name>
+        <qualifiedname>ecss::Ranges::mergeIntersections</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="48" column="19" bodyfile="ecss/Ranges.h" bodystart="48" bodyend="64"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1aa2319c72aeeb9142e4d8f87230902fe8" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Ranges&lt; Type &gt;::pop_back</definition>
+        <argsstring>()</argsstring>
+        <name>pop_back</name>
+        <qualifiedname>ecss::Ranges::pop_back</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="190" column="19" bodyfile="ecss/Ranges.h" bodystart="190" bodyend="190"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1a3a7e9d24717171eb026152e38b8195ee" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Ranges&lt; Type &gt;::Ranges</definition>
+        <argsstring>()=default</argsstring>
+        <name>Ranges</name>
+        <qualifiedname>ecss::Ranges::Ranges</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="16" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1ab6d789399d28ccab443e01835ba58ea9" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Ranges&lt; Type &gt;::Ranges</definition>
+        <argsstring>(const Range &amp;range)</argsstring>
+        <name>Ranges</name>
+        <qualifiedname>ecss::Ranges::Ranges</qualifiedname>
+        <param>
+          <type>const Range &amp;</type>
+          <declname>range</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="46" column="1" bodyfile="ecss/Ranges.h" bodystart="46" bodyend="46"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1a4240e432b5cef5377f2f105535942d56" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Ranges&lt; Type &gt;::Ranges</definition>
+        <argsstring>(const std::vector&lt; Range &gt; &amp;range)</argsstring>
+        <name>Ranges</name>
+        <qualifiedname>ecss::Ranges::Ranges</qualifiedname>
+        <param>
+          <type>const std::vector&lt; Range &gt; &amp;</type>
+          <declname>range</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="41" column="1" bodyfile="ecss/Ranges.h" bodystart="41" bodyend="44"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1a386f31388c239fb389b38d062967a9aa" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Ranges&lt; Type &gt;::Ranges</definition>
+        <argsstring>(const std::vector&lt; Type &gt; &amp;sortedRanges)</argsstring>
+        <name>Ranges</name>
+        <qualifiedname>ecss::Ranges::Ranges</qualifiedname>
+        <param>
+          <type>const std::vector&lt; Type &gt; &amp;</type>
+          <declname>sortedRanges</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="18" column="1" bodyfile="ecss/Ranges.h" bodystart="18" bodyend="39"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1af5c0f025d78388e94ddb0d36b1787caf" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE size_t</type>
+        <definition>FORCE_INLINE size_t ecss::Ranges&lt; Type &gt;::size</definition>
+        <argsstring>() const</argsstring>
+        <name>size</name>
+        <qualifiedname>ecss::Ranges::size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="187" column="21" bodyfile="ecss/Ranges.h" bodystart="187" bodyend="187"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1a7b35fad7b967eca69ce1205cb0bfd5db" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE Type</type>
+        <definition>FORCE_INLINE Type ecss::Ranges&lt; Type &gt;::take</definition>
+        <argsstring>()</argsstring>
+        <name>take</name>
+        <qualifiedname>ecss::Ranges::take</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="66" column="19" bodyfile="ecss/Ranges.h" bodystart="66" bodyend="81"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="structecss_1_1Ranges_1ae2ed2fa211658d03a42c70e91da97646" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int ecss::Ranges&lt; Type &gt;::binarySearchInRanges</definition>
+        <argsstring>(const std::vector&lt; Range &gt; &amp;ranges, EntityId id)</argsstring>
+        <name>binarySearchInRanges</name>
+        <qualifiedname>ecss::Ranges::binarySearchInRanges</qualifiedname>
+        <param>
+          <type>const std::vector&lt; Range &gt; &amp;</type>
+          <declname>ranges</declname>
+        </param>
+        <param>
+          <type>EntityId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="153" column="12" bodyfile="ecss/Ranges.h" bodystart="153" bodyend="184"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/Ranges.h" line="10" column="1" bodyfile="ecss/Ranges.h" bodystart="10" bodyend="210"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Ranges_1ac0717b084588661ca9f70151e3b1d047" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>back</name></member>
+      <member refid="structecss_1_1Ranges_1ae2ed2fa211658d03a42c70e91da97646" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>binarySearchInRanges</name></member>
+      <member refid="structecss_1_1Ranges_1ade445aec9ed4ecfe8e69ee679acc6558" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>clear</name></member>
+      <member refid="structecss_1_1Ranges_1ae8f13a869c894882a6b5547b3582085c" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>contains</name></member>
+      <member refid="structecss_1_1Ranges_1abbc77897c06ab2c1caa3e62c71d69809" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>empty</name></member>
+      <member refid="structecss_1_1Ranges_1ada6dc4ad5bb241b8ae858ea3672c37a7" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>erase</name></member>
+      <member refid="structecss_1_1Ranges_1a93b1e017fddef912246176bae550020b" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>front</name></member>
+      <member refid="structecss_1_1Ranges_1a103c05c13fde8b2ef0dd8331c4ad635d" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>getAll</name></member>
+      <member refid="structecss_1_1Ranges_1a11df0fee42bb3b6bfad4f9ccaae40224" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>insert</name></member>
+      <member refid="structecss_1_1Ranges_1a9f3f7b81a09114d1c90389ba3061256c" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>mergeIntersections</name></member>
+      <member refid="structecss_1_1Ranges_1aa2319c72aeeb9142e4d8f87230902fe8" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>pop_back</name></member>
+      <member refid="structecss_1_1Ranges_1acf5d8ba49720409e91f9419af722cdf1" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>Range</name></member>
+      <member refid="structecss_1_1Ranges_1a3a7e9d24717171eb026152e38b8195ee" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>Ranges</name></member>
+      <member refid="structecss_1_1Ranges_1a386f31388c239fb389b38d062967a9aa" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>Ranges</name></member>
+      <member refid="structecss_1_1Ranges_1a4240e432b5cef5377f2f105535942d56" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>Ranges</name></member>
+      <member refid="structecss_1_1Ranges_1ab6d789399d28ccab443e01835ba58ea9" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>Ranges</name></member>
+      <member refid="structecss_1_1Ranges_1a4ccbc000830283ad16a6892e5d80f4ff" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>ranges</name></member>
+      <member refid="structecss_1_1Ranges_1af5c0f025d78388e94ddb0d36b1787caf" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>size</name></member>
+      <member refid="structecss_1_1Ranges_1a7b35fad7b967eca69ce1205cb0bfd5db" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>take</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

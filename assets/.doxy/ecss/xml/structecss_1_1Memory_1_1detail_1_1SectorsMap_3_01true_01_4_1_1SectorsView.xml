@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1detail_1_1SectorsMap_3_01true_01_4_1_1SectorsView" kind="struct" language="C++" prot="private">
+    <compoundname>ecss::Memory::detail::SectorsMap&lt; true &gt;::SectorsView</compoundname>
+    <templateparamlist>
+    </templateparamlist>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1SectorsMap_3_01true_01_4_1_1SectorsView_1ac761aba92e8bb638a3582a8050fa29ef" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::detail::SectorsMap&lt; true &gt;::SectorsView::size</definition>
+        <argsstring></argsstring>
+        <name>size</name>
+        <qualifiedname>ecss::Memory::detail::SectorsMap&lt; true &gt;::SectorsView::size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="84" column="9" bodyfile="ecss/memory/SectorsArray.h" bodystart="84" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1SectorsMap_3_01true_01_4_1_1SectorsView_1ad4425c17921e8e438e6c992b6e7bb2d8" prot="public" static="no" mutable="no">
+        <type><ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> *const  *</type>
+        <definition>Sector* const* ecss::Memory::detail::SectorsMap&lt; true &gt;::SectorsView::vectorData</definition>
+        <argsstring></argsstring>
+        <name>vectorData</name>
+        <qualifiedname>ecss::Memory::detail::SectorsMap&lt; true &gt;::SectorsView::vectorData</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="83" column="14" bodyfile="ecss/memory/SectorsArray.h" bodystart="83" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Atomic snapshot view for lock-free read of sector pointers (no iteration guarantees). </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>ecss::Memory::Sector</label>
+        <link refid="structecss_1_1Memory_1_1Sector"/>
+      </node>
+      <node id="1">
+        <label>ecss::Memory::detail::SectorsMap&lt; true &gt;::SectorsView</label>
+        <childnode refid="2" relation="usage">
+          <edgelabel>vectorData</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="ecss/memory/SectorsArray.h" line="82" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="82" bodyend="85"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SectorsMap_3_01true_01_4_1_1SectorsView_1ac761aba92e8bb638a3582a8050fa29ef" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::SectorsMap&lt; true &gt;::SectorsView</scope><name>size</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SectorsMap_3_01true_01_4_1_1SectorsView_1ad4425c17921e8e438e6c992b6e7bb2d8" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::SectorsMap&lt; true &gt;::SectorsView</scope><name>vectorData</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

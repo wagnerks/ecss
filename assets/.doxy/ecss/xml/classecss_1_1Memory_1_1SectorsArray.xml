@@ -1,0 +1,3010 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="classecss_1_1Memory_1_1SectorsArray" kind="class" language="C++" prot="public" final="yes">
+    <compoundname>ecss::Memory::SectorsArray</compoundname>
+    <includes refid="SectorsArray_8h" local="no">SectorsArray.h</includes>
+    <innerclass refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" prot="public">ecss::Memory::SectorsArray::Iterator</innerclass>
+    <innerclass refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive" prot="public">ecss::Memory::SectorsArray::IteratorAlive</innerclass>
+    <innerclass refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator" prot="public">ecss::Memory::SectorsArray::RangedIterator</innerclass>
+    <templateparamlist>
+      <param>
+        <type>bool</type>
+        <declname>ThreadSafe</declname>
+        <defname>ThreadSafe</defname>
+        <defval>true</defval>
+      </param>
+      <param>
+        <type>typename Allocator</type>
+        <defval>ChunksAllocator&lt;8192&gt;</defval>
+      </param>
+    </templateparamlist>
+    <sectiondef kind="user-defined">
+      <header>Basic full-range iteration</header>
+      <description><para><simplesect kind="return"><para>Begin/end iterators (may include dead sectors). </para>
+</simplesect>
+</para>
+</description>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1ac8c5120858072c1e93d9faf3f079b058" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref></type>
+        <definition>Iterator ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::begin</definition>
+        <argsstring>() const</argsstring>
+        <name>begin</name>
+        <qualifiedname>ecss::Memory::SectorsArray::begin</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="278" column="23" bodyfile="ecss/memory/SectorsArray.h" bodystart="278" bodyend="278"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a24119717a503725d8ca01cd982d300e8" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref></type>
+        <definition>Iterator ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::end</definition>
+        <argsstring>() const</argsstring>
+        <name>end</name>
+        <qualifiedname>ecss::Memory::SectorsArray::end</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="279" column="23" bodyfile="ecss/memory/SectorsArray.h" bodystart="279" bodyend="279"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="user-defined">
+      <header>Alive-only iteration helpers</header>
+      <description><para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type used to fetch alive mask. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+</description>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1af9ab449aa6cd67272644dcb7a559c9bf" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive" kindref="compound">IteratorAlive</ref></type>
+        <definition>IteratorAlive ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::beginAlive</definition>
+        <argsstring>() const</argsstring>
+        <name>beginAlive</name>
+        <qualifiedname>ecss::Memory::SectorsArray::beginAlive</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="322" column="15" bodyfile="ecss/memory/SectorsArray.h" bodystart="322" bodyend="322"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1ab11be57b204687cb774fad3899a0d89b" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive" kindref="compound">IteratorAlive</ref></type>
+        <definition>IteratorAlive ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::beginAlive</definition>
+        <argsstring>(const Ranges&lt; SectorId &gt; &amp;ranges) const</argsstring>
+        <name>beginAlive</name>
+        <qualifiedname>ecss::Memory::SectorsArray::beginAlive</qualifiedname>
+        <param>
+          <type>const Ranges&lt; SectorId &gt; &amp;</type>
+          <declname>ranges</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="324" column="15" bodyfile="ecss/memory/SectorsArray.h" bodystart="324" bodyend="324"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a2cc3d2fa77413c8079c4b9395c0b64f0" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive" kindref="compound">IteratorAlive</ref></type>
+        <definition>IteratorAlive ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::endAlive</definition>
+        <argsstring>() const</argsstring>
+        <name>endAlive</name>
+        <qualifiedname>ecss::Memory::SectorsArray::endAlive</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="325" column="28" bodyfile="ecss/memory/SectorsArray.h" bodystart="325" bodyend="325"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="user-defined">
+      <header>Ranged iteration helpers</header>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a14ecf2862eeee88f9e59fcaed6c78a07" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator" kindref="compound">RangedIterator</ref></type>
+        <definition>RangedIterator ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::beginRanged</definition>
+        <argsstring>(const Ranges&lt; SectorId &gt; &amp;ranges) const</argsstring>
+        <name>beginRanged</name>
+        <qualifiedname>ecss::Memory::SectorsArray::beginRanged</qualifiedname>
+        <param>
+          <type>const Ranges&lt; SectorId &gt; &amp;</type>
+          <declname>ranges</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="354" column="29" bodyfile="ecss/memory/SectorsArray.h" bodystart="354" bodyend="354"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a81dd5c2e5abbf9f43518742f192f1130" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator" kindref="compound">RangedIterator</ref></type>
+        <definition>RangedIterator ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::endRanged</definition>
+        <argsstring>() const</argsstring>
+        <name>endRanged</name>
+        <qualifiedname>ecss::Memory::SectorsArray::endRanged</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="355" column="29" bodyfile="ecss/memory/SectorsArray.h" bodystart="355" bodyend="355"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="user-defined">
+      <header>Sector lookup utilities</header>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a02182bd08a0ceeae3096d1e3158c3f30" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::findRightNearestSectorIndex</definition>
+        <argsstring>(SectorId sectorId) const</argsstring>
+        <name>findRightNearestSectorIndex</name>
+        <qualifiedname>ecss::Memory::SectorsArray::findRightNearestSectorIndex</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>sectorId</declname>
+        </param>
+        <briefdescription>
+<para>Find the first linear index whose sector id &gt;= sectorId. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Linear index or size() if none. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="547" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="547" bodyend="547"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a58c6260fce32a7a41125476b1b4344c4" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>bool</type>
+        <definition>bool ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::containsSector</definition>
+        <argsstring>(SectorId id) const</argsstring>
+        <name>containsSector</name>
+        <qualifiedname>ecss::Memory::SectorsArray::containsSector</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="548" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="548" bodyend="548"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1ad7c3e1226528d39db62d4ce1221ec8b9" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type><ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> *</type>
+        <definition>Sector * ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::at</definition>
+        <argsstring>(size_t sectorIndex) const</argsstring>
+        <name>at</name>
+        <qualifiedname>ecss::Memory::SectorsArray::at</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>sectorIndex</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="549" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="549" bodyend="549"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1ae21c973bc364f026fc8815d27003f87c" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type><ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> *</type>
+        <definition>Sector * ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::findSector</definition>
+        <argsstring>(SectorId id) const</argsstring>
+        <name>findSector</name>
+        <qualifiedname>ecss::Memory::SectorsArray::findSector</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="550" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="550" bodyend="550"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a1a8e95b069088861574b35b2fca8994a" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type><ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> *</type>
+        <definition>Sector * ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::getSector</definition>
+        <argsstring>(SectorId id) const</argsstring>
+        <name>getSector</name>
+        <qualifiedname>ecss::Memory::SectorsArray::getSector</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="551" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="551" bodyend="551"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="user-defined">
+      <header>Index and capacity queries</header>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a904bdbabd8c0b68d54572c700f88c7d5" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::getSectorIndex</definition>
+        <argsstring>(SectorId id) const</argsstring>
+        <name>getSectorIndex</name>
+        <qualifiedname>ecss::Memory::SectorsArray::getSectorIndex</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="556" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="556" bodyend="556"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a8f200782896ed0658e425789e29ecf98" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::getSectorIndex</definition>
+        <argsstring>(Sector *sector) const</argsstring>
+        <name>getSectorIndex</name>
+        <qualifiedname>ecss::Memory::SectorsArray::getSectorIndex</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> *</type>
+          <declname>sector</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="557" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="557" bodyend="557"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1ae1b810a8d4924c5aa1859a20ade29345" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::sectorsMapCapacity</definition>
+        <argsstring>() const</argsstring>
+        <name>sectorsMapCapacity</name>
+        <qualifiedname>ecss::Memory::SectorsArray::sectorsMapCapacity</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="558" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="558" bodyend="558"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1ae523f974d825f39e1a3a99e25015515d" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::capacity</definition>
+        <argsstring>() const</argsstring>
+        <name>capacity</name>
+        <qualifiedname>ecss::Memory::SectorsArray::capacity</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="559" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="559" bodyend="559"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1abecca7ae7c961b47778daca80d88b26f" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::size</definition>
+        <argsstring>() const</argsstring>
+        <name>size</name>
+        <qualifiedname>ecss::Memory::SectorsArray::size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="560" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="560" bodyend="560"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1ad88988bbfd09d6a5a275d98d42b50bba" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>bool</type>
+        <definition>bool ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::empty</definition>
+        <argsstring>() const</argsstring>
+        <name>empty</name>
+        <qualifiedname>ecss::Memory::SectorsArray::empty</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="561" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="561" bodyend="561"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a9658416f8de7b762b2cd44145d59eccc" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::shrinkToFit</definition>
+        <argsstring>()</argsstring>
+        <name>shrinkToFit</name>
+        <qualifiedname>ecss::Memory::SectorsArray::shrinkToFit</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="562" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="562" bodyend="562"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="user-defined">
+      <header>Storage management</header>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1af12f12d1b530b48965494820bc9e184e" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::reserve</definition>
+        <argsstring>(uint32_t newCapacity)</argsstring>
+        <name>reserve</name>
+        <qualifiedname>ecss::Memory::SectorsArray::reserve</qualifiedname>
+        <param>
+          <type>uint32_t</type>
+          <declname>newCapacity</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="567" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="567" bodyend="567"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1ada69fb6d63e3957d3496e33cb0205d75" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::clear</definition>
+        <argsstring>()</argsstring>
+        <name>clear</name>
+        <qualifiedname>ecss::Memory::SectorsArray::clear</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="568" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="568" bodyend="568"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="user-defined">
+      <header>Defragment metrics / thresholds</header>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a0e8212907f3ec633e585c65b7b8cfc32" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>auto</type>
+        <definition>auto ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::getDefragmentationSize</definition>
+        <argsstring>() const</argsstring>
+        <name>getDefragmentationSize</name>
+        <qualifiedname>ecss::Memory::SectorsArray::getDefragmentationSize</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="589" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="589" bodyend="589"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1addbf1a1fc99679f3670834112f6be327" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>auto</type>
+        <definition>auto ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::getDefragmentationRatio</definition>
+        <argsstring>() const</argsstring>
+        <name>getDefragmentationRatio</name>
+        <qualifiedname>ecss::Memory::SectorsArray::getDefragmentationRatio</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="590" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="590" bodyend="590"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a10ebbfe27363d158bf34e0e8b627979c" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>bool</type>
+        <definition>bool ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::needDefragment</definition>
+        <argsstring>() const</argsstring>
+        <name>needDefragment</name>
+        <qualifiedname>ecss::Memory::SectorsArray::needDefragment</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="591" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="591" bodyend="591"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a1fd65bda0c058208af6baba42241ca1c" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::setDefragmentThreshold</definition>
+        <argsstring>(float threshold)</argsstring>
+        <name>setDefragmentThreshold</name>
+        <qualifiedname>ecss::Memory::SectorsArray::setDefragmentThreshold</qualifiedname>
+        <param>
+          <type>float</type>
+          <declname>threshold</declname>
+        </param>
+        <briefdescription>
+<para>Set ratio threshold (0..1) above which needDefragment()==true. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>threshold</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Clamped into [0..1]. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="596" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="596" bodyend="596"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-type">
+      <memberdef kind="enum" id="classecss_1_1Memory_1_1SectorsArray_1adaef995cc04fa70a9e4b374d519e353c" prot="private" static="no" strong="no">
+        <type>uint8_t</type>
+        <name>ShiftDirection</name>
+        <qualifiedname>ecss::Memory::SectorsArray::ShiftDirection</qualifiedname>
+        <enumvalue id="classecss_1_1Memory_1_1SectorsArray_1adaef995cc04fa70a9e4b374d519e353cadd0191bad712fd0fbda3af79eda2f06a" prot="private">
+          <name>Left</name>
+          <initializer>= 0</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <enumvalue id="classecss_1_1Memory_1_1SectorsArray_1adaef995cc04fa70a9e4b374d519e353ca5d22cbd12c8fe0a97380ad41fe50fce1" prot="private">
+          <name>Right</name>
+          <initializer>= 1</initializer>
+          <briefdescription>
+          </briefdescription>
+          <detaileddescription>
+          </detaileddescription>
+        </enumvalue>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="892" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="892" bodyend="892"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="friend">
+      <memberdef kind="friend" id="classecss_1_1Memory_1_1SectorsArray_1afd60bec0730a078567acbf592e20fefb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+          </param>
+          <param>
+            <type>typename Alloc</type>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>Ranged</declname>
+            <defname>Ranged</defname>
+          </param>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>typename ...</type>
+            <declname>ComponentTypes</declname>
+            <defname>ComponentTypes</defname>
+          </param>
+        </templateparamlist>
+        <type>class</type>
+        <definition>friend class ecss::ArraysView</definition>
+        <argsstring></argsstring>
+        <name>ecss::ArraysView</name>
+        <qualifiedname>ecss::Memory::SectorsArray::ArraysView</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1ArraysView" kindref="compound">ecss::ArraysView</ref></type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="226" column="14" bodyfile="ecss/memory/SectorsArray.h" bodystart="226" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="friend" id="classecss_1_1Memory_1_1SectorsArray_1ae610b9745f6b72df10078245bc91fec3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+          </param>
+          <param>
+            <type>typename</type>
+          </param>
+        </templateparamlist>
+        <type>class</type>
+        <definition>friend class ecss::Registry</definition>
+        <argsstring></argsstring>
+        <name>ecss::Registry</name>
+        <qualifiedname>ecss::Memory::SectorsArray::Registry</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Registry" kindref="compound">ecss::Registry</ref></type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="223" column="14" bodyfile="ecss/memory/SectorsArray.h" bodystart="223" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="friend" id="classecss_1_1Memory_1_1SectorsArray_1a6de4bb2a55cf03ca2e664889856a3459" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+          </param>
+          <param>
+            <type>typename</type>
+          </param>
+        </templateparamlist>
+        <type>class</type>
+        <definition>friend class SectorsArray</definition>
+        <argsstring></argsstring>
+        <name>SectorsArray</name>
+        <qualifiedname>ecss::Memory::SectorsArray::SectorsArray</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref></type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="220" column="14" bodyfile="ecss/memory/SectorsArray.h" bodystart="220" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1a133e3d156ae49f00d89f0b2d51d3f3d4" prot="private" static="no" mutable="no">
+        <type>Allocator</type>
+        <definition>Allocator ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::mAllocator</definition>
+        <argsstring></argsstring>
+        <name>mAllocator</name>
+        <qualifiedname>ecss::Memory::SectorsArray::mAllocator</qualifiedname>
+        <briefdescription>
+<para>Underlying memory &amp; cursor provider. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1056" column="11" bodyfile="ecss/memory/SectorsArray.h" bodystart="1056" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1a73d0faf07ee5a32bc00036ac577df26a" prot="private" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::mDefragmentSize</definition>
+        <argsstring></argsstring>
+        <name>mDefragmentSize</name>
+        <qualifiedname>ecss::Memory::SectorsArray::mDefragmentSize</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+<para>Accumulated candidate size for defragmentation. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1069" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="1069" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1a9c09b82e46bd3287ca82674c06a8b0a9" prot="private" static="no" mutable="no">
+        <type>float</type>
+        <definition>float ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::mDefragThreshold</definition>
+        <argsstring></argsstring>
+        <name>mDefragThreshold</name>
+        <qualifiedname>ecss::Memory::SectorsArray::mDefragThreshold</qualifiedname>
+        <initializer>= 0.2f</initializer>
+        <briefdescription>
+<para>Ratio threshold for needDefragment(). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1068" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="1068" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1a7264ef425a77c925c0f9e9d73542cd88" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; SectorId &gt;</type>
+        <definition>std::vector&lt;SectorId&gt; ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::mPendingErase</definition>
+        <argsstring></argsstring>
+        <name>mPendingErase</name>
+        <qualifiedname>ecss::Memory::SectorsArray::mPendingErase</qualifiedname>
+        <briefdescription>
+<para>Deferred erase queue (ThreadSafe). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1065" column="13" bodyfile="ecss/memory/SectorsArray.h" bodystart="1065" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1adff52676ba199bad67b93e6a1e302c68" prot="private" static="no" mutable="yes">
+        <type>std::conditional_t&lt; ThreadSafe, <ref refid="structecss_1_1Threads_1_1PinCounters" kindref="compound">Threads::PinCounters</ref>, Dummy &gt;</type>
+        <definition>std::conditional_t&lt;ThreadSafe, Threads::PinCounters, Dummy&gt; ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::mPinsCounter</definition>
+        <argsstring></argsstring>
+        <name>mPinsCounter</name>
+        <qualifiedname>ecss::Memory::SectorsArray::mPinsCounter</qualifiedname>
+        <briefdescription>
+<para>Per-sector pin counters + global array lock state. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1061" column="28" bodyfile="ecss/memory/SectorsArray.h" bodystart="1061" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1a1ae79017cdad5ee7101f48d40292f440" prot="private" static="no" mutable="no">
+        <type>detail::SectorsMap&lt; ThreadSafe &gt;</type>
+        <definition>detail::SectorsMap&lt;ThreadSafe&gt; ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::mSectorsMap</definition>
+        <argsstring></argsstring>
+        <name>mSectorsMap</name>
+        <qualifiedname>ecss::Memory::SectorsArray::mSectorsMap</qualifiedname>
+        <briefdescription>
+<para>Id -&gt; Sector* map (sparse). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1063" column="20" bodyfile="ecss/memory/SectorsArray.h" bodystart="1063" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1a4361a809f07612e0dc84cf0da1f906f7" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::mSize</definition>
+        <argsstring></argsstring>
+        <name>mSize</name>
+        <qualifiedname>ecss::Memory::SectorsArray::mSize</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+<para>Linear alive+dead sector count (post-defrag shrinks). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1067" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="1067" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1a928d93931ec82061b59e7b8ab950a28c" prot="private" static="no" mutable="yes">
+        <type>std::conditional_t&lt; ThreadSafe, std::shared_mutex, Dummy &gt;</type>
+        <definition>std::conditional_t&lt;ThreadSafe, std::shared_mutex, Dummy&gt; ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::mtx</definition>
+        <argsstring></argsstring>
+        <name>mtx</name>
+        <qualifiedname>ecss::Memory::SectorsArray::mtx</qualifiedname>
+        <briefdescription>
+<para>Container-level RW mutex (ThreadSafe builds). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1060" column="28" bodyfile="ecss/memory/SectorsArray.h" bodystart="1060" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1ab9922ae5f2c1ff0fb2094a05a4cd6269" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::defragment</definition>
+        <argsstring>()</argsstring>
+        <name>defragment</name>
+        <qualifiedname>ecss::Memory::SectorsArray::defragment</qualifiedname>
+        <briefdescription>
+<para>Defragment by collapsing dead (erased) sectors; preserves relative order of alive ones. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>Blocks until all pins are released (ThreadSafe build). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="576" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="576" bodyend="576"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a83b5eaa6e75f20d04d9943b9cb24d063" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+          <param>
+            <type>class...</type>
+            <declname>Args</declname>
+            <defname>Args</defname>
+          </param>
+        </templateparamlist>
+        <type>T *</type>
+        <definition>T * ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::emplace</definition>
+        <argsstring>(SectorId sectorId, Args &amp;&amp;... args)</argsstring>
+        <name>emplace</name>
+        <qualifiedname>ecss::Memory::SectorsArray::emplace</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>sectorId</declname>
+        </param>
+        <param>
+          <type>Args &amp;&amp;...</type>
+          <declname>args</declname>
+        </param>
+        <briefdescription>
+<para>Construct in-place a member of type T. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component/member type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>sectorId</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> id. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>args</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Constructor arguments. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Pointer to newly constructed member. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="619" column="3" bodyfile="ecss/memory/SectorsArray.h" bodystart="619" bodyend="621"/>
+        <referencedby refid="classecss_1_1Memory_1_1SectorsArray_1a2e77ffb2318924f3ee13586064fc11bc" compoundref="SectorsArray_8h" startline="630" endline="637">ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::push</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a22bc2139d5b9448a6a6339539a04ff81" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref></type>
+        <definition>Iterator ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::erase</definition>
+        <argsstring>(Iterator first, Iterator last, bool defragment=false) noexcept</argsstring>
+        <name>erase</name>
+        <qualifiedname>ecss::Memory::SectorsArray::erase</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref></type>
+          <declname>first</declname>
+        </param>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref></type>
+          <declname>last</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>defragment</declname>
+          <defval>false</defval>
+        </param>
+        <briefdescription>
+<para>Erase range [first, last). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>first</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Begin iterator. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>last</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>End iterator. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>defragment</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, compact storage after removal. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref> at the starting position. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="510" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="510" bodyend="513"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a9db2e7006eb2a75bade373dff1995ea4" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref></type>
+        <definition>Iterator ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::erase</definition>
+        <argsstring>(Iterator it, bool defragment=false) noexcept</argsstring>
+        <name>erase</name>
+        <qualifiedname>ecss::Memory::SectorsArray::erase</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref></type>
+          <declname>it</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>defragment</declname>
+          <defval>false</defval>
+        </param>
+        <briefdescription>
+<para>Erase a single sector at iterator position. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>it</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref> referencing the sector. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>defragment</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, compact storage afterwards. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref> positioned at erased slot (or unchanged if invalid). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="497" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="497" bodyend="500"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a5b8174bfb7520fc74e0c4a632428e70f" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::erase</definition>
+        <argsstring>(size_t beginIdx, size_t count=1, bool defragment=false)</argsstring>
+        <name>erase</name>
+        <qualifiedname>ecss::Memory::SectorsArray::erase</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>beginIdx</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>count</declname>
+          <defval>1</defval>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>defragment</declname>
+          <defval>false</defval>
+        </param>
+        <briefdescription>
+<para>Erase sectors by linear index range (optionally defragment immediately). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>beginIdx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>First index. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of sectors to erase (&gt;=1). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>defragment</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, compacts immediately (costly). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>TS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Allows skipping internal locking when false. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="467" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="467" bodyend="488"/>
+        <referencedby refid="classecss_1_1Memory_1_1SectorsArray_1a5b8174bfb7520fc74e0c4a632428e70f" compoundref="SectorsArray_8h" startline="467" endline="488">ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::erase</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a6fdf7016940711c047b63c2125b3ef2b" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename Func</type>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::erase_if</definition>
+        <argsstring>(Iterator first, Iterator last, Func &amp;&amp;func, bool defragment=false) noexcept</argsstring>
+        <name>erase_if</name>
+        <qualifiedname>ecss::Memory::SectorsArray::erase_if</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref></type>
+          <declname>first</declname>
+        </param>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref></type>
+          <declname>last</declname>
+        </param>
+        <param>
+          <type>Func &amp;&amp;</type>
+          <declname>func</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>defragment</declname>
+          <defval>false</defval>
+        </param>
+        <briefdescription>
+<para>Conditionally erase sectors in [first,last), invoking predicate on each Sector*. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>Func</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Predicate (Sector*) returning bool; if true sector is destroyed. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>first</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Begin iterator. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>last</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>End iterator (half-open). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>func</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Predicate functor. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>defragment</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, triggers defragment at end (if something erased). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="524" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="524" bodyend="527"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a98490457c05403c48c64b3039188f7ae" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::eraseAsync</definition>
+        <argsstring>(SectorId id, size_t count=1)</argsstring>
+        <name>eraseAsync</name>
+        <qualifiedname>ecss::Memory::SectorsArray::eraseAsync</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>count</declname>
+          <defval>1</defval>
+        </param>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+<para>Queue asynchronous erase by id (actual removal deferred). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>First sector id. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of consecutive ids to queue. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>Removal occurs in <ref refid="classecss_1_1Memory_1_1SectorsArray_1a1f63102348bc3d7f1b2aaa65af53b564" kindref="member">processPendingErases()</ref>; pinned sectors remain until unpinned. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="535" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="535" bodyend="539"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1abdc5044bd1f4394aece08634f72afd16" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE SectorLayoutMeta *</type>
+        <definition>FORCE_INLINE SectorLayoutMeta * ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::getLayout</definition>
+        <argsstring>() const</argsstring>
+        <name>getLayout</name>
+        <qualifiedname>ecss::Memory::SectorsArray::getLayout</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>The sector layout metadata used by this array. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="417" column="31" bodyfile="ecss/memory/SectorsArray.h" bodystart="417" bodyend="417"/>
+        <referencedby refid="classecss_1_1Memory_1_1SectorsArray_1a93cd4bf3224bfde197d4dd85bafad59e" compoundref="SectorsArray_8h" startline="414" endline="414">ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::getLayoutData</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a93cd4bf3224bfde197d4dd85bafad59e" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE const <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> &amp;</type>
+        <definition>FORCE_INLINE const LayoutData &amp; ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::getLayoutData</definition>
+        <argsstring>() const</argsstring>
+        <name>getLayoutData</name>
+        <qualifiedname>ecss::Memory::SectorsArray::getLayoutData</qualifiedname>
+        <briefdescription>
+<para>Access per-type layout metadata (offset, alive mask, etc.). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="414" column="31" bodyfile="ecss/memory/SectorsArray.h" bodystart="414" bodyend="414"/>
+        <referencedby refid="classecss_1_1Memory_1_1SectorsArray_1a93cd4bf3224bfde197d4dd85bafad59e" compoundref="SectorsArray_8h" startline="414" endline="414">ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::getLayoutData</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a5d7442d37a7aa48930fe525623867faf" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::incDefragmentSize</definition>
+        <argsstring>(uint32_t count=1)</argsstring>
+        <name>incDefragmentSize</name>
+        <qualifiedname>ecss::Memory::SectorsArray::incDefragmentSize</qualifiedname>
+        <param>
+          <type>uint32_t</type>
+          <declname>count</declname>
+          <defval>1</defval>
+        </param>
+        <briefdescription>
+<para>Increment deferred defragment bytes counter. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="585" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="585" bodyend="585"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a1ed4855ae2f69ef85e0fa2d75492c6cb" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>std::remove_cvref_t&lt; T &gt; *</type>
+        <definition>std::remove_cvref_t&lt; T &gt; * ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::insert</definition>
+        <argsstring>(SectorId sectorId, T &amp;&amp;data)</argsstring>
+        <name>insert</name>
+        <qualifiedname>ecss::Memory::SectorsArray::insert</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>sectorId</declname>
+        </param>
+        <param>
+          <type>T &amp;&amp;</type>
+          <declname>data</declname>
+        </param>
+        <briefdescription>
+<para>Insert / overwrite a member (or whole <ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref>) at sectorId. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Member type or <ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> (for whole copy/move). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>sectorId</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> id (allocated if missing). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Source object (moved if rvalue). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Pointer to inserted member (or sector pointer if T == <ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref>). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="607" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="607" bodyend="609"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1ac914c699ea8ee30016f448ff912f6e13" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> &amp;</type>
+        <definition>SectorsArray &amp; ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::operator=</definition>
+        <argsstring>(const SectorsArray &amp;other)</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::SectorsArray::operator=</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="373" column="14" bodyfile="ecss/memory/SectorsArray.h" bodystart="373" bodyend="373"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a89c29475462c094065ebc4e2a9a62ffc" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>T</declname>
+            <defname>T</defname>
+          </param>
+          <param>
+            <type>typename Alloc</type>
+          </param>
+        </templateparamlist>
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> &amp;</type>
+        <definition>SectorsArray &amp; ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::operator=</definition>
+        <argsstring>(const SectorsArray&lt; T, Alloc &gt; &amp;other)</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::SectorsArray::operator=</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref>&lt; T, Alloc &gt; &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="372" column="14" bodyfile="ecss/memory/SectorsArray.h" bodystart="372" bodyend="372"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a416a1550e314192fdd81d89738b6be36" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> &amp;</type>
+        <definition>SectorsArray &amp; ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::operator=</definition>
+        <argsstring>(SectorsArray &amp;&amp;other) noexcept</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::SectorsArray::operator=</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="383" column="14" bodyfile="ecss/memory/SectorsArray.h" bodystart="383" bodyend="383"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a83c56153ddbe3b8f0fb8518b9b024f64" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>T</declname>
+            <defname>T</defname>
+          </param>
+          <param>
+            <type>typename Alloc</type>
+          </param>
+        </templateparamlist>
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> &amp;</type>
+        <definition>SectorsArray &amp; ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::operator=</definition>
+        <argsstring>(SectorsArray&lt; T, Alloc &gt; &amp;&amp;other) noexcept</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::SectorsArray::operator=</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref>&lt; T, Alloc &gt; &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="382" column="14" bodyfile="ecss/memory/SectorsArray.h" bodystart="382" bodyend="382"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1ab49de3f2145a128c022b0964bcf7280b" prot="public" static="no" nodiscard="yes" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>true</defval>
+          </param>
+        </templateparamlist>
+        <type><ref refid="structecss_1_1Memory_1_1PinnedSector" kindref="compound">PinnedSector</ref></type>
+        <definition>PinnedSector ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::pinBackSector</definition>
+        <argsstring>() const</argsstring>
+        <name>pinBackSector</name>
+        <qualifiedname>ecss::Memory::SectorsArray::pinBackSector</qualifiedname>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+<para>Pin last sector (by linear order). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>TS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If false, skip locking. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Last sector pinned or empty if array empty. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="454" column="15" bodyfile="ecss/memory/SectorsArray.h" bodystart="454" bodyend="456"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a86b427c11d990979407eab127ac2713d" prot="public" static="no" nodiscard="yes" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>true</defval>
+          </param>
+        </templateparamlist>
+        <type><ref refid="structecss_1_1Memory_1_1PinnedSector" kindref="compound">PinnedSector</ref></type>
+        <definition>PinnedSector ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::pinSector</definition>
+        <argsstring>(Sector *sector) const</argsstring>
+        <name>pinSector</name>
+        <qualifiedname>ecss::Memory::SectorsArray::pinSector</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> *</type>
+          <declname>sector</declname>
+        </param>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+<para>Pin a specific sector pointer (if not null). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>TS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If false, skip acquiring a shared lock (caller must ensure safety). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>sector</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> pointer (maybe null). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><ref refid="structecss_1_1Memory_1_1PinnedSector" kindref="compound">PinnedSector</ref> (empty if sector==nullptr). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="428" column="15" bodyfile="ecss/memory/SectorsArray.h" bodystart="428" bodyend="428"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a6363da7f68092538e4ad98ea995cc551" prot="public" static="no" nodiscard="yes" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>true</defval>
+          </param>
+        </templateparamlist>
+        <type><ref refid="structecss_1_1Memory_1_1PinnedSector" kindref="compound">PinnedSector</ref></type>
+        <definition>PinnedSector ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::pinSector</definition>
+        <argsstring>(SectorId id) const</argsstring>
+        <name>pinSector</name>
+        <qualifiedname>ecss::Memory::SectorsArray::pinSector</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+<para>Pin sector by id if found. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>TS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If false, expect external synchronization. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> id. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><ref refid="structecss_1_1Memory_1_1PinnedSector" kindref="compound">PinnedSector</ref> or empty if not present. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="437" column="15" bodyfile="ecss/memory/SectorsArray.h" bodystart="437" bodyend="437"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1aad1984da0cac8a92d60225b0794aba70" prot="public" static="no" nodiscard="yes" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>true</defval>
+          </param>
+        </templateparamlist>
+        <type><ref refid="structecss_1_1Memory_1_1PinnedSector" kindref="compound">PinnedSector</ref></type>
+        <definition>PinnedSector ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::pinSectorAt</definition>
+        <argsstring>(size_t idx) const</argsstring>
+        <name>pinSectorAt</name>
+        <qualifiedname>ecss::Memory::SectorsArray::pinSectorAt</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>idx</declname>
+        </param>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+<para>Pin sector at a given linear index. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>TS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If false, skip locking. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>idx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Linear index (0..size()). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><ref refid="structecss_1_1Memory_1_1PinnedSector" kindref="compound">PinnedSector</ref> (empty if out-of-range). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="446" column="15" bodyfile="ecss/memory/SectorsArray.h" bodystart="446" bodyend="446"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a1f63102348bc3d7f1b2aaa65af53b564" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>Lock</declname>
+            <defname>Lock</defname>
+            <defval>true</defval>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::processPendingErases</definition>
+        <argsstring>(bool withDefragment=true)</argsstring>
+        <name>processPendingErases</name>
+        <qualifiedname>ecss::Memory::SectorsArray::processPendingErases</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>withDefragment</declname>
+          <defval>true</defval>
+        </param>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+<para>Drain deferred erase queue and optionally defragment. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>withDefragment</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true and ratio above threshold, compacts after processing. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>Lock</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true acquire internal lock (set false if caller already holds lock). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>Old retired buffers freed at end (ThreadSafe only). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="646" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="646" bodyend="654"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a2e77ffb2318924f3ee13586064fc11bc" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+          <param>
+            <type>class...</type>
+            <declname>Args</declname>
+            <defname>Args</defname>
+          </param>
+        </templateparamlist>
+        <type>T *</type>
+        <definition>T * ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::push</definition>
+        <argsstring>(SectorId sectorId, Args &amp;&amp;... args)</argsstring>
+        <name>push</name>
+        <qualifiedname>ecss::Memory::SectorsArray::push</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>sectorId</declname>
+        </param>
+        <param>
+          <type>Args &amp;&amp;...</type>
+          <declname>args</declname>
+        </param>
+        <briefdescription>
+<para>Convenience insertion: if single T argument =&gt; <ref refid="classecss_1_1Memory_1_1SectorsArray_1a1ed4855ae2f69ef85e0fa2d75492c6cb" kindref="member">insert()</ref>; else <ref refid="classecss_1_1Memory_1_1SectorsArray_1a83b5eaa6e75f20d04d9943b9cb24d063" kindref="member">emplace()</ref>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component/member type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>sectorId</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> id. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>args</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Forwarded creation args. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="630" column="3" bodyfile="ecss/memory/SectorsArray.h" bodystart="630" bodyend="637"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1adc4b69f4e6796a44e8a3311b290663d3" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::SectorsArray</definition>
+        <argsstring>(const SectorsArray &amp;other)</argsstring>
+        <name>SectorsArray</name>
+        <qualifiedname>ecss::Memory::SectorsArray::SectorsArray</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+<para>Same-type copy constructor. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="369" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="369" bodyend="369"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a40b6c09e61e85f53520b7407fac7f5fa" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>T</declname>
+            <defname>T</defname>
+          </param>
+          <param>
+            <type>typename Alloc</type>
+          </param>
+        </templateparamlist>
+        <type></type>
+        <definition>ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::SectorsArray</definition>
+        <argsstring>(const SectorsArray&lt; T, Alloc &gt; &amp;other)</argsstring>
+        <name>SectorsArray</name>
+        <qualifiedname>ecss::Memory::SectorsArray::SectorsArray</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref>&lt; T, Alloc &gt; &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+<para>Cross-template copy constructor (allows copying between differently configured <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> types if layout compatible). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Other ThreadSafe flag. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>Alloc</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Other allocator type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="367" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="367" bodyend="367"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a3cd3295e96a3b586a32e00e53ee11e57" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::SectorsArray</definition>
+        <argsstring>(SectorsArray &amp;&amp;other) noexcept</argsstring>
+        <name>SectorsArray</name>
+        <qualifiedname>ecss::Memory::SectorsArray::SectorsArray</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+<para>Same-type move constructor. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="379" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="379" bodyend="379"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1af57c367e96151a0e7a68f45b42a9921a" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>T</declname>
+            <defname>T</defname>
+          </param>
+          <param>
+            <type>typename Alloc</type>
+          </param>
+        </templateparamlist>
+        <type></type>
+        <definition>ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::SectorsArray</definition>
+        <argsstring>(SectorsArray&lt; T, Alloc &gt; &amp;&amp;other) noexcept</argsstring>
+        <name>SectorsArray</name>
+        <qualifiedname>ecss::Memory::SectorsArray::SectorsArray</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref>&lt; T, Alloc &gt; &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+<para>Cross-template move constructor. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="377" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="377" bodyend="377"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1ac4930b0c0c8dce6cd56b8b683ee1867b" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::tryDefragment</definition>
+        <argsstring>()</argsstring>
+        <name>tryDefragment</name>
+        <qualifiedname>ecss::Memory::SectorsArray::tryDefragment</qualifiedname>
+        <briefdescription>
+<para>Attempt a defragment only if array not logically pinned (non-blocking attempt). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="582" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="582" bodyend="582"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1ab0adb6c6db5dbd7304894e0753c5c3ea" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::~SectorsArray</definition>
+        <argsstring>()</argsstring>
+        <name>~SectorsArray</name>
+        <qualifiedname>ecss::Memory::SectorsArray::~SectorsArray</qualifiedname>
+        <briefdescription>
+<para>Destructor clears all sectors and releases underlying memory. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="397" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="397" bodyend="397"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1af4cdacfc6877ec42b7a7ac4e9dff7d17" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> *</type>
+        <definition>Sector * ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::acquireSectorImpl</definition>
+        <argsstring>(SectorId sectorId)</argsstring>
+        <name>acquireSectorImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::acquireSectorImpl</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>sectorId</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="939" column="8" bodyfile="ecss/memory/SectorsArray.h" bodystart="939" bodyend="962"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1ae04d7df6813a439d6ee519bf3b8b8e15" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE <ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> *</type>
+        <definition>FORCE_INLINE Sector * ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::atImpl</definition>
+        <argsstring>(size_t sectorIndex) const</argsstring>
+        <name>atImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::atImpl</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>sectorIndex</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="784" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="784" bodyend="784"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a82e4bc9f8df8ca4bfe19c1adfc67d1c7" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE size_t</type>
+        <definition>FORCE_INLINE size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::capacityImpl</definition>
+        <argsstring>() const</argsstring>
+        <name>capacityImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::capacityImpl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="791" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="791" bodyend="791"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a2e341d03347a3ebfa22ddcb013d0629f" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::clearImpl</definition>
+        <argsstring>()</argsstring>
+        <name>clearImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::clearImpl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="797" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="797" bodyend="810"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a7bdebda449c4158e5489a0fb1a1de8a3" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::containsSectorImpl</definition>
+        <argsstring>(SectorId id) const</argsstring>
+        <name>containsSectorImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::containsSectorImpl</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="783" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="783" bodyend="783"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a62ca0dc64c5d504b7bc3d2c579eba493" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>T</declname>
+            <defname>T</defname>
+          </param>
+          <param>
+            <type>typename Alloc</type>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::copy</definition>
+        <argsstring>(const SectorsArray&lt; T, Alloc &gt; &amp;other)</argsstring>
+        <name>copy</name>
+        <qualifiedname>ecss::Memory::SectorsArray::copy</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref>&lt; T, Alloc &gt; &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="658" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="658" bodyend="668"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a7b71f78c6c416fd72990a66d502db40c" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>T</declname>
+            <defname>T</defname>
+          </param>
+          <param>
+            <type>typename Alloc</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::copyImpl</definition>
+        <argsstring>(const SectorsArray&lt; T, Alloc &gt; &amp;other)</argsstring>
+        <name>copyImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::copyImpl</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref>&lt; T, Alloc &gt; &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="849" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="849" bodyend="864"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1af9d8a64c51421a1671e1fbd516f90f23" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::defragmentImpl</definition>
+        <argsstring>(size_t from=0)</argsstring>
+        <name>defragmentImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::defragmentImpl</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>from</declname>
+          <defval>0</defval>
+        </param>
+        <briefdescription>
+<para>Compact holes created by erased sectors starting from index <computeroutput>from</computeroutput>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>from</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Linear index to start scanning. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="968" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="968" bodyend="1013"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a0824356a41cd4609edb840097efcdfbd" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>class...</type>
+            <declname>Args</declname>
+            <defname>Args</defname>
+          </param>
+        </templateparamlist>
+        <type>T *</type>
+        <definition>T * ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::emplaceImpl</definition>
+        <argsstring>(SectorId sectorId, Args &amp;&amp;... args)</argsstring>
+        <name>emplaceImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::emplaceImpl</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>sectorId</declname>
+        </param>
+        <param>
+          <type>Args &amp;&amp;...</type>
+          <declname>args</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="846" column="3" bodyfile="ecss/memory/SectorsArray.h" bodystart="846" bodyend="846"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a10eeb15c2de706f648eec5270be4ef04" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::emptyImpl</definition>
+        <argsstring>() const</argsstring>
+        <name>emptyImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::emptyImpl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="793" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="793" bodyend="793"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a2854977c37f2ce18a38dc52eaebee61e" prot="private" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename Func</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::erase_ifImpl</definition>
+        <argsstring>(Iterator first, Iterator last, Func &amp;&amp;func, bool defragment=false) noexcept</argsstring>
+        <name>erase_ifImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::erase_ifImpl</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref></type>
+          <declname>first</declname>
+        </param>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref></type>
+          <declname>last</declname>
+        </param>
+        <param>
+          <type>Func &amp;&amp;</type>
+          <declname>func</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>defragment</declname>
+          <defval>false</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="756" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="756" bodyend="770"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a55f309a0cc8ffd5190740e7623e34494" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::eraseAsyncImpl</definition>
+        <argsstring>(SectorId id)</argsstring>
+        <name>eraseAsyncImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::eraseAsyncImpl</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1015" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="1015" bodyend="1035"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1ade1b8a35732938151d6806e849d11804" prot="private" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref></type>
+        <definition>Iterator ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::eraseImpl</definition>
+        <argsstring>(Iterator first, Iterator last, bool defragment=false) noexcept</argsstring>
+        <name>eraseImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::eraseImpl</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref></type>
+          <declname>first</declname>
+        </param>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref></type>
+          <declname>last</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>defragment</declname>
+          <defval>false</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="735" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="735" bodyend="753"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a9e33aa58af2d803ccd3d0f529eae7f87" prot="private" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref></type>
+        <definition>Iterator ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::eraseImpl</definition>
+        <argsstring>(Iterator it, bool defragment=false) noexcept</argsstring>
+        <name>eraseImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::eraseImpl</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref></type>
+          <declname>it</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>defragment</declname>
+          <defval>false</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="718" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="718" bodyend="733"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1aa5f932cb02de99e3372127eb1df2e1c1" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::findInsertPositionImpl</definition>
+        <argsstring>(SectorId sectorId, size_t size) const</argsstring>
+        <name>findInsertPositionImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::findInsertPositionImpl</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>sectorId</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="924" column="8" bodyfile="ecss/memory/SectorsArray.h" bodystart="924" bodyend="937"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a5498d38a473da4416d344fe227c736a9" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::findRightNearestSectorIndexImpl</definition>
+        <argsstring>(SectorId sectorId) const</argsstring>
+        <name>findRightNearestSectorIndexImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::findRightNearestSectorIndexImpl</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>sectorId</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="772" column="8" bodyfile="ecss/memory/SectorsArray.h" bodystart="772" bodyend="781"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a3785b66962e12afcdd5ae29c07934a04" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE <ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> *</type>
+        <definition>FORCE_INLINE Sector * ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::findSectorImpl</definition>
+        <argsstring>(SectorId id) const</argsstring>
+        <name>findSectorImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::findSectorImpl</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="785" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="785" bodyend="785"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a3b93f3902bba79fdf2893cfd42163056" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE <ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> *</type>
+        <definition>FORCE_INLINE Sector * ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::getSectorImpl</definition>
+        <argsstring>(SectorId id) const</argsstring>
+        <name>getSectorImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::getSectorImpl</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="787" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="787" bodyend="787"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1ac7ed4bc1bb1821251035edf187b182d4" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE size_t</type>
+        <definition>FORCE_INLINE size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::getSectorIndexImpl</definition>
+        <argsstring>(Sector *sector) const</argsstring>
+        <name>getSectorIndexImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::getSectorIndexImpl</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> *</type>
+          <declname>sector</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="789" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="789" bodyend="789"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a1310ab84d9a237669e8ad239874aab45" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE size_t</type>
+        <definition>FORCE_INLINE size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::getSectorIndexImpl</definition>
+        <argsstring>(SectorId id) const</argsstring>
+        <name>getSectorIndexImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::getSectorIndexImpl</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="788" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="788" bodyend="788"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1ac493a32ae398cc7b9e4525823d2b460a" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>std::remove_reference_t&lt; T &gt; *</type>
+        <definition>std::remove_reference_t&lt; T &gt; * ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::insertImpl</definition>
+        <argsstring>(SectorId sectorId, T &amp;&amp;data)</argsstring>
+        <name>insertImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::insertImpl</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>sectorId</declname>
+        </param>
+        <param>
+          <type>T &amp;&amp;</type>
+          <declname>data</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="823" column="25" bodyfile="ecss/memory/SectorsArray.h" bodystart="823" bodyend="843"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a721c8b7c07caa75e41911a7f7ae7bde9" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>T</declname>
+            <defname>T</defname>
+          </param>
+          <param>
+            <type>typename Alloc</type>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>ThreadSafe</defval>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::move</definition>
+        <argsstring>(SectorsArray&lt; T, Alloc &gt; &amp;&amp;other)</argsstring>
+        <name>move</name>
+        <qualifiedname>ecss::Memory::SectorsArray::move</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref>&lt; T, Alloc &gt; &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="671" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="671" bodyend="682"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a81de9e98056f37f52fef93d95ae332ab" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>T</declname>
+            <defname>T</defname>
+          </param>
+          <param>
+            <type>typename Alloc</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::moveImpl</definition>
+        <argsstring>(SectorsArray&lt; T, Alloc &gt; &amp;&amp;other)</argsstring>
+        <name>moveImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::moveImpl</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref>&lt; T, Alloc &gt; &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="867" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="867" bodyend="890"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a14f34e0b460d561731e6ae03878def7a" prot="private" static="no" nodiscard="yes" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="structecss_1_1Memory_1_1PinnedSector" kindref="compound">PinnedSector</ref></type>
+        <definition>PinnedSector ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::pinSectorImpl</definition>
+        <argsstring>(Sector *sector) const</argsstring>
+        <name>pinSectorImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::pinSectorImpl</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> *</type>
+          <declname>sector</declname>
+        </param>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1037" column="15" bodyfile="ecss/memory/SectorsArray.h" bodystart="1037" bodyend="1037"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a9066cb928e27dec658eae0ee564aa19c" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::processPendingErasesImpl</definition>
+        <argsstring>(bool withDefragment=true)</argsstring>
+        <name>processPendingErasesImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::processPendingErasesImpl</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>withDefragment</declname>
+          <defval>true</defval>
+        </param>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="685" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="685" bodyend="716"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a0694d722bcb7805f49c2c98f51d6e26d" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>auto</type>
+        <definition>auto ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::readLock</definition>
+        <argsstring>() const</argsstring>
+        <name>readLock</name>
+        <qualifiedname>ecss::Memory::SectorsArray::readLock</qualifiedname>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Shared read lock if ThreadSafe, otherwise a dummy object. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1041" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="1041" bodyend="1041"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1acd372c2ac5ac2d261f3e074746bd3699" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>auto</type>
+        <definition>auto ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::readLock</definition>
+        <argsstring>() const</argsstring>
+        <name>readLock</name>
+        <qualifiedname>ecss::Memory::SectorsArray::readLock</qualifiedname>
+    <requiresclause>(!ThreadSafe)    </requiresclause>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1042" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="1042" bodyend="1042"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a083bba1169b31f5dfdabfa64a4c0a06f" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::reserveImpl</definition>
+        <argsstring>(uint32_t newCapacity)</argsstring>
+        <name>reserveImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::reserveImpl</qualifiedname>
+        <param>
+          <type>uint32_t</type>
+          <declname>newCapacity</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="812" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="812" bodyend="820"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1aa85946b8f3bca3828b397bd73535516f" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::SectorsArray</definition>
+        <argsstring>(SectorLayoutMeta *meta, Allocator &amp;&amp;allocator={})</argsstring>
+        <name>SectorsArray</name>
+        <qualifiedname>ecss::Memory::SectorsArray::SectorsArray</qualifiedname>
+        <param>
+          <type>SectorLayoutMeta *</type>
+          <declname>meta</declname>
+        </param>
+        <param>
+          <type>Allocator &amp;&amp;</type>
+          <declname>allocator</declname>
+          <defval>{}</defval>
+        </param>
+        <briefdescription>
+<para>Internal ctor with provided layout metadata + allocator. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>meta</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Precomputed layout meta (SectorLayoutMeta owns offsets &amp; liveness masks). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>allocator</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Allocator instance. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="391" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="391" bodyend="393"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a3e9f3ad05e8ac77163a969b60f1727e9" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE size_t</type>
+        <definition>FORCE_INLINE size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::sectorsMapCapacityImpl</definition>
+        <argsstring>() const</argsstring>
+        <name>sectorsMapCapacityImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::sectorsMapCapacityImpl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="790" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="790" bodyend="790"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a78c2a55e9bfe6f5669eccc7936286f27" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>ShiftDirection</type>
+            <declname>ShiftDir</declname>
+            <defname>ShiftDir</defname>
+            <defval>Left</defval>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::shiftSectorsImpl</definition>
+        <argsstring>(size_t from, size_t count=1)</argsstring>
+        <name>shiftSectorsImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::shiftSectorsImpl</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>from</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>count</declname>
+          <defval>1</defval>
+        </param>
+        <briefdescription>
+<para>Shift sectors left or right to open/close gaps. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>ShiftDir</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Direction (Left / Right). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>from</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Starting linear index where shift begins. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>How many slots to open/close. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="901" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="901" bodyend="922"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1aacb29a4c5715214a7c9772a4f27c64d8" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::shrinkToFitImpl</definition>
+        <argsstring>()</argsstring>
+        <name>shrinkToFitImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::shrinkToFitImpl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="795" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="795" bodyend="795"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1abf0c07869e814f35a136db735e7dde5a" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE size_t</type>
+        <definition>FORCE_INLINE size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::sizeImpl</definition>
+        <argsstring>() const</argsstring>
+        <name>sizeImpl</name>
+        <qualifiedname>ecss::Memory::SectorsArray::sizeImpl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="792" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="792" bodyend="792"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1afd43708c17bfb3612c13b3771272d8af" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>auto</type>
+        <definition>auto ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::writeLock</definition>
+        <argsstring>() const</argsstring>
+        <name>writeLock</name>
+        <qualifiedname>ecss::Memory::SectorsArray::writeLock</qualifiedname>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Unique write lock if ThreadSafe, otherwise a dummy object. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1044" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="1044" bodyend="1044"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a0aeab5dcd20c8cf5ed611f3a22761a2e" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>auto</type>
+        <definition>auto ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::writeLock</definition>
+        <argsstring>() const</argsstring>
+        <name>writeLock</name>
+        <qualifiedname>ecss::Memory::SectorsArray::writeLock</qualifiedname>
+    <requiresclause>(!ThreadSafe)    </requiresclause>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1045" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="1045" bodyend="1045"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a46b7cd641ec4b343425bd3479cfa03ed" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename...</type>
+            <declname>Types</declname>
+            <defname>Types</defname>
+          </param>
+        </templateparamlist>
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> *</type>
+        <definition>static SectorsArray * ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::create</definition>
+        <argsstring>(Allocator &amp;&amp;allocator={})</argsstring>
+        <name>create</name>
+        <qualifiedname>ecss::Memory::SectorsArray::create</qualifiedname>
+        <param>
+          <type>Allocator &amp;&amp;</type>
+          <declname>allocator</declname>
+          <defval>{}</defval>
+        </param>
+        <briefdescription>
+<para>Factory to allocate a <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> for the unique component type set <computeroutput>Types</computeroutput>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>Types</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component types grouped in each sector (must be unique). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>allocator</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Allocator instance to move in. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Newly allocated heap object (caller owns via delete). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="406" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="406" bodyend="409"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-func">
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1a9c8a1269bf01d29167bdb7dec429aa32" prot="private" static="yes" consteval="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>UseLock</declname>
+            <defname>UseLock</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>static consteval void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::enforceTSMode</definition>
+        <argsstring>()</argsstring>
+        <name>enforceTSMode</name>
+        <qualifiedname>ecss::Memory::SectorsArray::enforceTSMode</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1048" column="23" bodyfile="ecss/memory/SectorsArray.h" bodystart="1048" bodyend="1053"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Container managing sectors of one (or grouped) component layouts with optional thread-safety. </para>
+    </briefdescription>
+    <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>ThreadSafe</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, public calls are internally synchronized &amp; relocation waits on pins. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>Allocator</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Allocation policy (e.g. ChunksAllocator).</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+Main features:<itemizedlist>
+<listitem><para><ref refid="structecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> acquisition by id (insertion keeps sectors ordered by id).</para>
+</listitem><listitem><para>Per-member (component) construction, move, copy, overwrite.</para>
+</listitem><listitem><para>Iterators for full scan, alive-only, ranged, and ranged-alive traversal.</para>
+</listitem><listitem><para>Deferred erasure via <ref refid="classecss_1_1Memory_1_1SectorsArray_1a98490457c05403c48c64b3039188f7ae" kindref="member">eraseAsync()</ref> drained by <ref refid="classecss_1_1Memory_1_1SectorsArray_1a1f63102348bc3d7f1b2aaa65af53b564" kindref="member">processPendingErases()</ref>.</para>
+</listitem><listitem><para>Defragmentation collapses dead (erased) holes to the left while preserving order stability.</para>
+</listitem></itemizedlist>
+</para>
+<para>Thread-safe mode guarantees:<itemizedlist>
+<listitem><para>No sector memory relocation while pinned (pin counters + waiting writers).</para>
+</listitem><listitem><para>Safe concurrent readers &amp; single writer semantics on container-level operations.</para>
+</listitem></itemizedlist>
+</para>
+<para><simplesect kind="note"><para>Most public template methods accept an optional TS template parameter (defaulting to the class ThreadSafe flag) so internal code can bypass extra locking when it already holds locks. </para>
+</simplesect>
+</para>
+    </detaileddescription>
+    <location file="ecss/memory/SectorsArray.h" line="218" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="218" bodyend="1070"/>
+    <listofallmembers>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1af4cdacfc6877ec42b7a7ac4e9dff7d17" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>acquireSectorImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1ad7c3e1226528d39db62d4ce1221ec8b9" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>at</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1ae04d7df6813a439d6ee519bf3b8b8e15" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>atImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1ac8c5120858072c1e93d9faf3f079b058" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>begin</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1af9ab449aa6cd67272644dcb7a559c9bf" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>beginAlive</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1ab11be57b204687cb774fad3899a0d89b" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>beginAlive</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a14ecf2862eeee88f9e59fcaed6c78a07" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>beginRanged</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1ae523f974d825f39e1a3a99e25015515d" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>capacity</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a82e4bc9f8df8ca4bfe19c1adfc67d1c7" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>capacityImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1ada69fb6d63e3957d3496e33cb0205d75" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>clear</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a2e341d03347a3ebfa22ddcb013d0629f" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>clearImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a58c6260fce32a7a41125476b1b4344c4" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>containsSector</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a7bdebda449c4158e5489a0fb1a1de8a3" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>containsSectorImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a62ca0dc64c5d504b7bc3d2c579eba493" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>copy</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a7b71f78c6c416fd72990a66d502db40c" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>copyImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a46b7cd641ec4b343425bd3479cfa03ed" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>create</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1ab9922ae5f2c1ff0fb2094a05a4cd6269" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>defragment</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1af9d8a64c51421a1671e1fbd516f90f23" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>defragmentImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a83b5eaa6e75f20d04d9943b9cb24d063" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>emplace</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a0824356a41cd4609edb840097efcdfbd" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>emplaceImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1ad88988bbfd09d6a5a275d98d42b50bba" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>empty</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a10eeb15c2de706f648eec5270be4ef04" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>emptyImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a24119717a503725d8ca01cd982d300e8" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>end</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a2cc3d2fa77413c8079c4b9395c0b64f0" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>endAlive</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a81dd5c2e5abbf9f43518742f192f1130" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>endRanged</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a9c8a1269bf01d29167bdb7dec429aa32" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>enforceTSMode</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a5b8174bfb7520fc74e0c4a632428e70f" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>erase</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a9db2e7006eb2a75bade373dff1995ea4" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>erase</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a22bc2139d5b9448a6a6339539a04ff81" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>erase</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a6fdf7016940711c047b63c2125b3ef2b" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>erase_if</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a2854977c37f2ce18a38dc52eaebee61e" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>erase_ifImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a98490457c05403c48c64b3039188f7ae" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>eraseAsync</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a55f309a0cc8ffd5190740e7623e34494" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>eraseAsyncImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a9e33aa58af2d803ccd3d0f529eae7f87" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>eraseImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1ade1b8a35732938151d6806e849d11804" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>eraseImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1aa5f932cb02de99e3372127eb1df2e1c1" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>findInsertPositionImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a02182bd08a0ceeae3096d1e3158c3f30" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>findRightNearestSectorIndex</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a5498d38a473da4416d344fe227c736a9" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>findRightNearestSectorIndexImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1ae21c973bc364f026fc8815d27003f87c" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>findSector</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a3785b66962e12afcdd5ae29c07934a04" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>findSectorImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1addbf1a1fc99679f3670834112f6be327" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>getDefragmentationRatio</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a0e8212907f3ec633e585c65b7b8cfc32" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>getDefragmentationSize</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1abdc5044bd1f4394aece08634f72afd16" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>getLayout</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a93cd4bf3224bfde197d4dd85bafad59e" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>getLayoutData</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a1a8e95b069088861574b35b2fca8994a" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>getSector</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a3b93f3902bba79fdf2893cfd42163056" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>getSectorImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a904bdbabd8c0b68d54572c700f88c7d5" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>getSectorIndex</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a8f200782896ed0658e425789e29ecf98" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>getSectorIndex</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a1310ab84d9a237669e8ad239874aab45" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>getSectorIndexImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1ac7ed4bc1bb1821251035edf187b182d4" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>getSectorIndexImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a5d7442d37a7aa48930fe525623867faf" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>incDefragmentSize</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a1ed4855ae2f69ef85e0fa2d75492c6cb" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>insert</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1ac493a32ae398cc7b9e4525823d2b460a" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>insertImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1adaef995cc04fa70a9e4b374d519e353cadd0191bad712fd0fbda3af79eda2f06a" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>Left</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a133e3d156ae49f00d89f0b2d51d3f3d4" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>mAllocator</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a73d0faf07ee5a32bc00036ac577df26a" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>mDefragmentSize</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a9c09b82e46bd3287ca82674c06a8b0a9" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>mDefragThreshold</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a721c8b7c07caa75e41911a7f7ae7bde9" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>move</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a81de9e98056f37f52fef93d95ae332ab" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>moveImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a7264ef425a77c925c0f9e9d73542cd88" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>mPendingErase</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1adff52676ba199bad67b93e6a1e302c68" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>mPinsCounter</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a1ae79017cdad5ee7101f48d40292f440" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>mSectorsMap</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a4361a809f07612e0dc84cf0da1f906f7" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>mSize</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a928d93931ec82061b59e7b8ab950a28c" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>mtx</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a10ebbfe27363d158bf34e0e8b627979c" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>needDefragment</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a89c29475462c094065ebc4e2a9a62ffc" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>operator=</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1ac914c699ea8ee30016f448ff912f6e13" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>operator=</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a83c56153ddbe3b8f0fb8518b9b024f64" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>operator=</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a416a1550e314192fdd81d89738b6be36" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>operator=</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1ab49de3f2145a128c022b0964bcf7280b" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>pinBackSector</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a86b427c11d990979407eab127ac2713d" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>pinSector</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a6363da7f68092538e4ad98ea995cc551" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>pinSector</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1aad1984da0cac8a92d60225b0794aba70" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>pinSectorAt</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a14f34e0b460d561731e6ae03878def7a" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>pinSectorImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a1f63102348bc3d7f1b2aaa65af53b564" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>processPendingErases</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a9066cb928e27dec658eae0ee564aa19c" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>processPendingErasesImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a2e77ffb2318924f3ee13586064fc11bc" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>push</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a0694d722bcb7805f49c2c98f51d6e26d" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>readLock</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1acd372c2ac5ac2d261f3e074746bd3699" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>readLock</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1af12f12d1b530b48965494820bc9e184e" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>reserve</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a083bba1169b31f5dfdabfa64a4c0a06f" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>reserveImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1adaef995cc04fa70a9e4b374d519e353ca5d22cbd12c8fe0a97380ad41fe50fce1" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>Right</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a40b6c09e61e85f53520b7407fac7f5fa" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>SectorsArray</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1adc4b69f4e6796a44e8a3311b290663d3" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>SectorsArray</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1af57c367e96151a0e7a68f45b42a9921a" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>SectorsArray</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a3cd3295e96a3b586a32e00e53ee11e57" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>SectorsArray</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1aa85946b8f3bca3828b397bd73535516f" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>SectorsArray</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1ae1b810a8d4924c5aa1859a20ade29345" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>sectorsMapCapacity</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a3e9f3ad05e8ac77163a969b60f1727e9" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>sectorsMapCapacityImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a1fd65bda0c058208af6baba42241ca1c" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>setDefragmentThreshold</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1adaef995cc04fa70a9e4b374d519e353c" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>ShiftDirection</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a78c2a55e9bfe6f5669eccc7936286f27" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>shiftSectorsImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a9658416f8de7b762b2cd44145d59eccc" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>shrinkToFit</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1aacb29a4c5715214a7c9772a4f27c64d8" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>shrinkToFitImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1abecca7ae7c961b47778daca80d88b26f" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>size</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1abf0c07869e814f35a136db735e7dde5a" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>sizeImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1ac4930b0c0c8dce6cd56b8b683ee1867b" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>tryDefragment</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1afd43708c17bfb3612c13b3771272d8af" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>writeLock</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1a0aeab5dcd20c8cf5ed611f3a22761a2e" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>writeLock</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1ab0adb6c6db5dbd7304894e0753c5c3ea" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray</scope><name>~SectorsArray</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

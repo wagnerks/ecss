@@ -1,0 +1,367 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Threads_1_1PinnedIndexesBitMask" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Threads::PinnedIndexesBitMask</compoundname>
+    <includes refid="PinCounters_8h" local="no">PinCounters.h</includes>
+    <sectiondef kind="private-type">
+      <memberdef kind="typedef" id="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a4d0d30633f916066d3bf0068c06cf79b" prot="private" static="no">
+        <type>uint64_t</type>
+        <definition>using ecss::Threads::PinnedIndexesBitMask::BITS_TYPE =  uint64_t</definition>
+        <argsstring></argsstring>
+        <name>BITS_TYPE</name>
+        <qualifiedname>ecss::Threads::PinnedIndexesBitMask::BITS_TYPE</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="40" column="1" bodyfile="ecss/threads/PinCounters.h" bodystart="40" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinnedIndexesBitMask_1aa070a0f692b49e77b5dae336bb472978" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>auto</type>
+        <definition>auto ecss::Threads::PinnedIndexesBitMask::kBitsCount</definition>
+        <argsstring></argsstring>
+        <name>kBitsCount</name>
+        <qualifiedname>ecss::Threads::PinnedIndexesBitMask::kBitsCount</qualifiedname>
+        <initializer>= kFanout - 1</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="45" column="23" bodyfile="ecss/threads/PinCounters.h" bodystart="45" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a5f91354071915823789b50bdb0da7075" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>auto</type>
+        <definition>auto ecss::Threads::PinnedIndexesBitMask::kFanout</definition>
+        <argsstring></argsstring>
+        <name>kFanout</name>
+        <qualifiedname>ecss::Threads::PinnedIndexesBitMask::kFanout</qualifiedname>
+        <initializer>= std::numeric_limits&lt;BITS_TYPE&gt;::digits</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="44" column="23" bodyfile="ecss/threads/PinCounters.h" bodystart="44" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a4ed3d0b2f0f9ae079fbe763721748289" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>auto</type>
+        <definition>auto ecss::Threads::PinnedIndexesBitMask::maxlvl</definition>
+        <argsstring></argsstring>
+        <name>maxlvl</name>
+        <qualifiedname>ecss::Threads::PinnedIndexesBitMask::maxlvl</qualifiedname>
+        <initializer>= 1 + (std::numeric_limits&lt;size_t&gt;::digits + shift - 1) / shift</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="47" column="23" bodyfile="ecss/threads/PinCounters.h" bodystart="47" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinnedIndexesBitMask_1ae79f7e6096c7b7a34590e19dc4abb70a" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>auto</type>
+        <definition>auto ecss::Threads::PinnedIndexesBitMask::shift</definition>
+        <argsstring></argsstring>
+        <name>shift</name>
+        <qualifiedname>ecss::Threads::PinnedIndexesBitMask::shift</qualifiedname>
+        <initializer>= std::countr_zero(static_cast&lt;unsigned&gt;(kFanout))</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="46" column="23" bodyfile="ecss/threads/PinCounters.h" bodystart="46" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a281e368d958ea38a66b30d28fe4bda14" prot="private" static="no" mutable="yes">
+        <type>std::array&lt; std::vector&lt; BITS_TYPE &gt;, maxlvl &gt;</type>
+        <definition>std::array&lt;std::vector&lt;BITS_TYPE&gt;, maxlvl&gt; ecss::Threads::PinnedIndexesBitMask::bits</definition>
+        <argsstring></argsstring>
+        <name>bits</name>
+        <qualifiedname>ecss::Threads::PinnedIndexesBitMask::bits</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="175" column="20" bodyfile="ecss/threads/PinCounters.h" bodystart="175" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a9c486ebe9984cd3c4b7e78b221c376e4" prot="private" static="no" mutable="yes">
+        <type>std::shared_mutex</type>
+        <definition>std::shared_mutex ecss::Threads::PinnedIndexesBitMask::mtx</definition>
+        <argsstring></argsstring>
+        <name>mtx</name>
+        <qualifiedname>ecss::Threads::PinnedIndexesBitMask::mtx</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="174" column="27" bodyfile="ecss/threads/PinCounters.h" bodystart="174" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-func">
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a20c50df5ab2e1af2fc2202d18413066d" prot="private" static="yes" constexpr="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>BITS_TYPE</type>
+        <definition>static constexpr BITS_TYPE ecss::Threads::PinnedIndexesBitMask::bitMask</definition>
+        <argsstring>(size_t off)</argsstring>
+        <name>bitMask</name>
+        <qualifiedname>ecss::Threads::PinnedIndexesBitMask::bitMask</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>off</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="51" column="27" bodyfile="ecss/threads/PinCounters.h" bodystart="51" bodyend="51"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a9c88d08ca21fb168b43e3bbb43efd593" prot="private" static="yes" constexpr="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>static constexpr size_t ecss::Threads::PinnedIndexesBitMask::bitOffsetOf</definition>
+        <argsstring>(size_t idx)</argsstring>
+        <name>bitOffsetOf</name>
+        <qualifiedname>ecss::Threads::PinnedIndexesBitMask::bitOffsetOf</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>idx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="50" column="24" bodyfile="ecss/threads/PinCounters.h" bodystart="50" bodyend="50"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinnedIndexesBitMask_1ab59f03e4f44784b2cdadcf4ff682f613" prot="private" static="yes" constexpr="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>static constexpr size_t ecss::Threads::PinnedIndexesBitMask::levelsFor</definition>
+        <argsstring>(size_t idx)</argsstring>
+        <name>levelsFor</name>
+        <qualifiedname>ecss::Threads::PinnedIndexesBitMask::levelsFor</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>idx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="53" column="25" bodyfile="ecss/threads/PinCounters.h" bodystart="53" bodyend="56"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a24793c94989dfd5cb0911ea59438ed0a" prot="private" static="yes" constexpr="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>static constexpr size_t ecss::Threads::PinnedIndexesBitMask::wordIndexOf</definition>
+        <argsstring>(size_t idx)</argsstring>
+        <name>wordIndexOf</name>
+        <qualifiedname>ecss::Threads::PinnedIndexesBitMask::wordIndexOf</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>idx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="49" column="24" bodyfile="ecss/threads/PinCounters.h" bodystart="49" bodyend="49"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a1d9c3eb19b8088e4934b5bf60cc151f4" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ecss::Threads::PinnedIndexesBitMask::ensurePath</definition>
+        <argsstring>(size_t idx, std::array&lt; size_t, maxlvl &gt; &amp;path)</argsstring>
+        <name>ensurePath</name>
+        <qualifiedname>ecss::Threads::PinnedIndexesBitMask::ensurePath</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>idx</declname>
+        </param>
+        <param>
+          <type>std::array&lt; size_t, maxlvl &gt; &amp;</type>
+          <declname>path</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="58" column="8" bodyfile="ecss/threads/PinCounters.h" bodystart="58" bodyend="71"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinnedIndexesBitMask_1af916aa160845269c1d03b84feb302dff" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>PinIndex</type>
+        <definition>PinIndex ecss::Threads::PinnedIndexesBitMask::highestSet</definition>
+        <argsstring>() const</argsstring>
+        <name>highestSet</name>
+        <qualifiedname>ecss::Threads::PinnedIndexesBitMask::highestSet</qualifiedname>
+        <briefdescription>
+<para>Get highest set sector id or -1 if none. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Highest id or -1. @thread_safety Safe concurrent with mutation; may return stale but monotonic snapshot. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="147" column="10" bodyfile="ecss/threads/PinCounters.h" bodystart="147" bodyend="171"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a78b1e1de1a6d4819ecf0dd6c5d188904" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Threads::PinnedIndexesBitMask::PinnedIndexesBitMask</definition>
+        <argsstring>()</argsstring>
+        <name>PinnedIndexesBitMask</name>
+        <qualifiedname>ecss::Threads::PinnedIndexesBitMask::PinnedIndexesBitMask</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="74" column="1" bodyfile="ecss/threads/PinCounters.h" bodystart="74" bodyend="74"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a47d231095e8424ca85ff055f1197ff2d" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Threads::PinnedIndexesBitMask::set</definition>
+        <argsstring>(SectorId index, bool state)</argsstring>
+        <name>set</name>
+        <qualifiedname>ecss::Threads::PinnedIndexesBitMask::set</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>index</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>state</declname>
+        </param>
+        <briefdescription>
+<para>Set or clear presence bit for sector id. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>index</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sector id. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>state</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>true to set, false to clear. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>Setting propagates upward until an already-marked ancestor is found. Clearing propagates until an ancestor still has other children set. @thread_safety Concurrent calls allowed; internal locking + atomic ops. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="84" column="6" bodyfile="ecss/threads/PinCounters.h" bodystart="84" bodyend="120"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a571be9b5d9a6982d889fafe7d03c7c72" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ecss::Threads::PinnedIndexesBitMask::test</definition>
+        <argsstring>(SectorId index) const</argsstring>
+        <name>test</name>
+        <qualifiedname>ecss::Threads::PinnedIndexesBitMask::test</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+<para>Test if sector id bit set. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>index</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sector id. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>true if set. @thread_safety Safe concurrent with set/clear. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="128" column="6" bodyfile="ecss/threads/PinCounters.h" bodystart="128" bodyend="140"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Hierarchical bit mask indexing pinned sector ids. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Purpose:<itemizedlist>
+<listitem><para>O(1) set / clear of a sector &quot;present&quot; bit.</para>
+</listitem><listitem><para>O(log N) query of highest pinned sector id (<ref refid="structecss_1_1Threads_1_1PinnedIndexesBitMask_1af916aa160845269c1d03b84feb302dff" kindref="member">highestSet()</ref>).</para>
+</listitem></itemizedlist>
+</para>
+<para>Layout:<itemizedlist>
+<listitem><para>Level 0 stores bits for sectors (fan-out = machine word bit width).</para>
+</listitem><listitem><para>Higher levels store aggregated occupancy of lower level word indices.</para>
+</listitem></itemizedlist>
+</para>
+<para>Concurrency:<itemizedlist>
+<listitem><para>Structural growth (vector resize) guarded by unique_lock in ensurePath().</para>
+</listitem><listitem><para>Bit mutations use atomic_ref fetch_{or,and} with acquire-release semantics.</para>
+</listitem><listitem><para>Readers (test/highestSet) take shared locks plus atomic loads (acquire).</para>
+</listitem></itemizedlist>
+</para>
+<para>Guarantees:<itemizedlist>
+<listitem><para>After set(i,true) completes, <ref refid="structecss_1_1Threads_1_1PinnedIndexesBitMask_1af916aa160845269c1d03b84feb302dff" kindref="member">highestSet()</ref> will eventually (after propagation) return &gt;= i unless cleared again.</para>
+</listitem><listitem><para>Clearing a bit propagates upward until a still-used sibling bit is found.</para>
+</listitem></itemizedlist>
+</para>
+<para>Used by <ref refid="structecss_1_1Threads_1_1PinCounters" kindref="compound">PinCounters</ref> to recompute maxPinnedSector after a sector&apos;s last unpin. </para>
+    </detaileddescription>
+    <location file="ecss/threads/PinCounters.h" line="38" column="1" bodyfile="ecss/threads/PinCounters.h" bodystart="38" bodyend="176"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a20c50df5ab2e1af2fc2202d18413066d" prot="private" virt="non-virtual"><scope>ecss::Threads::PinnedIndexesBitMask</scope><name>bitMask</name></member>
+      <member refid="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a9c88d08ca21fb168b43e3bbb43efd593" prot="private" virt="non-virtual"><scope>ecss::Threads::PinnedIndexesBitMask</scope><name>bitOffsetOf</name></member>
+      <member refid="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a281e368d958ea38a66b30d28fe4bda14" prot="private" virt="non-virtual"><scope>ecss::Threads::PinnedIndexesBitMask</scope><name>bits</name></member>
+      <member refid="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a4d0d30633f916066d3bf0068c06cf79b" prot="private" virt="non-virtual"><scope>ecss::Threads::PinnedIndexesBitMask</scope><name>BITS_TYPE</name></member>
+      <member refid="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a1d9c3eb19b8088e4934b5bf60cc151f4" prot="private" virt="non-virtual"><scope>ecss::Threads::PinnedIndexesBitMask</scope><name>ensurePath</name></member>
+      <member refid="structecss_1_1Threads_1_1PinnedIndexesBitMask_1af916aa160845269c1d03b84feb302dff" prot="public" virt="non-virtual"><scope>ecss::Threads::PinnedIndexesBitMask</scope><name>highestSet</name></member>
+      <member refid="structecss_1_1Threads_1_1PinnedIndexesBitMask_1aa070a0f692b49e77b5dae336bb472978" prot="private" virt="non-virtual"><scope>ecss::Threads::PinnedIndexesBitMask</scope><name>kBitsCount</name></member>
+      <member refid="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a5f91354071915823789b50bdb0da7075" prot="private" virt="non-virtual"><scope>ecss::Threads::PinnedIndexesBitMask</scope><name>kFanout</name></member>
+      <member refid="structecss_1_1Threads_1_1PinnedIndexesBitMask_1ab59f03e4f44784b2cdadcf4ff682f613" prot="private" virt="non-virtual"><scope>ecss::Threads::PinnedIndexesBitMask</scope><name>levelsFor</name></member>
+      <member refid="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a4ed3d0b2f0f9ae079fbe763721748289" prot="private" virt="non-virtual"><scope>ecss::Threads::PinnedIndexesBitMask</scope><name>maxlvl</name></member>
+      <member refid="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a9c486ebe9984cd3c4b7e78b221c376e4" prot="private" virt="non-virtual"><scope>ecss::Threads::PinnedIndexesBitMask</scope><name>mtx</name></member>
+      <member refid="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a78b1e1de1a6d4819ecf0dd6c5d188904" prot="public" virt="non-virtual"><scope>ecss::Threads::PinnedIndexesBitMask</scope><name>PinnedIndexesBitMask</name></member>
+      <member refid="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a47d231095e8424ca85ff055f1197ff2d" prot="public" virt="non-virtual"><scope>ecss::Threads::PinnedIndexesBitMask</scope><name>set</name></member>
+      <member refid="structecss_1_1Threads_1_1PinnedIndexesBitMask_1ae79f7e6096c7b7a34590e19dc4abb70a" prot="private" virt="non-virtual"><scope>ecss::Threads::PinnedIndexesBitMask</scope><name>shift</name></member>
+      <member refid="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a571be9b5d9a6982d889fafe7d03c7c72" prot="public" virt="non-virtual"><scope>ecss::Threads::PinnedIndexesBitMask</scope><name>test</name></member>
+      <member refid="structecss_1_1Threads_1_1PinnedIndexesBitMask_1a24793c94989dfd5cb0911ea59438ed0a" prot="private" virt="non-virtual"><scope>ecss::Threads::PinnedIndexesBitMask</scope><name>wordIndexOf</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>
