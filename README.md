@@ -13,7 +13,7 @@ Sectors live inside chunked storage that grows by powers of two. Offsets are com
 ## Projects using ECSS
 
 [![Stellar Forge Engine](https://img.shields.io/badge/Stellar%20Forge%20Engine-Repository-blue?logo=github)](https://github.com/wagnerks/StelForge)  
-  ECSS was originally developed inside the Stellar Forge Editor as its core ECS solution.  
+  ECSS was originally developed inside the Stellar Forge Engine as its core ECS solution.  
   After proving its performance and flexibility in a real engine, ECSS was extracted into a standalone library.
 
 ## 🔑 Core Characteristics
