@@ -9,7 +9,7 @@ hide:
   <img src="img/logo.svg" alt="ECSS logo" width="150" style="vertical-align: middle;"/>
 </p>
 
-`ECSS` is a minimal, performance‑oriented ECS for modern C++ that groups one or more component types for an entity into a single fixed layout memory block called a *sector*. Layouts are deterministic, iteration is cache‑friendly, structural mutation can be made thread‑safe, and the core stays small (a handful of headers, no codegen, no heavy RTTI).
+`ECSS` is a minimal, performance‑oriented [ECS](https://github.com/SanderMertens/ecs-faq?tab=readme-ov-file#what-is-ecs) for modern C++ that groups one or more component types for an entity into a single fixed layout memory block called a *sector*. Layouts are deterministic, iteration is cache‑friendly, structural mutation can be made thread‑safe, and the core stays small (a handful of headers, no codegen, no heavy RTTI).
 
 ---
 
