@@ -10,6 +10,12 @@
 ```
 Sectors live inside chunked storage that grows by powers of two. Offsets are computed at compile time (no RTTI / string hashing in hot loops) and the core stays small (a few headers, no code generation, no macro DSL).
 
+## Projects using ECSS
+
+[![Stellar Forge Engine](https://img.shields.io/badge/Stellar%20Forge%20Engine-Repository-blue?logo=github)](https://github.com/wagnerks/StelForge)  
+  ECSS was originally developed inside the Stellar Forge Editor as its core ECS solution.  
+  After proving its performance and flexibility in a real engine, ECSS was extracted into a standalone library.
+
 ## 🔑 Core Characteristics
 - Sector (chunk) storage: tightly packed, deterministic offsets, low fragmentation
 - Explicit grouping: opt‑in only (avoid archetype explosion); unrelated types live in their own arrays
