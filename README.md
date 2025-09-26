@@ -3,12 +3,15 @@
 [![CI (build & tests)](https://github.com/wagnerks/ecss/actions/workflows/ci.yml/badge.svg?branch=main)](https://github.com/wagnerks/ecss/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![C++20](https://img.shields.io/badge/C%2B%2B-20-blue.svg)](https://en.cppreference.com/w/cpp/20)
-[![docs](https://img.shields.io/badge/docs-mkDocs-blue.svg)](https://wagnerks.github.io/ecss/)  
+[![docs](https://img.shields.io/badge/docs-mkDocs-blue.svg)](https://wagnerks.github.io/ecss/) 
+
 `ecss` is a minimal, performance‑oriented ECS. One (or several explicitly grouped) component types for an entity are stored contiguously inside a fixed layout memory block called a **sector**:
 ```
 [SectorHeader(id|mask) | CompA | CompB | ...]
 ```
 Sectors live inside chunked storage that grows by powers of two. Offsets are computed at compile time (no RTTI / string hashing in hot loops) and the core stays small (a few headers, no code generation, no macro DSL).
+  
+[What is ECS?](https://github.com/SanderMertens/ecs-faq?tab=readme-ov-file#what-is-ecs)  
 
 ## Projects using ECSS
 
