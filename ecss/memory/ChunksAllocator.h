@@ -235,7 +235,7 @@ namespace ecss::Memory {
 		ChunksAllocator(const ChunksAllocator& other) { *this = other; }
 
 		template<uint32_t OC>
-		ChunksAllocator& operator=(const ChunksAllocator<OC>& other) { if (isSameAdr(this, &other)) { copy(other); } return *this; }
+		ChunksAllocator& operator=(const ChunksAllocator<OC>& other) { if (!isSameAdr(this, &other)) { copy(other); } return *this; }
 		ChunksAllocator& operator=(const ChunksAllocator& other) { if (this != &other) { copy(other); } return *this; }
 
 		// move
@@ -244,7 +244,7 @@ namespace ecss::Memory {
 		ChunksAllocator(ChunksAllocator&& other) noexcept { *this = std::move(other); }
 
 		template<uint32_t OC>
-		ChunksAllocator& operator=(ChunksAllocator<OC>&& other) noexcept { if (isSameAdr(this, &other)) { move(std::move(other)); } return *this; }
+		ChunksAllocator& operator=(ChunksAllocator<OC>&& other) noexcept { if (!isSameAdr(this, &other)) { move(std::move(other)); } return *this; }
 		ChunksAllocator& operator=(ChunksAllocator&& other) noexcept { if (this != &other) { move(std::move(other)); } return *this; }
 
 	public:
