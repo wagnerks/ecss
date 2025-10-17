@@ -74,7 +74,7 @@ namespace ecss::Memory {
 			data.index = index++;
 			data.isAliveMask = static_cast<uint32_t>(1u << data.index);
 			data.isNotAliveMask = ~(data.isAliveMask);
-			data.isTrivial = std::is_trivial_v<U>;
+			data.isTrivial = std::is_trivially_copyable_v<U>;
 
 			data.functionTable.move = [](void* dest, void* src) { new(dest) U(std::move(*static_cast<U*>(src))); };
 
