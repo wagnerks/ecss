@@ -1,0 +1,154 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="classecss_1_1Memory_1_1ReflectionHelper" kind="class" language="C++" prot="public">
+    <compoundname>ecss::Memory::ReflectionHelper</compoundname>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1ReflectionHelper_1a79ae1cd0009c670dd3622e9cf1114ada" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>ECSType</type>
+        <definition>ECSType ecss::Memory::ReflectionHelper::INVALID_TYPE</definition>
+        <argsstring></argsstring>
+        <name>INVALID_TYPE</name>
+        <qualifiedname>ecss::Memory::ReflectionHelper::INVALID_TYPE</qualifiedname>
+        <initializer>= std::numeric_limits&lt;ECSType&gt;::max()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Reflection.h" line="25" column="26" bodyfile="ecss/memory/Reflection.h" bodystart="25" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1ReflectionHelper_1aa6b9ee8283e07dd7d59e2321ba79aedb" prot="private" static="yes" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t ecss::Memory::ReflectionHelper::mHelperInstances</definition>
+        <argsstring></argsstring>
+        <name>mHelperInstances</name>
+        <qualifiedname>ecss::Memory::ReflectionHelper::mHelperInstances</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Reflection.h" line="21" column="24" bodyfile="ecss/memory/Reflection.h" bodystart="21" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1ReflectionHelper_1a71e2360a89d83e3a0fa1b764b04f909e" prot="private" static="yes" mutable="no">
+        <type>std::array&lt; ECSType, std::numeric_limits&lt; decltype(mHelperInstances)&gt;::max()&gt;</type>
+        <definition>std::array&lt;ECSType, std::numeric_limits&lt;decltype(mHelperInstances)&gt;::max()&gt; ecss::Memory::ReflectionHelper::mTypes</definition>
+        <argsstring></argsstring>
+        <name>mTypes</name>
+        <qualifiedname>ecss::Memory::ReflectionHelper::mTypes</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Reflection.h" line="22" column="27" bodyfile="ecss/memory/Reflection.h" bodystart="22" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1ReflectionHelper_1ac3ab66bd3c7494c5761acff00007acca" prot="private" static="no" mutable="no">
+        <type>decltype(mHelperInstances)</type>
+        <definition>decltype(mHelperInstances) ecss::Memory::ReflectionHelper::mCurrentInstance</definition>
+        <argsstring></argsstring>
+        <name>mCurrentInstance</name>
+        <qualifiedname>ecss::Memory::ReflectionHelper::mCurrentInstance</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Reflection.h" line="23" column="10" bodyfile="ecss/memory/Reflection.h" bodystart="23" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classecss_1_1Memory_1_1ReflectionHelper_1a74bab2d0db7b99c0cf13bef802b75546" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE ECSType</type>
+        <definition>FORCE_INLINE ECSType ecss::Memory::ReflectionHelper::getTypeId</definition>
+        <argsstring>()</argsstring>
+        <name>getTypeId</name>
+        <qualifiedname>ecss::Memory::ReflectionHelper::getTypeId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Reflection.h" line="12" column="22" bodyfile="ecss/memory/Reflection.h" bodystart="12" bodyend="14"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1ReflectionHelper_1a8bf5eec538f47e45ee0b2f7f41f8a96f" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE ECSType</type>
+        <definition>FORCE_INLINE ECSType ecss::Memory::ReflectionHelper::getTypesCount</definition>
+        <argsstring>() const</argsstring>
+        <name>getTypesCount</name>
+        <qualifiedname>ecss::Memory::ReflectionHelper::getTypesCount</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Reflection.h" line="16" column="22" bodyfile="ecss/memory/Reflection.h" bodystart="16" bodyend="18"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1ReflectionHelper_1a4ba22e57b9de8a2e33d71c02a57441d3" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::ReflectionHelper::ReflectionHelper</definition>
+        <argsstring>()</argsstring>
+        <name>ReflectionHelper</name>
+        <qualifiedname>ecss::Memory::ReflectionHelper::ReflectionHelper</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Reflection.h" line="9" column="1" bodyfile="ecss/memory/Reflection.h" bodystart="9" bodyend="9"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classecss_1_1Memory_1_1ReflectionHelper_1a75f1ea34b055cf0ff5a85e317947bb30" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE ECSType</type>
+        <definition>FORCE_INLINE ECSType ecss::Memory::ReflectionHelper::getTypeIdImpl</definition>
+        <argsstring>()</argsstring>
+        <name>getTypeIdImpl</name>
+        <qualifiedname>ecss::Memory::ReflectionHelper::getTypeIdImpl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Reflection.h" line="28" column="22" bodyfile="ecss/memory/Reflection.h" bodystart="28" bodyend="36"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/Reflection.h" line="7" column="1" bodyfile="ecss/memory/Reflection.h" bodystart="7" bodyend="37"/>
+    <listofallmembers>
+      <member refid="classecss_1_1Memory_1_1ReflectionHelper_1a74bab2d0db7b99c0cf13bef802b75546" prot="public" virt="non-virtual"><scope>ecss::Memory::ReflectionHelper</scope><name>getTypeId</name></member>
+      <member refid="classecss_1_1Memory_1_1ReflectionHelper_1a75f1ea34b055cf0ff5a85e317947bb30" prot="private" virt="non-virtual"><scope>ecss::Memory::ReflectionHelper</scope><name>getTypeIdImpl</name></member>
+      <member refid="classecss_1_1Memory_1_1ReflectionHelper_1a8bf5eec538f47e45ee0b2f7f41f8a96f" prot="public" virt="non-virtual"><scope>ecss::Memory::ReflectionHelper</scope><name>getTypesCount</name></member>
+      <member refid="classecss_1_1Memory_1_1ReflectionHelper_1a79ae1cd0009c670dd3622e9cf1114ada" prot="private" virt="non-virtual"><scope>ecss::Memory::ReflectionHelper</scope><name>INVALID_TYPE</name></member>
+      <member refid="classecss_1_1Memory_1_1ReflectionHelper_1ac3ab66bd3c7494c5761acff00007acca" prot="private" virt="non-virtual"><scope>ecss::Memory::ReflectionHelper</scope><name>mCurrentInstance</name></member>
+      <member refid="classecss_1_1Memory_1_1ReflectionHelper_1aa6b9ee8283e07dd7d59e2321ba79aedb" prot="private" virt="non-virtual"><scope>ecss::Memory::ReflectionHelper</scope><name>mHelperInstances</name></member>
+      <member refid="classecss_1_1Memory_1_1ReflectionHelper_1a71e2360a89d83e3a0fa1b764b04f909e" prot="private" virt="non-virtual"><scope>ecss::Memory::ReflectionHelper</scope><name>mTypes</name></member>
+      <member refid="classecss_1_1Memory_1_1ReflectionHelper_1a4ba22e57b9de8a2e33d71c02a57441d3" prot="public" virt="non-virtual"><scope>ecss::Memory::ReflectionHelper</scope><name>ReflectionHelper</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

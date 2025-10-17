@@ -1,0 +1,258 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structcmd_8h" kind="file" language="C++">
+    <compoundname>structcmd.h</compoundname>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="structcmd_8h_1afa99ec4acc4ecb2dc3c2d05da15d0e3f" prot="public" static="no">
+        <name>MAX</name>
+        <param><defname>a</defname></param>
+        <param><defname>b</defname></param>
+        <initializer>(((a)&gt;(b))?(a):(b))</initializer>
+        <briefdescription>
+<para>A macro that returns the maximum of <emphasis>a</emphasis> and <emphasis>b</emphasis>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Details. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="doxygen-1.14.0/examples/structcmd.h" line="51" column="9" bodyfile="doxygen-1.14.0/examples/structcmd.h" bodystart="51" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="structcmd_8h_1ae1e6edbbc26d6fbc71a90190d0266018" prot="public" static="no">
+        <type>unsigned int</type>
+        <definition>typedef unsigned int UINT32</definition>
+        <argsstring></argsstring>
+        <name>UINT32</name>
+        <briefdescription>
+<para>A type definition for a . </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Details. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="doxygen-1.14.0/examples/structcmd.h" line="52" column="22" bodyfile="doxygen-1.14.0/examples/structcmd.h" bodystart="52" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="structcmd_8h_1ad65a8842cc674e3ddf69355898c0ecbf" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int errno</definition>
+        <argsstring></argsstring>
+        <name>errno</name>
+        <briefdescription>
+<para>Contains the last error code. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="warning"><para>Not thread safe! </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="doxygen-1.14.0/examples/structcmd.h" line="53" column="5" bodyfile="doxygen-1.14.0/examples/structcmd.h" bodystart="53" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="structcmd_8h_1ae152484c890a24e4d9b4980e7b965be0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int close</definition>
+        <argsstring>(int)</argsstring>
+        <name>close</name>
+        <param>
+          <type>int</type>
+          <defname>fd</defname>
+        </param>
+        <briefdescription>
+<para>Closes the file descriptor <emphasis>fd</emphasis>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>fd</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The descriptor to close. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="doxygen-1.14.0/examples/structcmd.h" line="55" column="5" declfile="doxygen-1.14.0/examples/structcmd.h" declline="55" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="structcmd_8h_1a2c4414339f388561554c2deab11a1a07" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int open</definition>
+        <argsstring>(const char *, int)</argsstring>
+        <name>open</name>
+        <param>
+          <type>const char *</type>
+          <defname>pathname</defname>
+        </param>
+        <param>
+          <type>int</type>
+          <defname>flags</defname>
+        </param>
+        <briefdescription>
+<para>Opens a file descriptor. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>pathname</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The name of the descriptor. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>flags</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Opening flags. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="doxygen-1.14.0/examples/structcmd.h" line="54" column="5" declfile="doxygen-1.14.0/examples/structcmd.h" declline="54" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="structcmd_8h_1a9c7b76d5266903891c803132d51ccb90" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>int</type>
+        <definition>int read</definition>
+        <argsstring>(int, char *, size_t)</argsstring>
+        <name>read</name>
+        <param>
+          <type>int</type>
+          <defname>fd</defname>
+        </param>
+        <param>
+          <type>char *</type>
+          <defname>buf</defname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <defname>count</defname>
+        </param>
+        <briefdescription>
+<para>Read bytes from a file descriptor. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>fd</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The descriptor to read from. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The buffer to read into. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The number of bytes to read. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="doxygen-1.14.0/examples/structcmd.h" line="57" column="5" declfile="doxygen-1.14.0/examples/structcmd.h" declline="57" declcolumn="5"/>
+      </memberdef>
+      <memberdef kind="function" id="structcmd_8h_1af2a3ea719b83f672637febdd87c36c36" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t write</definition>
+        <argsstring>(int, const char *, size_t)</argsstring>
+        <name>write</name>
+        <param>
+          <type>int</type>
+          <defname>fd</defname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <defname>buf</defname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <defname>count</defname>
+        </param>
+        <briefdescription>
+<para>Writes <emphasis>count</emphasis> bytes from <emphasis>buf</emphasis> to the filedescriptor <emphasis>fd</emphasis>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>fd</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The descriptor to write to. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>buf</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The data buffer to write. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>count</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>The number of bytes to write. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="doxygen-1.14.0/examples/structcmd.h" line="56" column="8" declfile="doxygen-1.14.0/examples/structcmd.h" declline="56" declcolumn="8"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>A Documented file. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Details. </para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight></codeline>
+<codeline lineno="36"><highlight class="normal"></highlight></codeline>
+<codeline lineno="43"><highlight class="normal"></highlight></codeline>
+<codeline lineno="50"><highlight class="normal"></highlight></codeline>
+<codeline lineno="51"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MAX(a,b)<sp/>(((a)&gt;(b))?(a):(b))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="52"><highlight class="normal"></highlight><highlight class="keyword">typedef</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">unsigned</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>UINT32;</highlight></codeline>
+<codeline lineno="53"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>errno;</highlight></codeline>
+<codeline lineno="54"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>open(</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*,</highlight><highlight class="keywordtype">int</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="55"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>close(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="56"><highlight class="normal"></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal"><sp/>write(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal">,</highlight><highlight class="keyword">const</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*,<sp/></highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">);</highlight></codeline>
+<codeline lineno="57"><highlight class="normal"></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>read(</highlight><highlight class="keywordtype">int</highlight><highlight class="normal">,</highlight><highlight class="keywordtype">char</highlight><highlight class="normal"><sp/>*,</highlight><highlight class="keywordtype">size_t</highlight><highlight class="normal">);</highlight></codeline>
+    </programlisting>
+    <location file="doxygen-1.14.0/examples/structcmd.h"/>
+  </compounddef>
+</doxygen>

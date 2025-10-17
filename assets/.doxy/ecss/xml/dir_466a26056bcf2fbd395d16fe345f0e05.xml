@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_466a26056bcf2fbd395d16fe345f0e05" kind="dir">
+    <compoundname>html</compoundname>
+    <innerfile refid="examples_2file_2html_2doxygen__crawl_8html">examples/file/html/doxygen_crawl.html</innerfile>
+    <innerfile refid="file__8h_8html">file_8h.html</innerfile>
+    <innerfile refid="file__8h__source_8html">file_8h_source.html</innerfile>
+    <innerfile refid="file_2html_2files_8html">file/html/files.html</innerfile>
+    <innerfile refid="file_2html_2globals_8html">file/html/globals.html</innerfile>
+    <innerfile refid="file_2html_2globals__vars_8html">file/html/globals_vars.html</innerfile>
+    <innerfile refid="examples_2file_2html_2index_8html">examples/file/html/index.html</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/file/html/"/>
+  </compounddef>
+</doxygen>

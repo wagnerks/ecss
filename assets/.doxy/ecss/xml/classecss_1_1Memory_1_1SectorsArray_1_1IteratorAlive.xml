@@ -1,0 +1,191 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive" kind="class" language="C++" prot="public">
+    <compoundname>ecss::Memory::SectorsArray::IteratorAlive</compoundname>
+    <includes refid="SectorsArray_8h" local="no">SectorsArray.h</includes>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a0b659e1c785796c41a30134075e9152f" prot="private" static="no" mutable="no">
+        <type>Allocator::RangesCursor</type>
+        <definition>Allocator::RangesCursor ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::cursor</definition>
+        <argsstring></argsstring>
+        <name>cursor</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::cursor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="314" column="25" bodyfile="ecss/memory/SectorsArray.h" bodystart="314" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a987431dff32e57819acf5160a63ad50c" prot="private" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::mTypeAliveMask</definition>
+        <argsstring></argsstring>
+        <name>mTypeAliveMask</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::mTypeAliveMask</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="315" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="315" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a4deb157c6c04352d0df5f6345c905dbe" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::IteratorAlive</definition>
+        <argsstring>(const SectorsArray *array, const Ranges&lt; SectorId &gt; &amp;range, uint32_t aliveMask)</argsstring>
+        <name>IteratorAlive</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::IteratorAlive</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> *</type>
+          <declname>array</declname>
+        </param>
+        <param>
+          <type>const Ranges&lt; SectorId &gt; &amp;</type>
+          <declname>range</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>aliveMask</declname>
+        </param>
+        <briefdescription>
+<para>Ranged constructor (uses pre-built ranges object). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>array</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Owning container. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>range</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Ranges describing sector indices. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>aliveMask</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Liveness bitmask. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="306" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="306" bodyend="308"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1abe4d484572cb0a4e74878963852f6985" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::IteratorAlive</definition>
+        <argsstring>(const SectorsArray *array, size_t idx, size_t sz, uint32_t aliveMask)</argsstring>
+        <name>IteratorAlive</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::IteratorAlive</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> *</type>
+          <declname>array</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>idx</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>sz</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>aliveMask</declname>
+        </param>
+        <briefdescription>
+<para>Constructor over a linear range [idx, sz). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>array</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Owning container. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>idx</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Start linear index. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>sz</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>End linear size. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>aliveMask</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bitmask to test sector liveness for the requested type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="297" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="297" bodyend="298"/>
+        <references refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1abe4d484572cb0a4e74878963852f6985" compoundref="SectorsArray_8h" startline="297" endline="298">ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::IteratorAlive</references>
+        <referencedby refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1abe4d484572cb0a4e74878963852f6985" compoundref="SectorsArray_8h" startline="297" endline="298">ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::IteratorAlive</referencedby>
+        <referencedby refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a11450532063ecd42533c533d931fc789" compoundref="SectorsArray_8h" startline="311" endline="311">ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::operator++</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a11450532063ecd42533c533d931fc789" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE <ref refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive" kindref="compound">IteratorAlive</ref> &amp;</type>
+        <definition>FORCE_INLINE IteratorAlive &amp; ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::operator++</definition>
+        <argsstring>()</argsstring>
+        <name>operator++</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::operator++</qualifiedname>
+        <briefdescription>
+<para>Advance to next alive sector matching mask. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="311" column="28" bodyfile="ecss/memory/SectorsArray.h" bodystart="311" bodyend="311"/>
+        <references refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1abe4d484572cb0a4e74878963852f6985" compoundref="SectorsArray_8h" startline="297" endline="298">ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::IteratorAlive</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Forward iterator skipping sectors where a specific component (type mask) isn&apos;t alive. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Filtering uses a bitmask (aliveMask) and Sector::isAliveData. </para>
+    </detaileddescription>
+    <location file="ecss/memory/SectorsArray.h" line="286" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="286" bodyend="316"/>
+    <listofallmembers>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a0b659e1c785796c41a30134075e9152f" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>cursor</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1abe4d484572cb0a4e74878963852f6985" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>IteratorAlive</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a4deb157c6c04352d0df5f6345c905dbe" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>IteratorAlive</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a987431dff32e57819acf5160a63ad50c" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>mTypeAliveMask</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a11450532063ecd42533c533d931fc789" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>operator++</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

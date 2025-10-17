@@ -1,0 +1,404 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Threads_1_1PinCounters" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Threads::PinCounters</compoundname>
+    <includes refid="PinCounters_8h" local="no">PinCounters.h</includes>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1a9e73b737dcf2d99b935a04d3a30ff42e" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Threads::PinCounters::BLOCK</definition>
+        <argsstring></argsstring>
+        <name>BLOCK</name>
+        <qualifiedname>ecss::Threads::PinCounters::BLOCK</qualifiedname>
+        <initializer>= 4096</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="345" column="25" bodyfile="ecss/threads/PinCounters.h" bodystart="345" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1a09f3647326401353ae7716d7a119c61e" prot="private" static="no" mutable="yes">
+        <type>std::vector&lt; std::unique_ptr&lt; std::atomic&lt; uint16_t &gt;[]&gt; &gt;</type>
+        <definition>std::vector&lt;std::unique_ptr&lt;std::atomic&lt;uint16_t&gt;[]&gt; &gt; ecss::Threads::PinCounters::blocks</definition>
+        <argsstring></argsstring>
+        <name>blocks</name>
+        <qualifiedname>ecss::Threads::PinCounters::blocks</qualifiedname>
+        <briefdescription>
+<para>Lazy pin counter blocks. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="350" column="21" bodyfile="ecss/threads/PinCounters.h" bodystart="350" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1a7f4526238af6433fed132388f2fad429" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; uint64_t &gt;</type>
+        <definition>std::atomic&lt;uint64_t&gt; ecss::Threads::PinCounters::epoch</definition>
+        <argsstring></argsstring>
+        <name>epoch</name>
+        <qualifiedname>ecss::Threads::PinCounters::epoch</qualifiedname>
+        <initializer>{ 0 }</initializer>
+        <briefdescription>
+<para>Mutation epoch (helps detect races in recompute). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="353" column="14" bodyfile="ecss/threads/PinCounters.h" bodystart="353" bodyend="353"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1a5d16f177514b13ffa292d589c1070b13" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; PinIndex &gt;</type>
+        <definition>std::atomic&lt;PinIndex&gt; ecss::Threads::PinCounters::maxPinnedSector</definition>
+        <argsstring></argsstring>
+        <name>maxPinnedSector</name>
+        <qualifiedname>ecss::Threads::PinCounters::maxPinnedSector</qualifiedname>
+        <initializer>{ -1 }</initializer>
+        <briefdescription>
+<para>Highest currently pinned sector id or -1. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="352" column="14" bodyfile="ecss/threads/PinCounters.h" bodystart="352" bodyend="352"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1acccc8a1c6d16eb7681c127a72eb3d9a4" prot="private" static="no" mutable="yes">
+        <type>std::shared_mutex</type>
+        <definition>std::shared_mutex ecss::Threads::PinCounters::mtx</definition>
+        <argsstring></argsstring>
+        <name>mtx</name>
+        <qualifiedname>ecss::Threads::PinCounters::mtx</qualifiedname>
+        <briefdescription>
+<para>Protects block vector allocation. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="349" column="27" bodyfile="ecss/threads/PinCounters.h" bodystart="349" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1ab4b2a17b91e200f5b6513233346e1e61" prot="private" static="no" mutable="no">
+        <type><ref refid="structecss_1_1Threads_1_1PinnedIndexesBitMask" kindref="compound">PinnedIndexesBitMask</ref></type>
+        <definition>PinnedIndexesBitMask ecss::Threads::PinCounters::pinsBitMask</definition>
+        <argsstring></argsstring>
+        <name>pinsBitMask</name>
+        <qualifiedname>ecss::Threads::PinCounters::pinsBitMask</qualifiedname>
+        <briefdescription>
+<para>Hierarchical presence tracking of pinned sectors. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="347" column="22" bodyfile="ecss/threads/PinCounters.h" bodystart="347" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1a41d8125f58f358a017d849e31d4872f4" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; uint32_t &gt;</type>
+        <definition>std::atomic&lt;uint32_t&gt; ecss::Threads::PinCounters::totalPinnedSectors</definition>
+        <argsstring></argsstring>
+        <name>totalPinnedSectors</name>
+        <qualifiedname>ecss::Threads::PinCounters::totalPinnedSectors</qualifiedname>
+        <initializer>{ 0 }</initializer>
+        <briefdescription>
+<para>Distinct sectors with counter &gt; 0. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="354" column="14" bodyfile="ecss/threads/PinCounters.h" bodystart="354" bodyend="354"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1ae51601380bf379dc688768e0985a01b3" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ecss::Threads::PinCounters::canMoveSector</definition>
+        <argsstring>(SectorId sectorId) const</argsstring>
+        <name>canMoveSector</name>
+        <qualifiedname>ecss::Threads::PinCounters::canMoveSector</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>sectorId</declname>
+        </param>
+        <briefdescription>
+<para>Fast test whether a sector can be moved (id greater than highest pinned and not itself pinned). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>sectorId</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sector id. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>true if movable now. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="251" column="6" bodyfile="ecss/threads/PinCounters.h" bodystart="251" bodyend="256"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1ae30ede1281f89959bb9a750b14c53cf1" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Threads::PinCounters::hasAnyPins</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>hasAnyPins</name>
+        <qualifiedname>ecss::Threads::PinCounters::hasAnyPins</qualifiedname>
+        <briefdescription>
+<para>Distinct pinned sector presence check. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>true if one or more sectors pinned. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="305" column="19" bodyfile="ecss/threads/PinCounters.h" bodystart="305" bodyend="307"/>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1af15efcafb5deaf4acfcc04fe6f5fbb9f" compoundref="PinCounters_8h" startline="297" endline="299">isArrayLocked</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1af15efcafb5deaf4acfcc04fe6f5fbb9f" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Threads::PinCounters::isArrayLocked</definition>
+        <argsstring>() const</argsstring>
+        <name>isArrayLocked</name>
+        <qualifiedname>ecss::Threads::PinCounters::isArrayLocked</qualifiedname>
+        <briefdescription>
+<para>True if any sector is currently pinned. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>Preferred over checking maxPinnedSector &gt;= 0 (more precise &amp; immediate). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="297" column="19" bodyfile="ecss/threads/PinCounters.h" bodystart="297" bodyend="299"/>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1ae30ede1281f89959bb9a750b14c53cf1" compoundref="PinCounters_8h" startline="305" endline="307">hasAnyPins</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a2259efb63fba3e36d9fd28201ddbd99e" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Threads::PinCounters::isPinned</definition>
+        <argsstring>(SectorId id) const</argsstring>
+        <name>isPinned</name>
+        <qualifiedname>ecss::Threads::PinCounters::isPinned</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+<para>Test if a sector presently has a non-zero pin counter. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sector id. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="289" column="19" bodyfile="ecss/threads/PinCounters.h" bodystart="289" bodyend="291"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a208ebcdcd2ca03b8d8773e13a54f9145" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Threads::PinCounters::pin</definition>
+        <argsstring>(SectorId id)</argsstring>
+        <name>pin</name>
+        <qualifiedname>ecss::Threads::PinCounters::pin</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+<para>Increment pin counter for sector id (first pin sets bit &amp; updates aggregates). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sector id (!= INVALID_ID). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>May raise maxPinnedSector via CAS if id is the largest active pin. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="209" column="6" bodyfile="ecss/threads/PinCounters.h" bodystart="209" bodyend="222"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a6620f6dcb62fee772a18bc142092cbf4" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Threads::PinCounters::unpin</definition>
+        <argsstring>(SectorId id)</argsstring>
+        <name>unpin</name>
+        <qualifiedname>ecss::Threads::PinCounters::unpin</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+<para>Decrement pin counter; if last pin clears bit, updates aggregates. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sector id. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>On last unpin triggers updateMaxPinned() and notifies waiters. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="229" column="6" bodyfile="ecss/threads/PinCounters.h" bodystart="229" bodyend="244"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1ad5a027701b90111b2429fb2f7da5e248" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Threads::PinCounters::waitUntilChangeable</definition>
+        <argsstring>(SectorId sid=0) const</argsstring>
+        <name>waitUntilChangeable</name>
+        <qualifiedname>ecss::Threads::PinCounters::waitUntilChangeable</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>sid</declname>
+          <defval>0</defval>
+        </param>
+        <briefdescription>
+<para>Block until sector id (and any lower pinned sector) is safe to mutate. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>sid</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sector id (default 0 for full barrier).</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+Two-phase wait:<orderedlist>
+<listitem><para>Wait while id &lt;= maxPinnedSector (meaning some pin &lt;= id active).</para>
+</listitem><listitem><para>Wait while per-sector counter for sid &gt; 0. <simplesect kind="warning"><para>Use with id=0 for full-array structural changes (defragment). </para>
+</simplesect>
+</para>
+</listitem></orderedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="266" column="6" bodyfile="ecss/threads/PinCounters.h" bodystart="266" bodyend="283"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1af1a95c43a4b24c134d8019539c73469e" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::atomic&lt; uint16_t &gt; &amp;</type>
+        <definition>std::atomic&lt; uint16_t &gt; &amp; ecss::Threads::PinCounters::get</definition>
+        <argsstring>(SectorId id) const</argsstring>
+        <name>get</name>
+        <qualifiedname>ecss::Threads::PinCounters::get</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+<para>Get (lazy allocate) atomic pin counter for sector id. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="311" column="13" bodyfile="ecss/threads/PinCounters.h" bodystart="311" bodyend="328"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1ab63698cf07cf9c12a2f3811a5fd204ab" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Threads::PinCounters::updateMaxPinned</definition>
+        <argsstring>()</argsstring>
+        <name>updateMaxPinned</name>
+        <qualifiedname>ecss::Threads::PinCounters::updateMaxPinned</qualifiedname>
+        <briefdescription>
+<para>Recompute highest pinned id (maxPinnedSector) after a last unpin. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Uses epoch to bail out if concurrent pin modified state mid-flight. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="334" column="6" bodyfile="ecss/threads/PinCounters.h" bodystart="334" bodyend="342"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Per-sector pin tracking &amp; synchronization for safe structural mutations. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Features:<itemizedlist>
+<listitem><para>Per-sector ref-counted pins (uint16_t counters, on-demand block allocation).</para>
+</listitem><listitem><para>Global aggregated distinct pinned sector count: totalPinnedSectors.</para>
+</listitem><listitem><para>Highest pinned sector id (maxPinnedSector) for fast range checks (e.g. canMoveSector).</para>
+</listitem><listitem><para>Hierarchical bit mask to recompute highest pinned id after unpin.</para>
+</listitem><listitem><para>Wait primitive (waitUntilChangeable) that blocks until target sector id and its counter are movable (no active pins &lt;= id).</para>
+</listitem></itemizedlist>
+</para>
+<para>Invariants:<itemizedlist>
+<listitem><para>Sector considered &quot;pinned&quot; while its counter &gt; 0.</para>
+</listitem><listitem><para>totalPinnedSectors equals number of sectors whose counter &gt; 0 (distinct, not sum of counts).</para>
+</listitem><listitem><para>When totalPinnedSectors == 0: all per-sector counters are 0 and structural compaction is safe.</para>
+</listitem><listitem><para>maxPinnedSector == -1 implies (eventually) totalPinnedSectors == 0, but writer logic now prefers totalPinnedSectors for reliability.</para>
+</listitem></itemizedlist>
+</para>
+<para>Memory order:<itemizedlist>
+<listitem><para>Pin/unpin use release on increments/decrements; readers use acquire loads to observe a consistent state.</para>
+</listitem><listitem><para>CAS on maxPinnedSector uses release when publishing a higher id, acquire when reading for canMoveSector.</para>
+</listitem></itemizedlist>
+</para>
+<para>Typical usage pattern:<orderedlist>
+<listitem><para>Reader pins sector (pin), accesses data, then unpins (unpin).</para>
+</listitem><listitem><para>Writer wanting to destroy/compact sectors calls waitUntilChangeable(id) or (for full defrag) waitUntilChangeable(0) after verifying <ref refid="structecss_1_1Threads_1_1PinCounters_1ae30ede1281f89959bb9a750b14c53cf1" kindref="member">hasAnyPins()</ref>==false for opportunistic defrag.</para>
+</listitem><listitem><para>Destruction/move executes only when relevant sectors are unpinned. </para>
+</listitem></orderedlist>
+</para>
+    </detaileddescription>
+    <location file="ecss/threads/PinCounters.h" line="203" column="1" bodyfile="ecss/threads/PinCounters.h" bodystart="203" bodyend="355"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a9e73b737dcf2d99b935a04d3a30ff42e" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>BLOCK</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a09f3647326401353ae7716d7a119c61e" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>blocks</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1ae51601380bf379dc688768e0985a01b3" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>canMoveSector</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a7f4526238af6433fed132388f2fad429" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>epoch</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1af1a95c43a4b24c134d8019539c73469e" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>get</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1ae30ede1281f89959bb9a750b14c53cf1" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>hasAnyPins</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1af15efcafb5deaf4acfcc04fe6f5fbb9f" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>isArrayLocked</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a2259efb63fba3e36d9fd28201ddbd99e" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>isPinned</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a5d16f177514b13ffa292d589c1070b13" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>maxPinnedSector</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1acccc8a1c6d16eb7681c127a72eb3d9a4" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>mtx</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a208ebcdcd2ca03b8d8773e13a54f9145" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>pin</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1ab4b2a17b91e200f5b6513233346e1e61" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>pinsBitMask</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a41d8125f58f358a017d849e31d4872f4" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>totalPinnedSectors</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a6620f6dcb62fee772a18bc142092cbf4" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>unpin</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1ab63698cf07cf9c12a2f3811a5fd204ab" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>updateMaxPinned</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1ad5a027701b90111b2429fb2f7da5e248" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>waitUntilChangeable</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

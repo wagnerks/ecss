@@ -1,0 +1,43 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="diagrams__e_8h" kind="file" language="C++">
+    <compoundname>diagrams_e.h</compoundname>
+    <includes refid="diagrams__d_8h" local="yes">diagrams_d.h</includes>
+    <incdepgraph>
+      <node id="3">
+        <label>diagrams_a.h</label>
+        <link refid="diagrams__a_8h_source"/>
+      </node>
+      <node id="4">
+        <label>diagrams_b.h</label>
+        <link refid="diagrams__b_8h_source"/>
+      </node>
+      <node id="2">
+        <label>diagrams_d.h</label>
+        <link refid="diagrams__d_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>diagrams_e.h</label>
+        <link refid="diagrams__e_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+    </incdepgraph>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>DIAGRAM_E_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>DIAGRAM_E_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;diagrams_d.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">E<sp/>:<sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal"><sp/>D<sp/>{};</highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="doxygen-1.14.0/examples/diagrams_e.h"/>
+  </compounddef>
+</doxygen>

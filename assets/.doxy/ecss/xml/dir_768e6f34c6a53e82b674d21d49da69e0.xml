@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_768e6f34c6a53e82b674d21d49da69e0" kind="dir">
+    <compoundname>html</compoundname>
+    <innerfile refid="relates_2html_2annotated_8html">relates/html/annotated.html</innerfile>
+    <innerfile refid="class__string-members_8html">class_string-members.html</innerfile>
+    <innerfile refid="class__string_8html">class_string.html</innerfile>
+    <innerfile refid="relates_2html_2classes_8html">relates/html/classes.html</innerfile>
+    <innerfile refid="examples_2relates_2html_2doxygen__crawl_8html">examples/relates/html/doxygen_crawl.html</innerfile>
+    <innerfile refid="relates_2html_2functions_8html">relates/html/functions.html</innerfile>
+    <innerfile refid="relates_2html_2functions__func_8html">relates/html/functions_func.html</innerfile>
+    <innerfile refid="functions__rela_8html">functions_rela.html</innerfile>
+    <innerfile refid="examples_2relates_2html_2index_8html">examples/relates/html/index.html</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/relates/html/"/>
+  </compounddef>
+</doxygen>

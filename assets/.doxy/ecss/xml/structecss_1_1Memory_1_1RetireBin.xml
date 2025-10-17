@@ -1,0 +1,185 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1RetireBin" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Memory::RetireBin</compoundname>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1RetireBin_1adc0540da6c44cf87752d75384d7cd263" prot="private" static="no" mutable="yes">
+        <type>std::mutex</type>
+        <definition>std::mutex ecss::Memory::RetireBin::mMtx</definition>
+        <argsstring></argsstring>
+        <name>mMtx</name>
+        <qualifiedname>ecss::Memory::RetireBin::mMtx</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/RetireAllocator.h" line="39" column="20" bodyfile="ecss/memory/RetireAllocator.h" bodystart="39" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1RetireBin_1aa51f59c17a99d21611be758e48c8f02e" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; void * &gt;</type>
+        <definition>std::vector&lt;void*&gt; ecss::Memory::RetireBin::mRetired</definition>
+        <argsstring></argsstring>
+        <name>mRetired</name>
+        <qualifiedname>ecss::Memory::RetireBin::mRetired</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/RetireAllocator.h" line="40" column="13" bodyfile="ecss/memory/RetireAllocator.h" bodystart="40" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1Memory_1_1RetireBin_1a06a21cdd126771cc5a969777e6b15cef" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Memory::RetireBin::drainAll</definition>
+        <argsstring>()</argsstring>
+        <name>drainAll</name>
+        <qualifiedname>ecss::Memory::RetireBin::drainAll</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/RetireAllocator.h" line="29" column="6" bodyfile="ecss/memory/RetireAllocator.h" bodystart="29" bodyend="36"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1RetireBin_1a5de98ea49657d04c5355dd033726b829" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>RetireBin &amp;</type>
+        <definition>RetireBin &amp; ecss::Memory::RetireBin::operator=</definition>
+        <argsstring>(const RetireBin &amp;)</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::RetireBin::operator=</qualifiedname>
+        <param>
+          <type>const RetireBin &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/RetireAllocator.h" line="14" column="11" bodyfile="ecss/memory/RetireAllocator.h" bodystart="14" bodyend="14"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1RetireBin_1a07b8d53ac46c0b85fb25cd8d218bb07c" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>RetireBin &amp;</type>
+        <definition>RetireBin &amp; ecss::Memory::RetireBin::operator=</definition>
+        <argsstring>(RetireBin &amp;&amp;other) noexcept</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::RetireBin::operator=</qualifiedname>
+        <param>
+          <type>RetireBin &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/RetireAllocator.h" line="17" column="11" bodyfile="ecss/memory/RetireAllocator.h" bodystart="17" bodyend="22"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1RetireBin_1a67e66f0d3d7e94c8d39580025f4db85d" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Memory::RetireBin::retire</definition>
+        <argsstring>(void *p)</argsstring>
+        <name>retire</name>
+        <qualifiedname>ecss::Memory::RetireBin::retire</qualifiedname>
+        <param>
+          <type>void *</type>
+          <declname>p</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/RetireAllocator.h" line="24" column="6" bodyfile="ecss/memory/RetireAllocator.h" bodystart="24" bodyend="27"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1RetireBin_1a92ffd94e6623bd4dd87ab9c356b0d4e0" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::RetireBin::RetireBin</definition>
+        <argsstring>()=default</argsstring>
+        <name>RetireBin</name>
+        <qualifiedname>ecss::Memory::RetireBin::RetireBin</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/RetireAllocator.h" line="10" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1RetireBin_1aabe67307a24a7cf8e8ec408b21e9bc34" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::RetireBin::RetireBin</definition>
+        <argsstring>(const RetireBin &amp;)</argsstring>
+        <name>RetireBin</name>
+        <qualifiedname>ecss::Memory::RetireBin::RetireBin</qualifiedname>
+        <param>
+          <type>const RetireBin &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/RetireAllocator.h" line="13" column="1" bodyfile="ecss/memory/RetireAllocator.h" bodystart="13" bodyend="13"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1RetireBin_1a772bbf8428cb8e6ce94b36f99eb40207" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::RetireBin::RetireBin</definition>
+        <argsstring>(RetireBin &amp;&amp;other) noexcept</argsstring>
+        <name>RetireBin</name>
+        <qualifiedname>ecss::Memory::RetireBin::RetireBin</qualifiedname>
+        <param>
+          <type>RetireBin &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/RetireAllocator.h" line="16" column="1" bodyfile="ecss/memory/RetireAllocator.h" bodystart="16" bodyend="16"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1RetireBin_1a9d92482eda3554e2603ec8280e875f33" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::RetireBin::~RetireBin</definition>
+        <argsstring>()</argsstring>
+        <name>~RetireBin</name>
+        <qualifiedname>ecss::Memory::RetireBin::~RetireBin</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/RetireAllocator.h" line="11" column="1" bodyfile="ecss/memory/RetireAllocator.h" bodystart="11" bodyend="11"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/RetireAllocator.h" line="9" column="1" bodyfile="ecss/memory/RetireAllocator.h" bodystart="9" bodyend="41"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Memory_1_1RetireBin_1a06a21cdd126771cc5a969777e6b15cef" prot="public" virt="non-virtual"><scope>ecss::Memory::RetireBin</scope><name>drainAll</name></member>
+      <member refid="structecss_1_1Memory_1_1RetireBin_1adc0540da6c44cf87752d75384d7cd263" prot="private" virt="non-virtual"><scope>ecss::Memory::RetireBin</scope><name>mMtx</name></member>
+      <member refid="structecss_1_1Memory_1_1RetireBin_1aa51f59c17a99d21611be758e48c8f02e" prot="private" virt="non-virtual"><scope>ecss::Memory::RetireBin</scope><name>mRetired</name></member>
+      <member refid="structecss_1_1Memory_1_1RetireBin_1a5de98ea49657d04c5355dd033726b829" prot="public" virt="non-virtual"><scope>ecss::Memory::RetireBin</scope><name>operator=</name></member>
+      <member refid="structecss_1_1Memory_1_1RetireBin_1a07b8d53ac46c0b85fb25cd8d218bb07c" prot="public" virt="non-virtual"><scope>ecss::Memory::RetireBin</scope><name>operator=</name></member>
+      <member refid="structecss_1_1Memory_1_1RetireBin_1a67e66f0d3d7e94c8d39580025f4db85d" prot="public" virt="non-virtual"><scope>ecss::Memory::RetireBin</scope><name>retire</name></member>
+      <member refid="structecss_1_1Memory_1_1RetireBin_1a92ffd94e6623bd4dd87ab9c356b0d4e0" prot="public" virt="non-virtual"><scope>ecss::Memory::RetireBin</scope><name>RetireBin</name></member>
+      <member refid="structecss_1_1Memory_1_1RetireBin_1aabe67307a24a7cf8e8ec408b21e9bc34" prot="public" virt="non-virtual"><scope>ecss::Memory::RetireBin</scope><name>RetireBin</name></member>
+      <member refid="structecss_1_1Memory_1_1RetireBin_1a772bbf8428cb8e6ce94b36f99eb40207" prot="public" virt="non-virtual"><scope>ecss::Memory::RetireBin</scope><name>RetireBin</name></member>
+      <member refid="structecss_1_1Memory_1_1RetireBin_1a9d92482eda3554e2603ec8280e875f33" prot="public" virt="non-virtual"><scope>ecss::Memory::RetireBin</scope><name>~RetireBin</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

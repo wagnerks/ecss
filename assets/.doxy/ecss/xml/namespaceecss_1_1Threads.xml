@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="namespaceecss_1_1Threads" kind="namespace" language="C++">
+    <compoundname>ecss::Threads</compoundname>
+    <innerclass refid="structecss_1_1Threads_1_1PinCounters" prot="public">ecss::Threads::PinCounters</innerclass>
+    <innerclass refid="structecss_1_1Threads_1_1PinnedIndexesBitMask" prot="public">ecss::Threads::PinnedIndexesBitMask</innerclass>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="PinCounters_8h_1aa5ea027920fbc46bc663dbc67e257903" prot="public" static="no">
+        <type>int_fast64_t</type>
+        <definition>using ecss::Threads::PinIndex =  int_fast64_t</definition>
+        <argsstring></argsstring>
+        <name>PinIndex</name>
+        <qualifiedname>ecss::Threads::PinIndex</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="13" column="1" bodyfile="ecss/threads/PinCounters.h" bodystart="13" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/threads/PinCounters.h" line="12" column="1"/>
+  </compounddef>
+</doxygen>
