@@ -38,6 +38,10 @@ if(ECSS_BUILD_STATIC)
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         target_link_libraries(ecss PUBLIC atomic)
     endif()
+
+    target_precompile_headers(ecss PUBLIC
+       "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/ecss/pch.hpp>"
+    )
 else()
     message(STATUS "ecss: building as INTERFACE (header-only) library")
     add_library(ecss INTERFACE)
@@ -45,6 +49,10 @@ else()
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         target_link_libraries(ecss INTERFACE atomic)
     endif()
+
+    target_precompile_headers(ecss INTERFACE
+        "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/ecss/pch.hpp>"
+    )
 endif()
 
 include(CTest) # adds option BUILD_TESTING (ON by default)
@@ -81,4 +89,6 @@ if(ECSS_BUILD_TESTS)
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         target_link_libraries(ecss_tests PRIVATE atomic)
     endif()
+
+    target_precompile_headers(ecss_tests REUSE_FROM ecss)
 endif()
