@@ -1029,7 +1029,8 @@ namespace ecss {
 				auto arr = arrays[i];
 				if (arr == main || std::find_if(secondary.begin(), secondary.end(), [arr](const auto& p){ return p.first == arr; }) != secondary.end()) { continue; }
 				if constexpr (ThreadSafe) {
-					// Create iterator for ThreadSafe mode
+					// Acquire read lock to protect iterator creation from concurrent modifications
+					auto lock = arr->readLock();
 					secondary.emplace_back(arr, SectorsRangeIt(arr, initRange(arr, ranges, i)));
 				} else {
 					// Non-ThreadSafe uses direct lookup, no iterator needed
