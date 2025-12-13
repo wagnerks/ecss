@@ -856,13 +856,14 @@ namespace ecss {
 			Iterator() noexcept = default;
 
 			/**
-			 * @brief Construct iterator with main iterator + secondary arrays for direct lookup.
+			 * @brief Construct iterator with main iterator + secondary arrays.
 			 * @param arrays Array of sector arrays for all involved component types.
 			 * @param iterator Alive iterator for main component.
-			 * @param secondary Arrays for O(1) component lookup.
+			 * @param secondary Arrays (+ iterators for ThreadSafe) for component lookup.
 			 */
-			Iterator(const SectorArrays& arrays, SectorsIt iterator, const std::vector<Sectors*>& secondary) : mIterator(std::move(iterator)) {
+			Iterator(const SectorArrays& arrays, SectorsIt iterator, const std::vector<std::pair<Sectors*, SectorsRangeIt>>& secondary) : mIterator(std::move(iterator)) {
 				initTypeAccessInfo<T, CompTypes...>(arrays, secondary);
+				// Lazy sync: secondary iterators will be synced on-demand in getComponent
 			}
 
 			FORCE_INLINE value_type operator*() const noexcept { 
@@ -873,6 +874,8 @@ namespace ecss {
 			}
 			FORCE_INLINE Iterator& operator++() noexcept { 
 				++mIterator;
+				// Lazy sync: don't advance secondary iterators here
+				// They will be synced on-demand in getComponent when needed
 				return *this; 
 			}
 
@@ -895,19 +898,34 @@ namespace ecss {
 				if (info.iteratorIdx == TypeInfo::kMainIteratorIdx) [[likely]] {
 					return (sector->isAliveData & info.typeAliveMask) ? reinterpret_cast<ComponentType*>(raw + info.typeOffsetInSector) : nullptr;
 				}
-				// Direct O(1) lookup for secondary arrays
-				auto* other = mSecondaryArrays[info.iteratorIdx]->template findSector<false>(sector->id);
-				return (other && (other->isAliveData & info.typeAliveMask))
-					? reinterpret_cast<ComponentType*>(reinterpret_cast<std::byte*>(other) + info.typeOffsetInSector) : nullptr;
+				if constexpr (ThreadSafe) {
+					// Lazy sync: advance iterator only when component is actually needed
+					auto& it = mSecondaryIterators[info.iteratorIdx];
+					auto* other = *it;
+					if (!other || other->id < sector->id) [[unlikely]] {
+						it.advanceToId(sector->id);
+						other = *it;
+					}
+					return (other && other->id == sector->id && (other->isAliveData & info.typeAliveMask))
+						? reinterpret_cast<ComponentType*>(reinterpret_cast<std::byte*>(other) + info.typeOffsetInSector) : nullptr;
+				} else {
+					// Fast direct O(1) lookup for non-thread-safe mode
+					auto* other = mSecondaryArrays[info.iteratorIdx]->template findSector<false>(sector->id);
+					return (other && (other->isAliveData & info.typeAliveMask))
+						? reinterpret_cast<ComponentType*>(reinterpret_cast<std::byte*>(other) + info.typeOffsetInSector) : nullptr;
+				}
 			}
 
 			template<typename... Types>
-			void initTypeAccessInfo(const SectorArrays& arrays, const std::vector<Sectors*>& secondary) noexcept {
+			void initTypeAccessInfo(const SectorArrays& arrays, const std::vector<std::pair<Sectors*, SectorsRangeIt>>& secondary) noexcept {
 				uint8_t arrayIndexes[TypesCount];
 				std::fill_n(arrayIndexes, TypesCount, TypeInfo::kMainIteratorIdx);
 
-				for (auto* arr : secondary) {
+				for (const auto& [arr, it] : secondary) {
 					mSecondaryArrays[mSecondaryCount] = arr;
+					if constexpr (ThreadSafe) {
+						mSecondaryIterators[mSecondaryCount] = it;
+					}
 					for (size_t a = 0; a < TypesCount; ++a) {
 						if (arrays[a] == arr) {
 							arrayIndexes[a] = mSecondaryCount;
@@ -935,6 +953,7 @@ namespace ecss {
 		private:
 			TypeAccessTuple mTypeAccessInfo;
 			Sectors*		mSecondaryArrays[CTCount ? CTCount : 1] = {};
+			mutable SectorsRangeIt mSecondaryIterators[CTCount ? CTCount : 1];  // Used only for ThreadSafe, mutable for lazy sync
 			SectorsIt		mIterator;
 			uint16_t		mMainOffset = 0;
 			uint8_t			mSecondaryCount = 0;
@@ -967,7 +986,7 @@ namespace ecss {
 				it = SectorsIt(mainArr, initRange(mainArr, ranges, getIndex<T>()), mainArr->template getLayoutData<T>().isAliveMask);
 			}
 
-			mBeginIt = Iterator{ arrays, it, collectSecondaryArrays(arrays) };
+			mBeginIt = Iterator{ arrays, it, collectSecondaryArrays(arrays, ranges) };
 		}
 		
 		/// @brief Initialize effective iteration ranges (and pin upper bound if thread-safe).
@@ -1001,15 +1020,21 @@ namespace ecss {
 			return ranges;
 		}
 
-		/// @brief Collect secondary arrays for direct O(1) lookup.
-		std::vector<Sectors*> collectSecondaryArrays(const std::array<Sectors*, TypesCount>& arrays) {
-			std::vector<Sectors*> secondary;
+		/// @brief Collect secondary arrays (with iterators for ThreadSafe mode).
+		std::vector<std::pair<Sectors*, SectorsRangeIt>> collectSecondaryArrays(const std::array<Sectors*, TypesCount>& arrays, const Ranges<EntityId>& ranges) {
+			std::vector<std::pair<Sectors*, SectorsRangeIt>> secondary;
 			secondary.reserve(TypesCount - 1);
 			auto main = arrays[0];
 			for (auto i = 1u; i < arrays.size(); i++) {
 				auto arr = arrays[i];
-				if (arr == main || std::find(secondary.begin(), secondary.end(), arr) != secondary.end()) { continue; }
-				secondary.push_back(arr);
+				if (arr == main || std::find_if(secondary.begin(), secondary.end(), [arr](const auto& p){ return p.first == arr; }) != secondary.end()) { continue; }
+				if constexpr (ThreadSafe) {
+					// Create iterator for ThreadSafe mode
+					secondary.emplace_back(arr, SectorsRangeIt(arr, initRange(arr, ranges, i)));
+				} else {
+					// Non-ThreadSafe uses direct lookup, no iterator needed
+					secondary.emplace_back(arr, SectorsRangeIt{});
+				}
 			}
 			return secondary;
 		}
