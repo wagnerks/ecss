@@ -238,14 +238,14 @@ namespace detail {
 		using difference_type = std::ptrdiff_t;														\
 		using pointer = Sector*;																	\
 		using reference = Sector*;																	\
-		IteratorName() = default;																	\
-		FORCE_INLINE IteratorName operator++(int) { auto tmp = *this; ++(*this); return tmp; }	\
-		FORCE_INLINE bool operator!=(const IteratorName& other) const { return !(*this == other); }	\
-		FORCE_INLINE bool operator==(const IteratorName& other) const { return cursor == other.cursor; }	\
+		IteratorName() noexcept = default;															\
+		FORCE_INLINE IteratorName operator++(int) noexcept { auto tmp = *this; ++(*this); return tmp; }	\
+		FORCE_INLINE bool operator!=(const IteratorName& other) const noexcept { return !(*this == other); }	\
+		FORCE_INLINE bool operator==(const IteratorName& other) const noexcept { return cursor == other.cursor; }	\
 		FORCE_INLINE value_type operator*() const { return *cursor; }								\
 		FORCE_INLINE value_type operator->() const { return *cursor; }								\
 		FORCE_INLINE size_t linearIndex() const { return cursor.linearIndex(); }					\
-		FORCE_INLINE std::byte* rawPtr()  const { return cursor.rawPtr(); }
+		FORCE_INLINE std::byte* rawPtr()  const noexcept { return cursor.rawPtr(); }
 		/** @} */
 
 		/**
@@ -308,7 +308,10 @@ namespace detail {
 			}
 
 			/// @brief Advance to next alive sector matching mask.
-			FORCE_INLINE IteratorAlive& operator++() { do { cursor.step(); } while (cursor && !(cursor->isAliveData & mTypeAliveMask)); return *this; }
+			FORCE_INLINE IteratorAlive& operator++() noexcept { 
+				do { cursor.step(); } while (cursor && !(cursor->isAliveData & mTypeAliveMask));
+				return *this; 
+			}
 
 		private:
 			Allocator::RangesCursor cursor;

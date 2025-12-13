@@ -77,35 +77,34 @@ namespace ecss::Memory {
 			size_t shift = 0;
 
 			FORCE_INLINE void step() noexcept {
-				linIdx += 1;
+				++linIdx;
 				curB += shift;
-				if (curB == chunkEnd) {
-					nextChunk();
-				}
+				if (curB != chunkEnd) [[likely]] return;
+				nextChunk();
 			}
 
 			FORCE_INLINE void nextChunk() noexcept {
 				++chunkIdx;
-				if (chunkIdx >= chunksCount) {
+				if (chunkIdx >= chunksCount) [[unlikely]] {
 					curB = chunkBase = chunkEnd = nullptr;
 					return;
 				}
 				chunkBase = static_cast<std::byte*>(chunks[chunkIdx]);
 				curB      = chunkBase;
-				chunkEnd  = chunkBase + shift * ChunksAllocator<ChunkCapacity>::mChunkCapacity;
+				chunkEnd  = chunkBase + (shift << ChunksAllocator<ChunkCapacity>::mChunkShift);
 			}
 
 			FORCE_INLINE void setLinear(size_t newIdx) noexcept {
 				linIdx = newIdx;
-				if (chunksCount == 0) { curB = chunkBase = chunkEnd = nullptr; return; }
+				if (chunksCount == 0) [[unlikely]] { curB = chunkBase = chunkEnd = nullptr; return; }
 
-				chunkIdx = newIdx / ChunksAllocator<ChunkCapacity>::mChunkCapacity;
-				if (chunkIdx >= chunksCount) { curB = chunkBase = chunkEnd = nullptr; return; }
+				chunkIdx = newIdx >> ChunksAllocator<ChunkCapacity>::mChunkShift;
+				if (chunkIdx >= chunksCount) [[unlikely]] { curB = chunkBase = chunkEnd = nullptr; return; }
 
-				const size_t in = newIdx - chunkIdx * ChunksAllocator<ChunkCapacity>::mChunkCapacity;
+				const size_t in = newIdx & (ChunksAllocator<ChunkCapacity>::mChunkCapacity - 1);
 				chunkBase = static_cast<std::byte*>(chunks[chunkIdx]);
 				curB      = chunkBase + in * shift;
-				chunkEnd  = chunkBase + shift * ChunksAllocator<ChunkCapacity>::mChunkCapacity;
+				chunkEnd  = chunkBase + (shift << ChunksAllocator<ChunkCapacity>::mChunkShift);
 			}
 		};
 
@@ -147,7 +146,8 @@ namespace ecss::Memory {
 				}
 				spans.shrink_to_fit();
 
-				if (!spans.empty()) {
+				spansCount = spans.size();
+				if (spansCount) {
 					spanIdx = 0;
 					ptr = spans[0].first;
 					end = spans[0].second;
@@ -155,7 +155,7 @@ namespace ecss::Memory {
 			}
 
 			FORCE_INLINE void nextSpan() noexcept {
-				if (++spanIdx < spans.size()) [[likely]] {
+				if (++spanIdx < spansCount) [[likely]] {
 					ptr = spans[spanIdx].first;
 					end = spans[spanIdx].second;
 				}
@@ -166,14 +166,16 @@ namespace ecss::Memory {
 
 			FORCE_INLINE void step() noexcept {
 				ptr += shift;
-				if (ptr == end) [[unlikely]] { nextSpan(); }
+				if (ptr != end) [[likely]] return;
+				nextSpan();
 			}
 
-			FORCE_INLINE void advanceToId(SectorId target, size_t linear_threshold = 4) noexcept {
-				// linear search for a few steps
-				while (linear_threshold-- > 0 && ptr && idAt(ptr) < target) [[unlikely]] { step(); }
+			FORCE_INLINE void advanceToId(SectorId target) noexcept {
+				if (!ptr || reinterpret_cast<Sector*>(ptr)->id >= target) [[likely]] return;
+				step(); if (!ptr || reinterpret_cast<Sector*>(ptr)->id >= target) [[likely]] return;
+				step(); if (!ptr || reinterpret_cast<Sector*>(ptr)->id >= target) [[likely]] return;
 				jumpToChunkWithId(target);
-				if (!ptr || idAt(ptr) >= target) [[likely]] { return; }
+				if (!ptr || reinterpret_cast<Sector*>(ptr)->id >= target) [[likely]] return;
 				jumpToSectorInChunkWithId(target);
 			}
 
@@ -191,17 +193,17 @@ namespace ecss::Memory {
 				return reinterpret_cast<Sector*>(p)->id;
 			}
 
-			FORCE_INLINE void jumpToChunkWithId(SectorId target) {
+			FORCE_INLINE void jumpToChunkWithId(SectorId target) noexcept {
 				// binary search of chunk
 				if (ptr && idAt(end - shift) < target) [[unlikely]] {
 					size_t lo = spanIdx + 1;
-					size_t hi = spans.size();
+					size_t hi = spansCount;
 					while (lo < hi) [[likely]] {
 						size_t mid = (lo + hi) >> 1;
 						if (idAt(spans[mid].second - shift) < target) { lo = mid + 1;} else { hi = mid;}
 					}
 
-					if (lo == spans.size()) [[unlikely]] {  ptr = end = nullptr;	return;}
+					if (lo == spansCount) [[unlikely]] {  ptr = end = nullptr;	return;}
 
 					spanIdx = lo;
 					ptr = spans[lo].first;
@@ -209,7 +211,7 @@ namespace ecss::Memory {
 				}
 			}
 
-			FORCE_INLINE void jumpToSectorInChunkWithId(SectorId target) {
+			FORCE_INLINE void jumpToSectorInChunkWithId(SectorId target) noexcept {
 				// binary search in chunk
 				auto hi = end;
 				while (ptr < hi) [[likely]] {
@@ -219,6 +221,7 @@ namespace ecss::Memory {
 			}
 
 			std::vector<std::pair<std::byte*, std::byte*>> spans{}; // all ranges as [beginPtr, endPtr)
+			size_t spansCount{0};
 			size_t spanIdx{0};
 			size_t shift{0};
 
@@ -328,7 +331,7 @@ namespace ecss::Memory {
 		void allocate(size_t newCapacity) {
 			const auto oldCapacity = capacity();
 			const auto need = newCapacity > oldCapacity ? (newCapacity - oldCapacity) : 0;
-			const auto count = (need + mChunkCapacity - 1) / mChunkCapacity;
+			const auto count = (need + mChunkCapacity - 1) >> mChunkShift;
 
 			mChunks.reserve(mChunks.size() + count);
 			for (auto i = 0u; i < count; i++) {
@@ -337,7 +340,7 @@ namespace ecss::Memory {
 			}
 		}
 
-		FORCE_INLINE size_t capacity() const { return mChunkCapacity * mChunks.size(); }
+		FORCE_INLINE size_t capacity() const { return mChunks.size() << mChunkShift; }
 
 		size_t find(const Sector* sectorPtr) const {
 			if (!sectorPtr || mChunks.empty()) return capacity();
