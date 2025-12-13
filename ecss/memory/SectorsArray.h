@@ -345,6 +345,9 @@ namespace detail {
 
 			/// @brief Fast-forward internal cursor near sector id (used by multi-array stitched iteration).
 			FORCE_INLINE void advanceToId(SectorId id) {	cursor.advanceToId(id); }
+			
+			/// @brief Jump directly to a known sector (for hybrid dense/sparse iteration).
+			FORCE_INLINE void jumpTo(Sector* sector) { cursor.jumpTo(sector); }
 
 			FORCE_INLINE RangedIterator& operator++() noexcept { cursor.step(); return *this; }
 

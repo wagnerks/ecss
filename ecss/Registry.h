@@ -198,7 +198,7 @@ namespace ecss {
 		 * @thread_safety Locking/pinning applied if ThreadSafe=true.
 		 */
 		template <class T>
-		bool hasComponent(EntityId entity) noexcept {
+		FORCE_INLINE bool hasComponent(EntityId entity) noexcept {
 			if constexpr (ThreadSafe) {
 				if (auto container = getComponentContainer<T>()) {
 					if (auto sector = container->pinSector(entity)) {
@@ -856,14 +856,13 @@ namespace ecss {
 			Iterator() noexcept = default;
 
 			/**
-			 * @brief Construct iterator with main iterator + auxiliary iterators.
+			 * @brief Construct iterator with main iterator + secondary arrays for direct lookup.
 			 * @param arrays Array of sector arrays for all involved component types.
 			 * @param iterator Alive iterator for main component.
-			 * @param otherIterators Ranged iterators for other distinct arrays.
+			 * @param secondary Arrays for O(1) component lookup.
 			 */
-			Iterator(const SectorArrays& arrays, SectorsIt iterator, const std::vector<std::pair<Sectors*, SectorsRangeIt>>& otherIterators) : mIterator(std::move(iterator)) {
-				initTypeAccessInfo<T, CompTypes...>(arrays, otherIterators);
-				advanceAllIteratorsToMainId();
+			Iterator(const SectorArrays& arrays, SectorsIt iterator, const std::vector<Sectors*>& secondary) : mIterator(std::move(iterator)) {
+				initTypeAccessInfo<T, CompTypes...>(arrays, secondary);
 			}
 
 			FORCE_INLINE value_type operator*() const noexcept { 
@@ -873,8 +872,7 @@ namespace ecss {
 				         getComponent<CompTypes>(raw)... }; 
 			}
 			FORCE_INLINE Iterator& operator++() noexcept { 
-				++mIterator; 
-				if constexpr (CTCount > 0) { advanceAllIteratorsToMainId(); }
+				++mIterator;
 				return *this; 
 			}
 
@@ -888,17 +886,6 @@ namespace ecss {
 			FORCE_INLINE friend bool operator!=(const EndIterator endIt, const Iterator& it) noexcept { return it != endIt; }
 
 		private:
-			/// @brief Align secondary iterators to the current main entity id.
-			FORCE_INLINE void advanceAllIteratorsToMainId() noexcept {
-				if (!mIteratorsSize) [[likely]] return;
-				auto* sector = *mIterator;
-				if (!sector) [[unlikely]] return;
-				const auto id = sector->id;
-				for (uint8_t i = 0; i < mIteratorsSize; ++i) {
-					mArraysIterators[i].advanceToId(id);
-				}
-			}
-
 			/// @brief Fetch component pointer for specific entity id (may be nullptr).
 			template<typename ComponentType>
 			FORCE_INLINE ComponentType* getComponent(std::byte* raw) const noexcept {
@@ -908,28 +895,28 @@ namespace ecss {
 				if (info.iteratorIdx == TypeInfo::kMainIteratorIdx) [[likely]] {
 					return (sector->isAliveData & info.typeAliveMask) ? reinterpret_cast<ComponentType*>(raw + info.typeOffsetInSector) : nullptr;
 				}
-				auto* other = *mArraysIterators[info.iteratorIdx];
-				return (other && other->id == sector->id && (other->isAliveData & info.typeAliveMask))
+				// Direct O(1) lookup for secondary arrays
+				auto* other = mSecondaryArrays[info.iteratorIdx]->template findSector<false>(sector->id);
+				return (other && (other->isAliveData & info.typeAliveMask))
 					? reinterpret_cast<ComponentType*>(reinterpret_cast<std::byte*>(other) + info.typeOffsetInSector) : nullptr;
 			}
 
 			template<typename... Types>
-			void initTypeAccessInfo(const SectorArrays& arrays, const std::vector<std::pair<Sectors*, SectorsRangeIt>>& otherIterators) noexcept {
-				uint8_t iteratorIndexes[TypesCount];
-				std::fill_n(iteratorIndexes, TypesCount, TypeInfo::kMainIteratorIdx);
+			void initTypeAccessInfo(const SectorArrays& arrays, const std::vector<Sectors*>& secondary) noexcept {
+				uint8_t arrayIndexes[TypesCount];
+				std::fill_n(arrayIndexes, TypesCount, TypeInfo::kMainIteratorIdx);
 
-				for (const auto& [arr, it ] : otherIterators) {
-					mArraysIterators[mIteratorsSize] = it;
+				for (auto* arr : secondary) {
+					mSecondaryArrays[mSecondaryCount] = arr;
 					for (size_t a = 0; a < TypesCount; ++a) {
 						if (arrays[a] == arr) {
-							iteratorIndexes[a] = mIteratorsSize;
+							arrayIndexes[a] = mSecondaryCount;
 						}
 					}
-
-					++mIteratorsSize;
+					++mSecondaryCount;
 				}
 
-				(initTypeAccessInfoImpl<Types>(arrays[getIndex<T>()], arrays[getIndex<Types>()], iteratorIndexes), ...);
+				(initTypeAccessInfoImpl<Types>(arrays[getIndex<T>()], arrays[getIndex<Types>()], arrayIndexes), ...);
 				mMainOffset = std::get<0>(mTypeAccessInfo).typeOffsetInSector;
 			}
 
@@ -947,10 +934,10 @@ namespace ecss {
 
 		private:
 			TypeAccessTuple mTypeAccessInfo;
-			SectorsRangeIt	mArraysIterators[CTCount ? CTCount : 1];
+			Sectors*		mSecondaryArrays[CTCount ? CTCount : 1] = {};
 			SectorsIt		mIterator;
 			uint16_t		mMainOffset = 0;
-			uint8_t			mIteratorsSize = 0;
+			uint8_t			mSecondaryCount = 0;
 		};
 
 		/// @return Iterator to first alive element (or end if empty).
@@ -980,7 +967,7 @@ namespace ecss {
 				it = SectorsIt(mainArr, initRange(mainArr, ranges, getIndex<T>()), mainArr->template getLayoutData<T>().isAliveMask);
 			}
 
-			mBeginIt = Iterator{ arrays, it, fillOtherIterators(arrays, ranges) };
+			mBeginIt = Iterator{ arrays, it, collectSecondaryArrays(arrays) };
 		}
 		
 		/// @brief Initialize effective iteration ranges (and pin upper bound if thread-safe).
@@ -1014,20 +1001,17 @@ namespace ecss {
 			return ranges;
 		}
 
-		/// @brief Build secondary iterators for component arrays different from main.
-		std::vector<std::pair<Sectors*, SectorsRangeIt>> fillOtherIterators(const std::array<Sectors*, TypesCount>& arrays, const Ranges<EntityId>& ranges) {
-			std::vector<std::pair<Sectors*, SectorsRangeIt>> iterators;
-			iterators.reserve(TypesCount - 1);
+		/// @brief Collect secondary arrays for direct O(1) lookup.
+		std::vector<Sectors*> collectSecondaryArrays(const std::array<Sectors*, TypesCount>& arrays) {
+			std::vector<Sectors*> secondary;
+			secondary.reserve(TypesCount - 1);
 			auto main = arrays[0];
 			for (auto i = 1u; i < arrays.size(); i++) {
 				auto arr = arrays[i];
-				if (arr == main || std::find_if(iterators.begin(), iterators.end(), [arr](const auto& a){ return a.first == arr; }) != iterators.end()) { continue; }
-
-				auto lock = arr->readLock();
-				iterators.emplace_back(arr, SectorsRangeIt(arr, initRange(arr, ranges, i)));
+				if (arr == main || std::find(secondary.begin(), secondary.end(), arr) != secondary.end()) { continue; }
+				secondary.push_back(arr);
 			}
-
-			return iterators;
+			return secondary;
 		}
 
 		/// @brief Get compile-time index of a given component type within the typelist.

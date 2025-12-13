@@ -181,6 +181,9 @@ namespace ecss::Memory {
 
 			FORCE_INLINE std::byte* rawPtr() const noexcept { return ptr; }
 			FORCE_INLINE explicit operator bool() const noexcept { return ptr != nullptr; }
+			
+			/// @brief Jump directly to a known sector (for hybrid dense/sparse iteration).
+			FORCE_INLINE void jumpTo(Sector* sector) noexcept { ptr = reinterpret_cast<std::byte*>(sector); }
 
 			FORCE_INLINE Sector* operator*()  const noexcept { return reinterpret_cast<Sector*>(ptr); }
 			FORCE_INLINE Sector* operator->() const noexcept { return reinterpret_cast<Sector*>(ptr); }
