@@ -866,8 +866,17 @@ namespace ecss {
 				advanceAllIteratorsToMainId();
 			}
 
-			FORCE_INLINE value_type operator*() const noexcept { auto id = mIterator->id; return { id, getComponent<T>(id), getComponent<CompTypes>(id)... }; }
-			FORCE_INLINE Iterator& operator++() noexcept { ++mIterator; advanceAllIteratorsToMainId(); return *this; }
+			FORCE_INLINE value_type operator*() const noexcept { 
+				std::byte* raw = mIterator.rawPtr();
+				return { reinterpret_cast<Memory::Sector*>(raw)->id, 
+				         reinterpret_cast<T*>(raw + mMainOffset), 
+				         getComponent<CompTypes>(raw)... }; 
+			}
+			FORCE_INLINE Iterator& operator++() noexcept { 
+				++mIterator; 
+				if constexpr (CTCount > 0) { advanceAllIteratorsToMainId(); }
+				return *this; 
+			}
 
 			FORCE_INLINE bool operator!=(const Iterator& other) const noexcept { return mIterator != other.mIterator; }
 			FORCE_INLINE bool operator==(const Iterator& other) const noexcept { return mIterator == other.mIterator; }
@@ -881,33 +890,27 @@ namespace ecss {
 		private:
 			/// @brief Align secondary iterators to the current main entity id.
 			FORCE_INLINE void advanceAllIteratorsToMainId() noexcept {
-				if constexpr (CTCount > 0) {
-					if (mIteratorsSize) {
-						if (auto sector = *mIterator) {
-							const auto id = sector->id;
-							for (size_t i = 0; i < mIteratorsSize; i++) {
-								mArraysIterators[i].advanceToId(id);
-							}
-						}
-					}
+				if (!mIteratorsSize) [[likely]] return;
+				auto* sector = *mIterator;
+				if (!sector) [[unlikely]] return;
+				const auto id = sector->id;
+				for (uint8_t i = 0; i < mIteratorsSize; ++i) {
+					mArraysIterators[i].advanceToId(id);
 				}
 			}
 
 			/// @brief Fetch component pointer for specific entity id (may be nullptr).
 			template<typename ComponentType>
-			FORCE_INLINE ComponentType* getComponent(EntityId sectorId) const noexcept {
-				const auto& info = std::get<getIndex<ComponentType>()>(mTypeAccessInfo);
-				if constexpr (std::is_same_v<ComponentType, T>) {
-					return reinterpret_cast<ComponentType*>(mIterator.rawPtr() + info.typeOffsetInSector);
+			FORCE_INLINE ComponentType* getComponent(std::byte* raw) const noexcept {
+				constexpr auto idx = getIndex<ComponentType>();
+				const auto& info = std::get<idx>(mTypeAccessInfo);
+				auto* sector = reinterpret_cast<Memory::Sector*>(raw);
+				if (info.iteratorIdx == TypeInfo::kMainIteratorIdx) [[likely]] {
+					return (sector->isAliveData & info.typeAliveMask) ? reinterpret_cast<ComponentType*>(raw + info.typeOffsetInSector) : nullptr;
 				}
-				else {
-					if (info.iteratorIdx == TypeInfo::kMainIteratorIdx) {
-						return mIterator->template getMember<ComponentType>(info.typeOffsetInSector, info.typeAliveMask);
-					}
-
-					auto sector = *mArraysIterators[info.iteratorIdx];
-					return sector && sector->id == sectorId ? sector->template getMember<ComponentType>(info.typeOffsetInSector, info.typeAliveMask) : nullptr;
-				}
+				auto* other = *mArraysIterators[info.iteratorIdx];
+				return (other && other->id == sector->id && (other->isAliveData & info.typeAliveMask))
+					? reinterpret_cast<ComponentType*>(reinterpret_cast<std::byte*>(other) + info.typeOffsetInSector) : nullptr;
 			}
 
 			template<typename... Types>
@@ -927,6 +930,7 @@ namespace ecss {
 				}
 
 				(initTypeAccessInfoImpl<Types>(arrays[getIndex<T>()], arrays[getIndex<Types>()], iteratorIndexes), ...);
+				mMainOffset = std::get<0>(mTypeAccessInfo).typeOffsetInSector;
 			}
 
 			template<typename ComponentType>
@@ -945,6 +949,7 @@ namespace ecss {
 			TypeAccessTuple mTypeAccessInfo;
 			SectorsRangeIt	mArraysIterators[CTCount ? CTCount : 1];
 			SectorsIt		mIterator;
+			uint16_t		mMainOffset = 0;
 			uint8_t			mIteratorsSize = 0;
 		};
 
