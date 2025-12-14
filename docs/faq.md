@@ -81,12 +81,23 @@ A: Benchmarks (see the dashboard) show faster or competitive iteration for group
 ---
 
 ### Q: What's the recommended component design?
-A: Prefer small POD / trivially movable structs. Put large blobs (e.g., std::vector heavy data) behind handles or separate arrays to avoid slowing relocation and polluting cache lines for hot loops.
+A: Prefer small POD / trivially movable structs for best performance. Non‑trivial types (`std::string`, `std::vector`, custom RAII) are fully supported but slower during structural operations. Consider:
+
+- **Hot path components**: Keep trivial (POD) for fastest iteration and relocation.
+- **Rarely accessed data**: Non‑trivial types are fine; the overhead only matters during defrag/insert.
+- **Large blobs**: Put behind handles or separate arrays to avoid cache pollution.
 
 ---
 
 ### Q: What if a component is non‑trivial?
-A: Moves during compaction call its move constructor / destructor via a small function table. Works, but heavier. Keep such types ungrouped unless locality gain outweighs cost.
+A: Fully supported. The system detects non‑trivial types at compile time and uses proper move semantics:
+
+- **Defragmentation**: Calls move constructor for each relocated element, then destructor on source.
+- **Shift operations** (insert in middle): Moves elements one‑by‑one in correct order (backwards for right‑shift to prevent overwrites).
+- **Copy**: Uses copy constructor for each element.
+- **Erase**: Calls destructor before marking dead.
+
+Types like `std::string`, `std::vector`, or custom RAII classes work correctly. Performance is lower than trivial types (no batch `memmove`), but correctness is guaranteed. Keep such types ungrouped unless locality gain outweighs the cost.
 
 ---
 
@@ -102,6 +113,19 @@ A: MIT. Free for commercial and open‑source projects.
 
 ### Q: Stability / maturity?
 A: Actively evolving; core layout & iteration model are stable, APIs intentionally small. Expect additive utilities rather than disruptive rewrites.
+
+---
+
+### Q: How well tested is it?
+A: Comprehensive test suite with 200+ tests covering:
+
+- Basic CRUD operations and iteration
+- Thread safety and concurrent access patterns
+- Non‑trivial types (`std::string`, move‑only, RAII) during all operations
+- Edge cases: capacity boundaries, empty arrays, rapid insert/erase cycles
+- Stress tests: concurrent defragmentation, copy during reads, multi‑component parallel operations
+
+Tests run with AddressSanitizer and ThreadSanitizer in CI to catch memory and threading bugs.
 
 ---
 

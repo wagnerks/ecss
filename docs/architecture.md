@@ -132,11 +132,31 @@ No variant visitation, no dynamic dispatch; only mask test + pointer arithmetic 
 ---
 
 ## 12. Memory Safety & Relocation
-- Trivial components may be relocated with raw `memmove` during compaction or local shifts.
-- Non‑trivial types invoke move / destroy helpers generated via template instantiation (stored in small function table within layout meta).
-- Pins ensure no reader references stale addresses.
 
-> Recommendation: Keep components trivially movable/destructible whenever possible. If **all** grouped members in a `SectorsArray` are trivial, random (non‑tail) insertions and defragment moves degrade mostly to `memmove` of contiguous bytes, greatly improving worst‑case insertion cost. This advantage is per `SectorsArray` — having trivial components in one array does not affect others.
+### Trivial vs Non‑Trivial Type Handling
+The system automatically detects component triviality at compile time via `SectorLayoutMeta::isTrivial()`:
+
+| Operation | Trivial Types | Non‑Trivial Types |
+|-----------|--------------|-------------------|
+| Defragmentation | `memmove` (batch) | Per‑element move ctor + dtor |
+| Shift (insert middle) | `memmove` (batch) | Per‑element move (reverse order for right‑shift) |
+| Copy array | `memcpy` (batch) | Per‑element copy ctor |
+| Move array | Pointer swap | Pointer swap (same) |
+| Erase | Mark dead bit | Mark dead + dtor call |
+
+### Implementation Details
+- `SectorLayoutMeta` stores a `trivial` flag computed from `std::is_trivially_copyable` for all grouped types.
+- When `isTrivial() == true`: `ChunksAllocator::moveSectorsDataTrivial()` uses raw `memmove`.
+- When `isTrivial() == false`: `Sector::moveSectorData()` invokes move constructors, properly destructs source, and placement‑news into destination.
+- Shift operations iterate in correct order (backwards for right‑shift) to avoid overwriting source before move.
+
+### Pin Safety
+- Pins ensure no reader references stale addresses during relocation.
+- Defragmentation aborts opportunistically if any pinned sector blocks movement.
+
+> **Recommendation**: Keep components trivially movable/destructible whenever possible. If **all** grouped members in a `SectorsArray` are trivial, random (non‑tail) insertions and defragment moves degrade to `memmove` of contiguous bytes, greatly improving worst‑case cost. This advantage is per `SectorsArray` — having trivial components in one array does not affect others.
+
+> **Non‑trivial types are fully supported**: `std::string`, `std::vector`, custom RAII types all work correctly. The system properly invokes constructors/destructors during all structural operations (copy, move, defragment, shift). Performance is lower than trivial types but correctness is guaranteed.
 
 ---
 
