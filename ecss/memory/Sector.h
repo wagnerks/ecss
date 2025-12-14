@@ -3,245 +3,261 @@
 #include <ecss/memory/SectorLayoutMeta.h>
 
 namespace ecss::Memory {
-	/** @brief
-	 * Sector stores data for multiple component types; per-type offsets are described by SectorLayoutMeta.
+	/**
+	 * @brief Namespace containing static functions for component operations within sector data.
+	 * 
+	 * Sector is now a logical concept - a contiguous memory region storing multiple components.
+	 * The metadata (id, isAliveData) is stored externally in SectorsArray for better cache locality.
+	 * 
+	 * Memory layout per sector slot:
 	 * \code
-	 * [SECTOR]
-	 * 0x + 0                                       { id }
-	 * 0x + sizeof(SectorId)                        { isAliveData }
-	 * 0x + sizeof(Sector)                          { SomeMember }
-	 * 0x + sizeof(Sector) + sizeof(SomeMember)     { SomeMember1 }
-	 * 0x + sizeof(Sector) + ... + sizeof(MemberN)  { SomeMemberN }
+	 * [SECTOR DATA at linearIdx]
+	 * 0x + 0                          { Component0 }
+	 * 0x + sizeof(Component0)         { Component1 }
+	 * 0x + ... + sizeof(ComponentN)   { ComponentN }
 	 * \endcode
-	 * \param id           Sector identifier.
-	 * \param isAliveData  Bitfield of component liveness; 32 bits => up to 32 components per sector.
+	 * 
+	 * External arrays in SectorsArray:
+	 * - mIds[linearIdx]        -> SectorId
+	 * - mIsAliveData[linearIdx] -> uint32_t bitfield of alive components
 	 */
-	struct alignas(8) Sector final {
-		SectorId id;
-		uint32_t isAliveData;
+	namespace Sector {
 
-		/** @brief Set or clear bits in `isAliveData`.
-		 *  \param mask  Bitmask of bits to modify (1s mark the affected bits).
-		 *  \param value If true, sets the bits in `mask`; if false, clears them.
-		 *  \note expected that if value == false - mask is already ~mask
-		 */
-		FORCE_INLINE void setAlive(uint32_t mask, bool value) noexcept { value ? isAliveData |= mask : isAliveData &= mask; }
-		/** @brief Branch-free convenience for marking bits as alive (sets them to 1).
-		 *  \param mask Bitmask of bits to set in `isAliveData`.
-		 */
-		FORCE_INLINE void markAlive(uint32_t mask) noexcept { isAliveData |= mask; }
-		/** @brief Branch-free convenience for marking bits as not alive (clears them to 0).
-		 *  \param mask Bitmask of bits to clear in `isAliveData`.
-		 */
-		FORCE_INLINE void markNotAlive(uint32_t mask) noexcept { isAliveData &= mask; }
-		/** @brief Check whether any masked bit is marked alive.
-		 *  \param mask Bitmask to test against `isAliveData`.
-		 *  \return true if any of the masked bits are set; otherwise, false.
-		 */
-		FORCE_INLINE bool isAlive(uint32_t mask) const noexcept { return isAliveData & mask; }
-		/** @brief Check whether any bit is marked alive.
-		 *  \return true if any of the bits are set; otherwise, false.
-		 */
-		FORCE_INLINE bool isSectorAlive() const noexcept { return isAliveData; }
-
-	public:
 		/** @brief Get a member pointer by offset if the corresponding liveness bit is set.
-		*  \return Pointer to T or nullptr if not alive.
-		*/
+		 *  @param data Raw pointer to sector data
+		 *  @param offset Byte offset of the component
+		 *  @param mask Liveness bitmask for this component type
+		 *  @param isAliveData Current alive state from external array
+		 *  @return Pointer to T or nullptr if not alive.
+		 */
 		template<typename T>
-		FORCE_INLINE T* getMember(uint16_t offset, uint32_t mask) const noexcept { 
-			return (isAliveData & mask) ? reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(this) + offset) : nullptr; 
+		FORCE_INLINE T* getMember(std::byte* data, uint16_t offset, uint32_t mask, uint32_t isAliveData) noexcept {
+			return (isAliveData & mask) ? reinterpret_cast<T*>(data + offset) : nullptr;
 		}
-		/** @overload */
+
+		/** @overload const version */
 		template<typename T>
-		FORCE_INLINE T* getMember(uint16_t offset, uint32_t mask) noexcept { 
-			return (isAliveData & mask) ? reinterpret_cast<T*>(reinterpret_cast<uintptr_t>(this) + offset) : nullptr; 
+		FORCE_INLINE const T* getMember(const std::byte* data, uint16_t offset, uint32_t mask, uint32_t isAliveData) noexcept {
+			return (isAliveData & mask) ? reinterpret_cast<const T*>(data + offset) : nullptr;
 		}
 
 		/** @brief Get a member pointer using layout metadata; returns nullptr if not alive. */
 		template<typename T>
-		FORCE_INLINE T* getMember(const LayoutData& layout) const noexcept { return getMember<T>(layout.offset, layout.isAliveMask); }
-		/** @overload */
+		FORCE_INLINE T* getMember(std::byte* data, const LayoutData& layout, uint32_t isAliveData) noexcept {
+			return getMember<T>(data, layout.offset, layout.isAliveMask, isAliveData);
+		}
+
+		/** @overload const version */
 		template<typename T>
-		FORCE_INLINE T* getMember(const LayoutData& layout) noexcept { return getMember<T>(layout.offset, layout.isAliveMask); }
+		FORCE_INLINE const T* getMember(const std::byte* data, const LayoutData& layout, uint32_t isAliveData) noexcept {
+			return getMember<T>(data, layout.offset, layout.isAliveMask, isAliveData);
+		}
 
-		/** @brief Raw member address by byte offset from the sector base. */
-		FORCE_INLINE static void* getMemberPtr(const Sector* sectorAdr, uint16_t offset) noexcept { return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(sectorAdr) + offset); }
-		/** @overload */
-		FORCE_INLINE static void* getMemberPtr(Sector* sectorAdr, uint16_t offset) noexcept { return reinterpret_cast<void*>(reinterpret_cast<uintptr_t>(sectorAdr) + offset); }
-		/** @overload */
-		FORCE_INLINE static void* getMemberPtr(std::byte* sectorAdr, uint16_t offset) noexcept { return sectorAdr + offset; }
+		/** @brief Raw member address by byte offset from the sector data base. */
+		FORCE_INLINE void* getMemberPtr(std::byte* data, uint16_t offset) noexcept {
+			return data + offset;
+		}
 
-		/** @brief Fetch component pointer of type T from a sector using its layout; may be nullptr if not alive. */
+		/** @overload const version */
+		FORCE_INLINE const void* getMemberPtr(const std::byte* data, uint16_t offset) noexcept {
+			return data + offset;
+		}
+
+		/** @brief Check whether any masked bit is marked alive. */
+		FORCE_INLINE bool isAlive(uint32_t isAliveData, uint32_t mask) noexcept {
+			return isAliveData & mask;
+		}
+
+		/** @brief Check whether any bit is marked alive (sector has any live component). */
+		FORCE_INLINE bool isSectorAlive(uint32_t isAliveData) noexcept {
+			return isAliveData != 0;
+		}
+
+		/** @brief Set or clear bits in isAliveData.
+		 *  @param isAliveData Reference to alive data to modify
+		 *  @param mask Bitmask of bits to modify
+		 *  @param value If true, sets the bits; if false, clears them
+		 *  @note When value == false, mask should already be ~mask
+		 */
+		FORCE_INLINE void setAlive(uint32_t& isAliveData, uint32_t mask, bool value) noexcept {
+			value ? isAliveData |= mask : isAliveData &= mask;
+		}
+
+		/** @brief Mark bits as alive (sets them to 1). */
+		FORCE_INLINE void markAlive(uint32_t& isAliveData, uint32_t mask) noexcept {
+			isAliveData |= mask;
+		}
+
+		/** @brief Mark bits as not alive (clears them to 0). */
+		FORCE_INLINE void markNotAlive(uint32_t& isAliveData, uint32_t mask) noexcept {
+			isAliveData &= mask;
+		}
+
+		/** @brief Fetch component pointer of type T using layout; may be nullptr if not alive. */
 		template <typename T>
-		static const T* getComponentFromSector(const Sector* sector, SectorLayoutMeta* sectorLayout) {
-			if (!sector) {
+		const T* getComponent(const std::byte* data, uint32_t isAliveData, SectorLayoutMeta* sectorLayout) {
+			if (!data) {
 				return nullptr;
 			}
 			const auto& layout = sectorLayout->getLayoutData<T>();
-			return sector->getMember<T>(layout.offset, layout.isAliveMask);
+			return getMember<T>(data, layout.offset, layout.isAliveMask, isAliveData);
 		}
-		/** @overload */
+
+		/** @overload non-const version */
 		template <typename T>
-		static T* getComponentFromSector(Sector* sector, SectorLayoutMeta* sectorLayout) {
-			if (!sector) {
+		T* getComponent(std::byte* data, uint32_t isAliveData, SectorLayoutMeta* sectorLayout) {
+			if (!data) {
 				return nullptr;
 			}
 			const auto& layout = sectorLayout->getLayoutData<T>();
-			return sector->getMember<T>(layout.offset, layout.isAliveMask);
+			return getMember<T>(data, layout.offset, layout.isAliveMask, isAliveData);
 		}
 
-		/** @brief (Re)construct member T in place and mark it alive. Destroys previous value if present. */
+		/** @brief (Re)construct member T in place and mark it alive. Destroys previous value if present.
+		 *  @param data Raw pointer to sector data
+		 *  @param isAliveData Reference to alive data (will be modified)
+		 *  @param layout Layout data for this component type
+		 *  @param args Constructor arguments
+		 *  @return Pointer to constructed component
+		 */
 		template<typename T, class ...Args>
-		T* emplaceMember(const LayoutData& layout, Args&&... args) {
-			void* memberPtr = getMemberPtr(this, layout.offset);
+		T* emplaceMember(std::byte* data, uint32_t& isAliveData, const LayoutData& layout, Args&&... args) {
+			void* memberPtr = getMemberPtr(data, layout.offset);
 			if constexpr (!std::is_trivially_destructible_v<T>) {
-				if (isAlive(layout.isAliveMask)) {
+				if (isAlive(isAliveData, layout.isAliveMask)) {
 					layout.functionTable.destructor(memberPtr);
 				}
 			}
 
-			markAlive(layout.isAliveMask);
+			markAlive(isAliveData, layout.isAliveMask);
 
-			return new(memberPtr)T(std::forward<Args>(args)... );
+			return new(memberPtr) T(std::forward<Args>(args)...);
 		}
 
-		/** @brief Static helper: emplace member into a given sector. */
-		template<typename T, class ...Args>
-		static T* emplaceMember(Sector* sector, const LayoutData& layout, Args&&... args) {
-			assert(sector);
-
-			void* memberPtr = getMemberPtr(sector, layout.offset);
-			if constexpr (!std::is_trivially_destructible_v<T>) {
-				if (sector->isAlive(layout.isAliveMask)) {
-					layout.functionTable.destructor(memberPtr);
+		/** @brief Destroy a specific member if alive and clear its liveness bits. */
+		inline void destroyMember(std::byte* data, uint32_t& isAliveData, const LayoutData& layout) {
+			if (!layout.isTrivial) {
+				if (isAlive(isAliveData, layout.isAliveMask)) {
+					layout.functionTable.destructor(getMemberPtr(data, layout.offset));
 				}
 			}
-
-			sector->markAlive(layout.isAliveMask);
-
-			return new(memberPtr)T{ std::forward<Args>(args)... };
+			setAlive(isAliveData, layout.isNotAliveMask, false);
 		}
 
-		/** @brief Copy-assign member T into \p to (replaces existing value) and mark alive. */
-		template<typename T>
-		static T* copyMember(const T& from, Sector* to, const LayoutData& layout) {
-			assert(to);
-			to->destroyMember(layout);
-			to->setAlive(layout.isAliveMask, true);
-			return new(getMemberPtr(to, layout.offset))T(from);
-		}
-		/** @brief Move-assign member T into \p to (replaces existing value) and mark alive. */
-		template<typename T>
-		static T* moveMember(T&& from, Sector* to, const LayoutData& layout) {
-			assert(to);
-			to->destroyMember(layout);
-			to->setAlive(layout.isAliveMask, true);
-			return new(getMemberPtr(to, layout.offset))T(std::forward<T>(from));
-		}
-
-		/** @brief Copy-assign an opaque member using layout function table; marks alive if \p from is non-null. */
-		static void* copyMember(const void* from, Sector* to, const LayoutData& layout) {
-			assert(to);
-			to->destroyMember(layout);
-			
-			auto ptr = getMemberPtr(to, layout.offset);
-			if (!from) {
-				return ptr;
-			}
-			layout.functionTable.copy(ptr, const_cast<void*>(from));
-			to->setAlive(!!from ? layout.isAliveMask : layout.isNotAliveMask, !!from);
-			return ptr;
-		}
-
-		/** @brief Move-assign an opaque member using layout function table; marks alive if \p from is non-null. */
-		static void* moveMember(void* from, Sector* to, const LayoutData& layout) {
-			assert(to);
-			to->destroyMember(layout);
-			auto ptr = getMemberPtr(to, layout.offset);
-			if (!from) {
-				return ptr;
-			}
-			layout.functionTable.move(ptr, from);
-			to->setAlive(!!from ? layout.isAliveMask : layout.isNotAliveMask, !!from);
-			layout.functionTable.destructor(from);
-			return ptr;
-		}
-
-		/** @brief Copy-assign a sector using layout function table. */
-		static Sector* copySector(Sector* from, Sector* to, const SectorLayoutMeta* layouts) {
-			assert(from != to);
-			assert(from && to);
-			assert(to);
-			destroySector(to, layouts);
-
-			if constexpr (std::is_trivially_copyable_v<Sector>) {
-				memcpy(to, from, sizeof(Sector));
-			}
-			else {
-				new (to)Sector(*from);
-			}
-
-			for (const auto& layout : *layouts) {
-				if (!from->isAlive(layout.isAliveMask)) {
-					continue;
-				}
-
-				layout.functionTable.copy(getMemberPtr(to, layout.offset), getMemberPtr(from, layout.offset));
-			}
-
-			return to;
-		}
-
-		/** @brief Move-assign a sector using layout function table. */
-		static Sector* moveSector(Sector* from, Sector* to, const SectorLayoutMeta* layouts) {
-			assert(from != to);
-			assert(from && to);
-			assert(to);
-			destroySector(to, layouts);
-
-			new (to)Sector(std::move(*from));
-			for (const auto& layout : *layouts) {
-				if (!from->isAlive(layout.isAliveMask)) {
-					continue;
-				}
-
-				layout.functionTable.move(getMemberPtr(to, layout.offset), getMemberPtr(from, layout.offset));
-
-				to->setAlive(layout.isAliveMask, true);
-			}
-			destroySector(from, layouts);
-			return to;
-		}
-
-		/** @brief Destroy all alive members in the sector using layout metadata and clear liveness bits. */
-		static void destroySector(Sector* sector, const SectorLayoutMeta* layouts) {
-			if (!sector || !sector->isSectorAlive()) {
+		/** @brief Destroy all alive members in sector data and clear liveness bits. */
+		inline void destroySectorData(std::byte* data, uint32_t& isAliveData, const SectorLayoutMeta* layouts) {
+			if (!data || !isSectorAlive(isAliveData)) {
 				return;
 			}
 
 			if (!layouts->isTrivial()) {
-				for (const auto& layout : (*layouts)) {
-					if (sector->isAlive(layout.isAliveMask)) {
-						layout.functionTable.destructor(ecss::Memory::Sector::getMemberPtr(sector, layout.offset));
+				for (const auto& layout : *layouts) {
+					if (isAlive(isAliveData, layout.isAliveMask)) {
+						layout.functionTable.destructor(getMemberPtr(data, layout.offset));
 					}
 				}
 			}
-			sector->isAliveData = 0;
+			isAliveData = 0;
 		}
 
-		/** @brief Destroy a specific member if alive and clear its liveness bits. */
-		void destroyMember(const LayoutData& layout) {
-			if (!layout.isTrivial) {
-				if (isAlive(layout.isAliveMask)) {
-					layout.functionTable.destructor(getMemberPtr(this, layout.offset));
+		/** @brief Copy-assign member T into destination and mark alive. */
+		template<typename T>
+		T* copyMember(const T& from, std::byte* toData, uint32_t& toIsAlive, const LayoutData& layout) {
+			assert(toData);
+			Sector::destroyMember(toData, toIsAlive, layout);
+			setAlive(toIsAlive, layout.isAliveMask, true);
+			return new(getMemberPtr(toData, layout.offset)) T(from);
+		}
+
+		/** @brief Move-assign member T into destination and mark alive. */
+		template<typename T>
+		T* moveMember(T&& from, std::byte* toData, uint32_t& toIsAlive, const LayoutData& layout) {
+			assert(toData);
+			Sector::destroyMember(toData, toIsAlive, layout);
+			setAlive(toIsAlive, layout.isAliveMask, true);
+			return new(getMemberPtr(toData, layout.offset)) T(std::forward<T>(from));
+		}
+
+		/** @brief Copy-assign an opaque member using layout function table. */
+		inline void* copyMember(const void* from, std::byte* toData, uint32_t& toIsAlive, const LayoutData& layout) {
+			assert(toData);
+			Sector::destroyMember(toData, toIsAlive, layout);
+
+			auto ptr = getMemberPtr(toData, layout.offset);
+			if (!from) {
+				return ptr;
+			}
+			layout.functionTable.copy(ptr, from);
+			setAlive(toIsAlive, from ? layout.isAliveMask : layout.isNotAliveMask, from != nullptr);
+			return ptr;
+		}
+
+		/** @brief Move-assign an opaque member using layout function table. */
+		inline void* moveMember(void* from, std::byte* toData, uint32_t& toIsAlive, const LayoutData& layout) {
+			assert(toData);
+			Sector::destroyMember(toData, toIsAlive, layout);
+			auto ptr = getMemberPtr(toData, layout.offset);
+			if (!from) {
+				return ptr;
+			}
+			layout.functionTable.move(ptr, from);
+			setAlive(toIsAlive, from ? layout.isAliveMask : layout.isNotAliveMask, from != nullptr);
+			layout.functionTable.destructor(from);
+			return ptr;
+		}
+
+		/** @brief Copy sector data from one location to another.
+		 *  @param fromData Source sector data
+		 *  @param fromIsAlive Source alive state
+		 *  @param toData Destination sector data
+		 *  @param toIsAlive Reference to destination alive state (will be modified)
+		 *  @param layouts Sector layout metadata
+		 */
+		inline void copySectorData(const std::byte* fromData, uint32_t fromIsAlive,
+		                           std::byte* toData, uint32_t& toIsAlive,
+		                           const SectorLayoutMeta* layouts) {
+			assert(fromData != toData);
+			assert(fromData && toData);
+			Sector::destroySectorData(toData, toIsAlive, layouts);
+
+			toIsAlive = fromIsAlive;
+
+			for (const auto& layout : *layouts) {
+				if (!isAlive(fromIsAlive, layout.isAliveMask)) {
+					continue;
 				}
+				layout.functionTable.copy(getMemberPtr(toData, layout.offset),
+				                          getMemberPtr(const_cast<std::byte*>(fromData), layout.offset));
+			}
+		}
+
+		/** @brief Move sector data from one location to another.
+		 *  @param fromData Source sector data
+		 *  @param fromIsAlive Reference to source alive state (will be cleared)
+		 *  @param toData Destination sector data
+		 *  @param toIsAlive Reference to destination alive state (will be modified)
+		 *  @param layouts Sector layout metadata
+		 */
+		inline void moveSectorData(std::byte* fromData, uint32_t& fromIsAlive,
+		                           std::byte* toData, uint32_t& toIsAlive,
+		                           const SectorLayoutMeta* layouts) {
+			assert(fromData != toData);
+			assert(fromData && toData);
+			Sector::destroySectorData(toData, toIsAlive, layouts);
+
+			toIsAlive = fromIsAlive;
+
+			for (const auto& layout : *layouts) {
+				if (!isAlive(fromIsAlive, layout.isAliveMask)) {
+					continue;
+				}
+				layout.functionTable.move(getMemberPtr(toData, layout.offset),
+				                          getMemberPtr(fromData, layout.offset));
 			}
 
-			setAlive(layout.isNotAliveMask, false);
+			Sector::destroySectorData(fromData, fromIsAlive, layouts);
 		}
-	};
 
-	static_assert(sizeof(Dummy::Sector) == sizeof(Sector), "Dummy and real Sector differ!");
-	static_assert(std::is_trivial_v<Sector>); //Sector should be always trivial - to enable trivially copy trivial types inside
-}
+	} // namespace Sector
+
+} // namespace ecss::Memory

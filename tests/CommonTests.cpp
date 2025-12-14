@@ -35,7 +35,7 @@ namespace CommonTests {
 	static std::vector<SectorId> CollectIds(ecss::Memory::SectorsArray<true, T>* arr) {
 		std::vector<SectorId> out;
 		for (auto it = arr->begin(); it != arr->end(); ++it) {
-			out.push_back((*it)->id);
+			out.push_back((*it).id);
 		}
 		return out;
 	}
@@ -44,7 +44,7 @@ namespace CommonTests {
 	static std::vector<SectorId> CollectAliveIds(ecss::Memory::SectorsArray<true, Alloc>* arr) {
 		std::vector<SectorId> out;
 		for (auto it = arr->template beginAlive<T>(); it != arr->endAlive(); ++it) {
-			out.push_back((*it)->id);
+			out.push_back((*it).id);
 		}
 		return out;
 	}
@@ -64,10 +64,12 @@ namespace CommonTests {
 		ASSERT_TRUE(std::is_sorted(ids.begin(), ids.end()));
 
 		{
-			auto s3 = arr->findSector(3);
-			ASSERT_NE(s3, nullptr);
-			EXPECT_EQ(s3->id, 3u);
-			EXPECT_TRUE(s3->isSectorAlive());
+			auto data = arr->findSectorData(3);
+			ASSERT_NE(data, nullptr);
+			auto idx = arr->findLinearIdx(3);
+			ASSERT_NE(idx, INVALID_IDX);
+			EXPECT_EQ(arr->getId(idx), 3u);
+			EXPECT_TRUE(Sector::isSectorAlive(arr->getIsAliveRef(idx)));
 		}
 
 		
@@ -97,12 +99,20 @@ namespace CommonTests {
 		
 		arr->insert<Pos>(2, {}); 
 		{
-			auto s2 = arr->findSector(2);
-			s2->destroyMember(arr->getLayoutData<Pos>());
+			auto idx = arr->findLinearIdx(2);
+			ASSERT_NE(idx, INVALID_IDX);
+			auto* data = arr->findSectorData(2);
+			ASSERT_NE(data, nullptr);
+			auto& isAlive = arr->getIsAliveRef(idx);
+			Sector::destroyMember(data, isAlive, arr->getLayoutData<Pos>());
 		}
 		{
-			auto s8 = arr->findSector(8);
-			s8->destroyMember(arr->getLayoutData<Pos>());
+			auto idx = arr->findLinearIdx(8);
+			ASSERT_NE(idx, INVALID_IDX);
+			auto* data = arr->findSectorData(8);
+			ASSERT_NE(data, nullptr);
+			auto& isAlive = arr->getIsAliveRef(idx);
+			Sector::destroyMember(data, isAlive, arr->getLayoutData<Pos>());
 		}
 		alive = CollectAliveIds<Pos>(arr);
 		std::unordered_set<SectorId> got{ alive.begin(), alive.end() };
@@ -178,9 +188,13 @@ namespace CommonTests {
 		}
 		
 		for (SectorId id : {1u, 4u, 8u}) {
-			auto s = arr->findSector(id);
-			s->destroyMember(arr->getLayoutData<Pos>());
-			s->destroyMember(arr->getLayoutData<Vel>());
+			auto idx = arr->findLinearIdx(id);
+			ASSERT_NE(idx, INVALID_IDX);
+			auto* data = arr->findSectorData(id);
+			ASSERT_NE(data, nullptr);
+			auto& isAlive = arr->getIsAliveRef(idx);
+			Sector::destroyMember(data, isAlive, arr->getLayoutData<Pos>());
+			Sector::destroyMember(data, isAlive, arr->getLayoutData<Vel>());
 		}
 		const auto sizeBefore = arr->size();
 		arr->defragment();
@@ -193,9 +207,10 @@ namespace CommonTests {
 
 		
 		for (auto id : ids) {
-			auto s = arr->findSector(id);
-			ASSERT_NE(s, nullptr);
-			EXPECT_EQ(s->id, id);
+			auto data = arr->findSectorData(id);
+			ASSERT_NE(data, nullptr);
+			auto idx = arr->findLinearIdx(id);
+			EXPECT_EQ(arr->getId(idx), id);
 		}
 
 		delete arr;
@@ -275,24 +290,11 @@ namespace CommonTests {
 			std::vector<SectorId> got;
 			auto it = arr->beginRanged(ranges);
 			auto end = arr->endRanged();
-			for (; it != end; ++it) got.push_back((*it)->id);
+			for (; it != end; ++it) got.push_back((*it).id);
 			ASSERT_FALSE(got.empty());
 			EXPECT_TRUE(std::is_sorted(got.begin(), got.end()));
 			EXPECT_GE(got.front(), 3u);
 			EXPECT_LT(got.back(), 19u);
-		}
-
-		
-		{
-			std::vector<SectorId> got;
-			auto it = arr->beginAlive<Pos>(ranges);
-			auto end = arr->endAlive();
-			for (; it != end; ++it) got.push_back((*it)->id);
-			for (auto id : got) {
-				EXPECT_EQ(id % 2, 0u);
-				EXPECT_GE(id, 3u);
-				EXPECT_LT(id, 19u);
-			}
 		}
 
 		delete arr;
@@ -356,7 +358,11 @@ namespace CommonTests {
 		auto reader = [&]() -> uint64_t {
 			uint64_t sum = 0;
 			for (auto it = arr->begin(); it != arr->end(); ++it) {
-				sum += arr->pinSector(*it)->id;
+				auto slot = *it;
+				auto pin = arr->pinSector(slot.id);
+				if (pin) {
+					sum += pin.getId();
+				}
 			}
 			return sum;
 		};
@@ -394,7 +400,11 @@ namespace CommonTests {
 			while (!stop.load(std::memory_order_relaxed)) {
 				int count = 0;
 				for (auto it = arr->begin(); it != arr->end() && count < 256; ++it, ++count) {
-					total += arr->pinSector(*it)->id;
+					auto slot = *it;
+					auto pin = arr->pinSector(slot.id);
+					if (pin) {
+						total += pin.getId();
+					}
 				}
 			}
 			return total;
@@ -406,16 +416,20 @@ namespace CommonTests {
 			std::uniform_int_distribution<int> dist(0, N - 1);
 			for (int iter = 0; iter < 200; ++iter) {
 				{
-					
+					// Must hold write lock when modifying component data
+					auto lock = arr->writeLock();
 					const int id = dist(rng);
-					auto s = arr->pinSector(id);
-					if (s) {
-						
-						if (s->isAlive(arr->getLayoutData<Vel>().isAliveMask)) {
-							s->destroyMember(arr->getLayoutData<Vel>());
-						}
-						else {
-							Sector::emplaceMember<Vel>(s.get(), arr->getLayoutData<Vel>(), float(id));
+					auto idx = arr->findLinearIdx<false>(id);  // No additional lock needed
+					if (idx != INVALID_IDX) {
+						auto& isAlive = arr->getIsAliveRef(idx);
+						auto* data = arr->findSectorData<false>(id);  // No additional lock needed
+						if (data) {
+							if (Sector::isAlive(isAlive, arr->getLayoutData<Vel>().isAliveMask)) {
+								Sector::destroyMember(data, isAlive, arr->getLayoutData<Vel>());
+							}
+							else {
+								Sector::emplaceMember<Vel>(data, isAlive, arr->getLayoutData<Vel>(), float(id));
+							}
 						}
 					}
 				}

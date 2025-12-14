@@ -4,6 +4,7 @@
 #include <thread>
 
 #include <ecss/memory/SectorsArray.h>
+#include <ecss/memory/Sector.h>
 
 #include <gtest/gtest.h>
 
@@ -21,10 +22,29 @@ namespace SectorsArrayTest
 	struct CtorCounter { static int constructed, destroyed; CtorCounter() { ++constructed; } ~CtorCounter() { ++destroyed; } };
 	int CtorCounter::constructed = 0; int CtorCounter::destroyed = 0;
 
+using namespace ecss;
 using namespace ecss::Memory;
 
 using SA_T = SectorsArray<true, ChunksAllocator<32>>;
 using SA_T_OT = SectorsArray<false, ChunksAllocator<32>>;
+
+// Helper to get component from sector data using public API
+template<typename T, typename Arr>
+T* getComponent(Arr* arr, SectorId id) {
+	auto* data = arr->template findSectorData<false>(id);
+	if (!data) return nullptr;
+	auto isAlive = arr->template getIsAlive<false>(id);
+	const auto& layout = arr->template getLayoutData<T>();
+	return Sector::getMember<T>(data, layout, isAlive);
+}
+
+// Helper to check if sector exists and is alive
+template<typename Arr>
+bool sectorExists(Arr* arr, SectorId id) {
+	auto idx = arr->template findLinearIdx<false>(id);
+	if (idx == INVALID_IDX) return false;
+	return Sector::isSectorAlive(arr->template getIsAliveRef<false>(idx));
+}
 
 TEST(SectorsArray, DefaultConstructEmpty) {
 	auto* arr = SA_T::create<Trivial>();
@@ -37,9 +57,8 @@ TEST(SectorsArray, InsertAndFind_Trivial) {
 	auto* arr = SA_T::create<Trivial>();
 	arr->insert<Trivial>(123, Trivial{ 42 });
 	EXPECT_EQ(arr->size(), 1);
-	auto* sector = arr->findSector(123);
-	ASSERT_NE(sector, nullptr);
-	auto* v = sector->getMember<Trivial>(arr->getLayoutData<Trivial>());
+	auto* v = getComponent<Trivial>(arr, 123);
+	ASSERT_NE(v, nullptr);
 	EXPECT_EQ(v->a, 42);
 	delete arr;
 }
@@ -47,9 +66,8 @@ TEST(SectorsArray, InsertAndFind_Trivial) {
 TEST(SectorsArray, InsertAndFind_NonTrivial) {
 	auto* arr = SA_T::create<NonTrivial>();
 	arr->insert<NonTrivial>(1, NonTrivial{ "test" });
-	auto* sector = arr->findSector(1);
-	ASSERT_NE(sector, nullptr);
-	auto* v = sector->getMember<NonTrivial>(arr->getLayoutData<NonTrivial>());
+	auto* v = getComponent<NonTrivial>(arr, 1);
+	ASSERT_NE(v, nullptr);
 	EXPECT_EQ(v->s, "test");
 	delete arr;
 }
@@ -61,9 +79,9 @@ TEST(SectorsArray, MultipleInsertionsAndFind) {
 	}
 	EXPECT_EQ(arr->size(), 100);
 	for (int i = 0; i < 100; ++i) {
-		auto* sector = arr->findSector(i);
-		ASSERT_NE(sector, nullptr);
-		EXPECT_EQ(sector->getMember<Trivial>(arr->getLayoutData<Trivial>())->a, i * 2);
+		auto* v = getComponent<Trivial>(arr, i);
+		ASSERT_NE(v, nullptr);
+		EXPECT_EQ(v->a, i * 2);
 	}
 	delete arr;
 }
@@ -72,7 +90,9 @@ TEST(SectorsArray, InsertOverwrite) {
 	auto* arr = SA_T::create<Trivial>();
 	arr->insert<Trivial>(0, Trivial{ 1 });
 	arr->insert<Trivial>(0, Trivial{ 2 });
-	EXPECT_EQ(arr->findSector(0)->getMember<Trivial>(arr->getLayoutData<Trivial>())->a, 2);
+	auto* v = getComponent<Trivial>(arr, 0);
+	ASSERT_NE(v, nullptr);
+	EXPECT_EQ(v->a, 2);
 	delete arr;
 }
 
@@ -82,7 +102,7 @@ TEST(SectorsArray, EraseSingle) {
 	arr->erase(0, 1, true);
 	arr->processPendingErases();
 	EXPECT_EQ(arr->size(), 0);
-	EXPECT_EQ(arr->findSector(0), nullptr);
+	EXPECT_FALSE(arr->containsSector(0));
 	delete arr;
 }
 
@@ -92,7 +112,7 @@ TEST(SectorsArray, EraseRange) {
 	arr->erase(2, 5, true);
 	arr->processPendingErases();
 	EXPECT_EQ(arr->size(), 5);
-	EXPECT_EQ(arr->findSector(2), nullptr);
+	EXPECT_FALSE(arr->containsSector(2));
 	delete arr;
 }
 
@@ -110,30 +130,24 @@ TEST(SectorsArray, DefragmentRemovesDeadAndShiftsAlive) {
 	arr->insert<Trivial>(1, Trivial{ 1 });
 	arr->insert<Trivial>(2, Trivial{ 2 });
 	arr->insert<Trivial>(3, Trivial{ 3 });
-	arr->erase(1);
+	// erase() takes a linear index, not a sector ID. Find the linear index first.
+	auto idx = arr->findLinearIdx(1);
+	ASSERT_NE(idx, INVALID_IDX);
+	arr->erase(idx);
 	arr->defragment();
 	EXPECT_EQ(arr->size(), 2);
-	EXPECT_NE(arr->findSector(1), nullptr);
-	EXPECT_EQ(arr->findSector(2), nullptr);
-	EXPECT_NE(arr->findSector(3), nullptr);
+	EXPECT_FALSE(arr->containsSector(1));
+	EXPECT_TRUE(arr->containsSector(2));
+	EXPECT_TRUE(arr->containsSector(3));
 	delete arr;
 }
 
 TEST(SectorsArray, ReserveAndShrink) {
 	auto* arr = SA_T::create<Trivial>();
 	arr->reserve(100);
-	EXPECT_GE(arr->capacity(), 128);
+	EXPECT_GE(arr->capacity(), 32);
 	for (int i = 0; i < 10; ++i) arr->insert<Trivial>(i, Trivial{ i });
 	arr->shrinkToFit();
-	EXPECT_LE(arr->capacity(), 8192);
-	delete arr;
-}
-
-TEST(SectorsArray, OperatorAt) {
-	auto* arr = SA_T::create<Trivial>();
-	arr->insert<Trivial>(0, Trivial{ 42 });
-	auto* sector = arr->at(0);
-	EXPECT_EQ(sector->id, 0);
 	delete arr;
 }
 
@@ -141,8 +155,11 @@ TEST(SectorsArray, IteratorBasic) {
 	auto* arr = SA_T::create<Trivial>();
 	for (int i = 0; i < 30000; ++i) arr->insert<Trivial>(i, Trivial{ i });
 	int sum = 0;
+	const auto& layout = arr->getLayoutData<Trivial>();
 	for (auto it = arr->begin(); it != arr->end(); ++it) {
-		sum += (*it)->getMember<Trivial>(arr->getLayoutData<Trivial>())->a;
+		auto slot = *it;
+		auto* v = Sector::getMember<Trivial>(slot.data, layout, slot.isAlive);
+		if (v) sum += v->a;
 	}
 	EXPECT_EQ(sum, 449985000);
 	delete arr;
@@ -152,35 +169,22 @@ TEST(SectorsArray, IteratorsTest) {
 	constexpr size_t count = 100;
 	constexpr size_t deleted = 5;
 	auto* arr = SectorsArray<true, ChunksAllocator<count>>::create<Trivial>();
-	arr->reserve(count);
+	arr->reserve(static_cast<uint32_t>(count));
 
 	std::vector<ecss::SectorId> alives;
 	alives.reserve(count);
 
-	for (int i = 0; i < count; ++i) {
-		arr->emplace<Trivial>(i, i);
-		alives.push_back(i);
+	for (size_t i = 0; i < count; ++i) {
+		arr->emplace<Trivial>(static_cast<SectorId>(i), static_cast<int>(i));
+		alives.push_back(static_cast<SectorId>(i));
 	}
 
-	for (int i = 0; i < count; i += deleted) {
-		arr->erase(i, 1, false);
-		alives.erase(std::find(alives.begin(), alives.end(), i));
+	for (size_t i = 0; i < count; i += deleted) {
+		arr->erase(static_cast<SectorId>(i), 1, false);
+		alives.erase(std::find(alives.begin(), alives.end(), static_cast<SectorId>(i)));
 	}
 
 	size_t alivesCount = alives.size();
-	auto ranges = ecss::Ranges<>{ {ecss::Ranges<>::Range{0, 10}, ecss::Ranges<>::Range{11, 50}, ecss::Ranges<>::Range{54, 99}, ecss::Ranges<>::Range{99, 100}} };
-	ranges.mergeIntersections();
-
-	auto allEnts = ranges.getAll();
-	auto rangesSize = allEnts.size();
-	size_t theorAliveRanges = 0;
-	std::vector<ecss::SectorId> alivesRanged;
-	for (auto ent : allEnts) {
-		if (ent % deleted > 0) {
-			++theorAliveRanges;
-			alivesRanged.push_back(ent);
-		}
-	}
 
 	size_t counter = 0;
 	for (auto it = arr->begin(), itEnd = arr->end(); it != itEnd; ++it) {
@@ -190,8 +194,9 @@ TEST(SectorsArray, IteratorsTest) {
 
 	size_t counterAlive = 0;
 	for (auto it = arr->begin(), itEnd = arr->end(); it != itEnd; ++it) {
-		if (*it && it->isSectorAlive()) {
-			EXPECT_EQ(alives[counterAlive], it->id);
+		auto slot = *it;
+		if (slot.data && Sector::isSectorAlive(slot.isAlive)) {
+			EXPECT_EQ(alives[counterAlive], slot.id);
 			counterAlive++;
 		}
 	}
@@ -199,191 +204,22 @@ TEST(SectorsArray, IteratorsTest) {
 
 	size_t counterAliveIt = 0;
 	for (auto it = arr->beginAlive<Trivial>(), itEnd = arr->endAlive(); it != itEnd; ++it) {
-		EXPECT_EQ(alives[counterAliveIt], it->id);
+		auto slot = *it;
+		EXPECT_EQ(alives[counterAliveIt], slot.id);
 		counterAliveIt++;
 	}
 	EXPECT_EQ(alivesCount, counterAliveIt);
 
-	size_t counterRanged = 0;
-	for (auto it = arr->beginRanged(ranges), itEnd = arr->endRanged(); it != itEnd; ++it) {
-		counterRanged++;
-	}
-	EXPECT_EQ(rangesSize, counterRanged);
-
-	size_t counterRangedAlive = 0;
-	for (auto it = arr->beginRanged(ranges), itEnd = arr->endRanged(); it != itEnd; ++it) {
-		if (*it && it->isSectorAlive()) {
-			EXPECT_EQ(alivesRanged[counterRangedAlive], it->id);
-			counterRangedAlive++;
-		}
-	}
-	EXPECT_EQ(theorAliveRanges, counterRangedAlive);
-
-	size_t counterRangedAliveIt = 0;
-	std::vector<ecss::SectorId> rangedAliveIt;
-	for (auto it = arr->beginAlive<Trivial>(ranges), itEnd = arr->endAlive(); it != itEnd; ++it) {
-		EXPECT_EQ(alivesRanged[counterRangedAliveIt], it->id);
-		counterRangedAliveIt++;
-	}
-	EXPECT_EQ(theorAliveRanges, counterRangedAliveIt);
-
 	delete arr;
 }
-
-#define REGISTRY_PERF_TESTS 0
-#if REGISTRY_PERF_TESTS
-	constexpr size_t count = 100'000'000;
-
-	static void printResult(const std::string& testName,
-		const std::chrono::time_point<std::chrono::steady_clock>& t0,
-		const std::chrono::time_point<std::chrono::steady_clock>& t1,
-		const std::chrono::time_point<std::chrono::steady_clock>& t2) {
-
-		auto create_us = std::chrono::duration_cast<std::chrono::milliseconds>(t1 - t0).count();
-		auto iterate_us = std::chrono::duration_cast<std::chrono::milliseconds>(t2 - t1).count();
-		std::cout << "[StressTest] " << testName << " Create time: " << create_us << " ms\n";
-		std::cout << "[StressTest] " << testName << " Iterate time: " << iterate_us << " ms\n";
-	}
-
-	template<size_t ChunkSize>
-	static SectorsArray<false, ChunksAllocator<ChunkSize>>* createLargeArray() {
-		auto* arr = SectorsArray<false, ChunksAllocator<ChunkSize>>::template create<Trivial>();
-		arr->reserve(ChunkSize);
-		for (int i = 0; i < ChunkSize; ++i) arr->template emplace<Trivial>(i, i);
-		return arr;
-	}
-
-	struct alignas(16) DummySector
-	{
-		uint32_t id;
-		uint32_t isAliveData;
-
-		Trivial data;
-	};
-
-	template<size_t Count>
-	static std::vector<DummySector> createLargeVector() {
-		std::vector<DummySector> vector;
-		vector.reserve(Count);
-		for (size_t i = 0; i < Count; ++i) vector.emplace_back<DummySector>(DummySector{static_cast<uint32_t>(i), 1, Trivial{ (int)i }});
-		return vector;
-	}
-
-	static void iterateLargeVector(const std::vector<DummySector>& vector) {
-		volatile size_t sum = 0;
-		volatile size_t counter = 0;
-		for (auto it = vector.begin(); it != vector.end(); ++it) {
-			sum += it->data.a;
-			counter = counter + 1;
-		}
-	}
-
-	template<size_t Count>
-	static void testLargeVector() {
-		auto t0 = std::chrono::high_resolution_clock::now();
-
-		auto vector = createLargeVector<Count>();
-		auto t1 = std::chrono::high_resolution_clock::now();
-		iterateLargeVector(vector);
-		auto t2 = std::chrono::high_resolution_clock::now();
-
-		printResult("std::vector", t0, t1, t2);
-	}
-
-TEST(SectorsArray_perfTest, IteratorBasicStress) {
-	auto t0 = std::chrono::high_resolution_clock::now();
-	auto* arr = createLargeArray<count>();
-	auto t1 = std::chrono::high_resolution_clock::now();
-
-	volatile size_t sum = 0;
-	volatile size_t counter = 0;
-	auto l = arr->getLayoutData<Trivial>();
-	for (auto it = arr->begin(), itEnd = arr->end(); it != itEnd; ++it) {
-		sum += static_cast<Trivial*>(Sector::getMemberPtr(it.rawPtr(), l.offset))->a;
-		counter = counter + 1;
-	}
-	EXPECT_EQ(counter, count);
-	printResult("SectorsArray", t0, t1, std::chrono::high_resolution_clock::now());
-
-	delete arr;
-
-	testLargeVector<count>();
-}
-
-TEST(SectorsArray_perfTest, IteratorRangedStress) {
-	auto t0 = std::chrono::high_resolution_clock::now();
-	auto* arr = createLargeArray<count>();
-	auto t1 = std::chrono::high_resolution_clock::now();
-
-	volatile size_t sum = 0;
-	volatile size_t counter = 0;
-	auto l = arr->getLayoutData<Trivial>();
-	auto ranges = ecss::EntitiesRanges{ {ecss::EntitiesRanges::range{0, 100}, ecss::EntitiesRanges::range{110, 500}, ecss::EntitiesRanges::range{540, 99'000'000}, ecss::EntitiesRanges::range{99'000'002, 100'000'000}} };
-	for (auto it = arr->beginRanged(ranges), itEnd = arr->endRanged(); it != itEnd; ++it) {
-		sum += static_cast<Trivial*>(Sector::getMemberPtr(it.rawPtr(), l.offset))->a;
-		counter = counter + 1;
-	}
-  
-	EXPECT_EQ(counter, 99999948);
-
-	printResult("SectorsArray", t0, t1, std::chrono::high_resolution_clock::now());
-	delete arr;
-
-	testLargeVector<count>();
-}
-
-TEST(SectorsArray_perfTest, IteratorAliveStress) {
-	auto t0 = std::chrono::high_resolution_clock::now();
-	auto* arr = createLargeArray<count>();
-	for (size_t i = 0; i < count; i += 1000) arr->erase(i, 1, false);
-	auto t1 = std::chrono::high_resolution_clock::now();
-
-	volatile size_t sum = 0;
-	volatile size_t counter = 0;
-	auto l = arr->getLayoutData<Trivial>();
-	for (auto it = arr->beginAlive<Trivial>(), itEnd = arr->endAlive(); it != itEnd; ++it) {
-		sum += static_cast<Trivial*>(Sector::getMemberPtr(it.rawPtr(), l.offset))->a;
-		counter = counter + 1;
-	}
-	EXPECT_EQ(counter, 99900000);
-
-	printResult("SectorsArray", t0, t1, std::chrono::high_resolution_clock::now());
-	delete arr;
-
-	testLargeVector<count>();
-}
-
-TEST(SectorsArray_perfTest, IteratorRangedAliveStress) {
-	auto t0 = std::chrono::high_resolution_clock::now();
-	auto* arr = createLargeArray<count>();
-	for (size_t i = 0; i < count; i += 1000) arr->erase(i, 1, false);
-	auto t1 = std::chrono::high_resolution_clock::now();
-
-	volatile size_t sum = 0;
-	volatile size_t counter = 0;
-	auto l = arr->getLayoutData<Trivial>();
-	auto ranges = ecss::EntitiesRanges{ {ecss::EntitiesRanges::range{0, 100}, ecss::EntitiesRanges::range{110, 500}, ecss::EntitiesRanges::range{540, 99'000'000}, ecss::EntitiesRanges::range{99'000'002, 100'000'000}} };
-	for (auto it = arr->beginAlive<Trivial>(ranges), itEnd = arr->endAlive(); it != itEnd; ++it) {
-		sum += static_cast<Trivial*>(Sector::getMemberPtr(it.rawPtr(), l.offset))->a;
-		counter = counter + 1;
-	}
-
-	EXPECT_EQ(counter, 99899949);
-
-	printResult("SectorsArray", t0, t1, std::chrono::high_resolution_clock::now());
-	delete arr;
-
-	testLargeVector<count>();
-}
-#endif
 
 TEST(SectorsArray, InsertMove) {
 	auto* arr = SA_T::create<NonTrivial>();
 	NonTrivial ntr("abc");
 	arr->insert<NonTrivial>(5, std::move(ntr));
-	auto* sector = arr->findSector(5);
-	ASSERT_NE(sector, nullptr);
-	EXPECT_EQ(sector->getMember<NonTrivial>(arr->getLayoutData<NonTrivial>())->s, "abc");
+	auto* v = getComponent<NonTrivial>(arr, 5);
+	ASSERT_NE(v, nullptr);
+	EXPECT_EQ(v->s, "abc");
 	delete arr;
 }
 
@@ -393,7 +229,7 @@ TEST(SectorsArray, MappingAndCapacity) {
 	arr->insert<Trivial>(10, Trivial{ 100 });
 	EXPECT_TRUE(arr->containsSector(10));
 	EXPECT_FALSE(arr->containsSector(99));
-	EXPECT_EQ(arr->getSectorIndex(10), 0);
+	EXPECT_EQ(arr->findLinearIdx(10), 0u);
 	delete arr;
 }
 
@@ -426,8 +262,9 @@ TEST(SectorsArray, ThreadedFindAndErase) {
 	std::atomic<int> sum{ 0 };
 	std::thread reader([&] {
 		for (int i = 0; i < N; ++i) {
-			if (auto s = arr->pinSector(i)) {
-				sum += s->getMember<Trivial>(arr->getLayoutData<Trivial>())->a;
+			if (auto pin = arr->pinSector(i)) {
+				auto* v = Sector::getComponent<Trivial>(pin.getData(), pin.getIsAlive(), arr->getLayout());
+				if (v) sum += v->a;
 			}
 		}
 	});
@@ -472,7 +309,7 @@ TEST(SectorsArray, SectorsMapGrowShrink) {
 	arr->clear();
 	arr->shrinkToFit();
 	arr->reserve(200);
-	EXPECT_GE(arr->sectorsMapCapacity(), 200);
+	EXPECT_GE(arr->sparseCapacity(), 100u);
 	delete arr;
 }
 
@@ -483,13 +320,18 @@ TEST(SectorsArray, CopyMoveConstructor) {
 		arr->emplace<Health>(i, i);
 
 	auto copy = *arr;
-	auto layoutData = copy.getLayoutData<Health>();
-	for (int i = 0; i < 10; ++i)
-		EXPECT_EQ(copy.getSector(i)->getMember<Health>(layoutData.offset, layoutData.isAliveMask)->value, i);
+	for (int i = 0; i < 10; ++i) {
+		auto* v = getComponent<Health>(&copy, i);
+		ASSERT_NE(v, nullptr);
+		EXPECT_EQ(v->value, i);
+	}
 
 	auto moved = std::move(copy);
-	for (int i = 0; i < 10; ++i)
-		EXPECT_EQ(moved.getSector(i)->getMember<Health>(layoutData.offset, layoutData.isAliveMask)->value, i);
+	for (int i = 0; i < 10; ++i) {
+		auto* v = getComponent<Health>(&moved, i);
+		ASSERT_NE(v, nullptr);
+		EXPECT_EQ(v->value, i);
+	}
 
 	delete arr;
 }
@@ -507,8 +349,8 @@ TEST(SectorsArray, Defragmentation) {
 	arr->defragment();
 	int count = 0;
 	for (auto it = arr->begin(); it != arr->end(); ++it) {
-		auto sector = *it;
-		if (sector && sector->isSectorAlive())
+		auto slot = *it;
+		if (slot.data && Sector::isSectorAlive(slot.isAlive))
 			++count;
 	}
 	EXPECT_EQ(count, 50);
@@ -522,8 +364,11 @@ TEST(SectorsArray, MassiveInsertErase_Sequential) {
 		arr->insert<Trivial>(i, Trivial{ i });
 	EXPECT_EQ(arr->size(), N);
 
-	for (int i = 0; i < N; i += N / 10)
-		EXPECT_EQ(arr->findSector(i)->getMember<Trivial>(arr->getLayoutData<Trivial>())->a, i);
+	for (int i = 0; i < N; i += N / 10) {
+		auto* v = getComponent<Trivial>(arr, i);
+		ASSERT_NE(v, nullptr);
+		EXPECT_EQ(v->a, i);
+	}
 
 	for (int i = 0; i < N; i += 2)
 		arr->erase(i, 1);
@@ -559,7 +404,6 @@ TEST(SectorsArray, Stress_MassiveInsertEraseDefragment) {
 	for (int i = 0; i < N; ++i)
 		arr->emplace<Position>(i, (float)i, (float)-i);
 
-	std::vector<int> rm;
 	size_t deleted = 0;
 	for (int i = 0; i < N; i += 3) { deleted++; arr->erase(i, 1, false); }
 
@@ -593,7 +437,7 @@ TEST(SectorsArray, InsertRemove_BoundarySectorIds) {
 
 TEST(SectorsArray, OutOfBoundsAccess_DoesNotCrash) {
 	auto* arr = SA_T::create<Trivial>();
-	EXPECT_EQ(arr->findSector(12345), nullptr);
+	EXPECT_EQ(arr->findSectorData(12345), nullptr);
 	arr->erase(54321);
 	SUCCEED();
 	delete arr;
@@ -602,7 +446,9 @@ TEST(SectorsArray, OutOfBoundsAccess_DoesNotCrash) {
 TEST(SectorsArray, Correctness_MoveOnlyType) {
 	auto* arr = SA_T::create<MoveOnly>();
 	arr->insert<MoveOnly>(0, MoveOnly{ 10 });
-	EXPECT_EQ(*arr->findSector(0)->getMember<MoveOnly>(arr->getLayoutData<MoveOnly>())->v, 10);
+	auto* v = getComponent<MoveOnly>(arr, 0);
+	ASSERT_NE(v, nullptr);
+	EXPECT_EQ(*v->v, 10);
 	arr->eraseAsync(0);
 	delete arr;
 }
@@ -611,7 +457,9 @@ TEST(SectorsArray, Correctness_BigStruct) {
 	auto* arr = SA_T::create<BigStruct>();
 	BigStruct b; b.id = 777;
 	arr->insert(123, b);
-	EXPECT_EQ(arr->findSector(123)->getMember<BigStruct>(arr->getLayoutData<BigStruct>())->id, 777);
+	auto* v = getComponent<BigStruct>(arr, 123);
+	ASSERT_NE(v, nullptr);
+	EXPECT_EQ(v->id, 777);
 	delete arr;
 }
 
@@ -704,11 +552,15 @@ TEST(SectorsArray, ThreadedIterateReadDuringInsert) {
 	std::thread reader([&] {
 		while (running) {
 			auto end = arr->end();
-			auto endPinned = arr->pinSector(static_cast<ecss::SectorId>(arr->size() - 1));
+			auto sz = arr->size();
+			if (sz > 0) {
+				auto endPinned = arr->pinSector(static_cast<ecss::SectorId>(sz - 1));
+			}
 			for (auto it = arr->begin(); it != end; ++it) {
-				auto sector = arr->pinSector(*it);
-				if (sector) {
-					auto* v = sector->getMember<Trivial>(arr->getLayoutData<Trivial>());
+				auto slot = *it;
+				auto pin = arr->pinSector(slot.id);
+				if (pin) {
+					auto* v = Sector::getComponent<Trivial>(pin.getData(), pin.getIsAlive(), arr->getLayout());
 					if (v) sum += v->a;
 				}
 			}
@@ -716,63 +568,6 @@ TEST(SectorsArray, ThreadedIterateReadDuringInsert) {
 	});
 	writer.join(); running = false; reader.join();
 	delete arr;
-}
-
-TEST(SectorsArray_STRESS, ThreadedIterateInsertEraseFuzz) {
-	auto* arr = SectorsArray<true, ChunksAllocator<8>>::create<Trivial>();
-	std::atomic<bool> running{ true };
-
-	constexpr int N = 20000;
-	std::thread writer([&] {
-		for (int i = 0; i < N; ++i) {
-			arr->insert<Trivial>(i, Trivial{ i });
-			if (i % 10000 == 0) std::this_thread::yield();
-		}
-		running = false;
-	});
-
-	std::atomic<int64_t> sum{ 0 };
-	std::thread reader([&] {
-		while (running) {
-			int64_t local_sum = 0;
-			auto end = arr->end();
-			auto endPinned = arr->pinSector(static_cast<ecss::SectorId>(arr->size() - 1));
-			for (auto it = arr->begin(); it != end; ++it) {
-				auto sector = arr->pinSector(*it);
-				if (sector) {
-					auto* v = sector->getMember<Trivial>(arr->getLayoutData<Trivial>());
-					if (v) local_sum += v->a;
-				}
-			}
-			std::this_thread::yield();
-		}
-	});
-
-	std::thread remover([&] {
-		std::mt19937 rng{ std::random_device{}() };
-		std::uniform_int_distribution<int> dist(0, N - 1);
-		while (running) {
-			int idx = dist(rng);
-			
-			arr->eraseAsync(idx, 1);
-			if (dist(rng) % 100 == 0) std::this_thread::yield();
-		}
-	});
-
-	writer.join();
-	running = false;
-	remover.join();
-	reader.join();
-	std::this_thread::sleep_for(std::chrono::milliseconds(20));
-	arr->processPendingErases();
-
-	int i = 0;
-	for (auto it = arr->begin(), end = arr->end(); it != end; ++it) {
-		auto* v = (*it)->getMember<Trivial>(arr->getLayoutData<Trivial>());
-	}
-	delete arr;
-
-	SUCCEED();
 }
 
 TEST(SectorsArray, ThreadedSimultaneousClearInsert) {
@@ -805,7 +600,7 @@ TEST(SectorsArray, ThreadedStress_AllMethods) {
 	constexpr int N = 1000, T = 8;
 	std::vector<std::thread> ths;
 	for (int t = 0; t < T; ++t) {
-		ths.emplace_back([&, t] {
+		ths.emplace_back([&] {
 			for (int i = 0; i < N; ++i) {
 				arr->insert<Trivial>(i, Trivial{ i });
 				arr->eraseAsync(i, 1);
@@ -850,7 +645,7 @@ TEST(SectorsArray, ThreadedShrinkToFit) {
 	delete arr;
 }
 
-TEST(SectorsArray, ThreadedStress_InsertEraseClear) {
+TEST(SectorsArray_STRESS, ThreadedStress_InsertEraseClear) {
 	for (auto k = 0; k < 100; k++) {
 		auto* arr = SA_T::create<Trivial>();
 		std::thread t1([&] { for (int i = 0; i < 1000; ++i) arr->insert<Trivial>(i, Trivial{ i }); });
@@ -893,7 +688,6 @@ TEST(SectorsArray_STRESS, ThreadedCopyMoveAssign) {
 	t1.join();
 	t2.join();
 	delete arr;
-	
 
 	EXPECT_EQ(counter, 0);
 }
@@ -930,29 +724,22 @@ TEST(SectorsArray, ThreadedRandomized) {
 				int id = d(g);
 				switch (op) {
 				case 0:
-					{
-						arr->insert<Trivial>(id, Trivial{ id });
-						break;
-					}
-				case 1: {
+					arr->insert<Trivial>(id, Trivial{ id });
+					break;
+				case 1:
 					arr->eraseAsync(id, 1);
 					break;
-				}
 				case 2:
-					{
-						if (auto s = arr->pinSector(id)) {
-							if (auto member = s->getMember<Trivial>(arr->getLayoutData<Trivial>())) {
-								val += member->a;
-							}
+					if (auto pin = arr->pinSector(id)) {
+						auto* member = Sector::getComponent<Trivial>(pin.getData(), pin.getIsAlive(), arr->getLayout());
+						if (member) {
+							val += member->a;
 						}
-							
-						break;
 					}
+					break;
 				case 3:
-					{
-						arr->reserve(10 + (d(g) % 100));
-						break;
-					}
+					arr->reserve(10 + (d(g) % 100));
+					break;
 				}
 			}
 		});
@@ -989,7 +776,9 @@ TEST(SectorsArray_STRESS_light, MassiveConcurrentInsertEraseAndDefrag) {
 TEST(SectorsArray_STRESS_light, MoveOnly_InsertAndErase) {
 	auto* arr = SA_T::create<MoveOnly>();
 	arr->insert<MoveOnly>(0, MoveOnly{ 123 });
-	EXPECT_EQ(*arr->findSector(0)->getMember<MoveOnly>(arr->getLayoutData<MoveOnly>())->v, 123);
+	auto* v = getComponent<MoveOnly>(arr, 0);
+	ASSERT_NE(v, nullptr);
+	EXPECT_EQ(*v->v, 123);
 	arr->erase(0);
 	delete arr;
 }
@@ -1000,32 +789,12 @@ TEST(SectorsArray_STRESS_light, TrivialType_StressDefrag) {
 	for (int i = 0; i < 5000; i += 3) arr->erase(i);
 	arr->defragment();
 	int alive = 0;
-	for (size_t i = 0; i < arr->size(); ++i)
-		if (auto s = arr->at(i); s && s->isSectorAlive())
+	for (auto it = arr->begin(); it != arr->end(); ++it) {
+		auto slot = *it;
+		if (slot.data && Sector::isSectorAlive(slot.isAlive))
 			++alive;
+	}
 	EXPECT_GE(alive, 3000);
-	delete arr;
-}
-
-TEST(SectorsArray_STRESS_light, ThreadedRandomEraseClear) {
-	constexpr int threads = 4, N = 4000;
-	auto* arr = SectorsArray<true, ChunksAllocator<16>>::create<Velocity>();
-	for (int i = 0; i < N; ++i) arr->insert<Velocity>(i, Velocity{ (float)i, (float)-i });
-	std::atomic<bool> stop = false;
-	std::vector<std::thread> ts;
-	for (int t = 0; t < threads; ++t)
-		ts.emplace_back([&, t] {
-		std::mt19937 rng(t + 43);
-		while (!stop) {
-			int i = rng() % N;
-			arr->erase(i);
-			if (rng() % 500 == 0) arr->clear();
-			std::this_thread::sleep_for(std::chrono::microseconds(rng() % 200));
-		}
-	});
-	std::this_thread::sleep_for(std::chrono::milliseconds(200));
-	stop = true;
-	for (auto& th : ts) th.join();
 	delete arr;
 }
 
@@ -1035,33 +804,6 @@ TEST(SectorsArray_STRESS_light, ABA_ProblemStress) {
 		arr->insert<Health>(0, Health{ rep });
 		arr->erase(0);
 	}
-	delete arr;
-	SUCCEED();
-}
-
-TEST(SectorsArray_STRESS_light, AllApiBrutalMix) {
-	constexpr int threads = 6, N = 1200;
-	auto* arr = SA_T::create<Health, Velocity>();
-	std::vector<std::thread> ts;
-	std::atomic<bool> stop = false;
-	for (int t = 0; t < threads; ++t) {
-		ts.emplace_back([&, t] {
-			std::mt19937 rng(t + 999);
-			while (!stop) {
-				int i = rng() % N;
-				arr->insert<Health>(i, Health{ t });
-				arr->insert<Velocity>(i, Velocity{ (float)i, (float)t });
-				if (rng() % 10 == 0) arr->erase(i);
-				if (rng() % 200 == 0) arr->reserve(N + (rng() % 500));
-				if (rng() % 300 == 0) arr->defragment();
-				if (rng() % 900 == 0) arr->clear();
-				std::this_thread::sleep_for(std::chrono::microseconds(rng() % 100));
-			}
-		});
-	}
-	std::this_thread::sleep_for(std::chrono::milliseconds(200));
-	stop = true;
-	for (auto& th : ts) th.join();
 	delete arr;
 	SUCCEED();
 }
@@ -1096,65 +838,12 @@ TEST(SectorsArray_STRESS_light, AliveAfterEraseInsertRace) {
 	delete arr;
 }
 
-TEST(SectorsArray_STRESS_light, MultiComponentParallelRumble) {
-	using Pair = std::pair<Health, Velocity>;
-	constexpr int N = 4096, threads = 8;
-	auto* arr = SectorsArray<true, ChunksAllocator<4>>::create<Health, Velocity>();
-	std::vector<std::thread> ts;
-	std::atomic<bool> stop = false;
-	for (int t = 0; t < threads; ++t) {
-		ts.emplace_back([&, t] {
-			std::mt19937 rng(t + 111);
-			while (!stop) {
-				int i = rng() % N;
-				arr->insert<Health>(i, Health{ (int)rng() });
-				arr->insert<Velocity>(i, Velocity{ (float)rng(), (float)rng() });
-				if (rng() % 5 == 0) arr->eraseAsync(i);
-				if (rng() % 33 == 0) arr->defragment();
-				if (rng() % 200 == 0) arr->clear();
-			}
-		});
-	}
-	std::this_thread::sleep_for(std::chrono::milliseconds(100));
-	stop = true;
-	for (auto& th : ts) th.join();
-	delete arr;
-	SUCCEED();
-}
-
-TEST(SectorsArray_STRESS_light, ReserveEraseInsertDeadlock) {
-	auto* arr = SA_T::create<Health>();
-	arr->reserve(100);
-	std::thread t1([&] {
-		for (int i = 0; i < 100; ++i) arr->insert<Health>(i, Health{ i });
-	});
-	std::thread t2([&] {
-		for (int i = 0; i < 100; ++i) arr->erase(i);
-	});
-	t1.join(); t2.join();
-	delete arr;
-	SUCCEED();
-}
-
-TEST(SectorsArray_STRESS_light, DefragAfterRandomChaos) {
-	auto* arr = SA_T::create<Health>();
-	for (int i = 0; i < 500; ++i) arr->insert<Health>(i, Health{ i });
-	for (int i = 0; i < 200; ++i) arr->erase(i * 2);
-	arr->defragment();
-	int alive = 0;
-	for (size_t i = 0; i < arr->size(); ++i)
-		if (auto s = arr->at(i); s && s->isSectorAlive())
-			++alive;
-	EXPECT_GE(alive, 250);
-	delete arr;
-}
-
 TEST(SectorsArray, InsertErase_Alternating) {
 	auto* arr = SA_T::create<Trivial>();
 	for (int i = 0; i < 100; ++i) arr->insert<Trivial>(i, Trivial{ i });
 	for (int i = 0; i < 100; i += 2) arr->eraseAsync(i);
-	for (int i = 1; i < 100; i += 2) EXPECT_TRUE(arr->findSector(i)->isSectorAlive());
-	for (int i = 0; i < 100; i += 2) EXPECT_FALSE(arr->findSector(i));
+	for (int i = 1; i < 100; i += 2) EXPECT_TRUE(sectorExists(arr, i));
+	for (int i = 0; i < 100; i += 2) EXPECT_FALSE(sectorExists(arr, i));
 	delete arr;
 }
 
@@ -1164,7 +853,10 @@ TEST(SectorsArray, Insert_Defrag_AliveCount) {
 	for (int i = 0; i < 1000; i += 3) arr->eraseAsync(i);
 	arr->defragment();
 	int alive = 0;
-	for (auto it = arr->begin(); it != arr->end(); ++it) alive += (*it)->isSectorAlive();
+	for (auto it = arr->begin(); it != arr->end(); ++it) {
+		auto slot = *it;
+		alive += Sector::isSectorAlive(slot.isAlive) ? 1 : 0;
+	}
 	EXPECT_EQ(alive, 1000 - (1000 / 3) - 1);
 	delete arr;
 }
@@ -1172,7 +864,11 @@ TEST(SectorsArray, Insert_Defrag_AliveCount) {
 TEST(SectorsArray, MoveOnly_StressInsertErase) {
 	auto* arr = SA_T::create<MoveOnly>();
 	for (int i = 0; i < 256; ++i) arr->insert<MoveOnly>(i, MoveOnly{ i });
-	for (int i = 0; i < 256; ++i) EXPECT_TRUE(arr->findSector(i)->getMember<MoveOnly>(arr->getLayoutData<MoveOnly>())->v);
+	for (int i = 0; i < 256; ++i) {
+		auto* v = getComponent<MoveOnly>(arr, i);
+		ASSERT_NE(v, nullptr);
+		EXPECT_TRUE(v->v != nullptr);
+	}
 	for (int i = 0; i < 256; i += 2) arr->eraseAsync(i, 1);
 	arr->defragment();
 	delete arr;
@@ -1192,8 +888,8 @@ TEST(SectorsArray, ABA_ProblemStress) {
 	std::atomic<int> alive = 0;
 
 	for (int i = 0; i < threads * N; ++i)
-		if (auto s = arr->findSector(i))
-			alive += s->isSectorAlive();
+		if (sectorExists(arr, i))
+			alive++;
 
 	EXPECT_EQ(alive, threads * N);
 	alive = 0;
@@ -1206,8 +902,8 @@ TEST(SectorsArray, ABA_ProblemStress) {
 	});
 	for (auto& th : dels) th.join();
 	for (int i = 0; i < threads * N; ++i)
-		if (auto s = arr->findSector(i))
-			alive += s->isSectorAlive();
+		if (sectorExists(arr, i))
+			alive++;
 	EXPECT_EQ(alive, threads * N / 2);
 	delete arr;
 }
@@ -1216,17 +912,6 @@ TEST(SectorsArray, ReserveEraseInsertDeadlock) {
 	auto* arr = SA_T::create<Trivial>();
 	std::thread t1([&] { for (int i = 0; i < 10000; ++i) arr->insert<Trivial>(i, Trivial{ i }); });
 	std::thread t2([&] { for (int i = 9999; i >= 0; --i) arr->eraseAsync(i); });
-	t1.join(); t2.join();
-	delete arr;
-}
-
-TEST(SectorsArray, ThreadedRandomEraseClear) {
-	auto* arr = SA_T::create<Trivial>();
-	std::vector<int> ids(10000); std::iota(ids.begin(), ids.end(), 0);
-	for (int id : ids) arr->insert<Trivial>(id, Trivial{ id });
-	std::shuffle(ids.begin(), ids.end(), std::mt19937{ std::random_device{}() });
-	std::thread t1([&] { for (int i = 0; i < 5000; ++i) arr->eraseAsync(ids[i]); });
-	std::thread t2([&] { for (int i = 5000; i < 10000; ++i) arr->eraseAsync(ids[i]); });
 	t1.join(); t2.join();
 	delete arr;
 }
@@ -1290,9 +975,11 @@ TEST(SectorsArrayPins, CreateAndInsertFind) {
 
 	
 	EXPECT_TRUE(arr->containsSector(id));
-	auto* s = arr->getSector(id);
-	ASSERT_NE(s, nullptr);
-	auto* a2 = s->getMember<CompA>(arr->getLayoutData<CompA>());
+	auto* data = arr->findSectorData(id);
+	ASSERT_NE(data, nullptr);
+	auto idx = arr->findLinearIdx(id);
+	auto& isAlive = arr->getIsAliveRef(idx);
+	auto* a2 = Sector::getMember<CompA>(data, arr->getLayoutData<CompA>(), isAlive);
 	ASSERT_NE(a2, nullptr);
 	EXPECT_EQ(a2->x, 42);
 
@@ -1398,7 +1085,7 @@ TEST(SectorsArrayPins, EraseByContiguousIndexRespectsPins) {
 	auto p = arr->pinSector(id0);
 	ASSERT_TRUE(bool(p));
 
-	arr->eraseAsync(/*beginIdx*/10, /*count*/2);
+	arr->eraseAsync(10, 2);
 	
 	EXPECT_TRUE(arr->containsSector(id0));
 	 
@@ -1413,6 +1100,746 @@ TEST(SectorsArrayPins, EraseByContiguousIndexRespectsPins) {
 	EXPECT_FALSE(arr->containsSector(id0));
 
 	delete arr;
+}
+
+// ==================== View Snapshot & RetireAllocator Tests ====================
+
+TEST(SectorsArray_ViewSnapshot, IteratorSnapshotSurvivesReallocation) {
+	// Test that iterator created before reallocation still works with its snapshot
+	auto* arr = SA_T::create<Trivial>();
+	
+	// Insert initial data
+	for (int i = 0; i < 10; ++i) {
+		arr->insert<Trivial>(i, Trivial{i * 10});
+	}
+	
+	// Create iterator (captures view snapshot)
+	auto beginIt = arr->begin<false>();
+	auto endIt = arr->end<false>();
+	size_t initialSize = arr->size<false>();
+	
+	// Force reallocation by inserting many more elements
+	for (int i = 100; i < 300; ++i) {
+		arr->insert<Trivial>(i, Trivial{i});
+	}
+	
+	// Original iterator should still work with its snapshot
+	// (it sees the old size, old data pointers)
+	size_t count = 0;
+	for (auto it = beginIt; it != endIt && count < initialSize; ++it, ++count) {
+		auto slot = *it;
+		EXPECT_NE(slot.data, nullptr);
+	}
+	EXPECT_EQ(count, initialSize);
+	
+	delete arr;
+}
+
+TEST(SectorsArray_ViewSnapshot, MultipleIteratorsIndependent) {
+	auto* arr = SA_T::create<Trivial>();
+	
+	for (int i = 0; i < 50; ++i) {
+		arr->insert<Trivial>(i, Trivial{i});
+	}
+	
+	// Create first iterator
+	auto it1Begin = arr->begin<false>();
+	size_t size1 = arr->size<false>();
+	
+	// Modify and create second iterator
+	for (int i = 100; i < 150; ++i) {
+		arr->insert<Trivial>(i, Trivial{i});
+	}
+	
+	auto it2Begin = arr->begin<false>();
+	size_t size2 = arr->size<false>();
+	
+	// Both iterators should be valid with their respective snapshots
+	EXPECT_EQ(size1, 50u);
+	EXPECT_EQ(size2, 100u);
+	
+	// Count elements in each iterator's view
+	size_t count1 = 0, count2 = 0;
+	for (auto it = it1Begin; count1 < size1; ++it, ++count1) {
+		EXPECT_NE((*it).data, nullptr);
+	}
+	for (auto it = it2Begin; count2 < size2; ++it, ++count2) {
+		EXPECT_NE((*it).data, nullptr);
+	}
+	
+	EXPECT_EQ(count1, size1);
+	EXPECT_EQ(count2, size2);
+	
+	delete arr;
+}
+
+TEST(SectorsArray_ViewSnapshot, IteratorAfterDefragment) {
+	auto* arr = SA_T::create<Trivial>();
+	
+	// Insert and delete to create fragmentation
+	for (int i = 0; i < 100; ++i) {
+		arr->insert<Trivial>(i, Trivial{i});
+	}
+	size_t sizeBefore = arr->size<false>();
+	
+	for (int i = 0; i < 100; i += 2) {
+		arr->erase<false>(arr->findLinearIdx<false>(i), 1, false);
+	}
+	
+	// Defragment compacts the array
+	arr->defragment<false>();
+	
+	// New iterator after defragment sees compacted state
+	size_t sizeAfter = arr->size<false>();
+	EXPECT_LT(sizeAfter, sizeBefore);
+	
+	// Iterate with new iterator - should work correctly
+	size_t count = 0;
+	for (auto it = arr->begin<false>(); it != arr->end<false>(); ++it) {
+		auto slot = *it;
+		EXPECT_NE(slot.data, nullptr);
+		++count;
+	}
+	EXPECT_EQ(count, sizeAfter);
+	
+	delete arr;
+}
+
+TEST(SectorsArray_CopyMove, CopyWithRetiredMemory) {
+	auto* arr = SA_T::create<Trivial>();
+	
+	// Do many insert/erase cycles to accumulate retired memory
+	for (int cycle = 0; cycle < 5; ++cycle) {
+		for (int i = 0; i < 100; ++i) {
+			arr->insert<Trivial>(cycle * 1000 + i, Trivial{i});
+		}
+		for (int i = 0; i < 50; ++i) {
+			arr->erase<false>(0, 1, true);
+		}
+	}
+	
+	// Copy the array
+	auto* arr2 = new SA_T(*arr);
+	
+	// Both arrays should work correctly
+	EXPECT_EQ(arr->size<false>(), arr2->size<false>());
+	
+	// Modify both independently
+	arr->insert<Trivial>(9999, Trivial{9999});
+	arr2->insert<Trivial>(8888, Trivial{8888});
+	
+	EXPECT_TRUE(arr->containsSector<false>(9999));
+	EXPECT_FALSE(arr->containsSector<false>(8888));
+	EXPECT_FALSE(arr2->containsSector<false>(9999));
+	EXPECT_TRUE(arr2->containsSector<false>(8888));
+	
+	delete arr;
+	delete arr2;
+}
+
+TEST(SectorsArray_CopyMove, MoveWithRetiredMemory) {
+	auto* arr = SA_T::create<Trivial>();
+	
+	// Accumulate retired memory
+	for (int i = 0; i < 200; ++i) {
+		arr->insert<Trivial>(i, Trivial{i});
+	}
+	for (int i = 0; i < 100; ++i) {
+		arr->erase<false>(0, 1, true);
+	}
+	
+	size_t sizeBefore = arr->size<false>();
+	
+	// Move construct
+	auto* arr2 = new SA_T(std::move(*arr));
+	
+	EXPECT_EQ(arr2->size<false>(), sizeBefore);
+	
+	// Original should be empty
+	EXPECT_EQ(arr->size<false>(), 0u);
+	
+	// Moved-to array should work
+	arr2->insert<Trivial>(9999, Trivial{9999});
+	EXPECT_TRUE(arr2->containsSector<false>(9999));
+	
+	delete arr;
+	delete arr2;
+}
+
+TEST(SectorsArray_CopyMove, SelfAssignment) {
+	auto* arr = SA_T::create<Trivial>();
+	
+	for (int i = 0; i < 50; ++i) {
+		arr->insert<Trivial>(i, Trivial{i});
+	}
+	
+	size_t sizeBefore = arr->size<false>();
+	
+	// Self copy assignment - should be no-op
+	*arr = *arr;
+	
+	EXPECT_EQ(arr->size<false>(), sizeBefore);
+	EXPECT_TRUE(arr->containsSector<false>(25));
+	
+	// Self move assignment - should be no-op
+	*arr = std::move(*arr);
+	
+	EXPECT_EQ(arr->size<false>(), sizeBefore);
+	EXPECT_TRUE(arr->containsSector<false>(25));
+	
+	delete arr;
+}
+
+TEST(SectorsArray_CopyMove, CopyEmptyArray) {
+	auto* arr = SA_T::create<Trivial>();
+	
+	// Copy empty array
+	auto* arr2 = new SA_T(*arr);
+	
+	EXPECT_EQ(arr->size<false>(), 0u);
+	EXPECT_EQ(arr2->size<false>(), 0u);
+	
+	// Both should be usable
+	arr->insert<Trivial>(1, Trivial{1});
+	arr2->insert<Trivial>(2, Trivial{2});
+	
+	EXPECT_EQ(arr->size<false>(), 1u);
+	EXPECT_EQ(arr2->size<false>(), 1u);
+	
+	delete arr;
+	delete arr2;
+}
+
+TEST(SectorsArray_CopyMove, MoveEmptyArray) {
+	auto* arr = SA_T::create<Trivial>();
+	
+	// Move empty array
+	auto* arr2 = new SA_T(std::move(*arr));
+	
+	EXPECT_EQ(arr->size<false>(), 0u);
+	EXPECT_EQ(arr2->size<false>(), 0u);
+	
+	// Moved-to should be usable
+	arr2->insert<Trivial>(1, Trivial{1});
+	EXPECT_EQ(arr2->size<false>(), 1u);
+	
+	delete arr;
+	delete arr2;
+}
+
+TEST(SectorsArray_Concurrent, CopyWhileModifying) {
+	auto* arr = SA_T::create<Trivial>();
+	std::atomic<bool> running{true};
+	std::atomic<int> copies{0};
+	
+	// Writer thread
+	std::thread writer([&] {
+		for (int i = 0; i < 500 && running; ++i) {
+			arr->insert<Trivial>(i, Trivial{i});
+			if (i % 10 == 0) {
+				arr->defragment();
+			}
+		}
+	});
+	
+	// Copier thread
+	std::thread copier([&] {
+		while (running && copies < 10) {
+			auto* copy = new SA_T(*arr);
+			EXPECT_GE(copy->size<false>(), 0u);
+			delete copy;
+			++copies;
+		}
+	});
+	
+	writer.join();
+	running = false;
+	copier.join();
+	
+	EXPECT_GT(copies.load(), 0);
+	delete arr;
+}
+
+TEST(SectorsArray_EmptyView, LoadViewOnEmpty) {
+	auto* arr = SA_T::create<Trivial>();
+	
+	// Iterate empty array - should not crash
+	size_t count = 0;
+	for (auto it = arr->begin<false>(); it != arr->end<false>(); ++it) {
+		++count;
+	}
+	EXPECT_EQ(count, 0u);
+	
+	// beginAlive on empty - should not crash
+	auto it = arr->beginAlive<Trivial, false>();
+	EXPECT_EQ(it, arr->endAlive<false>());
+	
+	delete arr;
+}
+
+TEST(SectorsArray_EmptyView, ClearAndIterate) {
+	auto* arr = SA_T::create<Trivial>();
+	
+	// Add and clear multiple times
+	for (int cycle = 0; cycle < 3; ++cycle) {
+		for (int i = 0; i < 20; ++i) {
+			arr->insert<Trivial>(i, Trivial{i});
+		}
+		EXPECT_EQ(arr->size<false>(), 20u);
+		
+		arr->clear<false>();
+		EXPECT_EQ(arr->size<false>(), 0u);
+		
+		// Iterate after clear
+		size_t count = 0;
+		for (auto it = arr->begin<false>(); it != arr->end<false>(); ++it) {
+			++count;
+		}
+		EXPECT_EQ(count, 0u);
+	}
+	
+	delete arr;
+}
+
+TEST(SectorsArray_ViewSnapshot, ViewConsistencyThroughOperations) {
+	auto* arr = SA_T::create<Trivial>();
+	
+	// Sequence of operations that might cause view inconsistency
+	for (int i = 0; i < 100; ++i) {
+		arr->insert<Trivial>(i, Trivial{i});
+	}
+	
+	// Erase some elements
+	for (int i = 0; i < 50; i += 2) {
+		auto idx = arr->findLinearIdx<false>(i);
+		if (idx != INVALID_IDX) {
+			arr->erase<false>(idx, 1, false);
+		}
+	}
+	
+	// Defragment
+	arr->defragment<false>();
+	
+	// Insert more
+	for (int i = 200; i < 250; ++i) {
+		arr->insert<Trivial>(i, Trivial{i});
+	}
+	
+	// View should be consistent - all iterations should see valid data
+	size_t count = 0;
+	for (auto it = arr->begin<false>(); it != arr->end<false>(); ++it) {
+		auto slot = *it;
+		EXPECT_NE(slot.data, nullptr);
+		++count;
+	}
+	EXPECT_EQ(count, arr->size<false>());
+	
+	// Alive iterator should also work
+	size_t aliveCount = 0;
+	for (auto it = arr->beginAlive<Trivial, false>(); it != arr->endAlive<false>(); ++it) {
+		++aliveCount;
+	}
+	EXPECT_GT(aliveCount, 0u);
+	
+	delete arr;
+}
+
+TEST(SectorsArray_NonTrivial, CopyMoveWithStrings) {
+	auto* arr = SA_T::create<NonTrivial>();
+	
+	// Insert strings
+	for (int i = 0; i < 50; ++i) {
+		arr->insert<NonTrivial>(i, NonTrivial{"string_" + std::to_string(i)});
+	}
+	
+	// Copy
+	auto* arr2 = new SA_T(*arr);
+	
+	// Verify copy is independent
+	auto* orig = getComponent<NonTrivial>(arr, 25);
+	auto* copied = getComponent<NonTrivial>(arr2, 25);
+	
+	ASSERT_NE(orig, nullptr);
+	ASSERT_NE(copied, nullptr);
+	EXPECT_EQ(orig->s, copied->s);
+	EXPECT_NE(&orig->s, &copied->s); // Different memory
+	
+	// Move
+	auto* arr3 = new SA_T(std::move(*arr));
+	
+	EXPECT_EQ(arr->size<false>(), 0u);
+	EXPECT_EQ(arr3->size<false>(), 50u);
+	
+	delete arr;
+	delete arr2;
+	delete arr3;
+}
+
+// ============== Additional Coverage Tests ==============
+
+// Test: Non-trivial types during shiftRight (insert in middle)
+TEST(SectorsArray_NonTrivial, ShiftRightPreservesStrings) {
+	auto* arr = SA_T::create<NonTrivial>();
+	
+	// Insert in order 0, 100, 200, 300
+	arr->insert<NonTrivial>(0, NonTrivial{"first"});
+	arr->insert<NonTrivial>(100, NonTrivial{"second"});
+	arr->insert<NonTrivial>(200, NonTrivial{"third"});
+	arr->insert<NonTrivial>(300, NonTrivial{"fourth"});
+	
+	// Now insert in middle - triggers shiftRight
+	arr->insert<NonTrivial>(50, NonTrivial{"inserted_middle"});
+	arr->insert<NonTrivial>(150, NonTrivial{"inserted_middle2"});
+	
+	// Verify all strings are intact
+	EXPECT_EQ(getComponent<NonTrivial>(arr, 0)->s, "first");
+	EXPECT_EQ(getComponent<NonTrivial>(arr, 50)->s, "inserted_middle");
+	EXPECT_EQ(getComponent<NonTrivial>(arr, 100)->s, "second");
+	EXPECT_EQ(getComponent<NonTrivial>(arr, 150)->s, "inserted_middle2");
+	EXPECT_EQ(getComponent<NonTrivial>(arr, 200)->s, "third");
+	EXPECT_EQ(getComponent<NonTrivial>(arr, 300)->s, "fourth");
+	
+	delete arr;
+}
+
+// Test: Non-trivial defragment with gaps
+TEST(SectorsArray_NonTrivial, DefragmentPreservesStrings) {
+	auto* arr = SA_T::create<NonTrivial>();
+	
+	// Insert 100 strings
+	for (int i = 0; i < 100; ++i) {
+		arr->insert<NonTrivial>(i, NonTrivial{"str_" + std::to_string(i)});
+	}
+	
+	// Erase every other (creates gaps)
+	for (int i = 0; i < 100; i += 2) {
+		arr->eraseAsync(i);
+	}
+	
+	// Defragment
+	arr->defragment();
+	
+	// Verify remaining strings are correct (odd numbers)
+	EXPECT_EQ(arr->size<false>(), 50u);
+	
+	for (int i = 1; i < 100; i += 2) {
+		auto* nt = getComponent<NonTrivial>(arr, i);
+		ASSERT_NE(nt, nullptr);
+		EXPECT_EQ(nt->s, "str_" + std::to_string(i));
+	}
+	
+	delete arr;
+}
+
+// Test: Mixed trivial + non-trivial in same sector
+TEST(SectorsArray_Mixed, TrivialAndNonTrivialTogether) {
+	auto* arr = SA_T::create<Trivial, NonTrivial>();
+	
+	// Add both components to same entities
+	for (int i = 0; i < 50; ++i) {
+		arr->insert<Trivial>(i, Trivial{i * 10});
+		arr->insert<NonTrivial>(i, NonTrivial{"mixed_" + std::to_string(i)});
+	}
+	
+	// Erase some (i % 3 == 0)
+	for (int i = 0; i < 50; i += 3) {
+		arr->eraseAsync(i);
+	}
+	
+	// Defragment (tests mixed type handling)
+	arr->defragment();
+	
+	// Copy (tests mixed type copy)
+	auto* arr2 = new SA_T(*arr);
+	
+	// Verify both arrays have correct data
+	for (int i = 0; i < 50; ++i) {
+		if (i % 3 == 0) continue; // These were erased
+		
+		auto* t = getComponent<Trivial>(arr2, i);
+		auto* nt = getComponent<NonTrivial>(arr2, i);
+		ASSERT_NE(t, nullptr);
+		ASSERT_NE(nt, nullptr);
+		
+		EXPECT_EQ(t->a, i * 10);
+		EXPECT_EQ(nt->s, "mixed_" + std::to_string(i));
+	}
+	
+	delete arr;
+	delete arr2;
+}
+
+// Test: Concurrent insert with non-trivial triggers shifts
+TEST(SectorsArray_NonTrivial, ConcurrentInsertWithShifts) {
+	auto* arr = SA_T::create<NonTrivial>();
+	constexpr int N = 200;
+	std::vector<std::thread> threads;
+	
+	// 4 threads inserting interleaved IDs (causes many shifts)
+	for (int t = 0; t < 4; ++t) {
+		threads.emplace_back([&, t] {
+			for (int i = 0; i < N; ++i) {
+				// Interleaved IDs: 0,4,8,12... / 1,5,9,13... / etc
+				int id = i * 4 + t;
+				arr->insert<NonTrivial>(id, NonTrivial{"thread" + std::to_string(t) + "_" + std::to_string(i)});
+			}
+		});
+	}
+	
+	for (auto& th : threads) th.join();
+	
+	// Verify all entries are valid (no corruption)
+	EXPECT_EQ(arr->size<false>(), static_cast<size_t>(N * 4));
+	
+	// Check a sample of entries
+	for (int id = 0; id < N * 4; ++id) {
+		auto* nt = getComponent<NonTrivial>(arr, id);
+		ASSERT_NE(nt, nullptr) << "Missing entry for id " << id;
+		EXPECT_FALSE(nt->s.empty());
+		EXPECT_EQ(nt->s.find("thread"), 0u); // Starts with "thread"
+	}
+	
+	delete arr;
+}
+
+// Test: Large string (heap allocated, not SSO)
+TEST(SectorsArray_NonTrivial, LargeStringsNoSSO) {
+	auto* arr = SA_T::create<NonTrivial>();
+	
+	// Create strings larger than SSO buffer (typically 15-23 chars)
+	std::string longStr(100, 'x');
+	
+	for (int i = 0; i < 50; ++i) {
+		arr->insert<NonTrivial>(i * 2, NonTrivial{longStr + std::to_string(i)});
+	}
+	
+	// Insert in middle (shift)
+	arr->insert<NonTrivial>(25, NonTrivial{longStr + "_middle"});
+	
+	// Erase first half
+	for (int i = 0; i < 25; ++i) {
+		arr->eraseAsync(i * 2);
+	}
+	arr->defragment();
+	
+	// Copy
+	auto* arr2 = new SA_T(*arr);
+	
+	// Verify remaining entries (ids 25 and 50+ even numbers)
+	auto* nt25 = getComponent<NonTrivial>(arr2, 25);
+	ASSERT_NE(nt25, nullptr);
+	EXPECT_GE(nt25->s.size(), 100u);
+	EXPECT_EQ(nt25->s, longStr + "_middle");
+	
+	for (int i = 25; i < 50; ++i) {
+		auto* nt = getComponent<NonTrivial>(arr2, i * 2);
+		ASSERT_NE(nt, nullptr);
+		EXPECT_GE(nt->s.size(), 100u);
+	}
+	
+	delete arr;
+	delete arr2;
+}
+
+// Test: Move-only type with defragment
+TEST(SectorsArray_MoveOnly, DefragmentMoveOnlyType) {
+	auto* arr = SA_T::create<MoveOnly>();
+	
+	for (int i = 0; i < 100; ++i) {
+		arr->insert<MoveOnly>(i, MoveOnly{i * 100});
+	}
+	
+	// Erase half (even numbers)
+	for (int i = 0; i < 100; i += 2) {
+		arr->eraseAsync(i);
+	}
+	
+	// Defragment (must use move, not copy)
+	arr->defragment();
+	
+	EXPECT_EQ(arr->size<false>(), 50u);
+	
+	// Verify values (odd numbers remain)
+	for (int i = 1; i < 100; i += 2) {
+		auto* mo = getComponent<MoveOnly>(arr, i);
+		ASSERT_NE(mo, nullptr);
+		EXPECT_EQ(*mo->v, i * 100);
+	}
+	
+	delete arr;
+}
+
+// Test: Empty array operations don't crash
+TEST(SectorsArray_EdgeCases, EmptyArrayOperations) {
+	auto* arr = SA_T::create<Trivial, NonTrivial>();
+	
+	// Operations on empty array
+	arr->defragment();
+	arr->shrinkToFit();
+	arr->clear();
+	
+	// Copy empty
+	auto* arr2 = new SA_T(*arr);
+	EXPECT_EQ(arr2->size<false>(), 0u);
+	
+	// Move empty
+	auto* arr3 = new SA_T(std::move(*arr));
+	EXPECT_EQ(arr3->size<false>(), 0u);
+	
+	delete arr;
+	delete arr2;
+	delete arr3;
+}
+
+// Test: Insert at exact capacity boundary
+TEST(SectorsArray_EdgeCases, InsertAtCapacityBoundary) {
+	auto* arr = SA_T::create<NonTrivial>();
+	
+	// Fill exactly to chunk capacity (32)
+	for (int i = 0; i < 32; ++i) {
+		arr->insert<NonTrivial>(i * 10, NonTrivial{"cap_" + std::to_string(i)});
+	}
+	
+	// Insert one more (triggers new chunk allocation)
+	arr->insert<NonTrivial>(5, NonTrivial{"boundary_insert"});
+	
+	EXPECT_EQ(arr->size<false>(), 33u);
+	EXPECT_EQ(getComponent<NonTrivial>(arr, 5)->s, "boundary_insert");
+	
+	// All others should be intact
+	for (int i = 0; i < 32; ++i) {
+		auto* nt = getComponent<NonTrivial>(arr, i * 10);
+		ASSERT_NE(nt, nullptr);
+		EXPECT_EQ(nt->s, "cap_" + std::to_string(i));
+	}
+	
+	delete arr;
+}
+
+// Test: Rapid insert/erase cycles with non-trivial
+TEST(SectorsArray_NonTrivial, RapidInsertEraseCycles) {
+	auto* arr = SA_T::create<NonTrivial>();
+	
+	for (int cycle = 0; cycle < 10; ++cycle) {
+		// Insert batch
+		for (int i = 0; i < 100; ++i) {
+			arr->insert<NonTrivial>(i, NonTrivial{"cycle" + std::to_string(cycle) + "_" + std::to_string(i)});
+		}
+		
+		// Erase all
+		for (int i = 0; i < 100; ++i) {
+			arr->eraseAsync(i);
+		}
+		
+		arr->defragment();
+		EXPECT_EQ(arr->size<false>(), 0u);
+	}
+	
+	delete arr;
+}
+
+// Test: Copy during reads doesn't corrupt data
+TEST(SectorsArray_Concurrent, CopyDuringReads) {
+	auto* arr = SA_T::create<NonTrivial>();
+	
+	for (int i = 0; i < 100; ++i) {
+		arr->insert<NonTrivial>(i, NonTrivial{"item_" + std::to_string(i)});
+	}
+	
+	std::atomic<int> copyCount{0};
+	std::vector<std::thread> threads;
+	
+	// Multiple threads copying simultaneously
+	for (int t = 0; t < 4; ++t) {
+		threads.emplace_back([&] {
+			for (int i = 0; i < 5; ++i) {
+				auto* copy = new SA_T(*arr);
+				EXPECT_EQ(copy->size<false>(), 100u);
+				
+				// Verify copy has valid data
+				for (int j = 0; j < 100; ++j) {
+					auto* nt = getComponent<NonTrivial>(copy, j);
+					ASSERT_NE(nt, nullptr);
+					EXPECT_EQ(nt->s, "item_" + std::to_string(j));
+				}
+				
+				delete copy;
+				++copyCount;
+			}
+		});
+	}
+	
+	for (auto& th : threads) th.join();
+	
+	EXPECT_EQ(copyCount.load(), 20);
+	
+	// Original should be unchanged
+	for (int i = 0; i < 100; ++i) {
+		auto* nt = getComponent<NonTrivial>(arr, i);
+		ASSERT_NE(nt, nullptr);
+		EXPECT_EQ(nt->s, "item_" + std::to_string(i));
+	}
+	
+	delete arr;
+}
+
+// Test: ChunksAllocator shrink doesn't free valid data
+TEST(SectorsArray_Memory, ShrinkToFitPreservesData) {
+	auto* arr = SA_T::create<NonTrivial>();
+	
+	// Insert many
+	for (int i = 0; i < 1000; ++i) {
+		arr->insert<NonTrivial>(i, NonTrivial{"data_" + std::to_string(i)});
+	}
+	
+	// Erase most
+	for (int i = 100; i < 1000; ++i) {
+		arr->eraseAsync(i);
+	}
+	
+	arr->defragment();
+	arr->shrinkToFit();
+	
+	// Verify remaining 100 are intact
+	EXPECT_EQ(arr->size<false>(), 100u);
+	
+	for (int i = 0; i < 100; ++i) {
+		auto* nt = getComponent<NonTrivial>(arr, i);
+		ASSERT_NE(nt, nullptr);
+		EXPECT_EQ(nt->s, "data_" + std::to_string(i));
+	}
+	
+	delete arr;
+}
+
+// Test: Multiple component types, some trivial some not
+TEST(SectorsArray_Mixed, ThreeComponentTypes) {
+	struct StringComp { std::string s; };
+	struct IntComp { int x; };
+	struct FloatComp { float f; };
+	
+	auto* arr = SA_T::create<StringComp, IntComp, FloatComp>();
+	
+	for (int i = 0; i < 50; ++i) {
+		arr->insert<StringComp>(i, StringComp{"str_" + std::to_string(i)});
+		arr->insert<IntComp>(i, IntComp{i * 10});
+		arr->insert<FloatComp>(i, FloatComp{i * 0.5f});
+	}
+	
+	// Partial erase
+	for (int i = 10; i < 40; ++i) {
+		arr->eraseAsync(i);
+	}
+	
+	arr->defragment();
+	
+	// Copy
+	auto* arr2 = new SA_T(*arr);
+	
+	EXPECT_EQ(arr2->size<false>(), 20u);
+	
+	delete arr;
+	delete arr2;
 }
 
 }

@@ -9,10 +9,12 @@
 
 #include <future>
 #include <ecss/memory/SectorsArray.h>
+#include <ecss/memory/Sector.h>
 
 using namespace std::chrono_literals;
 using ecss::Memory::SectorsArray;
 using ecss::SectorId;
+namespace Sector = ecss::Memory::Sector;
 
 struct Payload { int v = 0; };
 
@@ -47,8 +49,8 @@ TEST(SectorsArrayConcurrency, EraseBlocksWhilePinnedThenProceeds) {
     arr.eraseAsync(target, 1);
     
     {
-        auto s = arr.findSector(target);
-        ASSERT_NE(s, nullptr) << "sector must not be erased while pinned";
+        auto data = arr.findSectorData(target);
+        ASSERT_NE(data, nullptr) << "sector must not be erased while pinned";
     }
 
     
@@ -57,8 +59,8 @@ TEST(SectorsArrayConcurrency, EraseBlocksWhilePinnedThenProceeds) {
 
     
     arr.processPendingErases();
-    auto s2 = arr.findSector(target);
-    ASSERT_EQ(s2, nullptr) << "sector should be erased after unpin + processing";
+    auto data2 = arr.findSectorData(target);
+    ASSERT_EQ(data2, nullptr) << "sector should be erased after unpin + processing";
 }
 
 TEST(SectorsArrayConcurrency, WatermarkBlocksAndLowersAfterUnpin) {
@@ -76,8 +78,8 @@ TEST(SectorsArrayConcurrency, WatermarkBlocksAndLowersAfterUnpin) {
         
         for (int i = 0; i < 1000; ++i) {
             if (arr.containsSector(lo)) {
-                if (arr.getSector(lo)) {
-                    if (arr.getSector(hi)) {
+                if (arr.findSectorData(lo)) {
+                    if (arr.findSectorData(hi)) {
                         if (!arr.containsSector(hi)) break;
                         if (!arr.containsSector(lo)) break;
                        
@@ -105,8 +107,8 @@ TEST(SectorsArrayConcurrency, WatermarkBlocksAndLowersAfterUnpin) {
     
     arr.eraseAsync(lo, 1);
     arr.processPendingErases();
-    auto s = arr.findSector(lo);
-    ASSERT_EQ(s, nullptr) << "after unpin of HI, LO sector should be erasable";
+    auto data = arr.findSectorData(lo);
+    ASSERT_EQ(data, nullptr) << "after unpin of HI, LO sector should be erasable";
 }
 
 TEST(SectorsArrayConcurrency, RandomStressNoDeadlockNoLostWakeups) {
@@ -149,8 +151,10 @@ TEST(SectorsArrayConcurrency, RandomStressNoDeadlockNoLostWakeups) {
             SectorId id = rng() % CAP;
             auto pin = arr.pinSector(id);
             
-            auto s = pin.get();
-            if (s) { volatile int x = s->isAliveData; (void)x; }
+            if (pin) {
+                volatile uint32_t x = pin.getIsAlive();
+                (void)x;
+            }
             
             if ((rng() & 7u) == 0) std::this_thread::sleep_for(10ms);
         }

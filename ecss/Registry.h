@@ -1,7 +1,7 @@
 #pragma once
 /**
  * @file
- * @brief Core ECS registry and iterator/view implementation (sector-based storage).
+ * @brief Core ECS registry and iterator/view implementation (SoA-based storage).
  *
  * The Registry manages:
  *   - Allocation and ownership of entity ids (dense id ranges via Ranges<>).
@@ -9,10 +9,10 @@
  *   - Thread-aware access and pinning (if ThreadSafe template parameter is true).
  *   - Views (ArraysView) that iterate a "main" component and project other components.
  *
- * Storage model (Sector Based):
- *   - Each component (or grouped component set) is stored in a SectorsArray (sparse sectors).
- *   - A "sector" contains potentially multiple component types if registered together.
- *   - Liveness is tracked by bitmasks; components can be destroyed in-place.
+ * Storage model (SoA - Structure of Arrays):
+ *   - Each component (or grouped component set) is stored in a SectorsArray.
+ *   - Sector metadata (id, isAliveData) stored in parallel arrays for cache locality.
+ *   - Component data stored contiguously in ChunksAllocator.
  *
  * Thread safety:
  *   - When ThreadSafe == true:
@@ -79,7 +79,7 @@ namespace ecss {
 		/// @return Operator access forwarding to underlying component pointer.
 		T* operator->() const noexcept { return ptr; }
 
-		/// @return Dereferenced component reference (UB if ptr is null – guard with bool()).
+		/// @return Dereferenced component reference (UB if ptr is null � guard with bool()).
 		T& operator* () const noexcept { return *ptr; }
 
 		/// @return True if a valid component pointer is held.
@@ -114,7 +114,7 @@ namespace ecss {
 	 *       * Shared mutex protects component array mapping and entity container.
 	 *       * Pin counters block structural mutation while components are in use.
 	 *   - ThreadSafe == false:
-	 *       * No internal synchronization – single-threaded performance focus.
+	 *       * No internal synchronization � single-threaded performance focus.
 	 *
 	 * Performance notes:
 	 *   - Component insertion is O(1) amortized (sector-based).
@@ -201,15 +201,16 @@ namespace ecss {
 		FORCE_INLINE bool hasComponent(EntityId entity) noexcept {
 			if constexpr (ThreadSafe) {
 				if (auto container = getComponentContainer<T>()) {
-					if (auto sector = container->pinSector(entity)) {
-						return sector->isAlive(container->template getLayoutData<T>().isAliveMask);
+					if (auto pin = container->pinSector(entity)) {
+						return Memory::Sector::isAlive(pin.getIsAlive(), container->template getLayoutData<T>().isAliveMask);
 					}
 				}
 			}
 			else {
 				if (auto container = getComponentContainer<T>()) {
-					if (auto sector = container->findSector(entity)) {
-						return sector->isAlive(container->template getLayoutData<T>().isAliveMask);
+					auto idx = container->template findLinearIdx<false>(entity);
+					if (idx != INVALID_IDX) {
+						return Memory::Sector::isAlive(container->template getIsAliveRef<false>(idx), container->template getLayoutData<T>().isAliveMask);
 					}
 				}
 			}
@@ -230,7 +231,7 @@ namespace ecss {
 			auto pinnedSector = container->pinSector(entity);
 			if (!pinnedSector) { return {}; }
 
-			auto component = Memory::Sector::getComponentFromSector<T>(pinnedSector.get(), container->getLayout());
+			auto component = Memory::Sector::getComponent<T>(pinnedSector.getData(), pinnedSector.getIsAlive(), container->getLayout());
 			return component ? PinnedComponent<T>{ std::move(pinnedSector), component } : PinnedComponent<T>{};
 		}
 
@@ -280,19 +281,23 @@ namespace ecss {
 					auto lock = container->writeLock();
 					container->mPinsCounter.waitUntilChangeable(entity);
 
-					if (auto sector = container->template findSector<false>(entity)) {
-						auto before = sector->isAliveData;
-						sector->destroyMember(container->template getLayoutData<T>());
-						if (before != sector->isAliveData) {
+					auto idx = container->template findLinearIdx<false>(entity);
+					if (idx != INVALID_IDX) {
+						auto& isAlive = container->template getIsAliveRef<false>(idx);
+						auto before = isAlive;
+						Memory::Sector::destroyMember(container->mAllocator.at(idx), isAlive, container->template getLayoutData<T>());
+						if (before != isAlive) {
 							container->incDefragmentSize();
 						}
 					}
 				}
 				else {
-					if (auto sector = container->template findSector<false>(entity)) {
-						auto before = sector->isAliveData;
-						sector->destroyMember(container->template getLayoutData<T>());
-						if (before != sector->isAliveData) {
+					auto idx = container->template findLinearIdx<false>(entity);
+					if (idx != INVALID_IDX) {
+						auto& isAlive = container->template getIsAliveRef<false>(idx);
+						auto before = isAlive;
+						Memory::Sector::destroyMember(container->mAllocator.at(idx), isAlive, container->template getLayoutData<T>());
+						if (before != isAlive) {
 							container->incDefragmentSize();
 						}
 					}
@@ -316,31 +321,34 @@ namespace ecss {
 				if constexpr (ThreadSafe) {
 					auto lock = container->writeLock();
 
-					prepareEntities(entities, container->template sectorsMapCapacity<false>());
+					prepareEntities(entities, container->template sparseCapacity<false>());
 					if (entities.empty()) {
 						return;
 					}
 
 					container->mPinsCounter.waitUntilChangeable(entities.front());
 					for (const auto sectorId : entities) {
-
-						if (auto sector = container->template findSector<false>(sectorId)) {
-							auto before = sector->isAliveData;
-							sector->destroyMember(layout);
-							if (before != sector->isAliveData) {
+						auto idx = container->template findLinearIdx<false>(sectorId);
+						if (idx != INVALID_IDX) {
+							auto& isAlive = container->template getIsAliveRef<false>(idx);
+							auto before = isAlive;
+							Memory::Sector::destroyMember(container->mAllocator.at(idx), isAlive, layout);
+							if (before != isAlive) {
 								container->incDefragmentSize();
 							}
 						}
 					}
 				}
 				else {
-					prepareEntities(entities, container->template sectorsMapCapacity<false>());
+					prepareEntities(entities, container->template sparseCapacity<false>());
 
 					for (const auto sectorId : entities) {
-						if (auto sector = container->template findSector<false>(sectorId)) {
-							auto before = sector->isAliveData;
-							sector->destroyMember(layout);
-							if (before != sector->isAliveData) {
+						auto idx = container->template findLinearIdx<false>(sectorId);
+						if (idx != INVALID_IDX) {
+							auto& isAlive = container->template getIsAliveRef<false>(idx);
+							auto before = isAlive;
+							Memory::Sector::destroyMember(container->mAllocator.at(idx), isAlive, layout);
+							if (before != isAlive) {
 								container->incDefragmentSize();
 							}
 						}
@@ -435,7 +443,7 @@ namespace ecss {
 
 		/**
 		 * @brief Defragment all arrays (compacts fragmented dead slots).
-		 * @note Can be expensive if many arrays large – schedule during low frame-load moments.
+		 * @note Can be expensive if many arrays large � schedule during low frame-load moments.
 		 */
 		void defragment() noexcept {
 			if constexpr(ThreadSafe) {
@@ -635,7 +643,7 @@ namespace ecss {
 					const auto layout = array->getLayout();
 
 					auto localEntities = entities;
-					prepareEntities(localEntities, array->template sectorsMapCapacity<false>());
+					prepareEntities(localEntities, array->template sparseCapacity<false>());
 					if (localEntities.empty()) {
 						continue;
 					}
@@ -644,18 +652,24 @@ namespace ecss {
 					array->incDefragmentSize(static_cast<uint32_t>(localEntities.size()));
 
 					for (const auto sectorId : localEntities) {
-						Memory::Sector::destroySector(array->template findSector<false>(sectorId), layout);
+						auto idx = array->template findLinearIdx<false>(sectorId);
+						if (idx != INVALID_IDX) {
+							Memory::Sector::destroySectorData(array->mAllocator.at(idx), array->template getIsAliveRef<false>(idx), layout);
+						}
 					}
 				}
 			}
 			else {
 				for (auto* array : mComponentsArrays) {
 					auto localEntities = entities;
-					prepareEntities(localEntities, array->template sectorsMapCapacity<false>());
+					prepareEntities(localEntities, array->template sparseCapacity<false>());
 					const auto layout = array->getLayout();
 					for (const auto sectorId : localEntities) {
-						Memory::Sector::destroySector(array->template findSector<false>(sectorId), layout);
-						array->incDefragmentSize();
+						auto idx = array->template findLinearIdx<false>(sectorId);
+						if (idx != INVALID_IDX) {
+							Memory::Sector::destroySectorData(array->mAllocator.at(idx), array->template getIsAliveRef<false>(idx), layout);
+							array->incDefragmentSize();
+						}
 					}
 				}
 			}
@@ -698,14 +712,20 @@ namespace ecss {
 					auto lock = array->writeLock();
 					array->mPinsCounter.waitUntilChangeable(entityId);
 
-					Memory::Sector::destroySector(array->template findSector<false>(entityId), array->getLayout());
-					array->incDefragmentSize();
+					auto idx = array->template findLinearIdx<false>(entityId);
+					if (idx != INVALID_IDX) {
+						Memory::Sector::destroySectorData(array->mAllocator.at(idx), array->template getIsAliveRef<false>(idx), array->getLayout());
+						array->incDefragmentSize();
+					}
 				}
 			}
 			else {
 				for (auto array : mComponentsArrays) {
-					Memory::Sector::destroySector(array->findSector(entityId), array->getLayout());
-					array->incDefragmentSize();
+					auto idx = array->template findLinearIdx<false>(entityId);
+					if (idx != INVALID_IDX) {
+						Memory::Sector::destroySectorData(array->mAllocator.at(idx), array->template getIsAliveRef<false>(idx), array->getLayout());
+						array->incDefragmentSize();
+					}
 				}
 			}
 		}
@@ -745,21 +765,21 @@ namespace ecss {
 		/**
 		 * @brief Internal helper: ensure entities vector is sorted & clamped to valid capacity.
 		 * @param entities [in/out] Vector of entity ids.
-		 * @param sectorsCapacity Max valid sector index (exclusive).
+		 * @param sparseCapacity Max valid sector index (exclusive).
 		 */
-		static void prepareEntities(std::vector<EntityId>& entities, size_t sectorsCapacity) {
+		static void prepareEntities(std::vector<EntityId>& entities, size_t sparseCapacity) {
 			if (entities.empty()) { return; }
 			std::ranges::sort(entities);
 
-			if (entities.front() >= sectorsCapacity) {
+			if (entities.front() >= sparseCapacity) {
 				entities.clear();
 				return;
 			}
 
-			if (entities.back() >= sectorsCapacity) {
+			if (entities.back() >= sparseCapacity) {
 				int distance = static_cast<int>(entities.size());
 				for (auto entity : std::ranges::reverse_view(entities)) {
-					if (entity < sectorsCapacity) {
+					if (entity < sparseCapacity) {
 						break;
 					}
 					distance--;
@@ -824,6 +844,7 @@ namespace ecss {
 		using SectorsIt = Sectors::IteratorAlive;
 		using SectorsRangeIt = Sectors::RangedIterator;
 		using TypeInfo = TypeAccessInfo;
+		using SlotInfo = typename Sectors::SlotInfo;
 
 		constexpr static size_t CTCount = sizeof...(CompTypes);
 		constexpr static size_t TypesCount = sizeof...(CompTypes) + 1;
@@ -867,10 +888,10 @@ namespace ecss {
 			}
 
 			FORCE_INLINE value_type operator*() const noexcept { 
-				std::byte* raw = mIterator.rawPtr();
-				return { reinterpret_cast<Memory::Sector*>(raw)->id, 
-				         reinterpret_cast<T*>(raw + mMainOffset), 
-				         getComponent<CompTypes>(raw)... }; 
+				auto slot = *mIterator;
+				return { slot.id, 
+				         reinterpret_cast<T*>(slot.data + mMainOffset), 
+				         getComponent<CompTypes>(slot)... }; 
 			}
 			FORCE_INLINE Iterator& operator++() noexcept { 
 				++mIterator;
@@ -883,36 +904,43 @@ namespace ecss {
 			FORCE_INLINE bool operator==(const Iterator& other) const noexcept { return mIterator == other.mIterator; }
 
 			// Alive iterator self-checks end condition by returning nullptr.
-			FORCE_INLINE bool operator==(const EndIterator&) const noexcept { return *mIterator == nullptr; }
-			FORCE_INLINE bool operator!=(const EndIterator&) const noexcept { return *mIterator != nullptr; }
+			FORCE_INLINE bool operator==(const EndIterator&) const noexcept { return !mIterator; }
+			FORCE_INLINE bool operator!=(const EndIterator&) const noexcept { return static_cast<bool>(mIterator); }
 			FORCE_INLINE friend bool operator==(const EndIterator endIt, const Iterator& it) noexcept { return it == endIt; }
 			FORCE_INLINE friend bool operator!=(const EndIterator endIt, const Iterator& it) noexcept { return it != endIt; }
 
 		private:
 			/// @brief Fetch component pointer for specific entity id (may be nullptr).
 			template<typename ComponentType>
-			FORCE_INLINE ComponentType* getComponent(std::byte* raw) const noexcept {
+			FORCE_INLINE ComponentType* getComponent(const SlotInfo& slot) const noexcept {
 				constexpr auto idx = getIndex<ComponentType>();
 				const auto& info = std::get<idx>(mTypeAccessInfo);
-				auto* sector = reinterpret_cast<Memory::Sector*>(raw);
+
 				if (info.iteratorIdx == TypeInfo::kMainIteratorIdx) [[likely]] {
-					return (sector->isAliveData & info.typeAliveMask) ? reinterpret_cast<ComponentType*>(raw + info.typeOffsetInSector) : nullptr;
+					return (slot.isAlive & info.typeAliveMask) ? reinterpret_cast<ComponentType*>(slot.data + info.typeOffsetInSector) : nullptr;
 				}
-				if constexpr (ThreadSafe) {
-					// Lazy sync: advance iterator only when component is actually needed
-					auto& it = mSecondaryIterators[info.iteratorIdx];
-					auto* other = *it;
-					if (!other || other->id < sector->id) [[unlikely]] {
-						it.advanceToId(sector->id);
-						other = *it;
-					}
-					return (other && other->id == sector->id && (other->isAliveData & info.typeAliveMask))
-						? reinterpret_cast<ComponentType*>(reinterpret_cast<std::byte*>(other) + info.typeOffsetInSector) : nullptr;
-				} else {
+			if constexpr (ThreadSafe) {
+				// Lazy sync: advance iterator only when component is actually needed
+				auto& it = mSecondaryIterators[info.iteratorIdx];
+				if (!it) [[unlikely]] {
+					return nullptr;  // Secondary array is empty or exhausted
+				}
+				if ((*it).linearIdx < slot.linearIdx) [[unlikely]] {
+					it.advanceToLinearIdx(slot.linearIdx);
+				}
+				if (!it) [[unlikely]] {
+					return nullptr;  // Iterator became invalid after advance
+				}
+				auto otherSlot = *it;
+				return (otherSlot.id == slot.id && (otherSlot.isAlive & info.typeAliveMask)) ? reinterpret_cast<ComponentType*>(otherSlot.data + info.typeOffsetInSector) : nullptr;
+			}
+			else {
 					// Fast direct O(1) lookup for non-thread-safe mode
-					auto* other = mSecondaryArrays[info.iteratorIdx]->template findSector<false>(sector->id);
-					return (other && (other->isAliveData & info.typeAliveMask))
-						? reinterpret_cast<ComponentType*>(reinterpret_cast<std::byte*>(other) + info.typeOffsetInSector) : nullptr;
+					auto* other = mSecondaryArrays[info.iteratorIdx];
+					auto otherIdx = other->template findLinearIdx<false>(slot.id);
+					if (otherIdx == INVALID_IDX) return nullptr;
+					auto otherIsAlive = other->template getIsAliveRef<false>(otherIdx);
+					return (otherIsAlive & info.typeAliveMask) ? reinterpret_cast<ComponentType*>(other->mAllocator.at(otherIdx) + info.typeOffsetInSector) : nullptr;
 				}
 			}
 
@@ -968,12 +996,154 @@ namespace ecss {
 	public:
 		/// @brief Construct a full-range view (Ranged=false specialization).
 		explicit ArraysView(Registry<ThreadSafe, Allocator>* manager) noexcept requires (!Ranged) { init(manager); }
-
-		/// @brief Construct a ranged view (Ranged=true specialization).
 		explicit ArraysView(Registry<ThreadSafe, Allocator>* manager, const Ranges<EntityId>& ranges = {}) noexcept requires (Ranged) { init(manager, ranges); }
 
-		/// @return True if there are no elements to iterate.
 		FORCE_INLINE bool empty() const noexcept { return mBeginIt == end(); }
+
+		/// @brief Fast iteration without tuple overhead.
+		/// Single component: func(T&), Multi component grouped: func(T&, CompTypes&...)
+		template<typename Func>
+		FORCE_INLINE void each(Func&& func) const {
+			if constexpr (sizeof...(CompTypes) == 0 && !Ranged) {
+				// Single component fast path - direct chunk iteration
+				eachSingle(std::forward<Func>(func));
+			} else if constexpr (!Ranged) {
+				// Try grouped multi-component fast path
+				eachGrouped(std::forward<Func>(func));
+			} else {
+				// Ranged - use regular iterator
+				for (auto it = mBeginIt; it != end(); ++it) {
+					auto val = *it;
+					auto* main = std::get<1>(val);
+					if (main) {
+						std::apply([&](auto, auto* m, auto*... rest) {
+							if constexpr (sizeof...(rest) == 0) {
+								func(*m);
+							} else if ((rest && ...)) {
+								func(*m, (*rest)...);
+							}
+						}, val);
+					}
+				}
+			}
+		}
+
+	private:
+		/// @brief Fastest path for single component iteration
+		template<typename Func>
+		FORCE_INLINE void eachSingle(Func&& func) const requires (sizeof...(CompTypes) == 0 && !Ranged) {
+			if (!mMainArray || mSize == 0) return;
+			
+			const auto& layout = mMainArray->template getLayoutData<T>();
+			const uint16_t offset = layout.offset;
+			
+			// Compile-time stride for vectorization!
+			constexpr size_t stride = types::OffsetArray<types::EmptyBase, T>::totalSize;
+			
+			auto& allocator = mMainArray->mAllocator;
+			constexpr size_t chunkCapacity = std::remove_reference_t<decltype(allocator)>::mChunkCapacity;
+			
+			if (mMainArray->template isPacked<false>()) {
+				// FAST PATH: No dead slots - pure loop, SIMD vectorizable
+				size_t idx = 0;
+				for (size_t chunkIdx = 0; chunkIdx < allocator.mChunks.size() && idx < mSize; ++chunkIdx) {
+					T* ptr = reinterpret_cast<T*>(static_cast<std::byte*>(allocator.mChunks[chunkIdx]) + offset);
+					const size_t chunkEnd = std::min(idx + chunkCapacity, mSize);
+					const size_t count = chunkEnd - idx;
+					idx = chunkEnd;
+					for (size_t i = 0; i < count; ++i) {
+						func(ptr[i]);
+					}
+				}
+			} else {
+				// SLOW PATH: Check alive mask
+				const uint32_t aliveMask = layout.isAliveMask;
+				// Load atomic view snapshot for thread-safe access
+				auto view = mMainArray->mDenseArrays.loadView();
+				const auto* isAliveData = view.isAlive;
+				size_t idx = 0;
+				for (size_t chunkIdx = 0; chunkIdx < allocator.mChunks.size() && idx < mSize; ++chunkIdx) {
+					T* ptr = reinterpret_cast<T*>(static_cast<std::byte*>(allocator.mChunks[chunkIdx]) + offset);
+					const size_t chunkEnd = std::min(idx + chunkCapacity, mSize);
+					for (size_t localIdx = 0; idx < chunkEnd; ++idx, ++localIdx) {
+						if (isAliveData[idx] & aliveMask) {
+							func(ptr[localIdx]);
+						}
+					}
+				}
+			}
+		}
+
+		/// @brief Fast path for grouped multi-component iteration (all components in same sector)
+		template<typename Func>
+		FORCE_INLINE void eachGrouped(Func&& func) const requires (sizeof...(CompTypes) > 0 && !Ranged) {
+			if (!mMainArray || mSize == 0) return;
+			
+			// Check if all components are in the same sector (grouped)
+			if (!mIsGrouped) {
+				// Not grouped - fallback to regular iteration
+				for (auto it = mBeginIt; it != end(); ++it) {
+					auto val = *it;
+					auto* main = std::get<1>(val);
+					if (main) {
+						std::apply([&](auto, auto* m, auto*... rest) {
+							if ((rest && ...)) { // All pointers valid
+								func(*m, (*rest)...);
+							}
+						}, val);
+					}
+				}
+				return;
+			}
+			
+			// All components in same sector - use SIMD-friendly iteration
+			// Compile-time stride and offsets for all types
+			constexpr size_t stride = types::OffsetArray<types::EmptyBase, T, CompTypes...>::totalSize;
+			constexpr std::array<size_t, TypesCount> offsets = types::OffsetArray<types::EmptyBase, T, CompTypes...>::offsets;
+			
+			auto& allocator = mMainArray->mAllocator;
+			constexpr size_t chunkCapacity = std::remove_reference_t<decltype(allocator)>::mChunkCapacity;
+			
+			// Get alive mask that covers ALL components
+			uint32_t combinedMask = 0;
+			combinedMask |= mMainArray->template getLayoutData<T>().isAliveMask;
+			((combinedMask |= mMainArray->template getLayoutData<CompTypes>().isAliveMask), ...);
+			
+			if (mMainArray->template isPacked<false>()) {
+				// FAST PATH: No dead slots - SIMD vectorizable
+				size_t idx = 0;
+				for (size_t chunkIdx = 0; chunkIdx < allocator.mChunks.size() && idx < mSize; ++chunkIdx) {
+					std::byte* base = static_cast<std::byte*>(allocator.mChunks[chunkIdx]);
+					const size_t chunkEnd = std::min(idx + chunkCapacity, mSize);
+					const size_t count = chunkEnd - idx;
+					idx = chunkEnd;
+					
+					for (size_t i = 0; i < count; ++i) {
+						std::byte* slot = base + i * stride;
+						func(*reinterpret_cast<T*>(slot + offsets[0]),
+						     *reinterpret_cast<CompTypes*>(slot + offsets[getIndex<CompTypes>()])...);
+					}
+				}
+			}
+			else {
+				// SLOW PATH: Check alive mask
+				// Load atomic view snapshot for thread-safe access
+				auto view = mMainArray->mDenseArrays.loadView();
+				const auto* isAliveData = view.isAlive;
+				size_t idx = 0;
+				for (size_t chunkIdx = 0; chunkIdx < allocator.mChunks.size() && idx < mSize; ++chunkIdx) {
+					std::byte* base = static_cast<std::byte*>(allocator.mChunks[chunkIdx]);
+					const size_t chunkEnd = std::min(idx + chunkCapacity, mSize);
+					for (size_t localIdx = 0; idx < chunkEnd; ++idx, ++localIdx) {
+						if ((isAliveData[idx] & combinedMask) == combinedMask) {
+							std::byte* slot = base + localIdx * stride;
+							func(*reinterpret_cast<T*>(slot + offsets[0]),
+							     *reinterpret_cast<CompTypes*>(slot + offsets[getIndex<CompTypes>()])...);
+						}
+					}
+				}
+			}
+		}
 
 	private:
 		void init(Registry<ThreadSafe, Allocator>* manager, const Ranges<EntityId>& ranges = {}) {
@@ -982,11 +1152,55 @@ namespace ecss {
 
 			{
 				auto mainArr = arrays[getIndex<T>()];
+				mMainArray = mainArr;
 				auto lock = mainArr->readLock();
-				it = SectorsIt(mainArr, initRange(mainArr, ranges, getIndex<T>()), mainArr->template getLayoutData<T>().isAliveMask);
+				mSize = mainArr->template size<false>();
+				auto effectiveRanges = initRange(mainArr, ranges, getIndex<T>());
+				
+				// Determine iteration bounds
+				size_t startIdx = 0;
+				size_t endIdx = mSize;
+				
+				if constexpr (Ranged) {
+					if (!effectiveRanges.empty()) {
+						// Convert SectorId range bounds to linear indices using binary search
+						// Load atomic view snapshot for thread-safe access
+						auto view = mainArr->mDenseArrays.loadView();
+						const auto* ids = view.ids;
+						// Find start: first linear index where mIds[idx] >= range.first
+						{
+							size_t lo = 0, hi = mSize;
+							while (lo < hi) {
+								size_t mid = lo + (hi - lo) / 2;
+								if (ids[mid] < effectiveRanges.ranges.front().first) lo = mid + 1;
+								else hi = mid;
+							}
+							startIdx = lo;
+						}
+						// Find end: first linear index where mIds[idx] >= range.last (for last range)
+						{
+							size_t lo = 0, hi = mSize;
+							while (lo < hi) {
+								size_t mid = lo + (hi - lo) / 2;
+								if (ids[mid] < effectiveRanges.ranges.back().second) lo = mid + 1;
+								else hi = mid;
+							}
+							endIdx = lo;
+						}
+					}
+				}
+				
+				// Note: isPacked=false because we're filtering by a specific component's alive mask,
+				// not just checking if any component is alive. mDefragmentSize==0 only means no dead
+				// sectors, not that all sectors have this specific component.
+				it = SectorsIt(mainArr, startIdx, endIdx, mainArr->template getLayoutData<T>().isAliveMask, false);
 			}
 
-			mBeginIt = Iterator{ arrays, it, collectSecondaryArrays(arrays, ranges) };
+			auto secondary = collectSecondaryArrays(arrays, ranges);
+			mBeginIt = Iterator{ arrays, it, secondary };
+			
+			// Check if all components are in the same sector (grouped)
+			mIsGrouped = secondary.empty();
 		}
 		
 		/// @brief Initialize effective iteration ranges (and pin upper bound if thread-safe).
@@ -994,26 +1208,27 @@ namespace ecss {
 			Ranges<EntityId> ranges = _ranges;
 
 			if constexpr (Ranged) {
-				for (auto& range : ranges.ranges) {
-					range.first = static_cast<EntityId>(sectorsArray->template findRightNearestSectorIndex<false>(range.first));
-					range.second = static_cast<EntityId>(sectorsArray->template findRightNearestSectorIndex<false>(range.second));
-				}
+				// Convert entity id ranges to linear index ranges
+				// For simplicity, keep ranges as-is (they will be filtered during iteration)
 				ranges.mergeIntersections();
 
 				if constexpr (ThreadSafe) {
-					mPins[i] = ranges.empty() ? Memory::PinnedSector{} : Memory::PinnedSector(sectorsArray->mPinsCounter, nullptr, ranges.back().second);
+					auto sz = sectorsArray->template size<false>();
+					mPins[i] = ranges.empty() || sz == 0 
+						? Memory::PinnedSector{} 
+						: sectorsArray->template pinSectorAt<false>(sz - 1);
 				}
 			}
 			else {
 				size_t last;
 				if constexpr (ThreadSafe) {
 					mPins[i] = sectorsArray->template pinBackSector<false>();
-					last = mPins[i].getId();
-					last = last == INVALID_ID ? 0 : sectorsArray->template getSectorIndex<false>(static_cast<SectorId>(last)) + 1;
+					last = mPins[i] ? sectorsArray->template size<false>() : 0;
 				}
 				else {
 					last = sectorsArray->size();
 				}
+				ranges.ranges.clear();
 				ranges.ranges.emplace_back(0u, static_cast<SectorId>(last));
 			}
 
@@ -1062,5 +1277,9 @@ namespace ecss {
 		struct Dummy{};
 		std::conditional_t<ThreadSafe, std::array<Memory::PinnedSector, TypesCount>, Dummy> mPins;  ///< Back-sector pinning for bound safety (thread-safe build).
 		Iterator mBeginIt;                                   ///< Cached begin iterator.
+
+		Sectors* mMainArray = nullptr;
+		size_t mSize = 0;
+		bool mIsGrouped = false; // True if all components are in the same sector
 	};
 } // namespace ecss
