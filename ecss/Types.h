@@ -19,8 +19,12 @@ namespace ecss {
 	using ECSType = uint16_t;
 
 	constexpr SectorId INVALID_ID = std::numeric_limits<SectorId>::max();
+	constexpr uint32_t INVALID_IDX = std::numeric_limits<uint32_t>::max();
 
 	namespace types {
+		/// @brief Empty base for offset calculation when sector has no header.
+		struct EmptyBase {};
+
 		template <typename Base, typename... Types>
 		struct OffsetArray {
 			template<size_t N, size_t A>
@@ -33,14 +37,21 @@ namespace ecss {
 			}
 
 			static constexpr size_t count = sizeof...(Types);
-			static constexpr size_t baseSize = align_up<sizeof(Base), alignof(Base)>();
+			
+			// For EmptyBase, baseSize is 0; otherwise use aligned sizeof(Base)
+			static constexpr size_t baseSize = std::is_empty_v<Base> ? 0 : align_up<sizeof(Base), alignof(Base)>();
 
 			template <size_t I>
 			static consteval size_t get() {
 				using Tup = std::tuple<Types...>;
 				using Cur = std::tuple_element_t<I, Tup>;
 				if constexpr (I == 0) {
-					return align_up<baseSize, alignof(Cur)>();
+					if constexpr (std::is_empty_v<Base>) {
+						// No base header, start from 0 aligned to first type
+						return 0;
+					} else {
+						return align_up<baseSize, alignof(Cur)>();
+					}
 				}
 				else {
 					using Prev = std::tuple_element_t<I - 1, Tup>;
@@ -55,7 +66,7 @@ namespace ecss {
 			}
 
 			static constexpr uint32_t max_align = []{
-				uint32_t m = alignof(Base);
+				uint32_t m = std::is_empty_v<Base> ? 1 : alignof(Base);
 				((m = m < alignof(Types) ? alignof(Types) : m), ...);
 				return m;
 			}();

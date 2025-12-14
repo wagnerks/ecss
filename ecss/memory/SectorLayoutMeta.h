@@ -5,23 +5,20 @@
 #include <ecss/Types.h>
 
 namespace ecss::Memory {
-	namespace Dummy // Dummy sector for correct size calculation 
-	{
-		struct alignas(8) Sector { SectorId id; uint32_t isAliveData; };
-	}
 
-	/** @brief Metadata describing how a component type is laid out within a Sector.
+	/** @brief Metadata describing how a component type is laid out within sector data.
 	*
-	* Each component stored in a Sector has a corresponding LayoutData that
+	* Each component stored in a sector has a corresponding LayoutData that
 	* specifies its byte offset, liveness bit masks, and the functions required
 	* to move/copy/destroy the value. This enables type-erased operations while
-	* keeping the Sector itself trivially copyable.
+	* keeping the sector data trivially copyable for trivial types.
 	*
 	* Notes:
 	* - For trivial types, \p isTrivial should be true and the \p functionTable
 	*   may hold empty/no-op functors.
 	* - \p isAliveMask marks the bit(s) that indicate the component is present.
 	* - \p isNotAliveMask is typically the bitwise complement used when clearing.
+	* - Offsets now start from 0 (no embedded id/isAlive header in sector data).
 	*/
 	struct LayoutData {
 		struct FunctionTable {
@@ -34,8 +31,8 @@ namespace ecss::Memory {
 		size_t typeHash = 0;         // Optional: stable hash/ID of the component type.
 		uint32_t isAliveMask = 0;    // Bit(s) set when the component is alive/present.
 		uint32_t isNotAliveMask = 0; // Bit mask used to clear liveness (often ~isAliveMask & mask_width).
-		uint16_t offset = 0;	     // Byte offset of the component within the Sector payload.
-		uint16_t index = 0;          // Index of this component within the Sector layout.
+		uint16_t offset = 0;	     // Byte offset of the component within the sector data (starts from 0).
+		uint16_t index = 0;          // Index of this component within the sector layout.
 		bool isTrivial = false;      // True if the component is trivially destructible/copiable/movable.
 	};
 
@@ -51,7 +48,7 @@ namespace ecss::Memory {
 		/**
 		 * @brief Initialize LayoutData for a single component type U.
 		 *
-		 * Populates per-type metadata: byte offset in the sector payload, index,
+		 * Populates per-type metadata: byte offset in the sector data, index,
 		 * liveness bit masks, triviality flag, and the type-erased function table
 		 * (move/copy/destroy).
 		 *
@@ -59,7 +56,7 @@ namespace ecss::Memory {
 		 * @param data  LayoutData record to fill.
 		 * @param index Running index (incremented after use). The index determines
 		 *              which liveness bit is used; the mask is (1 << index).
-		 * @param offset Byte offset from the beginning of the sector at which U is stored.
+		 * @param offset Byte offset from the beginning of sector data at which U is stored.
 		 *
 		 * @note U must be move-constructible.
 		 * @warning The function table stores operations using type-erased lambdas;
@@ -93,14 +90,18 @@ namespace ecss::Memory {
 		* @brief Initialize an array of LayoutData for a parameter pack of types.
 		*
 		* Uses the compile-time OffsetArray to compute per-type offsets and calls
-		* the single-type initializer for each entry.
+		* the single-type initializer for each entry. Offsets now start from 0.
 		*
 		* @tparam U ... Component types to lay out in the sector.
 		*/
 		template<typename... U>
 		inline void initLayoutData() {
 			uint8_t counter = 0;
-			(initLayoutData<std::remove_const_t<std::remove_pointer_t<std::remove_reference_t<U>>>>(layout[counter], counter, static_cast<uint16_t>(types::OffsetArray<Dummy::Sector, U...>::offsets[counter])), ...);
+			// Use EmptyBase for offset calculation - offsets start from 0
+			(initLayoutData<std::remove_const_t<std::remove_pointer_t<std::remove_reference_t<U>>>>(
+				layout[counter], counter, 
+				static_cast<uint16_t>(types::OffsetArray<types::EmptyBase, U...>::offsets[counter])
+			), ...);
 		}
 
 		/**
@@ -139,7 +140,7 @@ namespace ecss::Memory {
 		/**
 		 * @brief Factory: allocate and initialize metadata for a set of component types.
 		 *
-		 * @tparam Types ... Component types stored in a Sector.
+		 * @tparam Types ... Component types stored in a sector.
 		 * @return Newly allocated SectorLayoutMeta*; caller owns and must delete.
 		 */
 		template<typename... Types>
@@ -155,15 +156,15 @@ namespace ecss::Memory {
 		*
 		* Initializes:
 		* - `\p count` (number of component types)
-		* - `\p totalSize` (bytes for sector header + component payloads per Dummy::sectorSize model)
+		* - `\p totalSize` (bytes for component payloads, starting from offset 0)
 		* - `\p typeIds` (stable per-process type tokens)
 		* - `\p layout` (array of LayoutData entries)
 		* Also computes `mIsTrivial` (true if all components are trivial).
 		*/
 		template<typename... Types>
 		void initData()	{
-			count = types::OffsetArray<Dummy::Sector, Types...>::count;
-			totalSize = types::OffsetArray<Dummy::Sector, Types...>::totalSize;
+			count = types::OffsetArray<types::EmptyBase, Types...>::count;
+			totalSize = static_cast<uint16_t>(types::OffsetArray<types::EmptyBase, Types...>::totalSize);
 			size_t idx = 0;
 			((typeIds[idx++] = TypeId<Types>()), ...);
 
@@ -176,7 +177,7 @@ namespace ecss::Memory {
 			}
 		}
 
-		/// @return Total bytes consumed by the sector (header + component payloads).
+		/// @return Total bytes consumed by sector data (component payloads only, no header).
 		uint16_t getTotalSize() const {	return totalSize; }
 
 		/// @return True if all component types are trivial (copy/move/destroy are trivial).
@@ -242,8 +243,8 @@ namespace ecss::Memory {
 		size_t		typeIds[maxComponentsPerSector];
 
 		// Overall layout properties.
-		uint16_t totalSize = 0; ///< Total bytes required for the sector (header + payload).
+		uint16_t totalSize = 0; ///< Total bytes required for sector data (component payloads only).
 		uint8_t  count     = 0; ///< Number of component types in this layout.
-		bool mIsTrivial = std::is_trivial_v<Dummy::Sector>; ///< True if all components are trivial.
+		bool mIsTrivial = true; ///< True if all components are trivial.
 	};
 }

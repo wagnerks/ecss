@@ -1843,3 +1843,257 @@ namespace EntitiesRangeTest
 		EXPECT_EQ(er.ranges, res);
 	}
 }
+
+// ============== Non-Trivial Component Tests ==============
+namespace RegistryNonTrivialTests {
+	using namespace ecss;
+
+	struct StringComponent {
+		std::string data;
+		StringComponent() : data() {}
+		StringComponent(const std::string& s) : data(s) {}
+	};
+
+	struct LargeString {
+		std::string data;
+		LargeString() : data() {}
+		LargeString(size_t size) : data(size, 'x') {}
+	};
+
+	struct Position { float x, y; };
+	struct Health { int value; };
+
+	// Test: Non-trivial components during entity operations
+	TEST(Registry_NonTrivial, AddRemoveStringComponents) {
+		Registry registry;
+		std::vector<EntityId> entities;
+		
+		// Add entities with string components
+		for (int i = 0; i < 100; ++i) {
+			auto e = registry.takeEntity();
+			entities.push_back(e);
+			registry.addComponent<StringComponent>(e, "entity_" + std::to_string(i));
+		}
+		
+		// Verify all components exist and have correct data
+		for (int i = 0; i < 100; ++i) {
+			auto* sc = registry.pinComponent<StringComponent>(entities[i]).get();
+			ASSERT_NE(sc, nullptr);
+			EXPECT_EQ(sc->data, "entity_" + std::to_string(i));
+		}
+		
+		// Remove half the entities
+		for (int i = 0; i < 50; ++i) {
+			registry.destroyEntity(entities[i]);
+		}
+		
+		// Verify remaining components are intact
+		for (int i = 50; i < 100; ++i) {
+			auto* sc = registry.pinComponent<StringComponent>(entities[i]).get();
+			ASSERT_NE(sc, nullptr);
+			EXPECT_EQ(sc->data, "entity_" + std::to_string(i));
+		}
+	}
+
+	// Test: Large strings (heap-allocated, not SSO)
+	TEST(Registry_NonTrivial, LargeHeapStrings) {
+		Registry registry;
+		constexpr size_t STRING_SIZE = 1000; // Much larger than SSO buffer
+		
+		std::vector<EntityId> entities;
+		for (int i = 0; i < 50; ++i) {
+			auto e = registry.takeEntity();
+			entities.push_back(e);
+			registry.addComponent<LargeString>(e, STRING_SIZE);
+		}
+		
+		// Verify all strings are intact
+		for (int i = 0; i < 50; ++i) {
+			auto* ls = registry.pinComponent<LargeString>(entities[i]).get();
+			ASSERT_NE(ls, nullptr);
+			EXPECT_EQ(ls->data.size(), STRING_SIZE);
+			EXPECT_EQ(ls->data[0], 'x');
+			EXPECT_EQ(ls->data[STRING_SIZE-1], 'x');
+		}
+		
+		// Remove and verify no crashes (proper destructor calls)
+		for (int i = 0; i < 50; ++i) {
+			registry.destroyEntity(entities[i]);
+		}
+	}
+
+	// Test: Mixed trivial and non-trivial in same entity
+	TEST(Registry_NonTrivial, MixedTrivialAndNonTrivial) {
+		Registry registry;
+		std::vector<EntityId> entities;
+		
+		for (int i = 0; i < 100; ++i) {
+			auto e = registry.takeEntity();
+			entities.push_back(e);
+			registry.addComponent<Position>(e, (float)i, (float)(i * 2));
+			registry.addComponent<StringComponent>(e, "pos_" + std::to_string(i));
+			registry.addComponent<Health>(e, i * 10);
+		}
+		
+		// Verify all components using pinComponent
+		for (int i = 0; i < 100; ++i) {
+			auto* pos = registry.pinComponent<Position>(entities[i]).get();
+			auto* sc = registry.pinComponent<StringComponent>(entities[i]).get();
+			auto* h = registry.pinComponent<Health>(entities[i]).get();
+			
+			ASSERT_NE(pos, nullptr);
+			ASSERT_NE(sc, nullptr);
+			ASSERT_NE(h, nullptr);
+			
+			EXPECT_EQ(pos->x, (float)i);
+			EXPECT_EQ(sc->data, "pos_" + std::to_string(i));
+			EXPECT_EQ(h->value, i * 10);
+		}
+	}
+
+	// Test: Concurrent access with non-trivial components
+	TEST(Registry_NonTrivial, ConcurrentAddStrings) {
+		Registry registry;
+		std::atomic<int> addCount{0};
+		std::mutex idsMutex;
+		std::vector<EntityId> allIds;
+		
+		std::vector<std::thread> threads;
+		
+		// Writer threads - add entities with strings
+		for (int t = 0; t < 4; ++t) {
+			threads.emplace_back([&, t] {
+				for (int i = 0; i < 50; ++i) {
+					auto e = registry.takeEntity();
+					{
+						std::lock_guard<std::mutex> lock(idsMutex);
+						allIds.push_back(e);
+					}
+					registry.addComponent<StringComponent>(e, "thread" + std::to_string(t) + "_item" + std::to_string(i));
+					++addCount;
+				}
+			});
+		}
+		
+		for (auto& th : threads) th.join();
+		
+		EXPECT_EQ(addCount.load(), 200);
+		EXPECT_EQ(allIds.size(), 200u);
+		
+		// Verify all strings are valid
+		int validCount = 0;
+		for (auto id : allIds) {
+			auto* sc = registry.pinComponent<StringComponent>(id).get();
+			if (sc && !sc->data.empty() && sc->data.find("thread") == 0) {
+				++validCount;
+			}
+		}
+		EXPECT_EQ(validCount, 200);
+	}
+
+	// Test: Component replacement with non-trivial types
+	TEST(Registry_NonTrivial, ReplaceStringComponent) {
+		Registry registry;
+		auto e = registry.takeEntity();
+		
+		// Add initial string
+		registry.addComponent<StringComponent>(e, "initial_value");
+		auto* sc = registry.pinComponent<StringComponent>(e).get();
+		ASSERT_NE(sc, nullptr);
+		EXPECT_EQ(sc->data, "initial_value");
+		
+		// Replace with new string (should properly destruct old)
+		registry.addComponent<StringComponent>(e, "replaced_value");
+		sc = registry.pinComponent<StringComponent>(e).get();
+		ASSERT_NE(sc, nullptr);
+		EXPECT_EQ(sc->data, "replaced_value");
+	}
+
+	// Test: Destructor counting for non-trivial components
+	TEST(Registry_NonTrivial, DestructorsCalled) {
+		static std::atomic<int> destructorCount{0};
+		
+		struct CountedString {
+			std::string data;
+			CountedString() : data() {}
+			CountedString(const std::string& s) : data(s) {}
+			~CountedString() { ++destructorCount; }
+			
+			// Move constructor/assignment
+			CountedString(CountedString&& o) noexcept : data(std::move(o.data)) {}
+			CountedString& operator=(CountedString&& o) noexcept { data = std::move(o.data); return *this; }
+			
+			// Copy constructor/assignment
+			CountedString(const CountedString& o) : data(o.data) {}
+			CountedString& operator=(const CountedString& o) { data = o.data; return *this; }
+		};
+		
+		destructorCount = 0;
+		
+		{
+			Registry registry;
+			for (int i = 0; i < 50; ++i) {
+				auto e = registry.takeEntity();
+				registry.addComponent<CountedString>(e, "test_" + std::to_string(i));
+			}
+			// Registry goes out of scope - all destructors should be called
+		}
+		
+		// At least 50 destructors should have been called
+		EXPECT_GE(destructorCount.load(), 50);
+	}
+
+	// Test: Modify non-trivial components
+	TEST(Registry_NonTrivial, ModifyStrings) {
+		Registry registry;
+		std::vector<EntityId> entities;
+		
+		for (int i = 0; i < 100; ++i) {
+			auto e = registry.takeEntity();
+			entities.push_back(e);
+			registry.addComponent<StringComponent>(e, "original_" + std::to_string(i));
+		}
+		
+		// Modify all strings
+		for (auto e : entities) {
+			auto* sc = registry.pinComponent<StringComponent>(e).get();
+			if (sc) {
+				sc->data = "modified_" + std::to_string(e);
+			}
+		}
+		
+		// Verify modifications
+		for (auto e : entities) {
+			auto* sc = registry.pinComponent<StringComponent>(e).get();
+			ASSERT_NE(sc, nullptr);
+			EXPECT_EQ(sc->data, "modified_" + std::to_string(e));
+		}
+	}
+
+	// Test: Stress with many string operations
+	TEST(Registry_NonTrivial, StressStringOperations) {
+		Registry registry;
+		std::vector<EntityId> entities;
+		
+		// Create 500 entities with long strings
+		for (int i = 0; i < 500; ++i) {
+			auto e = registry.takeEntity();
+			entities.push_back(e);
+			std::string longData(100 + (i % 200), 'a' + (i % 26));
+			registry.addComponent<StringComponent>(e, longData);
+		}
+		
+		// Delete every 3rd entity
+		for (size_t i = 0; i < entities.size(); i += 3) {
+			registry.destroyEntity(entities[i]);
+		}
+		
+		// Verify remaining entities are intact
+		for (size_t i = 0; i < entities.size(); ++i) {
+			if (i % 3 == 0) continue;
+			auto* sc = registry.pinComponent<StringComponent>(entities[i]).get();
+			ASSERT_NE(sc, nullptr);
+			EXPECT_GE(sc->data.size(), 100u);
+		}
+	}
+}

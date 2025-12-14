@@ -3,7 +3,8 @@
 #include <vector>
 #include <cstring>
 
-#include <ecss/memory/Sector.h>
+#include <ecss/Types.h>
+#include <ecss/memory/SectorLayoutMeta.h>
 #include <ecss/memory/RetireAllocator.h>
 
 namespace ecss::Memory {
@@ -34,11 +35,25 @@ namespace ecss::Memory {
 		return ++x;
 	}
 
+	/**
+	 * @brief Chunked memory allocator for sector data.
+	 * 
+	 * Stores raw sector data (component payloads only) in fixed-size chunks.
+	 * Sector metadata (id, isAliveData) is stored externally in SectorsArray.
+	 * 
+	 * @tparam ChunkCapacity Number of sectors per chunk (rounded up to power of 2).
+	 */
 	template<uint32_t ChunkCapacity = 8192>
 	struct ChunksAllocator {
 		template<uint32_t>
 		friend struct ChunksAllocator;
 
+		/**
+		 * @brief Cursor for linear iteration over sector data.
+		 * 
+		 * Provides access to raw sector data via linearIndex.
+		 * Does NOT have access to sector id/isAlive - those come from external arrays.
+		 */
 		struct Cursor {
 			Cursor() = default;
 
@@ -52,8 +67,9 @@ namespace ecss::Memory {
 			FORCE_INLINE Cursor& operator++() noexcept { return step(), *this; }
 			FORCE_INLINE Cursor& operator+(size_t value) noexcept { return setLinear(linIdx + value), *this; }
 
-			FORCE_INLINE Sector* operator*()  const noexcept { return reinterpret_cast<Sector*>(curB); }
-			FORCE_INLINE Sector* operator->() const noexcept { return reinterpret_cast<Sector*>(curB); }
+			/// @return Raw pointer to sector data (not a Sector*, just component data)
+			FORCE_INLINE std::byte* operator*()  const noexcept { return curB; }
+			FORCE_INLINE std::byte* operator->() const noexcept { return curB; }
 
 			FORCE_INLINE bool operator==(const Cursor& other) const noexcept { return linIdx == other.linIdx; }
 			FORCE_INLINE bool operator!=(const Cursor& other) const noexcept { return !(*this == other); }
@@ -110,6 +126,12 @@ namespace ecss::Memory {
 
 		FORCE_INLINE Cursor getCursor(size_t index = 0) const { return { this, index }; }
 
+		/**
+		 * @brief Cursor for ranged iteration over sector data.
+		 * 
+		 * Iterates over pre-computed spans of sector data.
+		 * Does NOT have access to sector id/isAlive - those come from external arrays.
+		 */
 		struct RangesCursor {
 			RangesCursor() = default;
 			RangesCursor(const ChunksAllocator* alloc, const Ranges<SectorId>& ranges, size_t size) : shift(alloc->mSectorSize) {
@@ -120,7 +142,7 @@ namespace ecss::Memory {
 				}
 				size = std::min(size, alloc->capacity());
 
-				// precompute all spans as [beginPtr, endPtr)
+				// precompute all spans as [beginPtr, endPtr) with linearIdx
 				spans.reserve(ranges.ranges.size() + chunks.size());
 
 				// split each logical [first,last) into per-chunk [b,e)
@@ -139,7 +161,7 @@ namespace ecss::Memory {
 
 						auto beginPtr = base + ChunksAllocator<ChunkCapacity>::calcInChunkShift(first, shift);
 						auto endPtr = beginPtr + count * shift;
-						if (beginPtr != endPtr) { spans.emplace_back(beginPtr, endPtr); }
+						if (beginPtr != endPtr) { spans.emplace_back(SpanInfo{beginPtr, endPtr, first}); }
 
 						first = static_cast<decltype(first)>(upto);
 					}
@@ -149,15 +171,17 @@ namespace ecss::Memory {
 				spansCount = spans.size();
 				if (spansCount) {
 					spanIdx = 0;
-					ptr = spans[0].first;
-					end = spans[0].second;
+					ptr = spans[0].beginPtr;
+					end = spans[0].endPtr;
+					linIdx = spans[0].startLinearIdx;
 				}
 			}
 
 			FORCE_INLINE void nextSpan() noexcept {
 				if (++spanIdx < spansCount) [[likely]] {
-					ptr = spans[spanIdx].first;
-					end = spans[spanIdx].second;
+					ptr = spans[spanIdx].beginPtr;
+					end = spans[spanIdx].endPtr;
+					linIdx = spans[spanIdx].startLinearIdx;
 				}
 				else {
 					ptr = end = nullptr;
@@ -166,67 +190,72 @@ namespace ecss::Memory {
 
 			FORCE_INLINE void step() noexcept {
 				ptr += shift;
+				++linIdx;
 				if (ptr != end) [[likely]] return;
 				nextSpan();
 			}
 
-			FORCE_INLINE void advanceToId(SectorId target) noexcept {
-				if (!ptr || reinterpret_cast<Sector*>(ptr)->id >= target) [[likely]] return;
-				step(); if (!ptr || reinterpret_cast<Sector*>(ptr)->id >= target) [[likely]] return;
-				step(); if (!ptr || reinterpret_cast<Sector*>(ptr)->id >= target) [[likely]] return;
-				jumpToChunkWithId(target);
-				if (!ptr || reinterpret_cast<Sector*>(ptr)->id >= target) [[likely]] return;
-				jumpToSectorInChunkWithId(target);
+			/// @brief Advance to a specific linear index (binary search if needed).
+			FORCE_INLINE void advanceToLinearIdx(size_t targetIdx) noexcept {
+				if (!ptr || linIdx >= targetIdx) [[likely]] return;
+				step(); if (!ptr || linIdx >= targetIdx) [[likely]] return;
+				step(); if (!ptr || linIdx >= targetIdx) [[likely]] return;
+				jumpToSpanWithLinearIdx(targetIdx);
+				if (!ptr || linIdx >= targetIdx) [[likely]] return;
+				jumpToPositionInSpan(targetIdx);
 			}
 
 			FORCE_INLINE std::byte* rawPtr() const noexcept { return ptr; }
+			FORCE_INLINE size_t linearIndex() const noexcept { return linIdx; }
 			FORCE_INLINE explicit operator bool() const noexcept { return ptr != nullptr; }
-			
-			/// @brief Jump directly to a known sector (for hybrid dense/sparse iteration).
-			FORCE_INLINE void jumpTo(Sector* sector) noexcept { ptr = reinterpret_cast<std::byte*>(sector); }
 
-			FORCE_INLINE Sector* operator*()  const noexcept { return reinterpret_cast<Sector*>(ptr); }
-			FORCE_INLINE Sector* operator->() const noexcept { return reinterpret_cast<Sector*>(ptr); }
+			/// @return Raw pointer to sector data
+			FORCE_INLINE std::byte* operator*()  const noexcept { return ptr; }
+			FORCE_INLINE std::byte* operator->() const noexcept { return ptr; }
 
 			FORCE_INLINE bool operator==(const RangesCursor& other) const noexcept { return ptr == other.ptr; }
 			FORCE_INLINE bool operator!=(const RangesCursor& other) const noexcept { return !(*this == other); }
 
 		private:
-			FORCE_INLINE static SectorId idAt(std::byte* p) noexcept {
-				return reinterpret_cast<Sector*>(p)->id;
-			}
+			struct SpanInfo {
+				std::byte* beginPtr;
+				std::byte* endPtr;
+				size_t startLinearIdx;
+			};
 
-			FORCE_INLINE void jumpToChunkWithId(SectorId target) noexcept {
-				// binary search of chunk
-				if (ptr && idAt(end - shift) < target) [[unlikely]] {
+			FORCE_INLINE void jumpToSpanWithLinearIdx(size_t targetIdx) noexcept {
+				// Binary search for span containing targetIdx
+				size_t spanEndIdx = linIdx + (end - ptr) / shift;
+				if (spanEndIdx <= targetIdx) [[unlikely]] {
 					size_t lo = spanIdx + 1;
 					size_t hi = spansCount;
 					while (lo < hi) [[likely]] {
 						size_t mid = (lo + hi) >> 1;
-						if (idAt(spans[mid].second - shift) < target) { lo = mid + 1;} else { hi = mid;}
+						size_t midEndIdx = spans[mid].startLinearIdx + (spans[mid].endPtr - spans[mid].beginPtr) / shift;
+						if (midEndIdx <= targetIdx) { lo = mid + 1; } else { hi = mid; }
 					}
 
 					if (lo == spansCount) [[unlikely]] {  ptr = end = nullptr;	return;}
 
 					spanIdx = lo;
-					ptr = spans[lo].first;
-					end = spans[lo].second;
+					ptr = spans[lo].beginPtr;
+					end = spans[lo].endPtr;
+					linIdx = spans[lo].startLinearIdx;
 				}
 			}
 
-			FORCE_INLINE void jumpToSectorInChunkWithId(SectorId target) noexcept {
-				// binary search in chunk
-				auto hi = end;
-				while (ptr < hi) [[likely]] {
-					auto mid = ptr + (((hi - ptr) / shift) >> 1) * shift;
-					if (idAt(mid) < target) { ptr = mid + shift; } else { hi = mid; }
-				}
+			FORCE_INLINE void jumpToPositionInSpan(size_t targetIdx) noexcept {
+				// Binary search within span
+				size_t offset = targetIdx - linIdx;
+				ptr += offset * shift;
+				linIdx = targetIdx;
 			}
 
-			std::vector<std::pair<std::byte*, std::byte*>> spans{}; // all ranges as [beginPtr, endPtr)
+			std::vector<SpanInfo> spans{}; // all ranges as [beginPtr, endPtr) with start linear index
 			size_t spansCount{0};
 			size_t spanIdx{0};
 			size_t shift{0};
+			size_t linIdx{0};
 
 			std::byte* ptr{nullptr};
 			std::byte* end{nullptr};
@@ -269,10 +298,17 @@ namespace ecss::Memory {
 		}
 
 	public:
-		FORCE_INLINE Sector* operator[](size_t index) const { return reinterpret_cast<Sector*>(static_cast<std::byte*>(mChunks[calcChunkIndex(index)]) + calcInChunkShift(index, mSectorSize)); }
-		FORCE_INLINE Sector* at(size_t index)         const { return reinterpret_cast<Sector*>(static_cast<std::byte*>(mChunks[calcChunkIndex(index)]) + calcInChunkShift(index, mSectorSize)); }
+		/// @return Raw pointer to sector data at given linear index
+		FORCE_INLINE std::byte* operator[](size_t index) const { 
+			return static_cast<std::byte*>(mChunks[calcChunkIndex(index)]) + calcInChunkShift(index, mSectorSize); 
+		}
+		FORCE_INLINE std::byte* at(size_t index) const { 
+			return static_cast<std::byte*>(mChunks[calcChunkIndex(index)]) + calcInChunkShift(index, mSectorSize); 
+		}
 
-		void moveSectors(size_t dst, size_t src, size_t n) const {
+
+		/// @brief Simple memmove for trivial sector data (no alive array needed)
+		void moveSectorsDataTrivial(size_t dst, size_t src, size_t n) const {
 			if (!n || dst == src) return;
 
 			if (dst < src) {
@@ -281,14 +317,7 @@ namespace ecss::Memory {
 					const size_t srcRoom = mChunkCapacity - (src & (mChunkCapacity - 1));
 					const size_t dstRoom = mChunkCapacity - (dst & (mChunkCapacity - 1));
 					const size_t run = std::min({ n, srcRoom, dstRoom });
-					if (mIsSectorTrivial) {
-						std::memmove(at(dst), at(src), run * static_cast<size_t>(mSectorSize));
-					}
-					else {
-						for (size_t i = 0; i < run; ++i) {
-							Sector::moveSector(at(src + i), at(dst + i), mSectorLayout);
-						}
-					}
+					std::memmove(at(dst), at(src), run * static_cast<size_t>(mSectorSize));
 					dst += run; src += run; n -= run;
 				}
 			}
@@ -305,14 +334,7 @@ namespace ecss::Memory {
 
 					const size_t srcBeg = srcEnd - run;
 					const size_t dstBeg = dstEnd - run;
-					if (mIsSectorTrivial) {
-						std::memmove(at(dstBeg), at(srcBeg), run * static_cast<size_t>(mSectorSize));
-					}
-					else {
-						for (size_t i = run; i-- > 0; ) {
-							Sector::moveSector(at(srcBeg + i), at(dstBeg + i), mSectorLayout);
-						}
-					}
+					std::memmove(at(dstBeg), at(srcBeg), run * static_cast<size_t>(mSectorSize));
 
 					srcEnd -= run; dstEnd -= run; n -= run;
 				}
@@ -345,29 +367,28 @@ namespace ecss::Memory {
 
 		FORCE_INLINE size_t capacity() const { return mChunks.size() << mChunkShift; }
 
-		size_t find(const Sector* sectorPtr) const {
-			if (!sectorPtr || mChunks.empty()) return capacity();
+		size_t find(const std::byte* dataPtr) const {
+			if (!dataPtr || mChunks.empty()) return capacity();
 
 			const size_t stride = static_cast<size_t>(mChunkCapacity) * static_cast<size_t>(mSectorSize);
-			const std::byte* p = reinterpret_cast<const std::byte*>(sectorPtr);
 
 			{
 				const std::byte* base0 = static_cast<const std::byte*>(mChunks.front());
-				if (p >= base0 && p < base0 + stride) {
-					const size_t local = (p - base0) / static_cast<size_t>(mSectorSize);
+				if (dataPtr >= base0 && dataPtr < base0 + stride) {
+					const size_t local = (dataPtr - base0) / static_cast<size_t>(mSectorSize);
 					return local;
 				}
 				const std::byte* baseL = static_cast<const std::byte*>(mChunks.back());
-				if (p >= baseL && p < baseL + stride) {
-					const size_t local = (p - baseL) / static_cast<size_t>(mSectorSize);
+				if (dataPtr >= baseL && dataPtr < baseL + stride) {
+					const size_t local = (dataPtr - baseL) / static_cast<size_t>(mSectorSize);
 					return (mChunks.size() - 1) * static_cast<size_t>(mChunkCapacity) + local;
 				}
 			}
 
 			for (size_t ci = 1; ci + 1 < mChunks.size(); ++ci) {
 				const std::byte* base = static_cast<const std::byte*>(mChunks[ci]);
-				if (p >= base && p < base + stride) {
-					const size_t local = (p - base) / static_cast<size_t>(mSectorSize);
+				if (dataPtr >= base && dataPtr < base + stride) {
+					const size_t local = (dataPtr - base) / static_cast<size_t>(mSectorSize);
 					return ci * static_cast<size_t>(mChunkCapacity) + local;
 				}
 			}
@@ -375,16 +396,18 @@ namespace ecss::Memory {
 			return capacity();
 		}
 
-	private:
-		FORCE_INLINE static constexpr size_t calcChunkIndex(size_t sectorIdx) { return sectorIdx >> mChunkShift; }
-		FORCE_INLINE static constexpr size_t calcInChunkShift(size_t sectorIdx, size_t sectorSize) { return (sectorIdx & (mChunkCapacity - 1)) * sectorSize; }
-
+	public:
+		// Exposed for SectorsArray to handle non-trivial copy separately
 		template<uint32_t OC>
 		void copyCommonData(const ChunksAllocator<OC>& other)  {
 			mSectorLayout = other.mSectorLayout;
 			mSectorSize = other.mSectorSize;
 			mIsSectorTrivial = other.mIsSectorTrivial;
 		}
+
+	private:
+		FORCE_INLINE static constexpr size_t calcChunkIndex(size_t sectorIdx) { return sectorIdx >> mChunkShift; }
+		FORCE_INLINE static constexpr size_t calcInChunkShift(size_t sectorIdx, size_t sectorSize) { return (sectorIdx & (mChunkCapacity - 1)) * sectorSize; }
 
 		template<uint32_t OC>
 		void copy(const ChunksAllocator<OC>& other)  {
@@ -422,10 +445,12 @@ namespace ecss::Memory {
 				}
 			}
 			else {
+				// Note: for non-trivial copy, caller must handle isAlive arrays separately
 				auto from = other.getCursor();
 				auto to = getCursor();
 				for (auto i = 0u; i < capacity(); i++) {
-					auto sector = Sector::copySector(*from, *to, mSectorLayout);
+					// Copy raw bytes only - isAlive handling is external
+					std::memcpy(*to, *from, mSectorSize);
 					++from;
 					++to;
 				}
@@ -436,7 +461,13 @@ namespace ecss::Memory {
 		void move(ChunksAllocator<OC>&& other)  {
 			copyCommonData(other);
 			if constexpr (OC == ChunkCapacity) {
-				mChunks = std::move(other.mChunks);
+				// Can't just std::move the vector - allocator points to other.mBin!
+				// Transfer chunk pointers manually to our vector (with our allocator/bin)
+				mChunks.clear();
+				mChunks.reserve(other.mChunks.size());
+				for (void* chunk : other.mChunks) {
+					mChunks.push_back(chunk);
+				}
 				other.mChunks.clear();
 			}
 			else {
@@ -444,7 +475,7 @@ namespace ecss::Memory {
 				auto from = other.getCursor();
 				auto to = getCursor();
 				for (auto i = 0u; i < capacity(); i++) {
-					auto sector = Sector::moveSector(*from, *to, mSectorLayout);
+					std::memcpy(*to, *from, mSectorSize);
 					++from;
 					++to;
 				}
@@ -463,6 +494,6 @@ namespace ecss::Memory {
 		SectorLayoutMeta* mSectorLayout = nullptr;
 		uint16_t mSectorSize = 0;
 
-		bool mIsSectorTrivial = std::is_trivial_v<Sector>;
+		bool mIsSectorTrivial = true;
 	};
 }
