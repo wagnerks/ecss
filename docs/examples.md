@@ -123,19 +123,74 @@ auto writer = std::jthread([&]{
 ---
 
 ## 9. Trivial vs Non-Trivial Components
-Prefer trivial types for fast raw moves during defrag / insertion.
-```cpp
-struct TrivialTag { int value; };          // trivially movable
-struct Heavy { std::string name; };        // non-trivial (move invokes code)
+Prefer trivial types for fast raw moves during defrag / insertion. Non‑trivial types are fully supported with proper move semantics.
 
-reg.addComponent<TrivialTag>(reg.takeEntity(), {1});
-reg.addComponent<Heavy>(reg.takeEntity(), {"npc_01"});
+```cpp
+// Trivial: uses fast memmove during defrag/shift
+struct TrivialTag { int value; };
+
+// Non-trivial: proper move ctor/dtor called during operations
+struct Named { std::string name; };
+struct Inventory { std::vector<int> items; };
+
+// Both work correctly
+auto e1 = reg.takeEntity();
+reg.addComponent<TrivialTag>(e1, {1});
+
+auto e2 = reg.takeEntity();
+reg.addComponent<Named>(e2, {"npc_01"});
+reg.addComponent<Inventory>(e2, {{1, 2, 3}});
+
+// Safe to defragment - non-trivial types moved correctly
+reg.destroyEntity(e1);
+reg.update(); // Named/Inventory elements properly relocated, no leaks
 ```
-If a `SectorsArray` contains only trivial types, random insertion / compaction uses `memmove` for best speed.
+
+**Performance notes:**
+
+- If a `SectorsArray` contains **only trivial types**: random insertion / compaction uses batch `memmove`.
+- If **any** grouped type is non‑trivial: per‑element move constructor / destructor calls.
+- Correctness is guaranteed for both cases; trivial is just faster.
 
 ---
 
-## 10. Recycling Entity IDs
+## 10. Thread-Safe Non-Trivial Components
+Non‑trivial types work correctly with thread‑safe registry:
+
+```cpp
+struct PlayerData {
+    std::string name;
+    std::vector<int> inventory;
+};
+
+ecss::Registry<true> reg; // thread-safe
+
+// Writer thread
+std::jthread writer([&]{
+    for (int i = 0; i < 100; ++i) {
+        auto e = reg.takeEntity();
+        reg.addComponent<PlayerData>(e, {
+            "player_" + std::to_string(i),
+            {1, 2, 3, 4, 5}
+        });
+    }
+});
+
+// Reader thread
+std::jthread reader([&]{
+    for (int i = 0; i < 50; ++i) {
+        for (auto [id, pd] : reg.view<PlayerData>()) {
+            if (pd && !pd->name.empty()) {
+                // Safe: strings properly handled during concurrent ops
+            }
+        }
+    }
+});
+```
+
+---
+
+## 11. Recycling Entity IDs
 ```cpp
 std::vector<ecss::EntityId> temp;
 for (int i = 0; i < 50; ++i) temp.push_back(reg.takeEntity());
@@ -146,7 +201,7 @@ auto reused = reg.takeEntity(); // may reuse a prior id
 
 ---
 
-## 11. Conditional Component Addition
+## 12. Conditional Component Addition
 Add a component later without disturbing grouped arrays of other types.
 ```cpp
 auto eLate = reg.takeEntity();
@@ -158,7 +213,7 @@ Only the `Velocity` array changes; existing `Position` storage untouched.
 
 ---
 
-## 12. Minimal System Dispatch Pattern
+## 13. Minimal System Dispatch Pattern
 ```cpp
 void integrate(ecss::Registry<false>& r, float dt) {
     for (auto [id, p, v] : r.view<Position, Velocity>()) {
@@ -169,7 +224,7 @@ void integrate(ecss::Registry<false>& r, float dt) {
 
 ---
 
-## 13. Custom Component Grouping Strategy
+## 14. Custom Component Grouping Strategy
 Group only the hot pairs; leave rarely co-accessed types ungrouped.
 ```cpp
 reg.registerArray<Position, Velocity>();      // hot pair
@@ -180,7 +235,7 @@ This avoids creating archetype explosions while still gaining locality where it 
 
 ---
 
-## 14. Simple Health Cleanup Pass
+## 15. Simple Health Cleanup Pass
 ```cpp
 for (auto [id, h] : reg.view<Health>()) {
     if (h && h->hp <= 0) reg.destroyEntity(id);
@@ -190,7 +245,7 @@ reg.update(); // finalize removals
 
 ---
 
-## 15. Partial Component Access in a View
+## 16. Partial Component Access in a View
 ```cpp
 for (auto [id, p, v, h] : reg.view<Position, Velocity, Health>()) {
     // You may ignore unused projected pointers safely
@@ -200,7 +255,7 @@ for (auto [id, p, v, h] : reg.view<Position, Velocity, Health>()) {
 
 ---
 
-## 16. Manual Opportunistic Defrag After Burst
+## 17. Manual Opportunistic Defrag After Burst
 ```cpp
 // After large spawn / destroy cycle:
 reg.update(); // will internally decide
@@ -210,7 +265,7 @@ reg.defragment<Position>(); // if such helper exists; else keep array pointer & 
 
 ---
 
-## 17. Range-Constrained System (Chunked Work)
+## 18. Range-Constrained System (Chunked Work)
 ```cpp
 auto all = reg.entityRanges(); // assume helper returning full range set
 // Process in windowed slices (pseudo)
@@ -223,7 +278,7 @@ for (auto window : partition(all, 4096)) { // user-defined helper
 
 ---
 
-## 18. Checking for Component Presence Cheaply
+## 19. Checking for Component Presence Cheaply
 ```cpp
 if (reg.hasComponent<Velocity>(someEntity)) {
     // safe to assume view<Velocity> would yield pointer
@@ -232,7 +287,7 @@ if (reg.hasComponent<Velocity>(someEntity)) {
 
 ---
 
-## 19. Adding Many Entities (Bulk)
+## 20. Adding Many Entities (Bulk)
 ```cpp
 reg.reserve<Position>(100'000);
 for (int i = 0; i < 100'000; ++i) {
@@ -242,7 +297,7 @@ for (int i = 0; i < 100'000; ++i) {
 ```
 ---
 
-## 20. Simple Debug Print of Alive Positions
+## 21. Simple Debug Print of Alive Positions
 ```cpp
 for (auto [id, p] : reg.view<Position>()) {
     if (p) std::cout << id << ": (" << p->x << "," << p->y << ")\n";

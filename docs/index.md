@@ -19,8 +19,10 @@ hide:
 - O(1) entity id ➜ sector* lookup (sparse+direct mapping)
 - Optional thread safety (`Registry<true>`) with shared / unique locks + pin counters
 - Deferred erase + opportunistic / explicit defragmentation
+- Full support for non‑trivial types (`std::string`, `std::vector`, RAII) with proper move semantics
 - Reflection helper assigns dense type ids (no strings / no RTTI in hot paths)
 - Header‑only style integration, no external dependencies (C++20/23 standard library only)
+- Comprehensive test suite (200+ tests covering threading, non‑trivial types, edge cases)
 
 ---
 
@@ -34,6 +36,8 @@ hide:
 - `SectorHeader` holds id + liveness bit mask.
 - Component payloads packed immediately after header (compile‑time offsets).
 - Group only where locality wins; unrelated components can live in separate arrays.
+- **Trivial types**: relocated via fast `memmove` during defrag/shifts.
+- **Non‑trivial types**: proper move constructors / destructors invoked automatically.
 
 ---
 
