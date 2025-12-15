@@ -195,6 +195,12 @@ namespace detail {
 			isAlive.resize(newSize, 0);
 			storeView(actualSize);
 		}
+		
+		// Fast append - caller must call storeView() after
+		FORCE_INLINE void pushBack(SectorId id, uint32_t alive) {
+			ids.push_back(id);
+			isAlive.push_back(alive);
+		}
 
 		FORCE_INLINE void reserve(size_t newCapacity) {
 			ids.reserve(newCapacity);
@@ -244,6 +250,12 @@ namespace detail {
 		FORCE_INLINE void resize(size_t newSize, size_t) {
 			ids.resize(newSize);
 			isAlive.resize(newSize, 0);
+		}
+		
+		// Fast append without size checks - caller ensures capacity
+		FORCE_INLINE void pushBack(SectorId id, uint32_t alive) {
+			ids.push_back(id);
+			isAlive.push_back(alive);
 		}
 
 		FORCE_INLINE void reserve(size_t newCapacity) {
@@ -1036,6 +1048,10 @@ private:
 			mAllocator.allocate(newCapacity);
 			mDenseArrays.reserve(newCapacity);
 		}
+		// Pre-allocate sparse map for expected entity IDs
+		if (mSparseMap.capacity() < newCapacity) {
+			mSparseMap.resize(newCapacity);
+		}
 	}
 
 	size_t findInsertPositionImpl(SectorId sectorId, size_t validSize) const {
@@ -1065,29 +1081,37 @@ private:
 			return existingIdx;
 		}
 
-		// Allocate storage - resize vectors but keep view at old size until data is populated
+		// Ensure chunk memory available
 		mAllocator.allocate(mSize + 1);
+
+		// Fast path: append to end (common case - sequential entity IDs)
+		const size_t pos = mSize;
+		const bool isAppend = (pos == 0) || (sectorId > mDenseArrays.idAt(pos - 1));
+		
+		if (isAppend) [[likely]] {
+			// Fast append - push_back handles capacity automatically (amortized O(1))
+			mDenseArrays.pushBack(sectorId, 0);
+			mSparseMap[sectorId] = static_cast<uint32_t>(pos);
+			++mSize;
+			mDenseArrays.storeView(mSize);
+			return pos;
+		}
+		
+		// Slow path: insert in middle (maintain sorted order)
 		mDenseArrays.resize(mSize + 1, mSize);
-
-		const size_t oldSize = mSize;
-		size_t pos = mSize++;
-
-		// Check if we need to insert in the middle (maintain sorted order)
-		if (!((pos == 0) || (sectorId > mDenseArrays.idAt(pos - 1)))) [[unlikely]] {
-			pos = findInsertPositionImpl(sectorId, oldSize);
-			if (pos != mSize - 1) [[unlikely]] {
-				shiftRightImpl(pos, 1);
-			}
+		++mSize;
+		
+		size_t insertPos = findInsertPositionImpl(sectorId, pos);
+		if (insertPos != mSize - 1) {
+			shiftRightImpl(insertPos, 1);
 		}
 
-		mDenseArrays.idAt(pos) = sectorId;
-		mDenseArrays.isAliveAt(pos) = 0;
-		mSparseMap[sectorId] = static_cast<uint32_t>(pos);
-		
-		// Update atomic view to show new size now that data is valid
+		mDenseArrays.idAt(insertPos) = sectorId;
+		mDenseArrays.isAliveAt(insertPos) = 0;
+		mSparseMap[sectorId] = static_cast<uint32_t>(insertPos);
 		mDenseArrays.storeView(mSize);
 
-		return pos;
+		return insertPos;
 	}
 
 	void shiftRightImpl(size_t from, size_t count) {
