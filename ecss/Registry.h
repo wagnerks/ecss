@@ -909,6 +909,39 @@ namespace ecss {
 			FORCE_INLINE friend bool operator==(const EndIterator endIt, const Iterator& it) noexcept { return it == endIt; }
 			FORCE_INLINE friend bool operator!=(const EndIterator endIt, const Iterator& it) noexcept { return it != endIt; }
 
+			/// @brief Invoke func directly without tuple creation. Returns true if all components found.
+			template<typename Func>
+			FORCE_INLINE bool tryInvoke(Func&& func) const noexcept {
+				auto slot = *mIterator;
+				T* main = reinterpret_cast<T*>(slot.data + mMainOffset);
+				if (!(slot.isAlive & std::get<0>(mTypeAccessInfo).typeAliveMask)) return false;
+				
+				if constexpr (sizeof...(CompTypes) == 0) {
+					func(*main);
+					return true;
+				} else {
+					// Recursive template expansion - no tuple allocation
+					return tryInvokeRec(std::forward<Func>(func), slot, main);
+				}
+			}
+
+		private:
+			/// @brief Recursive helper that collects component pointers without tuple
+			template<typename Func, typename... Got>
+			FORCE_INLINE bool tryInvokeRec(Func&& func, const SlotInfo& slot, T* main, Got*... got) const noexcept {
+				if constexpr (sizeof...(Got) == sizeof...(CompTypes)) {
+					// All components collected - invoke
+					func(*main, (*got)...);
+					return true;
+				} else {
+					// Get next component type
+					using Next = std::tuple_element_t<sizeof...(Got), std::tuple<CompTypes...>>;
+					Next* next = getComponent<Next>(slot);
+					if (!next) return false;
+					return tryInvokeRec(std::forward<Func>(func), slot, main, got..., next);
+				}
+			}
+
 		private:
 			/// @brief Fetch component pointer for specific entity id (may be nullptr).
 			template<typename ComponentType>
@@ -935,12 +968,22 @@ namespace ecss {
 				return (otherSlot.id == slot.id && (otherSlot.isAlive & info.typeAliveMask)) ? reinterpret_cast<ComponentType*>(otherSlot.data + info.typeOffsetInSector) : nullptr;
 			}
 			else {
-					// Fast direct O(1) lookup for non-thread-safe mode
-					auto* other = mSecondaryArrays[info.iteratorIdx];
-					auto otherIdx = other->template findLinearIdx<false>(slot.id);
-					if (otherIdx == INVALID_IDX) return nullptr;
-					auto otherIsAlive = other->template getIsAliveRef<false>(otherIdx);
-					return (otherIsAlive & info.typeAliveMask) ? reinterpret_cast<ComponentType*>(other->mAllocator.at(otherIdx) + info.typeOffsetInSector) : nullptr;
+					// Sequential iteration - IDs are sorted, use iterator advance
+					auto& it = mSecondaryIterators[info.iteratorIdx];
+					if (!it) [[unlikely]] {
+						return nullptr;
+					}
+					// Advance to current entity's linear index
+					if ((*it).linearIdx < slot.linearIdx) [[unlikely]] {
+						it.advanceToLinearIdx(slot.linearIdx);
+					}
+					if (!it) [[unlikely]] {
+						return nullptr;
+					}
+					auto otherSlot = *it;
+					return (otherSlot.id == slot.id && (otherSlot.isAlive & info.typeAliveMask)) 
+						? reinterpret_cast<ComponentType*>(otherSlot.data + info.typeOffsetInSector) 
+						: nullptr;
 				}
 			}
 
@@ -951,9 +994,7 @@ namespace ecss {
 
 				for (const auto& [arr, it] : secondary) {
 					mSecondaryArrays[mSecondaryCount] = arr;
-					if constexpr (ThreadSafe) {
-						mSecondaryIterators[mSecondaryCount] = it;
-					}
+					mSecondaryIterators[mSecondaryCount] = it;  // Use iterators for both TS and non-TS
 					for (size_t a = 0; a < TypesCount; ++a) {
 						if (arrays[a] == arr) {
 							arrayIndexes[a] = mSecondaryCount;
@@ -1081,17 +1122,9 @@ namespace ecss {
 			
 			// Check if all components are in the same sector (grouped)
 			if (!mIsGrouped) {
-				// Not grouped - fallback to regular iteration
+				// Not grouped - use tryInvoke to avoid tuple allocation
 				for (auto it = mBeginIt; it != end(); ++it) {
-					auto val = *it;
-					auto* main = std::get<1>(val);
-					if (main) {
-						std::apply([&](auto, auto* m, auto*... rest) {
-							if ((rest && ...)) { // All pointers valid
-								func(*m, (*rest)...);
-							}
-						}, val);
-					}
+					it.tryInvoke(std::forward<Func>(func));
 				}
 				return;
 			}
@@ -1196,8 +1229,8 @@ namespace ecss {
 				it = SectorsIt(mainArr, startIdx, endIdx, mainArr->template getLayoutData<T>().isAliveMask, false);
 			}
 
-			auto secondary = collectSecondaryArrays(arrays, ranges);
-			mBeginIt = Iterator{ arrays, it, secondary };
+		auto secondary = collectSecondaryArrays(arrays, ranges);
+		mBeginIt = Iterator{ arrays, it, secondary };
 			
 			// Check if all components are in the same sector (grouped)
 			mIsGrouped = secondary.empty();
