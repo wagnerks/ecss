@@ -22,8 +22,12 @@ namespace ecss::Memory {
 		struct InstancePool {
 			std::mutex mtx;
 			std::vector<uint16_t> freeList;
-			uint16_t nextId = 0;
-			uint16_t epochs[kMaxInstances]{}; // Incremented each time slot is reused
+			uint16_t nextId;
+			uint16_t epochs[kMaxInstances];
+			
+			InstancePool() : nextId(0) {
+				std::fill_n(epochs, kMaxInstances, uint16_t(0));
+			}
 			
 			std::pair<uint16_t, uint16_t> acquire() { // returns {id, epoch}
 				std::lock_guard lock(mtx);
@@ -42,16 +46,23 @@ namespace ecss::Memory {
 			}
 		};
 		
-		static inline InstancePool sInstancePool;
+		static inline InstancePool sInstancePool{};
 		
 		// Per-type storage: [instanceId] -> {epoch, typeId}
 		// If stored epoch != current epoch, entry is stale
 		struct PerTypeData {
 			struct Entry {
-				uint16_t epoch = 0;
-				ECSType typeId = 0;
+				uint16_t epoch;
+				ECSType typeId;
 			};
-			Entry entries[kMaxInstances]{};
+			Entry entries[kMaxInstances];
+			
+			PerTypeData() {
+				for (size_t i = 0; i < kMaxInstances; ++i) {
+					entries[i].epoch = 0;
+					entries[i].typeId = 0;
+				}
+			}
 		};
 
 	public:
