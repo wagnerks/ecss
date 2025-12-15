@@ -50,6 +50,7 @@ namespace ecss::Memory {
 		
 		// Per-type storage: [instanceId] -> {epoch, typeId}
 		// If stored epoch != current epoch, entry is stale
+		// Initial epoch is UINT16_MAX so first real epoch (0) triggers assignment
 		struct PerTypeData {
 			struct Entry {
 				uint16_t epoch;
@@ -59,7 +60,7 @@ namespace ecss::Memory {
 			
 			PerTypeData() {
 				for (size_t i = 0; i < kMaxInstances; ++i) {
-					entries[i].epoch = 0;
+					entries[i].epoch = UINT16_MAX; // Invalid epoch - will never match real epoch
 					entries[i].typeId = 0;
 				}
 			}
