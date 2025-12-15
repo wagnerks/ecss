@@ -134,13 +134,11 @@ namespace ecss {
 
 	public:
 		/**
-		 * @brief Get a stable numeric type id for component T in this registry instance.
+		 * @brief Get a stable numeric type id for component T.
 		 * @tparam T Component type.
-		 * @return Integral id (dense, zero-based).
-		 * @note IDs may differ between different registry template instantiations.
 		 */
 		template<typename T>
-		ECSType componentTypeId() const noexcept { return mReflectionHelper.getTypeId<T>(); }
+		FORCE_INLINE static ECSType componentTypeId() noexcept { return Memory::DenseTypeIdGenerator::getTypeId<T>(); }
 
 	public:
 		Registry(const Registry& other) noexcept = delete;
@@ -790,8 +788,6 @@ namespace ecss {
 		}
 
 	private:
-		mutable Memory::ReflectionHelper mReflectionHelper; ///< Type id / layout reflection helper.
-
 		Ranges<EntityId> mEntities; ///< Dense range-managed entity id storage.
 
 		/// @brief Mapping: component type id -> sectors array (may group several component types).

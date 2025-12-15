@@ -35,37 +35,14 @@ namespace ecss::Memory {
 			static const ECSType id = sNextId.fetch_add(1, std::memory_order_relaxed);
 			return id;
 		}
-		
+
+		template<typename T>
+		FORCE_INLINE static ECSType getTypeId() noexcept {
+			return DenseTypeIdGenerator::getId<std::remove_const_t<std::remove_pointer_t<std::remove_reference_t<T>>>>();
+		}
+
 		static ECSType getCount() noexcept {
 			return sNextId.load(std::memory_order_relaxed);
 		}
 	};
-
-	/**
-	 * @brief Helper for runtime type reflection.
-	 * 
-	 * Thin wrapper around DenseTypeIdGenerator for API compatibility.
-	 * No per-instance state needed - all type IDs are global.
-	 */
-	class ReflectionHelper {
-	public:
-		ReflectionHelper() noexcept = default;
-		~ReflectionHelper() noexcept = default;
-		
-		// Copyable and movable (no state)
-		ReflectionHelper(const ReflectionHelper&) noexcept = default;
-		ReflectionHelper& operator=(const ReflectionHelper&) noexcept = default;
-		ReflectionHelper(ReflectionHelper&&) noexcept = default;
-		ReflectionHelper& operator=(ReflectionHelper&&) noexcept = default;
-
-		template<typename T>
-		FORCE_INLINE ECSType getTypeId() const noexcept {
-			return DenseTypeIdGenerator::getId<std::remove_const_t<std::remove_pointer_t<std::remove_reference_t<T>>>>();
-		}
-
-		FORCE_INLINE ECSType getTypesCount() const noexcept {
-			return DenseTypeIdGenerator::getCount();
-		}
-	};
-
 } // namespace ecss::Memory
