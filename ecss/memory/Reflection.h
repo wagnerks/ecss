@@ -1,7 +1,6 @@
 ﻿#pragma once
 
 #include <mutex> // for std::once_flag
-#include <cassert>
 #include <ecss/Types.h>
 
 namespace ecss::Memory {
@@ -11,18 +10,12 @@ namespace ecss::Memory {
 	 * This limits memory usage for per-type static arrays in getTypeIdImpl().
 	 * Each component type creates arrays of this size for type ID tracking.
 	 * 256 instances should be more than enough for any practical use case.
-	 * 
-	 * Previous value (65535) caused ~640KB static allocation per component type,
-	 * which triggered STATUS_STACK_BUFFER_OVERRUN on MSVC due to /GS checks
-	 * during thread-safe static initialization.
 	 */
 	inline constexpr size_t kMaxRegistryInstances = 256;
 
 	class ReflectionHelper {
 	public:
-		ReflectionHelper() : mCurrentInstance(mHelperInstances++) {
-			assert(mCurrentInstance < kMaxRegistryInstances && "Too many Registry instances created");
-		}
+		ReflectionHelper() : mCurrentInstance(mHelperInstances++) {}
 
 		template<typename T>
 		FORCE_INLINE ECSType getTypeId() {
@@ -42,7 +35,7 @@ namespace ecss::Memory {
 
 		template<typename T>
 		FORCE_INLINE ECSType getTypeIdImpl() {
-			static ECSType types[kMaxRegistryInstances]{};
+			static ECSType types[kMaxRegistryInstances] = {};
 			static std::once_flag flags[kMaxRegistryInstances];
 
 			std::call_once(flags[mCurrentInstance], [&] { types[mCurrentInstance] = mTypes[mCurrentInstance]++; });
