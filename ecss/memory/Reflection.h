@@ -51,19 +51,14 @@ namespace ecss::Memory {
 		// Per-type storage: [instanceId] -> {epoch, typeId}
 		// If stored epoch != current epoch, entry is stale
 		// Initial epoch is UINT16_MAX so first real epoch (0) triggers assignment
+		// Uses atomics to avoid data races in multi-threaded access
 		struct PerTypeData {
 			struct Entry {
-				uint16_t epoch;
-				ECSType typeId;
+				std::atomic<uint16_t> epoch{UINT16_MAX};
+				std::atomic<ECSType> typeId{0};
 			};
 			Entry entries[kMaxInstances];
-			
-			PerTypeData() {
-				for (size_t i = 0; i < kMaxInstances; ++i) {
-					entries[i].epoch = UINT16_MAX; // Invalid epoch - will never match real epoch
-					entries[i].typeId = 0;
-				}
-			}
+			std::mutex mtx; // Protects slow-path updates
 		};
 
 	public:
@@ -103,13 +98,27 @@ namespace ecss::Memory {
 			
 			auto& entry = data.entries[mInstanceId];
 			
-			// Check if entry is from current epoch (this instance)
-			if (entry.epoch != mEpoch) [[unlikely]] {
-				entry.epoch = mEpoch;
-				entry.typeId = mTypesCount++;
+			// Fast path - check epoch atomically (common case: already initialized)
+			uint16_t storedEpoch = entry.epoch.load(std::memory_order_acquire);
+			if (storedEpoch == mEpoch) [[likely]] {
+				return entry.typeId.load(std::memory_order_relaxed);
 			}
 			
-			return entry.typeId;
+			// Slow path - need to initialize under lock
+			std::lock_guard lock(data.mtx);
+			
+			// Double-check after acquiring lock (another thread may have updated)
+			storedEpoch = entry.epoch.load(std::memory_order_relaxed);
+			if (storedEpoch == mEpoch) {
+				return entry.typeId.load(std::memory_order_relaxed);
+			}
+			
+			// Update entry - store typeId first, then epoch (epoch acts as "ready" flag)
+			ECSType newTypeId = mTypesCount++;
+			entry.typeId.store(newTypeId, std::memory_order_relaxed);
+			entry.epoch.store(mEpoch, std::memory_order_release);
+			
+			return newTypeId;
 		}
 	};
 
