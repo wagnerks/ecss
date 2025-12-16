@@ -47,20 +47,38 @@ namespace ecss
 namespace ecss::Memory {
 
 namespace detail {
+	/// @brief Slot info for fast sparse lookup - stores data pointer and linear index
+	/// This enables O(1) component access with a single sparse map lookup
+	struct SlotInfo {
+		std::byte* data = nullptr;       ///< Direct pointer to sector data (nullptr = not present)
+		uint32_t linearIdx = INVALID_IDX; ///< Linear index for isAlive access via dense arrays
+		
+		FORCE_INLINE bool isValid() const { return data != nullptr; }
+		FORCE_INLINE explicit operator bool() const { return isValid(); }
+	};
+
+	/// @brief Invalid slot info constant
+	inline constexpr SlotInfo INVALID_SLOT{ nullptr, INVALID_IDX };
+
 	template<bool TS>
 	struct SparseMap;
 
 	/// @brief Thread-safe sparse map with atomic view for lock-free reads
 	template<>
 	struct SparseMap<true> {
-		FORCE_INLINE uint32_t find(SectorId id) const {
+		FORCE_INLINE SlotInfo find(SectorId id) const {
 			auto map = sparseMapView.load(std::memory_order_acquire);
-			return id < map.size ? map.data[id] : INVALID_IDX;
+			return id < map.size ? map.data[id] : INVALID_SLOT;
 		}
 
-		FORCE_INLINE uint32_t get(SectorId id) const {
+		FORCE_INLINE SlotInfo get(SectorId id) const {
 			assert(id < sparseMapView.load().size);
 			return sparseMapView.load(std::memory_order_acquire).data[id];
+		}
+
+		FORCE_INLINE uint32_t findLinearIdx(SectorId id) const {
+			auto map = sparseMapView.load(std::memory_order_acquire);
+			return id < map.size ? map.data[id].linearIdx : INVALID_IDX;
 		}
 
 		FORCE_INLINE size_t capacity() const { return sparseMapView.load(std::memory_order_acquire).size; }
@@ -73,22 +91,22 @@ namespace detail {
 		FORCE_INLINE void drainRetired() { bin.drainAll(); }
 
 		FORCE_INLINE void resize(size_t newSize) {
-			sparse.resize(newSize, INVALID_IDX);
+			sparse.resize(newSize, INVALID_SLOT);
 			storeView();
 		}
 
-		FORCE_INLINE uint32_t& operator[](SectorId id) { return sparse[id]; }
-		FORCE_INLINE const uint32_t& operator[](SectorId id) const { return sparse[id]; }
+		FORCE_INLINE SlotInfo& operator[](SectorId id) { return sparse[id]; }
+		FORCE_INLINE const SlotInfo& operator[](SectorId id) const { return sparse[id]; }
 
 	private:
 		mutable Memory::RetireBin bin;
 
 	public:
-		std::vector<uint32_t, Memory::RetireAllocator<uint32_t>> sparse{ Memory::RetireAllocator<uint32_t>{&bin} };
+		std::vector<SlotInfo, Memory::RetireAllocator<SlotInfo>> sparse{ Memory::RetireAllocator<SlotInfo>{&bin} };
 
 	private:
 		struct SparseView {
-			const uint32_t* data;
+			const SlotInfo* data;
 			size_t size;
 		};
 		mutable std::atomic<SparseView> sparseMapView{ SparseView{nullptr, 0} };
@@ -97,17 +115,18 @@ namespace detail {
 	/// @brief Non-thread-safe sparse map (simple vector)
 	template<>
 	struct SparseMap<false> {
-		FORCE_INLINE uint32_t find(SectorId id) const { return id < sparse.size() ? sparse[id] : INVALID_IDX; }
-		FORCE_INLINE uint32_t get(SectorId id) const { assert(id < sparse.size()); return sparse[id]; }
+		FORCE_INLINE SlotInfo find(SectorId id) const { return id < sparse.size() ? sparse[id] : INVALID_SLOT; }
+		FORCE_INLINE SlotInfo get(SectorId id) const { assert(id < sparse.size()); return sparse[id]; }
+		FORCE_INLINE uint32_t findLinearIdx(SectorId id) const { return id < sparse.size() ? sparse[id].linearIdx : INVALID_IDX; }
 		FORCE_INLINE size_t capacity() const { return sparse.size(); }
 		FORCE_INLINE void storeView() {} // dummy
 		FORCE_INLINE void drainRetired() {} // dummy
-		FORCE_INLINE void resize(size_t newSize) { sparse.resize(newSize, INVALID_IDX); }
+		FORCE_INLINE void resize(size_t newSize) { sparse.resize(newSize, INVALID_SLOT); }
 
-		FORCE_INLINE uint32_t& operator[](SectorId id) { return sparse[id]; }
-		FORCE_INLINE const uint32_t& operator[](SectorId id) const { return sparse[id]; }
+		FORCE_INLINE SlotInfo& operator[](SectorId id) { return sparse[id]; }
+		FORCE_INLINE const SlotInfo& operator[](SectorId id) const { return sparse[id]; }
 
-		std::vector<uint32_t> sparse;
+		std::vector<SlotInfo> sparse;
 	};
 
 	/// @brief Atomic view for dense arrays (ids + isAlive) for thread-safe iteration
@@ -873,6 +892,13 @@ public:
 		TS_GUARD(TS && ThreadSafe, SHARED, return findSectorDataImpl(id)); 
 	}
 
+	/// @brief Find slot info (data pointer + linearIdx) for fast sparse lookup
+	/// @return SlotInfo with data pointer and linear index, or INVALID_SLOT if not found
+	template<bool TS = ThreadSafe>
+	detail::SlotInfo findSlot(SectorId id) const {
+		TS_GUARD(TS && ThreadSafe, SHARED, return findSlotImpl(id));
+	}
+
 	template<bool TS = ThreadSafe>
 	uint32_t getIsAlive(SectorId id) const {
 		TS_GUARD(TS && ThreadSafe, SHARED, 
@@ -978,23 +1004,27 @@ private:
 
 	FORCE_INLINE size_t sizeImpl() const { return mSize; }
 
-	FORCE_INLINE uint32_t findLinearIdxImpl(SectorId id) const {
+	/// @brief Find slot info by sector id (returns data pointer + linearIdx)
+	FORCE_INLINE detail::SlotInfo findSlotImpl(SectorId id) const {
 		return mSparseMap.find(id);
 	}
 
+	FORCE_INLINE uint32_t findLinearIdxImpl(SectorId id) const {
+		return mSparseMap.findLinearIdx(id);
+	}
+
 	FORCE_INLINE bool containsSectorImpl(SectorId id) const {
-		return findLinearIdxImpl(id) != INVALID_IDX;
+		return mSparseMap.find(id).isValid();
 	}
 
 	FORCE_INLINE std::byte* findSectorDataImpl(SectorId id) const {
-		auto idx = findLinearIdxImpl(id);
-		return idx != INVALID_IDX ? mAllocator.at(idx) : nullptr;
+		return mSparseMap.find(id).data;  // Direct pointer access - no second lookup!
 	}
 
 	[[nodiscard]] PinnedSector pinSectorImpl(SectorId id) const requires(ThreadSafe) {
-		auto idx = findLinearIdxImpl(id);
-		if (idx == INVALID_IDX) return PinnedSector{};
-		return PinnedSector(mPinsCounter, id, mAllocator.at(idx), mDenseArrays.isAliveAt(idx));
+		auto slot = mSparseMap.find(id);
+		if (!slot) return PinnedSector{};
+		return PinnedSector(mPinsCounter, id, slot.data, mDenseArrays.isAliveAt(slot.linearIdx));
 	}
 
 	[[nodiscard]] PinnedSector pinSectorAtImpl(size_t idx) const requires(ThreadSafe) {
@@ -1021,7 +1051,7 @@ private:
 				}
 			}
 			// Clear sparse map
-			std::fill(mSparseMap.sparse.begin(), mSparseMap.sparse.end(), INVALID_IDX);
+			std::fill(mSparseMap.sparse.begin(), mSparseMap.sparse.end(), detail::INVALID_SLOT);
 			mDenseArrays.clear(0);
 			mPendingErase.clear();
 			mSize = 0;
@@ -1060,9 +1090,9 @@ private:
 		}
 
 		// Check if already exists
-		auto existingIdx = mSparseMap[sectorId];
-		if (existingIdx != INVALID_IDX) [[unlikely]] {
-			return existingIdx;
+		auto& existingSlot = mSparseMap[sectorId];
+		if (existingSlot.isValid()) [[unlikely]] {
+			return existingSlot.linearIdx;
 		}
 
 		// Allocate storage - resize vectors but keep view at old size until data is populated
@@ -1082,7 +1112,8 @@ private:
 
 		mDenseArrays.idAt(pos) = sectorId;
 		mDenseArrays.isAliveAt(pos) = 0;
-		mSparseMap[sectorId] = static_cast<uint32_t>(pos);
+		// Store data pointer, isAlive pointer, and linear index for O(1) lookup
+		mSparseMap[sectorId] = detail::SlotInfo{ mAllocator.at(pos), static_cast<uint32_t>(pos) };
 		
 		// Update atomic view to show new size now that data is valid
 		mDenseArrays.storeView(mSize);
@@ -1110,13 +1141,13 @@ private:
 			}
 		}
 
-		// Shift metadata
+		// Shift metadata and update sparse map with new data pointers
 		for (size_t i = oldSize + count - 1; i >= from + count; --i) {
 			mDenseArrays.idAt(i) = mDenseArrays.idAt(i - count);
 			if (getLayout()->isTrivial()) {
 				mDenseArrays.isAliveAt(i) = mDenseArrays.isAliveAt(i - count);
 			}
-			mSparseMap[mDenseArrays.idAt(i)] = static_cast<uint32_t>(i);
+			mSparseMap[mDenseArrays.idAt(i)] = detail::SlotInfo{ mAllocator.at(i), static_cast<uint32_t>(i) };
 		}
 	}
 
@@ -1140,13 +1171,13 @@ private:
 			}
 		}
 
-		// Shift metadata
+		// Shift metadata and update sparse map with new data pointers
 		for (size_t i = from - count; i < from - count + tail; ++i) {
 			mDenseArrays.idAt(i) = mDenseArrays.idAt(i + count);
 			if (getLayout()->isTrivial()) {
 				mDenseArrays.isAliveAt(i) = mDenseArrays.isAliveAt(i + count);
 			}
-			mSparseMap[mDenseArrays.idAt(i)] = static_cast<uint32_t>(i);
+			mSparseMap[mDenseArrays.idAt(i)] = detail::SlotInfo{ mAllocator.at(i), static_cast<uint32_t>(i) };
 		}
 	}
 
@@ -1177,7 +1208,7 @@ private:
 		for (size_t i = beginIdx; i < beginIdx + count; ++i) {
 			auto id = mDenseArrays.idAt(i);
 			if (id < mSparseMap.capacity()) {
-				mSparseMap[id] = INVALID_IDX;
+				mSparseMap[id] = detail::INVALID_SLOT;
 			}
 			Sector::destroySectorData(mAllocator.at(i), mDenseArrays.isAliveAt(i), getLayout());
 		}
@@ -1206,7 +1237,7 @@ private:
 			if (idx == INVALID_IDX) return;
 			
 			if (mPinsCounter.canMoveSector(id)) {
-				mSparseMap[id] = INVALID_IDX;
+				mSparseMap[id] = detail::INVALID_SLOT;
 				Sector::destroySectorData(mAllocator.at(idx), mDenseArrays.isAliveAt(idx), getLayout());
 				incDefragmentSize();
 			} else {
@@ -1236,7 +1267,7 @@ private:
 			if (idx == INVALID_IDX) continue;
 
 			if (mPinsCounter.canMoveSector(id)) {
-				mSparseMap[id] = INVALID_IDX;
+				mSparseMap[id] = detail::INVALID_SLOT;
 				Sector::destroySectorData(mAllocator.at(idx), mDenseArrays.isAliveAt(idx), getLayout());
 				incDefragmentSize();
 			} else {
@@ -1262,7 +1293,7 @@ private:
 		while (read < n) {
 			// Skip dead slots
 			while (read < n && !Sector::isSectorAlive(mDenseArrays.isAliveAt(read))) {
-				mSparseMap[mDenseArrays.idAt(read)] = INVALID_IDX;
+				mSparseMap[mDenseArrays.idAt(read)] = detail::INVALID_SLOT;
 				++read; ++deleted;
 			}
 			if (read >= n) break;
@@ -1282,7 +1313,7 @@ private:
 					for (size_t i = 0; i < runLen; ++i) {
 						mDenseArrays.idAt(write + i) = mDenseArrays.idAt(runBeg + i);
 						mDenseArrays.isAliveAt(write + i) = mDenseArrays.isAliveAt(runBeg + i);
-						mSparseMap[mDenseArrays.idAt(write + i)] = static_cast<uint32_t>(write + i);
+						mSparseMap[mDenseArrays.idAt(write + i)] = detail::SlotInfo{ mAllocator.at(write + i), static_cast<uint32_t>(write + i) };
 					}
 				} else {
 					// Non-trivial types: proper move semantics for each sector
@@ -1293,7 +1324,7 @@ private:
 							mAllocator.at(write + i), mDenseArrays.isAliveAt(write + i),
 							getLayout());
 						mDenseArrays.idAt(write + i) = mDenseArrays.idAt(runBeg + i);
-						mSparseMap[mDenseArrays.idAt(write + i)] = static_cast<uint32_t>(write + i);
+						mSparseMap[mDenseArrays.idAt(write + i)] = detail::SlotInfo{ mAllocator.at(write + i), static_cast<uint32_t>(write + i) };
 					}
 				}
 			}
@@ -1362,7 +1393,7 @@ private:
 		
 		mSparseMap.resize(other.mSparseMap.capacity());
 		for (size_t i = 0; i < mSize; ++i) {
-			mSparseMap[mDenseArrays.idAt(i)] = static_cast<uint32_t>(i);
+			mSparseMap[mDenseArrays.idAt(i)] = detail::SlotInfo{ mAllocator.at(i), static_cast<uint32_t>(i) };
 		}
 
 		mDefragmentSize = other.mDefragmentSize;
@@ -1400,7 +1431,7 @@ private:
 		
 		mSparseMap.resize(other.mSparseMap.capacity());
 		for (size_t i = 0; i < mSize; ++i) {
-			mSparseMap[mDenseArrays.idAt(i)] = static_cast<uint32_t>(i);
+			mSparseMap[mDenseArrays.idAt(i)] = detail::SlotInfo{ mAllocator.at(i), static_cast<uint32_t>(i) };
 		}
 
 		mDefragmentSize = other.mDefragmentSize;
