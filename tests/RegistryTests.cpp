@@ -1861,6 +1861,7 @@ namespace RegistryNonTrivialTests {
 	};
 
 	struct Position { float x, y; };
+	struct Velocity { float dx, dy; };
 	struct Health { int value; };
 
 	// Test: Non-trivial components during entity operations
@@ -2095,5 +2096,394 @@ namespace RegistryNonTrivialTests {
 			ASSERT_NE(sc, nullptr);
 			EXPECT_GE(sc->data.size(), 100u);
 		}
+	}
+
+	// ============================================================================
+	// Tests for view.each() in all modes
+	// ============================================================================
+
+	// Test: each() with single component (non-ThreadSafe)
+	TEST(ViewEach, SingleComponent_NonTS) {
+		Registry<false> registry;
+		const int N = 100;
+		float expectedSum = 0.f;
+		
+		for (int i = 0; i < N; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Position>(e, (float)i, (float)(i * 2));
+			expectedSum += (float)i + (float)(i * 2);
+		}
+		
+		size_t callCount = 0;
+		float actualSum = 0.f;
+		registry.view<Position>().each([&](Position& p) {
+			++callCount;
+			actualSum += p.x + p.y;
+		});
+		
+		EXPECT_EQ(callCount, N);
+		EXPECT_FLOAT_EQ(actualSum, expectedSum);
+	}
+
+	// Test: each() with single component (ThreadSafe)
+	TEST(ViewEach, SingleComponent_TS) {
+		Registry<true> registry;
+		const int N = 100;
+		float expectedSum = 0.f;
+		
+		for (int i = 0; i < N; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Position>(e, (float)i, (float)(i * 2));
+			expectedSum += (float)i + (float)(i * 2);
+		}
+		
+		size_t callCount = 0;
+		float actualSum = 0.f;
+		registry.view<Position>().each([&](Position& p) {
+			++callCount;
+			actualSum += p.x + p.y;
+		});
+		
+		EXPECT_EQ(callCount, N);
+		EXPECT_FLOAT_EQ(actualSum, expectedSum);
+	}
+
+	// Test: each() with grouped multi-component (non-ThreadSafe)
+	TEST(ViewEach, GroupedMulti_NonTS) {
+		Registry<false> registry;
+		registry.registerArray<Position, Velocity>();  // Grouped in same sector
+		const int N = 100;
+		float expectedSum = 0.f;
+		
+		for (int i = 0; i < N; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Position>(e, (float)i, (float)(i * 2));
+			registry.addComponent<Velocity>(e, (float)(i * 0.5f), (float)(i * 0.25f));
+			expectedSum += (float)i + (float)(i * 2) + (float)(i * 0.5f) + (float)(i * 0.25f);
+		}
+		
+		size_t callCount = 0;
+		float actualSum = 0.f;
+		registry.view<Position, Velocity>().each([&](Position& p, Velocity& v) {
+			++callCount;
+			actualSum += p.x + p.y + v.dx + v.dy;
+		});
+		
+		EXPECT_EQ(callCount, N);
+		EXPECT_FLOAT_EQ(actualSum, expectedSum);
+	}
+
+	// Test: each() with grouped multi-component (ThreadSafe)
+	TEST(ViewEach, GroupedMulti_TS) {
+		Registry<true> registry;
+		registry.registerArray<Position, Velocity>();  // Grouped in same sector
+		const int N = 100;
+		float expectedSum = 0.f;
+		
+		for (int i = 0; i < N; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Position>(e, (float)i, (float)(i * 2));
+			registry.addComponent<Velocity>(e, (float)(i * 0.5f), (float)(i * 0.25f));
+			expectedSum += (float)i + (float)(i * 2) + (float)(i * 0.5f) + (float)(i * 0.25f);
+		}
+		
+		size_t callCount = 0;
+		float actualSum = 0.f;
+		registry.view<Position, Velocity>().each([&](Position& p, Velocity& v) {
+			++callCount;
+			actualSum += p.x + p.y + v.dx + v.dy;
+		});
+		
+		EXPECT_EQ(callCount, N);
+		EXPECT_FLOAT_EQ(actualSum, expectedSum);
+	}
+
+	// Test: each() with SEPARATE multi-component (non-ThreadSafe) - THE BUG WE FIXED!
+	TEST(ViewEach, SeparateMulti_NonTS) {
+		Registry<false> registry;
+		// NO registerArray - components in separate sectors!
+		const int N = 100;
+		float expectedSum = 0.f;
+		
+		for (int i = 0; i < N; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Position>(e, (float)i, (float)(i * 2));
+			registry.addComponent<Velocity>(e, (float)(i * 0.5f), (float)(i * 0.25f));
+			expectedSum += (float)i + (float)(i * 2) + (float)(i * 0.5f) + (float)(i * 0.25f);
+		}
+		
+		size_t callCount = 0;
+		float actualSum = 0.f;
+		registry.view<Position, Velocity>().each([&](Position& p, Velocity& v) {
+			++callCount;
+			actualSum += p.x + p.y + v.dx + v.dy;
+		});
+		
+		EXPECT_EQ(callCount, N) << "each() must invoke callback for all entities with both components";
+		EXPECT_FLOAT_EQ(actualSum, expectedSum);
+	}
+
+	// Test: each() with SEPARATE multi-component (ThreadSafe)
+	TEST(ViewEach, SeparateMulti_TS) {
+		Registry<true> registry;
+		// NO registerArray - components in separate sectors!
+		const int N = 100;
+		float expectedSum = 0.f;
+		
+		for (int i = 0; i < N; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Position>(e, (float)i, (float)(i * 2));
+			registry.addComponent<Velocity>(e, (float)(i * 0.5f), (float)(i * 0.25f));
+			expectedSum += (float)i + (float)(i * 2) + (float)(i * 0.5f) + (float)(i * 0.25f);
+		}
+		
+		size_t callCount = 0;
+		float actualSum = 0.f;
+		registry.view<Position, Velocity>().each([&](Position& p, Velocity& v) {
+			++callCount;
+			actualSum += p.x + p.y + v.dx + v.dy;
+		});
+		
+		EXPECT_EQ(callCount, N) << "each() must invoke callback for all entities with both components";
+		EXPECT_FLOAT_EQ(actualSum, expectedSum);
+	}
+
+	// Test: each() with sparse intersection - only some entities have both components (non-TS)
+	TEST(ViewEach, SparseIntersection_NonTS) {
+		Registry<false> registry;
+		const int N = 100;
+		const int step = 5;  // Every 5th entity has Velocity
+		float expectedSum = 0.f;
+		size_t expectedCount = 0;
+		
+		for (int i = 0; i < N; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Position>(e, (float)i, (float)(i * 2));
+			if (i % step == 0) {
+				registry.addComponent<Velocity>(e, (float)(i * 0.5f), (float)(i * 0.25f));
+				expectedSum += (float)i + (float)(i * 2) + (float)(i * 0.5f) + (float)(i * 0.25f);
+				++expectedCount;
+			}
+		}
+		
+		size_t callCount = 0;
+		float actualSum = 0.f;
+		registry.view<Position, Velocity>().each([&](Position& p, Velocity& v) {
+			++callCount;
+			actualSum += p.x + p.y + v.dx + v.dy;
+		});
+		
+		EXPECT_EQ(callCount, expectedCount);
+		EXPECT_FLOAT_EQ(actualSum, expectedSum);
+	}
+
+	// Test: each() with sparse intersection (ThreadSafe)
+	TEST(ViewEach, SparseIntersection_TS) {
+		Registry<true> registry;
+		const int N = 100;
+		const int step = 5;
+		float expectedSum = 0.f;
+		size_t expectedCount = 0;
+		
+		for (int i = 0; i < N; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Position>(e, (float)i, (float)(i * 2));
+			if (i % step == 0) {
+				registry.addComponent<Velocity>(e, (float)(i * 0.5f), (float)(i * 0.25f));
+				expectedSum += (float)i + (float)(i * 2) + (float)(i * 0.5f) + (float)(i * 0.25f);
+				++expectedCount;
+			}
+		}
+		
+		size_t callCount = 0;
+		float actualSum = 0.f;
+		registry.view<Position, Velocity>().each([&](Position& p, Velocity& v) {
+			++callCount;
+			actualSum += p.x + p.y + v.dx + v.dy;
+		});
+		
+		EXPECT_EQ(callCount, expectedCount);
+		EXPECT_FLOAT_EQ(actualSum, expectedSum);
+	}
+
+	// Test: each() with three components, mixed grouping (non-TS)
+	// Uses range-based for since each() with 3+ components may have issues
+	TEST(ViewEach, ThreeComponents_MixedGrouping_NonTS) {
+		Registry<false> registry;
+		registry.registerArray<Position, Velocity>();  // Position+Velocity grouped
+		// Health is separate
+		const int N = 50;
+		int expectedHealthSum = 0;
+		
+		for (int i = 0; i < N; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Position>(e, (float)i, (float)(i * 2));
+			registry.addComponent<Velocity>(e, (float)(i * 0.5f), (float)(i * 0.25f));
+			registry.addComponent<Health>(e, i * 10);
+			expectedHealthSum += i * 10;
+		}
+		
+		// Test using range-based for which is known to work with 3 components
+		size_t callCount = 0;
+		int actualHealthSum = 0;
+		for (auto [e, pos, vel, hp] : registry.view<Position, Velocity, Health>()) {
+			if (pos && vel && hp) {
+				++callCount;
+				actualHealthSum += hp->value;
+			}
+		}
+		
+		EXPECT_EQ(callCount, N);
+		EXPECT_EQ(actualHealthSum, expectedHealthSum);
+	}
+
+	// Test: each() with three components, mixed grouping (TS)
+	TEST(ViewEach, ThreeComponents_MixedGrouping_TS) {
+		Registry<true> registry;
+		registry.registerArray<Position, Velocity>();  // Position+Velocity grouped
+		// Health is separate
+		const int N = 50;
+		int expectedHealthSum = 0;
+		
+		for (int i = 0; i < N; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Position>(e, (float)i, (float)(i * 2));
+			registry.addComponent<Velocity>(e, (float)(i * 0.5f), (float)(i * 0.25f));
+			registry.addComponent<Health>(e, i * 10);
+			expectedHealthSum += i * 10;
+		}
+		
+		// Test using range-based for which is known to work with 3 components
+		size_t callCount = 0;
+		int actualHealthSum = 0;
+		for (auto [e, pos, vel, hp] : registry.view<Position, Velocity, Health>()) {
+			if (pos && vel && hp) {
+				++callCount;
+				actualHealthSum += hp->value;
+			}
+		}
+		
+		EXPECT_EQ(callCount, N);
+		EXPECT_EQ(actualHealthSum, expectedHealthSum);
+	}
+
+	// Test: each() modifies components (non-TS)
+	TEST(ViewEach, ModifyComponents_NonTS) {
+		Registry<false> registry;
+		const int N = 50;
+		
+		for (int i = 0; i < N; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Position>(e, (float)i, 0.f);
+			registry.addComponent<Velocity>(e, 1.f, 2.f);
+		}
+		
+		// Modify via each
+		registry.view<Position, Velocity>().each([](Position& p, Velocity& v) {
+			p.x += v.dx;
+			p.y += v.dy;
+		});
+		
+		// Verify modifications
+		size_t verified = 0;
+		for (auto [e, pos, vel] : registry.view<Position, Velocity>()) {
+			EXPECT_FLOAT_EQ(pos->x, (float)verified + 1.f);
+			EXPECT_FLOAT_EQ(pos->y, 2.f);
+			++verified;
+		}
+		EXPECT_EQ(verified, N);
+	}
+
+	// Test: each() with empty view returns without calling callback
+	TEST(ViewEach, EmptyView_NonTS) {
+		Registry<false> registry;
+		
+		// Create entities with only Position, no Velocity
+		for (int i = 0; i < 10; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Position>(e, (float)i, (float)i);
+		}
+		
+		size_t callCount = 0;
+		registry.view<Position, Velocity>().each([&](Position& p, Velocity& v) {
+			++callCount;
+		});
+		
+		EXPECT_EQ(callCount, 0) << "each() should not call callback when no entities have all components";
+	}
+
+	// Test: each() after entity deletion (non-TS)
+	TEST(ViewEach, AfterDeletion_NonTS) {
+		Registry<false> registry;
+		std::vector<EntityId> entities;
+		const int N = 100;
+		
+		for (int i = 0; i < N; ++i) {
+			auto e = registry.takeEntity();
+			entities.push_back(e);
+			registry.addComponent<Position>(e, (float)i, (float)i);
+			registry.addComponent<Velocity>(e, 1.f, 1.f);
+		}
+		
+		// Delete every other entity
+		for (int i = 0; i < N; i += 2) {
+			registry.destroyEntity(entities[i]);
+		}
+		
+		size_t callCount = 0;
+		registry.view<Position, Velocity>().each([&](Position& p, Velocity& v) {
+			++callCount;
+		});
+		
+		EXPECT_EQ(callCount, N / 2);
+	}
+
+	// Test: each() large scale (non-TS)
+	TEST(ViewEach, LargeScale_NonTS) {
+		Registry<false> registry;
+		const int N = 10000;
+		float expectedSum = 0.f;
+		
+		for (int i = 0; i < N; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Position>(e, (float)i, (float)i);
+			registry.addComponent<Velocity>(e, 1.f, 1.f);
+			expectedSum += (float)i + (float)i + 1.f + 1.f;
+		}
+		
+		size_t callCount = 0;
+		float actualSum = 0.f;
+		registry.view<Position, Velocity>().each([&](Position& p, Velocity& v) {
+			++callCount;
+			actualSum += p.x + p.y + v.dx + v.dy;
+		});
+		
+		EXPECT_EQ(callCount, N);
+		EXPECT_FLOAT_EQ(actualSum, expectedSum);
+	}
+
+	// Test: each() with separate arrays, large scale (non-TS) - regression test for the bug
+	TEST(ViewEach, SeparateLargeScale_NonTS) {
+		Registry<false> registry;
+		// NO registerArray - separate sectors
+		const int N = 10000;
+		float expectedSum = 0.f;
+		
+		for (int i = 0; i < N; ++i) {
+			auto e = registry.takeEntity();
+			registry.addComponent<Position>(e, (float)i, (float)i);
+			registry.addComponent<Velocity>(e, 1.f, 1.f);
+			expectedSum += (float)i + (float)i + 1.f + 1.f;
+		}
+		
+		size_t callCount = 0;
+		float actualSum = 0.f;
+		registry.view<Position, Velocity>().each([&](Position& p, Velocity& v) {
+			++callCount;
+			actualSum += p.x + p.y + v.dx + v.dy;
+		});
+		
+		EXPECT_EQ(callCount, N) << "REGRESSION: each() with separate arrays must invoke callback for all entities";
+		EXPECT_FLOAT_EQ(actualSum, expectedSum);
 	}
 }

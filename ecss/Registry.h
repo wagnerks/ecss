@@ -326,11 +326,12 @@ namespace ecss {
 
 					container->mPinsCounter.waitUntilChangeable(entities.front());
 					for (const auto sectorId : entities) {
-						auto idx = container->template findLinearIdx<false>(sectorId);
-						if (idx != INVALID_IDX) {
-							auto& isAlive = container->template getIsAliveRef<false>(idx);
+						// Use findSlot for single lookup
+						auto slotInfo = container->template findSlot<false>(sectorId);
+						if (slotInfo) {
+							auto& isAlive = container->template getIsAliveRef<false>(slotInfo.linearIdx);
 							auto before = isAlive;
-							Memory::Sector::destroyMember(container->mAllocator.at(idx), isAlive, layout);
+							Memory::Sector::destroyMember(slotInfo.data, isAlive, layout);
 							if (before != isAlive) {
 								container->incDefragmentSize();
 							}
@@ -341,11 +342,12 @@ namespace ecss {
 					prepareEntities(entities, container->template sparseCapacity<false>());
 
 					for (const auto sectorId : entities) {
-						auto idx = container->template findLinearIdx<false>(sectorId);
-						if (idx != INVALID_IDX) {
-							auto& isAlive = container->template getIsAliveRef<false>(idx);
+						// Use findSlot for single lookup
+						auto slotInfo = container->template findSlot<false>(sectorId);
+						if (slotInfo) {
+							auto& isAlive = container->template getIsAliveRef<false>(slotInfo.linearIdx);
 							auto before = isAlive;
-							Memory::Sector::destroyMember(container->mAllocator.at(idx), isAlive, layout);
+							Memory::Sector::destroyMember(slotInfo.data, isAlive, layout);
 							if (before != isAlive) {
 								container->incDefragmentSize();
 							}
@@ -650,9 +652,10 @@ namespace ecss {
 					array->incDefragmentSize(static_cast<uint32_t>(localEntities.size()));
 
 					for (const auto sectorId : localEntities) {
-						auto idx = array->template findLinearIdx<false>(sectorId);
-						if (idx != INVALID_IDX) {
-							Memory::Sector::destroySectorData(array->mAllocator.at(idx), array->template getIsAliveRef<false>(idx), layout);
+						// Use findSlot for single lookup (returns data ptr + linearIdx)
+						auto slotInfo = array->template findSlot<false>(sectorId);
+						if (slotInfo) {
+							Memory::Sector::destroySectorData(slotInfo.data, array->template getIsAliveRef<false>(slotInfo.linearIdx), layout);
 						}
 					}
 				}
@@ -663,15 +666,17 @@ namespace ecss {
 					prepareEntities(localEntities, array->template sparseCapacity<false>());
 					const auto layout = array->getLayout();
 					for (const auto sectorId : localEntities) {
-						auto idx = array->template findLinearIdx<false>(sectorId);
-						if (idx != INVALID_IDX) {
-							Memory::Sector::destroySectorData(array->mAllocator.at(idx), array->template getIsAliveRef<false>(idx), layout);
+						// Use findSlot for single lookup (returns data ptr + linearIdx)
+						auto slotInfo = array->template findSlot<false>(sectorId);
+						if (slotInfo) {
+							Memory::Sector::destroySectorData(slotInfo.data, array->template getIsAliveRef<false>(slotInfo.linearIdx), layout);
 							array->incDefragmentSize();
 						}
 					}
 				}
 			}
 
+			// Batch erase from entity set
 			if constexpr(ThreadSafe) {
 				auto lock = std::unique_lock(mEntitiesMutex);
 				for (auto id : entities) {
@@ -948,39 +953,18 @@ namespace ecss {
 				if (info.iteratorIdx == TypeInfo::kMainIteratorIdx) [[likely]] {
 					return (slot.isAlive & info.typeAliveMask) ? reinterpret_cast<ComponentType*>(slot.data + info.typeOffsetInSector) : nullptr;
 				}
-			if constexpr (ThreadSafe) {
-				// Lazy sync: advance iterator only when component is actually needed
-				auto& it = mSecondaryIterators[info.iteratorIdx];
-				if (!it) [[unlikely]] {
-					return nullptr;  // Secondary array is empty or exhausted
+				// Sparse lookup using optimized findSlot - single lookup returns data ptr + linearIdx
+				// O(1) sparse lookup + O(1) dense array access for isAlive
+				auto* arr = mSecondaryArrays[info.iteratorIdx];
+				auto slotInfo = arr->template findSlot<false>(slot.id);
+				if (!slotInfo) [[unlikely]] {
+					return nullptr;
 				}
-				if ((*it).linearIdx < slot.linearIdx) [[unlikely]] {
-					it.advanceToLinearIdx(slot.linearIdx);
+				auto isAlive = arr->template getIsAliveRef<false>(slotInfo.linearIdx);
+				if (!(isAlive & info.typeAliveMask)) [[unlikely]] {
+					return nullptr;
 				}
-				if (!it) [[unlikely]] {
-					return nullptr;  // Iterator became invalid after advance
-				}
-				auto otherSlot = *it;
-				return (otherSlot.id == slot.id && (otherSlot.isAlive & info.typeAliveMask)) ? reinterpret_cast<ComponentType*>(otherSlot.data + info.typeOffsetInSector) : nullptr;
-			}
-			else {
-					// Sequential iteration - IDs are sorted, use iterator advance
-					auto& it = mSecondaryIterators[info.iteratorIdx];
-					if (!it) [[unlikely]] {
-						return nullptr;
-					}
-					// Advance to current entity's linear index
-					if ((*it).linearIdx < slot.linearIdx) [[unlikely]] {
-						it.advanceToLinearIdx(slot.linearIdx);
-					}
-					if (!it) [[unlikely]] {
-						return nullptr;
-					}
-					auto otherSlot = *it;
-					return (otherSlot.id == slot.id && (otherSlot.isAlive & info.typeAliveMask)) 
-						? reinterpret_cast<ComponentType*>(otherSlot.data + info.typeOffsetInSector) 
-						: nullptr;
-				}
+				return reinterpret_cast<ComponentType*>(slotInfo.data + info.typeOffsetInSector);
 			}
 
 			template<typename... Types>
