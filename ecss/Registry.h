@@ -1058,22 +1058,51 @@ namespace ecss {
 			const auto& layout = mMainArray->template getLayoutData<T>();
 			const uint16_t offset = layout.offset;
 			
-			// Compile-time stride for vectorization!
-			constexpr size_t stride = types::OffsetArray<types::EmptyBase, T>::totalSize;
-			
 			auto& allocator = mMainArray->mAllocator;
+			// Use actual sector size from allocator (runtime but hoisted out of loop)
+			const size_t stride = allocator.mSectorSize;
 			constexpr size_t chunkCapacity = std::remove_reference_t<decltype(allocator)>::mChunkCapacity;
 			
 			if (mMainArray->template isPacked<false>()) {
-				// FAST PATH: No dead slots - pure loop, SIMD vectorizable
-				size_t idx = 0;
-				for (size_t chunkIdx = 0; chunkIdx < allocator.mChunks.size() && idx < mSize; ++chunkIdx) {
-					T* ptr = reinterpret_cast<T*>(static_cast<std::byte*>(allocator.mChunks[chunkIdx]) + offset);
-					const size_t chunkEnd = std::min(idx + chunkCapacity, mSize);
-					const size_t count = chunkEnd - idx;
-					idx = chunkEnd;
-					for (size_t i = 0; i < count; ++i) {
-						func(ptr[i]);
+				// FAST PATH: No dead slots
+				const size_t numChunks = allocator.mChunks.size();
+				
+				// Check if stride == sizeof(T) for SIMD-friendly access
+				if (stride == sizeof(T)) [[likely]] {
+					// SIMD path: contiguous T elements, stride == sizeof(T)
+					if (numChunks == 1) [[likely]] {
+						T* __restrict ptr = reinterpret_cast<T*>(static_cast<std::byte*>(allocator.mChunks[0]) + offset);
+						for (size_t i = 0; i < mSize; ++i) {
+							func(ptr[i]);
+						}
+					} else {
+						size_t idx = 0;
+						for (size_t chunkIdx = 0; chunkIdx < numChunks && idx < mSize; ++chunkIdx) {
+							T* __restrict ptr = reinterpret_cast<T*>(static_cast<std::byte*>(allocator.mChunks[chunkIdx]) + offset);
+							const size_t count = std::min(chunkCapacity, mSize - idx);
+							for (size_t i = 0; i < count; ++i) {
+								func(ptr[i]);
+							}
+							idx += count;
+						}
+					}
+				} else {
+					// Non-contiguous: use stride-based access
+					if (numChunks == 1) [[likely]] {
+						std::byte* __restrict base = static_cast<std::byte*>(allocator.mChunks[0]) + offset;
+						for (size_t i = 0; i < mSize; ++i) {
+							func(*reinterpret_cast<T*>(base + i * stride));
+						}
+					} else {
+						size_t idx = 0;
+						for (size_t chunkIdx = 0; chunkIdx < numChunks && idx < mSize; ++chunkIdx) {
+							std::byte* __restrict base = static_cast<std::byte*>(allocator.mChunks[chunkIdx]) + offset;
+							const size_t count = std::min(chunkCapacity, mSize - idx);
+							for (size_t i = 0; i < count; ++i) {
+								func(*reinterpret_cast<T*>(base + i * stride));
+							}
+							idx += count;
+						}
 					}
 				}
 			} else {
