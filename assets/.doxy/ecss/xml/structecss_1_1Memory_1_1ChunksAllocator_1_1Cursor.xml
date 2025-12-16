@@ -1,0 +1,387 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Memory::ChunksAllocator::Cursor</compoundname>
+    <includes refid="ChunksAllocator_8h" local="no">ChunksAllocator.h</includes>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1adb3e5e0b0e038cde597479d06b09ee20" prot="private" static="no" mutable="no">
+        <type>std::byte *</type>
+        <definition>std::byte* ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::chunkBase</definition>
+        <argsstring></argsstring>
+        <name>chunkBase</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::chunkBase</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="90" column="11" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="90" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a988127d1fba153422a1bc3926141ff58" prot="private" static="no" mutable="no">
+        <type>std::byte *</type>
+        <definition>std::byte* ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::chunkEnd</definition>
+        <argsstring></argsstring>
+        <name>chunkEnd</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::chunkEnd</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="91" column="11" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="91" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a7b589f6afa0af5fe8223da55c922ffbc" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::chunkIdx</definition>
+        <argsstring></argsstring>
+        <name>chunkIdx</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::chunkIdx</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="86" column="8" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="86" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a77e884d49b00c5bfbcacdaeb12f2a917" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; void * &gt;</type>
+        <definition>std::vector&lt;void*&gt; ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::chunks</definition>
+        <argsstring></argsstring>
+        <name>chunks</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::chunks</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="83" column="13" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="83" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1afa55b6d140792ba284cbab198ac0cc2b" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::chunksCount</definition>
+        <argsstring></argsstring>
+        <name>chunksCount</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::chunksCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="84" column="8" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="84" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a7de7296ca219c298c3b2d0561affdec0" prot="private" static="no" mutable="no">
+        <type>std::byte *</type>
+        <definition>std::byte* ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::curB</definition>
+        <argsstring></argsstring>
+        <name>curB</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::curB</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="89" column="11" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="89" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1aa404a5a62cf2f439743198f8acf67f4d" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::linIdx</definition>
+        <argsstring></argsstring>
+        <name>linIdx</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::linIdx</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="87" column="8" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="87" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1afbaa9123dc8f3c68b6b256120f194844" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::shift</definition>
+        <argsstring></argsstring>
+        <name>shift</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::shift</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="93" column="8" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="93" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1acf317e20481eb8388ce8ae158d563f2f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::Cursor</definition>
+        <argsstring>()=default</argsstring>
+        <name>Cursor</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::Cursor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="58" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1ad4737d0aafc0b1165e46f4eaab1dc09e" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::Cursor</definition>
+        <argsstring>(const ChunksAllocator *allocator, size_t index=0) noexcept</argsstring>
+        <name>Cursor</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::Cursor</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">ChunksAllocator</ref> *</type>
+          <declname>allocator</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>index</declname>
+          <defval>0</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="60" column="1" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="60" bodyend="65"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a0d1eaa734aa3673aeba9f1fe52f82034" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE size_t</type>
+        <definition>FORCE_INLINE size_t ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::linearIndex</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>linearIndex</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::linearIndex</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="79" column="21" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="79" bodyend="79"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a60716dc972f9beccebf2de7dc7494d0b" prot="public" static="no" const="yes" explicit="yes" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE</type>
+        <definition>FORCE_INLINE ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::operator bool</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>operator bool</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::operator bool</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="77" column="23" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="77" bodyend="77"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a92bdbd020302e086d81e285c0ab5a99a" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::operator!=</definition>
+        <argsstring>(const Cursor &amp;other) const noexcept</argsstring>
+        <name>operator!=</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::operator!=</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor" kindref="compound">Cursor</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="75" column="19" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="75" bodyend="75"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a250b0fed1b4f1b0c798d32f3cfd21bd1" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE std::byte *</type>
+        <definition>FORCE_INLINE std::byte * ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::operator*</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>operator*</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::operator*</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Raw pointer to sector data (not a Sector*, just component data) </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="71" column="24" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="71" bodyend="71"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a277bd738b0f109648ff8f3f64d716223" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE <ref refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor" kindref="compound">Cursor</ref> &amp;</type>
+        <definition>FORCE_INLINE Cursor &amp; ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::operator+</definition>
+        <argsstring>(size_t value) noexcept</argsstring>
+        <name>operator+</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::operator+</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="68" column="21" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="68" bodyend="68"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1af9b0becc4387d49af9ca5c9be9052cfc" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE <ref refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor" kindref="compound">Cursor</ref> &amp;</type>
+        <definition>FORCE_INLINE Cursor &amp; ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::operator++</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>operator++</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::operator++</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="67" column="21" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="67" bodyend="67"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1ad01ad242707ca838af302227070bcb11" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE std::byte *</type>
+        <definition>FORCE_INLINE std::byte * ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::operator-&gt;</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>operator-&gt;</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::operator-&gt;</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="72" column="24" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="72" bodyend="72"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a83549c02590d1fc808f2eaaaf4ff0e00" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::operator==</definition>
+        <argsstring>(const Cursor &amp;other) const noexcept</argsstring>
+        <name>operator==</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::operator==</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor" kindref="compound">Cursor</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="74" column="19" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="74" bodyend="74"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a3761195ac895b8cf3d55a1cca5bf3992" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE std::byte *</type>
+        <definition>FORCE_INLINE std::byte * ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::rawPtr</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>rawPtr</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::rawPtr</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="80" column="24" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="80" bodyend="80"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1ac63dcb23970f5a42081c73730eb83fbe" prot="private" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::nextChunk</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>nextChunk</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::nextChunk</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="102" column="19" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="102" bodyend="111"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a36a0043eeaa537ddeba3fa97f1e20278" prot="private" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::setLinear</definition>
+        <argsstring>(size_t newIdx) noexcept</argsstring>
+        <name>setLinear</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::setLinear</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>newIdx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="113" column="19" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="113" bodyend="124"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1ac5c6811ecf7d81346e3415b67e3d4fca" prot="private" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::Cursor::step</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>step</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::Cursor::step</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="95" column="19" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="95" bodyend="100"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor" kindref="compound">Cursor</ref> for linear iteration over sector data. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Provides access to raw sector data via linearIndex. Does NOT have access to sector id/isAlive - those come from external arrays. </para>
+    </detaileddescription>
+    <location file="ecss/memory/ChunksAllocator.h" line="57" column="1" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="57" bodyend="125"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1adb3e5e0b0e038cde597479d06b09ee20" prot="private" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>chunkBase</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a988127d1fba153422a1bc3926141ff58" prot="private" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>chunkEnd</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a7b589f6afa0af5fe8223da55c922ffbc" prot="private" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>chunkIdx</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a77e884d49b00c5bfbcacdaeb12f2a917" prot="private" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>chunks</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1afa55b6d140792ba284cbab198ac0cc2b" prot="private" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>chunksCount</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a7de7296ca219c298c3b2d0561affdec0" prot="private" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>curB</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1acf317e20481eb8388ce8ae158d563f2f" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>Cursor</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1ad4737d0aafc0b1165e46f4eaab1dc09e" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>Cursor</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a0d1eaa734aa3673aeba9f1fe52f82034" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>linearIndex</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1aa404a5a62cf2f439743198f8acf67f4d" prot="private" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>linIdx</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1ac63dcb23970f5a42081c73730eb83fbe" prot="private" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>nextChunk</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a60716dc972f9beccebf2de7dc7494d0b" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>operator bool</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a92bdbd020302e086d81e285c0ab5a99a" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>operator!=</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a250b0fed1b4f1b0c798d32f3cfd21bd1" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>operator*</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a277bd738b0f109648ff8f3f64d716223" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>operator+</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1af9b0becc4387d49af9ca5c9be9052cfc" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>operator++</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1ad01ad242707ca838af302227070bcb11" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>operator-&gt;</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a83549c02590d1fc808f2eaaaf4ff0e00" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>operator==</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a3761195ac895b8cf3d55a1cca5bf3992" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>rawPtr</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1a36a0043eeaa537ddeba3fa97f1e20278" prot="private" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>setLinear</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1afbaa9123dc8f3c68b6b256120f194844" prot="private" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>shift</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor_1ac5c6811ecf7d81346e3415b67e3d4fca" prot="private" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::Cursor</scope><name>step</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

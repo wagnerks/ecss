@@ -1,0 +1,88 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1TypeAccessInfo" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::TypeAccessInfo</compoundname>
+    <includes refid="Registry_8h" local="no">Registry.h</includes>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="structecss_1_1TypeAccessInfo_1aee695939232360cd27e2ff480ebf8121" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t ecss::TypeAccessInfo::kMainIteratorIdx</definition>
+        <argsstring></argsstring>
+        <name>kMainIteratorIdx</name>
+        <qualifiedname>ecss::TypeAccessInfo::kMainIteratorIdx</qualifiedname>
+        <initializer>= 255</initializer>
+        <briefdescription>
+<para>Sentinel for &quot;main&quot; component (no secondary iterator). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="815" column="26" bodyfile="ecss/Registry.h" bodystart="815" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1TypeAccessInfo_1af8fc4cf3278e3457192a97eb067e33a1" prot="public" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t ecss::TypeAccessInfo::iteratorIdx</definition>
+        <argsstring></argsstring>
+        <name>iteratorIdx</name>
+        <qualifiedname>ecss::TypeAccessInfo::iteratorIdx</qualifiedname>
+        <initializer>= <ref refid="structecss_1_1TypeAccessInfo_1aee695939232360cd27e2ff480ebf8121" kindref="member">kMainIteratorIdx</ref></initializer>
+        <briefdescription>
+<para>Which secondary iterator provides this type (or 255 if main). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="819" column="10" bodyfile="ecss/Registry.h" bodystart="819" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1TypeAccessInfo_1a2c81c06c14159eb44e95a83c397953f3" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t ecss::TypeAccessInfo::typeAliveMask</definition>
+        <argsstring></argsstring>
+        <name>typeAliveMask</name>
+        <qualifiedname>ecss::TypeAccessInfo::typeAliveMask</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+<para>Bit mask for liveness. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="817" column="10" bodyfile="ecss/Registry.h" bodystart="817" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1TypeAccessInfo_1ab3a77b81904d8e0b437433e0b401460e" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t ecss::TypeAccessInfo::typeOffsetInSector</definition>
+        <argsstring></argsstring>
+        <name>typeOffsetInSector</name>
+        <qualifiedname>ecss::TypeAccessInfo::typeOffsetInSector</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+<para>Byte offset within sector memory. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="818" column="10" bodyfile="ecss/Registry.h" bodystart="818" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Metadata for accessing a component type inside a sectors array. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Used internally by <ref refid="classecss_1_1ArraysView" kindref="compound">ArraysView</ref> iterator to map component offsets/masks. </para>
+    </detaileddescription>
+    <location file="ecss/Registry.h" line="814" column="1" bodyfile="ecss/Registry.h" bodystart="814" bodyend="820"/>
+    <listofallmembers>
+      <member refid="structecss_1_1TypeAccessInfo_1af8fc4cf3278e3457192a97eb067e33a1" prot="public" virt="non-virtual"><scope>ecss::TypeAccessInfo</scope><name>iteratorIdx</name></member>
+      <member refid="structecss_1_1TypeAccessInfo_1aee695939232360cd27e2ff480ebf8121" prot="public" virt="non-virtual"><scope>ecss::TypeAccessInfo</scope><name>kMainIteratorIdx</name></member>
+      <member refid="structecss_1_1TypeAccessInfo_1a2c81c06c14159eb44e95a83c397953f3" prot="public" virt="non-virtual"><scope>ecss::TypeAccessInfo</scope><name>typeAliveMask</name></member>
+      <member refid="structecss_1_1TypeAccessInfo_1ab3a77b81904d8e0b437433e0b401460e" prot="public" virt="non-virtual"><scope>ecss::TypeAccessInfo</scope><name>typeOffsetInSector</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

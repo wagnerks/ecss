@@ -1,0 +1,95 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="namespaceecss" kind="namespace" language="C++">
+    <compoundname>ecss</compoundname>
+    <innerclass refid="classecss_1_1ArraysView" prot="public">ecss::ArraysView</innerclass>
+    <innerclass refid="structecss_1_1PinnedComponent" prot="public">ecss::PinnedComponent</innerclass>
+    <innerclass refid="structecss_1_1Ranges" prot="public">ecss::Ranges</innerclass>
+    <innerclass refid="classecss_1_1Registry" prot="public">ecss::Registry</innerclass>
+    <innerclass refid="structecss_1_1TypeAccessInfo" prot="public">ecss::TypeAccessInfo</innerclass>
+    <innernamespace refid="namespaceecss_1_1Memory">ecss::Memory</innernamespace>
+    <innernamespace refid="namespaceecss_1_1Threads">ecss::Threads</innernamespace>
+    <innernamespace refid="namespaceecss_1_1types">ecss::types</innernamespace>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="Types_8h_1a742990a82806a784117c26d411a763df" prot="public" static="no">
+        <type>uint16_t</type>
+        <definition>using ecss::ECSType =  uint16_t</definition>
+        <argsstring></argsstring>
+        <name>ECSType</name>
+        <qualifiedname>ecss::ECSType</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="19" column="1" bodyfile="ecss/Types.h" bodystart="19" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="Types_8h_1a9c110283d18618506796c2abfa5c2816" prot="public" static="no">
+        <type>SectorId</type>
+        <definition>using ecss::EntityId =  SectorId</definition>
+        <argsstring></argsstring>
+        <name>EntityId</name>
+        <qualifiedname>ecss::EntityId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="18" column="1" bodyfile="ecss/Types.h" bodystart="18" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="Types_8h_1a80e7805bdb3d1a51becf031072e8428b" prot="public" static="no">
+        <type>uint32_t</type>
+        <definition>using ecss::SectorId =  uint32_t</definition>
+        <argsstring></argsstring>
+        <name>SectorId</name>
+        <qualifiedname>ecss::SectorId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="17" column="1" bodyfile="ecss/Types.h" bodystart="17" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="Types_8h_1a9171d6ac1df0a3d45c10667aff2a6b06" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>SectorId</type>
+        <definition>SectorId ecss::INVALID_ID</definition>
+        <argsstring></argsstring>
+        <name>INVALID_ID</name>
+        <qualifiedname>ecss::INVALID_ID</qualifiedname>
+        <initializer>= std::numeric_limits&lt;SectorId&gt;::max()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="21" column="20" bodyfile="ecss/Types.h" bodystart="21" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="Types_8h_1a06dc3b98582fed943a50bc677bb16146" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t ecss::INVALID_IDX</definition>
+        <argsstring></argsstring>
+        <name>INVALID_IDX</name>
+        <qualifiedname>ecss::INVALID_IDX</qualifiedname>
+        <initializer>= std::numeric_limits&lt;uint32_t&gt;::max()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="22" column="20" bodyfile="ecss/Types.h" bodystart="22" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/ChunksAllocator.h" line="10" column="1"/>
+  </compounddef>
+</doxygen>

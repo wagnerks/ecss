@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1detail_1_1SparseMap" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Memory::detail::SparseMap</compoundname>
+    <templateparamlist>
+      <param>
+        <type>bool</type>
+        <declname>TS</declname>
+        <defname>TS</defname>
+      </param>
+    </templateparamlist>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/SectorsArray.h" line="64" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="64" bodyend="-1"/>
+    <listofallmembers>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_4dc5ad60ca86fdd890aadb7f7be5048a" kind="dir">
+    <compoundname>html</compoundname>
+    <innerfile refid="restypedef_2html_2annotated_8html">restypedef/html/annotated.html</innerfile>
+    <innerfile refid="restypedef_2html_2classes_8html">restypedef/html/classes.html</innerfile>
+    <innerfile refid="examples_2restypedef_2html_2doxygen__crawl_8html">examples/restypedef/html/doxygen_crawl.html</innerfile>
+    <innerfile refid="restypedef_2html_2files_8html">restypedef/html/files.html</innerfile>
+    <innerfile refid="restypedef_2html_2functions_8html">restypedef/html/functions.html</innerfile>
+    <innerfile refid="restypedef_2html_2functions__vars_8html">restypedef/html/functions_vars.html</innerfile>
+    <innerfile refid="restypedef_2html_2globals_8html">restypedef/html/globals.html</innerfile>
+    <innerfile refid="restypedef_2html_2globals__func_8html">restypedef/html/globals_func.html</innerfile>
+    <innerfile refid="restypedef_2html_2globals__type_8html">restypedef/html/globals_type.html</innerfile>
+    <innerfile refid="examples_2restypedef_2html_2index_8html">examples/restypedef/html/index.html</innerfile>
+    <innerfile refid="restypedef__8cpp_8html">restypedef_8cpp.html</innerfile>
+    <innerfile refid="struct__coord__struct-members_8html">struct_coord_struct-members.html</innerfile>
+    <innerfile refid="struct__coord__struct_8html">struct_coord_struct.html</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/restypedef/html/"/>
+  </compounddef>
+</doxygen>

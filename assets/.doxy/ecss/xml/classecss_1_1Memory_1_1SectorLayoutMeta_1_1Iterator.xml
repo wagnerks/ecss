@@ -1,0 +1,236 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator" kind="class" language="C++" prot="public">
+    <compoundname>ecss::Memory::SectorLayoutMeta::Iterator</compoundname>
+    <includes refid="SectorLayoutMeta_8h" local="no">SectorLayoutMeta.h</includes>
+    <sectiondef kind="public-type">
+      <memberdef kind="typedef" id="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1ae484beb7dbf1ac4555277982716c689a" prot="public" static="no">
+        <type>std::ptrdiff_t</type>
+        <definition>using ecss::Memory::SectorLayoutMeta::Iterator::difference_type =  std::ptrdiff_t</definition>
+        <argsstring></argsstring>
+        <name>difference_type</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::Iterator::difference_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="116" column="1" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="116" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1af962de5d3ac5c54f0b4235d91e8725d1" prot="public" static="no">
+        <type>std::forward_iterator_tag</type>
+        <definition>using ecss::Memory::SectorLayoutMeta::Iterator::iterator_category =  std::forward_iterator_tag</definition>
+        <argsstring></argsstring>
+        <name>iterator_category</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::Iterator::iterator_category</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="114" column="1" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="114" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1a5036c597c8090fe5faf3393076110c72" prot="public" static="no">
+        <type><ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">value_type</ref> *</type>
+        <definition>using ecss::Memory::SectorLayoutMeta::Iterator::pointer =  value_type*</definition>
+        <argsstring></argsstring>
+        <name>pointer</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::Iterator::pointer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="117" column="1" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="117" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1ac8f68743c2a2164a8014c7fe86283986" prot="public" static="no">
+        <type><ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">value_type</ref> &amp;</type>
+        <definition>using ecss::Memory::SectorLayoutMeta::Iterator::reference =  value_type&amp;</definition>
+        <argsstring></argsstring>
+        <name>reference</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::Iterator::reference</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="118" column="1" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="118" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1a1bdaa45c87351e4820df51305df64cca" prot="public" static="no">
+        <type>const <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref></type>
+        <definition>using ecss::Memory::SectorLayoutMeta::Iterator::value_type =  const LayoutData</definition>
+        <argsstring></argsstring>
+        <name>value_type</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::Iterator::value_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="115" column="1" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="115" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1ac40d2754a46e7d15d990f2fca82c750f" prot="private" static="no" mutable="no">
+        <type><ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> *</type>
+        <definition>LayoutData* ecss::Memory::SectorLayoutMeta::Iterator::layoutsArray</definition>
+        <argsstring></argsstring>
+        <name>layoutsArray</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::Iterator::layoutsArray</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="132" column="12" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="132" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1a97f2150eb2945adfdce3cbbaec14bd43" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::SectorLayoutMeta::Iterator::Iterator</definition>
+        <argsstring>(const SectorLayoutMeta *layoutMeta, uint8_t idx)</argsstring>
+        <name>Iterator</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::Iterator::Iterator</qualifiedname>
+        <param>
+          <type>const SectorLayoutMeta *</type>
+          <declname>layoutMeta</declname>
+        </param>
+        <param>
+          <type>uint8_t</type>
+          <declname>idx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="120" column="1" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="120" bodyend="120"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1a7ed8dd092e16d1e95f6bef3b844736d0" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ecss::Memory::SectorLayoutMeta::Iterator::operator!=</definition>
+        <argsstring>(const Iterator &amp;other) const</argsstring>
+        <name>operator!=</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::Iterator::operator!=</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator" kindref="compound">Iterator</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="126" column="6" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="126" bodyend="126"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1a30a7fac512293c64e37a98925fa21c5d" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">reference</ref> &amp;</type>
+        <definition>reference &amp; ecss::Memory::SectorLayoutMeta::Iterator::operator*</definition>
+        <argsstring>() const</argsstring>
+        <name>operator*</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::Iterator::operator*</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="128" column="11" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="128" bodyend="128"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1a62a5600e9ed2084cb71389571877da32" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator" kindref="compound">Iterator</ref> &amp;</type>
+        <definition>Iterator &amp; ecss::Memory::SectorLayoutMeta::Iterator::operator++</definition>
+        <argsstring>()</argsstring>
+        <name>operator++</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::Iterator::operator++</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="122" column="10" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="122" bodyend="122"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1a1fd6d9b3743e866d163161c9035e342e" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator" kindref="compound">Iterator</ref></type>
+        <definition>Iterator ecss::Memory::SectorLayoutMeta::Iterator::operator++</definition>
+        <argsstring>(int)</argsstring>
+        <name>operator++</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::Iterator::operator++</qualifiedname>
+        <param>
+          <type>int</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="123" column="10" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="123" bodyend="123"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1ae84c2adeb5210f1773c0472fb1e34177" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">reference</ref> &amp;</type>
+        <definition>reference &amp; ecss::Memory::SectorLayoutMeta::Iterator::operator-&gt;</definition>
+        <argsstring>() const</argsstring>
+        <name>operator-&gt;</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::Iterator::operator-&gt;</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="129" column="11" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="129" bodyend="129"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1ab3da1858af1e02aad2583df60b660a29" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ecss::Memory::SectorLayoutMeta::Iterator::operator==</definition>
+        <argsstring>(const Iterator &amp;other) const</argsstring>
+        <name>operator==</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::Iterator::operator==</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator" kindref="compound">Iterator</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="125" column="6" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="125" bodyend="125"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Forward iterator over the contiguous <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> array. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Provides read-only iteration over all component layout records. </para>
+    </detaileddescription>
+    <location file="ecss/memory/SectorLayoutMeta.h" line="112" column="1" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="112" bodyend="133"/>
+    <listofallmembers>
+      <member refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1ae484beb7dbf1ac4555277982716c689a" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta::Iterator</scope><name>difference_type</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1a97f2150eb2945adfdce3cbbaec14bd43" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta::Iterator</scope><name>Iterator</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1af962de5d3ac5c54f0b4235d91e8725d1" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta::Iterator</scope><name>iterator_category</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1ac40d2754a46e7d15d990f2fca82c750f" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta::Iterator</scope><name>layoutsArray</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1a7ed8dd092e16d1e95f6bef3b844736d0" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta::Iterator</scope><name>operator!=</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1a30a7fac512293c64e37a98925fa21c5d" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta::Iterator</scope><name>operator*</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1a62a5600e9ed2084cb71389571877da32" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta::Iterator</scope><name>operator++</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1a1fd6d9b3743e866d163161c9035e342e" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta::Iterator</scope><name>operator++</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1ae84c2adeb5210f1773c0472fb1e34177" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta::Iterator</scope><name>operator-&gt;</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1ab3da1858af1e02aad2583df60b660a29" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta::Iterator</scope><name>operator==</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1a5036c597c8090fe5faf3393076110c72" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta::Iterator</scope><name>pointer</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1ac8f68743c2a2164a8014c7fe86283986" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta::Iterator</scope><name>reference</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator_1a1bdaa45c87351e4820df51305df64cca" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta::Iterator</scope><name>value_type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

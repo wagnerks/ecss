@@ -1,0 +1,1581 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="classecss_1_1Registry" kind="class" language="C++" prot="public">
+    <compoundname>ecss::Registry</compoundname>
+    <includes refid="Registry_8h" local="no">Registry.h</includes>
+    <templateparamlist>
+      <param>
+        <type>bool</type>
+        <declname>ThreadSafe</declname>
+        <defname>ThreadSafe</defname>
+        <defval>true</defval>
+      </param>
+      <param>
+        <type>typename Allocator</type>
+        <defval><ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">Memory::ChunksAllocator</ref>&lt;8192&gt;</defval>
+      </param>
+    </templateparamlist>
+    <sectiondef kind="friend">
+      <memberdef kind="friend" id="classecss_1_1Registry_1a1b2f86668583ca29a0af93ded6e63417" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+          </param>
+          <param>
+            <type>typename Alloc</type>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>Ranged</declname>
+            <defname>Ranged</defname>
+          </param>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>typename ...</type>
+            <declname>ComponentTypes</declname>
+            <defname>ComponentTypes</defname>
+          </param>
+        </templateparamlist>
+        <type>class</type>
+        <definition>friend class ArraysView</definition>
+        <argsstring></argsstring>
+        <name>ArraysView</name>
+        <qualifiedname>ecss::Registry::ArraysView</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1ArraysView" kindref="compound">ArraysView</ref></type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="130" column="14" bodyfile="ecss/Registry.h" bodystart="130" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="friend" id="classecss_1_1Registry_1ab3dbf328fd8ace0a2b9e18ae85fd16eb" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+          </param>
+          <param>
+            <type>typename Alloc</type>
+          </param>
+        </templateparamlist>
+        <type>class</type>
+        <definition>friend class Registry</definition>
+        <argsstring></argsstring>
+        <name>Registry</name>
+        <qualifiedname>ecss::Registry::Registry</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Registry" kindref="compound">Registry</ref></type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="133" column="14" bodyfile="ecss/Registry.h" bodystart="133" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classecss_1_1Registry_1a0605cb94cfe2090fdb9194ce1058133c" prot="private" static="no" mutable="yes">
+        <type>std::conditional_t&lt; ThreadSafe, std::shared_mutex, Dummy &gt;</type>
+        <definition>std::conditional_t&lt;ThreadSafe, std::shared_mutex, Dummy&gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::componentsArrayMapMutex</definition>
+        <argsstring></argsstring>
+        <name>componentsArrayMapMutex</name>
+        <qualifiedname>ecss::Registry::componentsArrayMapMutex</qualifiedname>
+        <briefdescription>
+<para>Protects component arrays map/list (ThreadSafe build). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="806" column="28" bodyfile="ecss/Registry.h" bodystart="806" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Registry_1a405fe8afaef3e0470a45c80907f0584d" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Memory::SectorsArray</ref>&lt; ThreadSafe, Allocator &gt; * &gt;</type>
+        <definition>std::vector&lt;Memory::SectorsArray&lt;ThreadSafe, Allocator&gt;*&gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::mComponentsArrays</definition>
+        <argsstring></argsstring>
+        <name>mComponentsArrays</name>
+        <qualifiedname>ecss::Registry::mComponentsArrays</qualifiedname>
+        <briefdescription>
+<para>Flat list of all unique sectors arrays for iteration/maintenance. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="802" column="13" bodyfile="ecss/Registry.h" bodystart="802" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Registry_1a14287dc54e3d19cb887c843025f718cf" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Memory::SectorsArray</ref>&lt; ThreadSafe, Allocator &gt; * &gt;</type>
+        <definition>std::vector&lt;Memory::SectorsArray&lt;ThreadSafe, Allocator&gt;*&gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::mComponentsArraysMap</definition>
+        <argsstring></argsstring>
+        <name>mComponentsArraysMap</name>
+        <qualifiedname>ecss::Registry::mComponentsArraysMap</qualifiedname>
+        <briefdescription>
+<para>Mapping: component type id -&gt; sectors array (may group several component types). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="799" column="13" bodyfile="ecss/Registry.h" bodystart="799" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Registry_1aea987df7af9756309f11cfac4403942c" prot="private" static="no" mutable="no">
+        <type>Ranges&lt; EntityId &gt;</type>
+        <definition>Ranges&lt;EntityId&gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::mEntities</definition>
+        <argsstring></argsstring>
+        <name>mEntities</name>
+        <qualifiedname>ecss::Registry::mEntities</qualifiedname>
+        <briefdescription>
+<para>Dense range-managed entity id storage. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="796" column="8" bodyfile="ecss/Registry.h" bodystart="796" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Registry_1a8889dc0d38bd63d8390e1420b04e60a9" prot="private" static="no" mutable="yes">
+        <type>std::conditional_t&lt; ThreadSafe, std::shared_mutex, Dummy &gt;</type>
+        <definition>std::conditional_t&lt;ThreadSafe, std::shared_mutex, Dummy&gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::mEntitiesMutex</definition>
+        <argsstring></argsstring>
+        <name>mEntitiesMutex</name>
+        <qualifiedname>ecss::Registry::mEntitiesMutex</qualifiedname>
+        <briefdescription>
+<para>Protects entities container (ThreadSafe build). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="805" column="28" bodyfile="ecss/Registry.h" bodystart="805" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classecss_1_1Registry_1a00b5a1a0fcae643fb6fa8630cb252f35" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE ECSType</type>
+        <definition>static FORCE_INLINE ECSType ecss::Registry&lt; ThreadSafe, Allocator &gt;::componentTypeId</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>componentTypeId</name>
+        <qualifiedname>ecss::Registry::componentTypeId</qualifiedname>
+        <briefdescription>
+<para>Get a stable numeric type id for component T. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="141" column="29" bodyfile="ecss/Registry.h" bodystart="141" bodyend="141"/>
+        <referencedby refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" compoundref="Registry_8h" startline="544" endline="563">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classecss_1_1Registry_1a8a603f0b45d65870c22cb5be1f41061f" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+          <param>
+            <type>class ...</type>
+            <declname>Args</declname>
+            <defname>Args</defname>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE T *</type>
+        <definition>FORCE_INLINE T * ecss::Registry&lt; ThreadSafe, Allocator &gt;::addComponent</definition>
+        <argsstring>(EntityId entity, Args &amp;&amp;... args) noexcept</argsstring>
+        <name>addComponent</name>
+        <qualifiedname>ecss::Registry::addComponent</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entity</declname>
+        </param>
+        <param>
+          <type>Args &amp;&amp;...</type>
+          <declname>args</declname>
+        </param>
+        <briefdescription>
+<para>Add or overwrite a component T for an entity. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>Args</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Constructor argument types for T. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Entity id (also used logically as sector id). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>args</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Construction / assignment arguments. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Pointer to the stored component. </para>
+</simplesect>
+<simplesect kind="note"><para>Overwrites existing component instance (destructive assign semantics inside sector). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="246" column="16" bodyfile="ecss/Registry.h" bodystart="246" bodyend="248"/>
+        <references refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" compoundref="Registry_8h" startline="544" endline="563">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a1a52b2fa0f9cdd06bfeed497dd9508b3" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+          <param>
+            <type>typename Func</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::addComponents</definition>
+        <argsstring>(Func &amp;&amp;func)</argsstring>
+        <name>addComponents</name>
+        <qualifiedname>ecss::Registry::addComponents</qualifiedname>
+        <param>
+          <type>Func &amp;&amp;</type>
+          <declname>func</declname>
+        </param>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+<para>Bulk add components via generator functor under a single write lock (thread-safe build). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>Func</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Callable returning std::pair&lt;EntityId,T&gt;. Return {INVALID_ID, {}} to stop. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>func</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Generator invoked repeatedly while lock is held. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>Optimizes many insertions by avoiding enter/leave lock per element. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="258" column="6" bodyfile="ecss/Registry.h" bodystart="258" bodyend="267"/>
+        <references refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" compoundref="Registry_8h" startline="544" endline="563">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a9d8a3ef446c1f520f97e8bd3e6536522" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::clear</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>clear</name>
+        <qualifiedname>ecss::Registry::clear</qualifiedname>
+        <briefdescription>
+<para>Clear all component arrays and remove all entities. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>Does not shrink capacity. </para>
+</simplesect>
+<simplesect kind="post"><para>contains(id)==false for any previously allocated entity. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="418" column="6" bodyfile="ecss/Registry.h" bodystart="418" bodyend="442"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1acaec1a969d49954ab12dee4266bb6d4c" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Registry&lt; ThreadSafe, Allocator &gt;::contains</definition>
+        <argsstring>(EntityId entityId) const noexcept</argsstring>
+        <name>contains</name>
+        <qualifiedname>ecss::Registry::contains</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entityId</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>True if registry currently owns entityId. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="569" column="19" bodyfile="ecss/Registry.h" bodystart="569" bodyend="577"/>
+        <referencedby refid="classecss_1_1Registry_1a0db69a9b59211fb25f64fa34d6d8b11c" compoundref="Registry_8h" startline="607" endline="621">ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyEntity</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a14808ef611a3854e97bed88d54a237e9" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::defragment</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>defragment</name>
+        <qualifiedname>ecss::Registry::defragment</qualifiedname>
+        <briefdescription>
+<para>Defragment all arrays (compacts fragmented dead slots). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>Can be expensive if many arrays large � schedule during low frame-load moments. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="448" column="6" bodyfile="ecss/Registry.h" bodystart="448" bodyend="465"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1ada5cbe54f287be41cda40fa0bc783c71" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Registry&lt; ThreadSafe, Allocator &gt;::defragment</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>defragment</name>
+        <qualifiedname>ecss::Registry::defragment</qualifiedname>
+        <briefdescription>
+<para>Defragment the container for component T (if it exists). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="695" column="19" bodyfile="ecss/Registry.h" bodystart="695" bodyend="695"/>
+        <references refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" compoundref="Registry_8h" startline="544" endline="563">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a40e500f0b85b8185251ac13f3977a5fa" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyComponent</definition>
+        <argsstring>(EntityId entity) noexcept</argsstring>
+        <name>destroyComponent</name>
+        <qualifiedname>ecss::Registry::destroyComponent</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entity</declname>
+        </param>
+        <briefdescription>
+<para>Destroy component T for a single entity (does nothing if not present). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Entity id. @complexity O(1). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="276" column="6" bodyfile="ecss/Registry.h" bodystart="276" bodyend="304"/>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a1519e3126bedc3956af3d5c33d0f1f6e" compoundref="Sector_8h" startline="138" endline="145">ecss::Memory::Sector::destroyMember</references>
+        <references refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" compoundref="Registry_8h" startline="544" endline="563">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1ace81965843c6f3b518508670707e7148" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyComponent</definition>
+        <argsstring>(std::vector&lt; EntityId &gt; &amp;entities) noexcept</argsstring>
+        <name>destroyComponent</name>
+        <qualifiedname>ecss::Registry::destroyComponent</qualifiedname>
+        <param>
+          <type>std::vector&lt; EntityId &gt; &amp;</type>
+          <declname>entities</declname>
+        </param>
+        <briefdescription>
+<para>Destroy component T for a batch of entities. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entities</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Entity id list (will be sorted and truncated to valid sector capacity). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>Modifies the input vector (sorting, trimming out-of-range ids). </para>
+</simplesect>
+<simplesect kind="warning"><para>Pins are waited if thread-safe; call outside tight critical paths if possible. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="314" column="6" bodyfile="ecss/Registry.h" bodystart="314" bodyend="358"/>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a1519e3126bedc3956af3d5c33d0f1f6e" compoundref="Sector_8h" startline="138" endline="145">ecss::Memory::Sector::destroyMember</references>
+        <references refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" compoundref="Registry_8h" startline="544" endline="563">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a13215b01a606362fc3ddc0f12c6cfa64" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyEntities</definition>
+        <argsstring>(std::vector&lt; EntityId &gt; &amp;entities) noexcept</argsstring>
+        <name>destroyEntities</name>
+        <qualifiedname>ecss::Registry::destroyEntities</qualifiedname>
+        <param>
+          <type>std::vector&lt; EntityId &gt; &amp;</type>
+          <declname>entities</declname>
+        </param>
+        <briefdescription>
+<para>Destroy a batch of entities and all their components (sequential per-array). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entities</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List of entities (not modified). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>Safe to call while other threads query (ThreadSafe=true). </para>
+</simplesect>
+<simplesect kind="warning"><para>No parallelization here to avoid thread lifetime complexity. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="629" column="6" bodyfile="ecss/Registry.h" bodystart="629" bodyend="691"/>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a08b22a37e16c4edc6d2a8382a84a93c0" compoundref="Sector_8h" startline="148" endline="161">ecss::Memory::Sector::destroySectorData</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a0db69a9b59211fb25f64fa34d6d8b11c" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyEntity</definition>
+        <argsstring>(EntityId entityId) noexcept</argsstring>
+        <name>destroyEntity</name>
+        <qualifiedname>ecss::Registry::destroyEntity</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entityId</declname>
+        </param>
+        <briefdescription>
+<para>Destroy a single entity and all of its components. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entityId</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Entity to remove (ignored if not owned). @complexity O(A) with A = number of component arrays. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="607" column="6" bodyfile="ecss/Registry.h" bodystart="607" bodyend="621"/>
+        <references refid="classecss_1_1Registry_1acaec1a969d49954ab12dee4266bb6d4c" compoundref="Registry_8h" startline="569" endline="577">ecss::Registry&lt; ThreadSafe, Allocator &gt;::contains</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a9cd7516a14881bee276ea7d9ae0a0b83" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename...</type>
+            <declname>Components</declname>
+            <defname>Components</defname>
+          </param>
+          <param>
+            <type>typename Func</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::forEachAsync</definition>
+        <argsstring>(const std::vector&lt; EntityId &gt; &amp;entities, Func &amp;&amp;func) noexcept</argsstring>
+        <name>forEachAsync</name>
+        <qualifiedname>ecss::Registry::forEachAsync</qualifiedname>
+        <param>
+          <type>const std::vector&lt; EntityId &gt; &amp;</type>
+          <declname>entities</declname>
+        </param>
+        <param>
+          <type>Func &amp;&amp;</type>
+          <declname>func</declname>
+        </param>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+<para>Apply a function to each entity in a list, pinning requested component types (thread-safe build). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>Components</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component types to pin. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>Func</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Callable signature: void(EntityId, Components*...). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entities</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Entity ids to process. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>func</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Function invoked per entity. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>Skips entities missing any main pinned component (pointer passed may be nullptr for non-main). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="395" column="13" bodyfile="ecss/Registry.h" bodystart="395" bodyend="400"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a86940b59ff68e644d2403540b25f0a3e" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE std::vector&lt; EntityId &gt;</type>
+        <definition>FORCE_INLINE std::vector&lt; EntityId &gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::getAllEntities</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>getAllEntities</name>
+        <qualifiedname>ecss::Registry::getAllEntities</qualifiedname>
+        <briefdescription>
+<para>Snapshot all entity ids (copy). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="592" column="26" bodyfile="ecss/Registry.h" bodystart="592" bodyend="600"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" prot="public" static="no" nodiscard="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+        </templateparamlist>
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Memory::SectorsArray</ref>&lt; ThreadSafe, Allocator &gt; *</type>
+        <definition>Memory::SectorsArray&lt; ThreadSafe, Allocator &gt; * ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>getComponentContainer</name>
+        <qualifiedname>ecss::Registry::getComponentContainer</qualifiedname>
+        <briefdescription>
+<para>Get (or lazily create) the sectors container for component T. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Pointer to container holding (possibly grouped) T. </para>
+</simplesect>
+<simplesect kind="note"><para>Will implicitly register a single-type array if not pre-registered. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="544" column="23" bodyfile="ecss/Registry.h" bodystart="544" bodyend="563"/>
+        <references refid="classecss_1_1Registry_1a00b5a1a0fcae643fb6fa8630cb252f35" compoundref="Registry_8h" startline="141" endline="141">ecss::Registry&lt; ThreadSafe, Allocator &gt;::componentTypeId</references>
+        <references refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" compoundref="Registry_8h" startline="544" endline="563">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</references>
+        <references refid="classecss_1_1Registry_1a9fe1b9e3505b3aeb8d0b55110c6088c1" compoundref="Registry_8h" startline="476" endline="535">ecss::Registry&lt; ThreadSafe, Allocator &gt;::registerArray</references>
+        <referencedby refid="classecss_1_1Registry_1a8a603f0b45d65870c22cb5be1f41061f" compoundref="Registry_8h" startline="246" endline="248">ecss::Registry&lt; ThreadSafe, Allocator &gt;::addComponent</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a1a52b2fa0f9cdd06bfeed497dd9508b3" compoundref="Registry_8h" startline="258" endline="267">ecss::Registry&lt; ThreadSafe, Allocator &gt;::addComponents</referencedby>
+        <referencedby refid="classecss_1_1Registry_1ada5cbe54f287be41cda40fa0bc783c71" compoundref="Registry_8h" startline="695" endline="695">ecss::Registry&lt; ThreadSafe, Allocator &gt;::defragment</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a40e500f0b85b8185251ac13f3977a5fa" compoundref="Registry_8h" startline="276" endline="304">ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyComponent</referencedby>
+        <referencedby refid="classecss_1_1Registry_1ace81965843c6f3b518508670707e7148" compoundref="Registry_8h" startline="314" endline="358">ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyComponent</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" compoundref="Registry_8h" startline="544" endline="563">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a7009c07793d9a4521915c010241a0aa8" compoundref="Registry_8h" startline="199" endline="217">ecss::Registry&lt; ThreadSafe, Allocator &gt;::hasComponent</referencedby>
+        <referencedby refid="classecss_1_1Registry_1ac5878c751c1d073fd9911a01a4f67e16" compoundref="Registry_8h" startline="362" endline="362">ecss::Registry&lt; ThreadSafe, Allocator &gt;::insert</referencedby>
+        <referencedby refid="classecss_1_1Registry_1ad7c04cce4b6c9d6b5e7fa1c33ec84b6f" compoundref="Registry_8h" startline="366" endline="366">ecss::Registry&lt; ThreadSafe, Allocator &gt;::insert</referencedby>
+        <referencedby refid="classecss_1_1Registry_1abc89274e98252fb7a35d5a1417a9a854" compoundref="Registry_8h" startline="227" endline="234">ecss::Registry&lt; ThreadSafe, Allocator &gt;::pinComponent</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a19d6acc056a40ddaac5bc4e01a9ab284" compoundref="Registry_8h" startline="411" endline="411">ecss::Registry&lt; ThreadSafe, Allocator &gt;::reserve</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a7051790a8a6d2d2d492a239d6d4a7f41" compoundref="Registry_8h" startline="699" endline="699">ecss::Registry&lt; ThreadSafe, Allocator &gt;::setDefragmentThreshold</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a7009c07793d9a4521915c010241a0aa8" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Registry&lt; ThreadSafe, Allocator &gt;::hasComponent</definition>
+        <argsstring>(EntityId entity) noexcept</argsstring>
+        <name>hasComponent</name>
+        <qualifiedname>ecss::Registry::hasComponent</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entity</declname>
+        </param>
+        <briefdescription>
+<para>Check if an entity has a live component T. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Entity id. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>True if the component exists and is alive; false otherwise. @complexity O(1). @thread_safety Locking/pinning applied if ThreadSafe=true. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="199" column="19" bodyfile="ecss/Registry.h" bodystart="199" bodyend="217"/>
+        <references refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" compoundref="Registry_8h" startline="544" endline="563">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1ab60b8eaab180174b9d04ba330eb3dce5" compoundref="Sector_8h" startline="67" endline="69">ecss::Memory::Sector::isAlive</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1ac5878c751c1d073fd9911a01a4f67e16" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+          </param>
+          <param>
+            <type>typename Alloc</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Registry&lt; ThreadSafe, Allocator &gt;::insert</definition>
+        <argsstring>(const Memory::SectorsArray&lt; TS, Alloc &gt; &amp;array) noexcept</argsstring>
+        <name>insert</name>
+        <qualifiedname>ecss::Registry::insert</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Memory::SectorsArray</ref>&lt; TS, Alloc &gt; &amp;</type>
+          <declname>array</declname>
+        </param>
+        <briefdescription>
+<para>Copy-in an externally built sectors array for component T. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="362" column="19" bodyfile="ecss/Registry.h" bodystart="362" bodyend="362"/>
+        <references refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" compoundref="Registry_8h" startline="544" endline="563">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1ad7c04cce4b6c9d6b5e7fa1c33ec84b6f" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+          </param>
+          <param>
+            <type>typename Alloc</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Registry&lt; ThreadSafe, Allocator &gt;::insert</definition>
+        <argsstring>(Memory::SectorsArray&lt; TS, Alloc &gt; &amp;&amp;array) noexcept</argsstring>
+        <name>insert</name>
+        <qualifiedname>ecss::Registry::insert</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Memory::SectorsArray</ref>&lt; TS, Alloc &gt; &amp;&amp;</type>
+          <declname>array</declname>
+        </param>
+        <briefdescription>
+<para>Move-in an externally built sectors array for component T. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="366" column="19" bodyfile="ecss/Registry.h" bodystart="366" bodyend="366"/>
+        <references refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" compoundref="Registry_8h" startline="544" endline="563">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a105a07f1fc04e3cd73ec60538454ddbc" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> &amp;</type>
+        <definition>Registry &amp; ecss::Registry&lt; ThreadSafe, Allocator &gt;::operator=</definition>
+        <argsstring>(const Registry &amp;other) noexcept=delete</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Registry::operator=</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="145" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a0578284d3720b564e643a45370ab58e8" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> &amp;</type>
+        <definition>Registry &amp; ecss::Registry&lt; ThreadSafe, Allocator &gt;::operator=</definition>
+        <argsstring>(Registry &amp;&amp;other) noexcept=delete</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Registry::operator=</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="147" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1abc89274e98252fb7a35d5a1417a9a854" prot="public" static="no" nodiscard="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+        </templateparamlist>
+        <type><ref refid="structecss_1_1PinnedComponent" kindref="compound">PinnedComponent</ref>&lt; T &gt;</type>
+        <definition>PinnedComponent&lt; T &gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::pinComponent</definition>
+        <argsstring>(EntityId entity) noexcept</argsstring>
+        <name>pinComponent</name>
+        <qualifiedname>ecss::Registry::pinComponent</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entity</declname>
+        </param>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+<para>Pin component T for an entity (thread-safe build only). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Entity id. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><ref refid="structecss_1_1PinnedComponent" kindref="compound">PinnedComponent&lt;T&gt;</ref> (empty if component missing). </para>
+</simplesect>
+<simplesect kind="note"><para>The returned object must not outlive concurrent modification epochs. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="227" column="18" bodyfile="ecss/Registry.h" bodystart="227" bodyend="234"/>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1aa449c7ad2c41a814794b4f4594c38ed8" compoundref="Sector_8h" startline="98" endline="104">ecss::Memory::Sector::getComponent</references>
+        <references refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" compoundref="Registry_8h" startline="544" endline="563">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a9fe1b9e3505b3aeb8d0b55110c6088c1" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename...</type>
+            <declname>ComponentTypes</declname>
+            <defname>ComponentTypes</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::registerArray</definition>
+        <argsstring>(uint32_t capacity=0, Allocator allocator={}) noexcept</argsstring>
+        <name>registerArray</name>
+        <qualifiedname>ecss::Registry::registerArray</qualifiedname>
+        <param>
+          <type>uint32_t</type>
+          <declname>capacity</declname>
+          <defval>0</defval>
+        </param>
+        <param>
+          <type>Allocator</type>
+          <declname>allocator</declname>
+          <defval>{}</defval>
+        </param>
+        <briefdescription>
+<para>Explicitly register (group) component types into a shared sectors array. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>ComponentTypes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component types to co-locate. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>capacity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Initial reserve (optional). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>allocator</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Allocator instance to move. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>All types must either all be new or already co-grouped; partial mixes assert. </para>
+</simplesect>
+<simplesect kind="warning"><para>Call before first implicit access to any of the grouped types. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="476" column="6" bodyfile="ecss/Registry.h" bodystart="476" bodyend="535"/>
+        <referencedby refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" compoundref="Registry_8h" startline="544" endline="563">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1aa3859e8330853acdebd89f444c111cdf" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Registry&lt; ThreadSafe, Allocator &gt;::Registry</definition>
+        <argsstring>() noexcept=default</argsstring>
+        <name>Registry</name>
+        <qualifiedname>ecss::Registry::Registry</qualifiedname>
+        <briefdescription>
+<para>Default construct an empty registry (no arrays allocated until first use). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="151" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a655b516f4a3eb2e810e7de55921f9b03" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Registry&lt; ThreadSafe, Allocator &gt;::Registry</definition>
+        <argsstring>(const Registry &amp;other) noexcept=delete</argsstring>
+        <name>Registry</name>
+        <qualifiedname>ecss::Registry::Registry</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="144" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a65fa5a531f5192c7552e62da0547950f" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Registry&lt; ThreadSafe, Allocator &gt;::Registry</definition>
+        <argsstring>(Registry &amp;&amp;other) noexcept=delete</argsstring>
+        <name>Registry</name>
+        <qualifiedname>ecss::Registry::Registry</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="146" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a19d6acc056a40ddaac5bc4e01a9ab284" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class...</type>
+            <declname>Components</declname>
+            <defname>Components</defname>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Registry&lt; ThreadSafe, Allocator &gt;::reserve</definition>
+        <argsstring>(uint32_t newCapacity) noexcept</argsstring>
+        <name>reserve</name>
+        <qualifiedname>ecss::Registry::reserve</qualifiedname>
+        <param>
+          <type>uint32_t</type>
+          <declname>newCapacity</declname>
+        </param>
+        <briefdescription>
+<para>Reserve capacity (in sectors array units) for each listed component type. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>Components</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component types to reserve for. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>newCapacity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Target capacity (implementation may round up). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="411" column="19" bodyfile="ecss/Registry.h" bodystart="411" bodyend="411"/>
+        <references refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" compoundref="Registry_8h" startline="544" endline="563">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a7051790a8a6d2d2d492a239d6d4a7f41" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Registry&lt; ThreadSafe, Allocator &gt;::setDefragmentThreshold</definition>
+        <argsstring>(float threshold)</argsstring>
+        <name>setDefragmentThreshold</name>
+        <qualifiedname>ecss::Registry::setDefragmentThreshold</qualifiedname>
+        <param>
+          <type>float</type>
+          <declname>threshold</declname>
+        </param>
+        <briefdescription>
+<para>Set defragment threshold for component T container. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="699" column="19" bodyfile="ecss/Registry.h" bodystart="699" bodyend="699"/>
+        <references refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" compoundref="Registry_8h" startline="544" endline="563">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a3af483bdef9856965a6c91bd5369232c" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE EntityId</type>
+        <definition>FORCE_INLINE EntityId ecss::Registry&lt; ThreadSafe, Allocator &gt;::takeEntity</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>takeEntity</name>
+        <qualifiedname>ecss::Registry::takeEntity</qualifiedname>
+        <briefdescription>
+<para>Allocate (take) a new entity id. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="580" column="23" bodyfile="ecss/Registry.h" bodystart="580" bodyend="589"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a36e817256447e5081267ae4e048a9cbb" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::update</definition>
+        <argsstring>(bool withDefragment=true) noexcept</argsstring>
+        <name>update</name>
+        <qualifiedname>ecss::Registry::update</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>withDefragment</declname>
+          <defval>true</defval>
+        </param>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+<para>Maintenance pass (thread-safe build): process deferred erases and optionally defragment. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>withDefragment</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, arrays that exceed thresholds may compact themselves. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>Recommended to call once per frame at a stable synchronization point. @thread_safety Internally synchronized. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="162" column="6" bodyfile="ecss/Registry.h" bodystart="162" bodyend="172"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a1cfb377e6205f3565d59a5ae34bf4139" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::update</definition>
+        <argsstring>(bool withDefragment=true) noexcept</argsstring>
+        <name>update</name>
+        <qualifiedname>ecss::Registry::update</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>withDefragment</declname>
+          <defval>true</defval>
+        </param>
+    <requiresclause>(!ThreadSafe)    </requiresclause>
+        <briefdescription>
+<para>Maintenance pass (non-thread-safe build): optionally defragment arrays immediately. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>withDefragment</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, compacts arrays that request it. @thread_safety Caller must ensure exclusive access. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="179" column="6" bodyfile="ecss/Registry.h" bodystart="179" bodyend="187"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a9e5e54a8233e370ccfa8585538bf7ab7" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename...</type>
+            <declname>Components</declname>
+            <defname>Components</defname>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE auto</type>
+        <definition>FORCE_INLINE auto ecss::Registry&lt; ThreadSafe, Allocator &gt;::view</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>view</name>
+        <qualifiedname>ecss::Registry::view</qualifiedname>
+        <briefdescription>
+<para>Create a full-range iterable view over all entities with the main component. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>Components</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component types to access; first drives iteration. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><ref refid="classecss_1_1ArraysView" kindref="compound">ArraysView</ref> instance (full range). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="384" column="19" bodyfile="ecss/Registry.h" bodystart="384" bodyend="384"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a30d293e02020ac1750e2d18a97827ca2" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename...</type>
+            <declname>Components</declname>
+            <defname>Components</defname>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE auto</type>
+        <definition>FORCE_INLINE auto ecss::Registry&lt; ThreadSafe, Allocator &gt;::view</definition>
+        <argsstring>(const Ranges&lt; EntityId &gt; &amp;ranges) noexcept</argsstring>
+        <name>view</name>
+        <qualifiedname>ecss::Registry::view</qualifiedname>
+        <param>
+          <type>const Ranges&lt; EntityId &gt; &amp;</type>
+          <declname>ranges</declname>
+        </param>
+        <briefdescription>
+<para>Create an iterable view limited to given entity ranges. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>Components</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component types to fetch; first drives iteration order. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ranges</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Half-open entity ranges. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><ref refid="classecss_1_1ArraysView" kindref="compound">ArraysView</ref> instance (ranged iteration). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="376" column="19" bodyfile="ecss/Registry.h" bodystart="376" bodyend="376"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1af1477f4a2c13ec18861b0daf40ce5a16" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Registry&lt; ThreadSafe, Allocator &gt;::~Registry</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>~Registry</name>
+        <qualifiedname>ecss::Registry::~Registry</qualifiedname>
+        <briefdescription>
+<para>Destroys all component arrays (each SectorsArray is deleted). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="154" column="1" bodyfile="ecss/Registry.h" bodystart="154" bodyend="154"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classecss_1_1Registry_1afe9d928750c6982494ea21b9993ca270" prot="private" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroySector</definition>
+        <argsstring>(EntityId entityId) noexcept</argsstring>
+        <name>destroySector</name>
+        <qualifiedname>ecss::Registry::destroySector</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entityId</declname>
+        </param>
+        <briefdescription>
+<para>Destroy a single entity across all arrays (internal helper). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entityId</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Entity id. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="706" column="6" bodyfile="ecss/Registry.h" bodystart="706" bodyend="734"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a8ec149cb891e73609e6bc19dc4e608b6" prot="private" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class...</type>
+            <declname>Ts</declname>
+            <defname>Ts</defname>
+          </param>
+          <param>
+            <type>class F</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::withPinned</definition>
+        <argsstring>(EntityId entity, F &amp;&amp;f) noexcept</argsstring>
+        <name>withPinned</name>
+        <qualifiedname>ecss::Registry::withPinned</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entity</declname>
+        </param>
+        <param>
+          <type>F &amp;&amp;</type>
+          <declname>f</declname>
+        </param>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+<para>Utility: pin multiple components and invoke f(entity, comps...). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>Ts</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component types to pin. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>F</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Functor type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="742" column="6" bodyfile="ecss/Registry.h" bodystart="742" bodyend="745"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-func">
+      <memberdef kind="function" id="classecss_1_1Registry_1afe987de7617370f1e0f225504a53e6df" prot="private" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>class ArraysArr</type>
+          </param>
+        </templateparamlist>
+        <type><ref refid="structecss_1_1Memory_1_1PinnedSector" kindref="compound">Memory::PinnedSector</ref></type>
+        <definition>static Memory::PinnedSector ecss::Registry&lt; ThreadSafe, Allocator &gt;::pinSector</definition>
+        <argsstring>(SectorId pinId, const ArraysArr &amp;arrays, Memory::SectorsArray&lt; ThreadSafe, Allocator &gt; *lockedArr, size_t index)</argsstring>
+        <name>pinSector</name>
+        <qualifiedname>ecss::Registry::pinSector</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>pinId</declname>
+        </param>
+        <param>
+          <type>const ArraysArr &amp;</type>
+          <declname>arrays</declname>
+        </param>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Memory::SectorsArray</ref>&lt; ThreadSafe, Allocator &gt; *</type>
+          <declname>lockedArr</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>index</declname>
+        </param>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+<para>Internal helper: pin a sector from one of several arrays (thread-safe build). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type stored in the pinned sector. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ArraysArr</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Array-like container of SectorsArray*. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>pinId</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sector id to pin. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>arrays</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Container of sectors arrays to search. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>lockedArr</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If not null, this array is already write-locked (skip locking). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>index</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Index in arrays to pin from. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>PinnedSector handle (may be empty if sector not found). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="758" column="29" bodyfile="ecss/Registry.h" bodystart="758" bodyend="766"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a7afb698ae3b2ce07be82d8040489cb04" prot="private" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ecss::Registry&lt; ThreadSafe, Allocator &gt;::prepareEntities</definition>
+        <argsstring>(std::vector&lt; EntityId &gt; &amp;entities, size_t sparseCapacity)</argsstring>
+        <name>prepareEntities</name>
+        <qualifiedname>ecss::Registry::prepareEntities</qualifiedname>
+        <param>
+          <type>std::vector&lt; EntityId &gt; &amp;</type>
+          <declname>entities</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>sparseCapacity</declname>
+        </param>
+        <briefdescription>
+<para>Internal helper: ensure entities vector is sorted &amp; clamped to valid capacity. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entities</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>[in/out] Vector of entity ids. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>sparseCapacity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Max valid sector index (exclusive). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="773" column="13" bodyfile="ecss/Registry.h" bodystart="773" bodyend="793"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Central ECS registry that owns component sector arrays, entities and iteration utilities. </para>
+    </briefdescription>
+    <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>ThreadSafe</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, operations use internal locks / pin counters for safe concurrent access. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>Allocator</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Allocator used by SectorsArray (defaults to chunked allocator).</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+Responsibilities:<itemizedlist>
+<listitem><para>Entity lifecycle (allocate / erase ids).</para>
+</listitem><listitem><para>Lazily create or explicitly register component arrays (can group types).</para>
+</listitem><listitem><para>Component add / overwrite / remove (single or batch).</para>
+</listitem><listitem><para>Bulk entity destruction with all their components.</para>
+</listitem><listitem><para>Iteration via <ref refid="classecss_1_1ArraysView" kindref="compound">ArraysView</ref> over one or more component types.</para>
+</listitem></itemizedlist>
+</para>
+<para>Thread safety modes:<itemizedlist>
+<listitem><para>ThreadSafe == true:<itemizedlist>
+<listitem><para>Shared mutex protects component array mapping and entity container.</para>
+</listitem><listitem><para>Pin counters block structural mutation while components are in use.</para>
+</listitem></itemizedlist>
+</para>
+</listitem><listitem><para>ThreadSafe == false:<itemizedlist>
+<listitem><para>No internal synchronization � single-threaded performance focus.</para>
+</listitem></itemizedlist>
+</para>
+</listitem></itemizedlist>
+</para>
+<para>Performance notes:<itemizedlist>
+<listitem><para>Component insertion is O(1) amortized (sector-based).</para>
+</listitem><listitem><para>hasComponent is O(1) (sector lookup + bit test).</para>
+</listitem><listitem><para>destroyEntities (sequential version here) visits each array =&gt; O(A * log N) for sorting per array prep.</para>
+</listitem></itemizedlist>
+</para>
+<para><simplesect kind="warning"><para>Entity ids are reused; do not cache them beyond system boundaries without validation. </para>
+</simplesect>
+<simplesect kind="note"><para>Use <ref refid="classecss_1_1Registry_1a19d6acc056a40ddaac5bc4e01a9ab284" kindref="member">reserve&lt;Components...&gt;()</ref> to pre-allocate sector capacity and reduce reallocations. </para>
+</simplesect>
+</para>
+    </detaileddescription>
+    <location file="ecss/Registry.h" line="128" column="1" bodyfile="ecss/Registry.h" bodystart="128" bodyend="807"/>
+    <listofallmembers>
+      <member refid="classecss_1_1Registry_1a8a603f0b45d65870c22cb5be1f41061f" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>addComponent</name></member>
+      <member refid="classecss_1_1Registry_1a1a52b2fa0f9cdd06bfeed497dd9508b3" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>addComponents</name></member>
+      <member refid="classecss_1_1Registry_1a9d8a3ef446c1f520f97e8bd3e6536522" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>clear</name></member>
+      <member refid="classecss_1_1Registry_1a0605cb94cfe2090fdb9194ce1058133c" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>componentsArrayMapMutex</name></member>
+      <member refid="classecss_1_1Registry_1a00b5a1a0fcae643fb6fa8630cb252f35" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>componentTypeId</name></member>
+      <member refid="classecss_1_1Registry_1acaec1a969d49954ab12dee4266bb6d4c" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>contains</name></member>
+      <member refid="classecss_1_1Registry_1a14808ef611a3854e97bed88d54a237e9" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>defragment</name></member>
+      <member refid="classecss_1_1Registry_1ada5cbe54f287be41cda40fa0bc783c71" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>defragment</name></member>
+      <member refid="classecss_1_1Registry_1a40e500f0b85b8185251ac13f3977a5fa" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>destroyComponent</name></member>
+      <member refid="classecss_1_1Registry_1ace81965843c6f3b518508670707e7148" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>destroyComponent</name></member>
+      <member refid="classecss_1_1Registry_1a13215b01a606362fc3ddc0f12c6cfa64" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>destroyEntities</name></member>
+      <member refid="classecss_1_1Registry_1a0db69a9b59211fb25f64fa34d6d8b11c" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>destroyEntity</name></member>
+      <member refid="classecss_1_1Registry_1afe9d928750c6982494ea21b9993ca270" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>destroySector</name></member>
+      <member refid="classecss_1_1Registry_1a9cd7516a14881bee276ea7d9ae0a0b83" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>forEachAsync</name></member>
+      <member refid="classecss_1_1Registry_1a86940b59ff68e644d2403540b25f0a3e" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>getAllEntities</name></member>
+      <member refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>getComponentContainer</name></member>
+      <member refid="classecss_1_1Registry_1a7009c07793d9a4521915c010241a0aa8" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>hasComponent</name></member>
+      <member refid="classecss_1_1Registry_1ac5878c751c1d073fd9911a01a4f67e16" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>insert</name></member>
+      <member refid="classecss_1_1Registry_1ad7c04cce4b6c9d6b5e7fa1c33ec84b6f" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>insert</name></member>
+      <member refid="classecss_1_1Registry_1a405fe8afaef3e0470a45c80907f0584d" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>mComponentsArrays</name></member>
+      <member refid="classecss_1_1Registry_1a14287dc54e3d19cb887c843025f718cf" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>mComponentsArraysMap</name></member>
+      <member refid="classecss_1_1Registry_1aea987df7af9756309f11cfac4403942c" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>mEntities</name></member>
+      <member refid="classecss_1_1Registry_1a8889dc0d38bd63d8390e1420b04e60a9" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>mEntitiesMutex</name></member>
+      <member refid="classecss_1_1Registry_1a105a07f1fc04e3cd73ec60538454ddbc" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>operator=</name></member>
+      <member refid="classecss_1_1Registry_1a0578284d3720b564e643a45370ab58e8" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>operator=</name></member>
+      <member refid="classecss_1_1Registry_1abc89274e98252fb7a35d5a1417a9a854" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>pinComponent</name></member>
+      <member refid="classecss_1_1Registry_1afe987de7617370f1e0f225504a53e6df" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>pinSector</name></member>
+      <member refid="classecss_1_1Registry_1a7afb698ae3b2ce07be82d8040489cb04" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>prepareEntities</name></member>
+      <member refid="classecss_1_1Registry_1a9fe1b9e3505b3aeb8d0b55110c6088c1" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>registerArray</name></member>
+      <member refid="classecss_1_1Registry_1a655b516f4a3eb2e810e7de55921f9b03" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>Registry</name></member>
+      <member refid="classecss_1_1Registry_1a65fa5a531f5192c7552e62da0547950f" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>Registry</name></member>
+      <member refid="classecss_1_1Registry_1aa3859e8330853acdebd89f444c111cdf" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>Registry</name></member>
+      <member refid="classecss_1_1Registry_1a19d6acc056a40ddaac5bc4e01a9ab284" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>reserve</name></member>
+      <member refid="classecss_1_1Registry_1a7051790a8a6d2d2d492a239d6d4a7f41" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>setDefragmentThreshold</name></member>
+      <member refid="classecss_1_1Registry_1a3af483bdef9856965a6c91bd5369232c" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>takeEntity</name></member>
+      <member refid="classecss_1_1Registry_1a36e817256447e5081267ae4e048a9cbb" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>update</name></member>
+      <member refid="classecss_1_1Registry_1a1cfb377e6205f3565d59a5ae34bf4139" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>update</name></member>
+      <member refid="classecss_1_1Registry_1a30d293e02020ac1750e2d18a97827ca2" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>view</name></member>
+      <member refid="classecss_1_1Registry_1a9e5e54a8233e370ccfa8585538bf7ab7" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>view</name></member>
+      <member refid="classecss_1_1Registry_1a8ec149cb891e73609e6bc19dc4e608b6" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>withPinned</name></member>
+      <member refid="classecss_1_1Registry_1af1477f4a2c13ec18861b0daf40ce5a16" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>~Registry</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

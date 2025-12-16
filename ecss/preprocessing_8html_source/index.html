@@ -1,0 +1,2699 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://wagnerks.github.io/ecss/ecss/preprocessing_8html_source/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../img/logo.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.0">
+    
+    
+      
+        <title>File preprocessing.html - ECSS Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.618322db.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="grey">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#file-preprocessinghtml" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="ECSS Documentation" class="md-header__button md-logo" aria-label="ECSS Documentation" data-md-component="logo">
+      
+  <img src="../../img/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ECSS Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              File preprocessing.html
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="grey"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="grey"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7M9 21v-1h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1m3-17a5 5 0 0 0-5 5c0 2.05 1.23 3.81 3 4.58V16h4v-2.42c1.77-.77 3-2.53 3-4.58a5 5 0 0 0-5-5"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/wagnerks/ecss" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wagnerks/ecss
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../getting_started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../architecture/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Architecture Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../examples/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Examples
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../benchmarks/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Benchmarks
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    
+    
+      <li class="md-tabs__item">
+        <a href="../annotated/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="ECSS Documentation" class="md-nav__button md-logo" aria-label="ECSS Documentation" data-md-component="logo">
+      
+  <img src="../../img/logo.svg" alt="logo">
+
+    </a>
+    ECSS Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/wagnerks/ecss" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wagnerks/ecss
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7" >
+        
+          
+          <label class="md-nav__link" for="__nav_7" id="__nav_7_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../annotated/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../namespaceecss/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ecss
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7_2" id="__nav_7_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_7_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ecss
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../classecss_1_1ArraysView/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ArraysView
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7_2_1" id="__nav_7_2_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_7_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ArraysView
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1ArraysView_1_1EndIterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EndIterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1ArraysView_1_1Iterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../namespaceecss_1_1Memory/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Memory
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7_2_2" id="__nav_7_2_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_7_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Memory
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2_2_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../structecss_1_1Memory_1_1ChunksAllocator/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ChunksAllocator
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7_2_2_1" id="__nav_7_2_2_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_7_2_2_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_2_2_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ChunksAllocator
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cursor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1ChunksAllocator_1_1RangesCursor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RangesCursor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1Memory_1_1DenseTypeIdGenerator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DenseTypeIdGenerator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2_2_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../structecss_1_1Memory_1_1LayoutData/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LayoutData
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7_2_2_3" id="__nav_7_2_2_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_7_2_2_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_2_2_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    LayoutData
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1LayoutData_1_1FunctionTable/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FunctionTable
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1PinnedSector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PinnedSector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1RetireAllocator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RetireAllocator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1RetireBin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RetireBin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../namespaceecss_1_1Memory_1_1Sector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2_2_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../structecss_1_1Memory_1_1SectorLayoutMeta/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SectorLayoutMeta
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7_2_2_8" id="__nav_7_2_2_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_7_2_2_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_2_2_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    SectorLayoutMeta
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2_2_9" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../classecss_1_1Memory_1_1SectorsArray/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SectorsArray
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7_2_2_9" id="__nav_7_2_2_9_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_7_2_2_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_2_2_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    SectorsArray
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1Memory_1_1SectorsArray_1_1Iterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IteratorAlive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RangedIterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1SectorsArray_1_1SlotInfo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SlotInfo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2_2_10" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../namespaceecss_1_1Memory_1_1detail/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    detail
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7_2_2_10" id="__nav_7_2_2_10_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_7_2_2_10_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_2_2_10">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    detail
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1DenseArrays/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DenseArrays
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2_2_10_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01false_01_4/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DenseArrays&lt;false&gt;
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7_2_2_10_2" id="__nav_7_2_2_10_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_7_2_2_10_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_2_2_10_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    DenseArrays&lt;false&gt;
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01false_01_4_1_1View/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    View
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2_2_10_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DenseArrays&lt;true&gt;
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7_2_2_10_3" id="__nav_7_2_2_10_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_7_2_2_10_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_2_2_10_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    DenseArrays&lt;true&gt;
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1_1View/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    View
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1SlotInfo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SlotInfo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1SparseMap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SparseMap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1SparseMap_3_01false_01_4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SparseMap&lt;false&gt;
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SparseMap&lt;true&gt;
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1PinnedComponent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PinnedComponent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Ranges/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ranges
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1Registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2_6" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../namespaceecss_1_1Threads/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Threads
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7_2_6" id="__nav_7_2_6_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_7_2_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_2_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Threads
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Threads_1_1PinCounters/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PinCounters
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Threads_1_1PinnedIndexesBitMask/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PinnedIndexesBitMask
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1TypeAccessInfo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TypeAccessInfo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_7_2_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../namespaceecss_1_1types/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    types
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_7_2_8" id="__nav_7_2_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_7_2_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_7_2_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    types
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1types_1_1EmptyBase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EmptyBase
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1types_1_1OffsetArray/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OffsetArray
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1ChunksAllocator_1_1RangesCursor_1_1SpanInfo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SpanInfo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1_1SparseView/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SparseView
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="file-preprocessinghtml">File preprocessing.html<a class="headerlink" href="#file-preprocessinghtml" title="Permanent link">&para;</a></h1>
+<p><a href="../files/"><strong>File List</strong></a> <strong>&gt;</strong> <a href="../dir_9d5bad020669189c90cda983471be5d0/"><strong>doxygen-1.14.0</strong></a> <strong>&gt;</strong> <a href="../dir_05d1fd8a7cdd04f638f8b23196de02e2/"><strong>html</strong></a> <strong>&gt;</strong> <a href="../preprocessing_8html/"><strong>preprocessing.html</strong></a></p>
+<p><a href="../preprocessing_8html/">Go to the documentation of this file</a></p>
+<div class="codehilite"><pre><span></span><code><span class="o">&lt;!</span><span class="n">DOCTYPE</span><span class="w"> </span><span class="n">html</span><span class="w"> </span><span class="n">PUBLIC</span><span class="w"> </span><span class="s">&quot;-//W3C//DTD XHTML 1.0 Transitional//EN&quot;</span><span class="w"> </span><span class="s">&quot;https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd&quot;</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">html</span><span class="w"> </span><span class="n">xmlns</span><span class="o">=</span><span class="s">&quot;http://www.w3.org/1999/xhtml&quot;</span><span class="w"> </span><span class="n">lang</span><span class="o">=</span><span class="s">&quot;en-US&quot;</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">head</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">meta</span><span class="w"> </span><span class="n">http</span><span class="o">-</span><span class="n">equiv</span><span class="o">=</span><span class="s">&quot;Content-Type&quot;</span><span class="w"> </span><span class="n">content</span><span class="o">=</span><span class="s">&quot;text/xhtml;charset=UTF-8&quot;</span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">meta</span><span class="w"> </span><span class="n">http</span><span class="o">-</span><span class="n">equiv</span><span class="o">=</span><span class="s">&quot;X-UA-Compatible&quot;</span><span class="w"> </span><span class="n">content</span><span class="o">=</span><span class="s">&quot;IE=11&quot;</span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">meta</span><span class="w"> </span><span class="n">name</span><span class="o">=</span><span class="s">&quot;generator&quot;</span><span class="w"> </span><span class="n">content</span><span class="o">=</span><span class="s">&quot;Doxygen 1.14.0&quot;</span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">meta</span><span class="w"> </span><span class="n">name</span><span class="o">=</span><span class="s">&quot;viewport&quot;</span><span class="w"> </span><span class="n">content</span><span class="o">=</span><span class="s">&quot;width=device-width, initial-scale=1&quot;</span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">title</span><span class="o">&gt;</span><span class="n">Manual</span><span class="o">:</span><span class="w"> </span><span class="n">Preprocessing</span><span class="o">&lt;/</span><span class="n">title</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">link</span><span class="w"> </span><span class="n">rel</span><span class="o">=</span><span class="s">&quot;icon&quot;</span><span class="w"> </span><span class="n">href</span><span class="o">=</span><span class="s">&quot;doxygen.ico&quot;</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;image/x-icon&quot;</span><span class="w"> </span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">link</span><span class="w"> </span><span class="n">href</span><span class="o">=</span><span class="s">&quot;tabs.css&quot;</span><span class="w"> </span><span class="n">rel</span><span class="o">=</span><span class="s">&quot;stylesheet&quot;</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/css&quot;</span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">script</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/javascript&quot;</span><span class="o">&gt;</span><span class="n">var</span><span class="w"> </span><span class="n">page_layout</span><span class="o">=</span><span class="mi">1</span><span class="p">;</span><span class="o">&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">script</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/javascript&quot;</span><span class="w"> </span><span class="n">src</span><span class="o">=</span><span class="s">&quot;jquery.js&quot;</span><span class="o">&gt;&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">script</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/javascript&quot;</span><span class="w"> </span><span class="n">src</span><span class="o">=</span><span class="s">&quot;dynsections.js&quot;</span><span class="o">&gt;&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">script</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/javascript&quot;</span><span class="w"> </span><span class="n">src</span><span class="o">=</span><span class="s">&quot;clipboard.js&quot;</span><span class="o">&gt;&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">link</span><span class="w"> </span><span class="n">href</span><span class="o">=</span><span class="s">&quot;navtree.css&quot;</span><span class="w"> </span><span class="n">rel</span><span class="o">=</span><span class="s">&quot;stylesheet&quot;</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/css&quot;</span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">script</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/javascript&quot;</span><span class="w"> </span><span class="n">src</span><span class="o">=</span><span class="s">&quot;navtreedata.js&quot;</span><span class="o">&gt;&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">script</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/javascript&quot;</span><span class="w"> </span><span class="n">src</span><span class="o">=</span><span class="s">&quot;navtree.js&quot;</span><span class="o">&gt;&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">script</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/javascript&quot;</span><span class="w"> </span><span class="n">src</span><span class="o">=</span><span class="s">&quot;cookie.js&quot;</span><span class="o">&gt;&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">link</span><span class="w"> </span><span class="n">href</span><span class="o">=</span><span class="s">&quot;search/search.css&quot;</span><span class="w"> </span><span class="n">rel</span><span class="o">=</span><span class="s">&quot;stylesheet&quot;</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/css&quot;</span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">script</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/javascript&quot;</span><span class="w"> </span><span class="n">src</span><span class="o">=</span><span class="s">&quot;search/searchdata.js&quot;</span><span class="o">&gt;&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">script</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/javascript&quot;</span><span class="w"> </span><span class="n">src</span><span class="o">=</span><span class="s">&quot;search/search.js&quot;</span><span class="o">&gt;&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">script</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="n">$</span><span class="p">(</span><span class="n">function</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">init_search</span><span class="p">();</span><span class="w"> </span><span class="p">});</span>
+<span class="o">&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">script</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/javascript&quot;</span><span class="w"> </span><span class="n">src</span><span class="o">=</span><span class="s">&quot;darkmode_toggle.js&quot;</span><span class="o">&gt;&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">link</span><span class="w"> </span><span class="n">href</span><span class="o">=</span><span class="s">&quot;doxygen.css&quot;</span><span class="w"> </span><span class="n">rel</span><span class="o">=</span><span class="s">&quot;stylesheet&quot;</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/css&quot;</span><span class="w"> </span><span class="o">/&gt;</span>
+<span class="o">&lt;</span><span class="n">link</span><span class="w"> </span><span class="n">href</span><span class="o">=</span><span class="s">&quot;doxygen_manual.css&quot;</span><span class="w"> </span><span class="n">rel</span><span class="o">=</span><span class="s">&quot;stylesheet&quot;</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/css&quot;</span><span class="o">/&gt;</span>
+<span class="o">&lt;/</span><span class="n">head</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">body</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;side-nav&quot;</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;ui-resizable side-nav-resizable&quot;</span><span class="o">&gt;&lt;!--</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="n">remove</span><span class="w"> </span><span class="k">this</span><span class="w"> </span><span class="n">div</span><span class="p">,</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">closed</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="n">doxygen</span><span class="o">!</span><span class="w"> </span><span class="o">--&gt;</span>
+<span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;top&quot;</span><span class="o">&gt;&lt;!--</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="n">remove</span><span class="w"> </span><span class="k">this</span><span class="w"> </span><span class="n">div</span><span class="p">,</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">closed</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="n">doxygen</span><span class="o">!</span><span class="w"> </span><span class="o">--&gt;</span>
+<span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;titlearea&quot;</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">table</span><span class="w"> </span><span class="n">cellspacing</span><span class="o">=</span><span class="s">&quot;0&quot;</span><span class="w"> </span><span class="n">cellpadding</span><span class="o">=</span><span class="s">&quot;0&quot;</span><span class="o">&gt;</span>
+<span class="w"> </span><span class="o">&lt;</span><span class="n">tbody</span><span class="o">&gt;</span>
+<span class="w"> </span><span class="o">&lt;</span><span class="n">tr</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;projectrow&quot;</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="n">td</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;projectlogo&quot;</span><span class="o">&gt;&lt;</span><span class="n">img</span><span class="w"> </span><span class="n">alt</span><span class="o">=</span><span class="s">&quot;Logo&quot;</span><span class="w"> </span><span class="n">src</span><span class="o">=</span><span class="s">&quot;doxygen_logo.svg&quot;</span><span class="w"> </span><span class="n">height</span><span class="o">=</span><span class="s">&quot;35px&quot;</span><span class="o">/&gt;&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="n">td</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;projectalign&quot;</span><span class="o">&gt;</span>
+<span class="w">   </span><span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;projectname&quot;</span><span class="o">&gt;</span><span class="n">Manual</span>
+<span class="w">   </span><span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="o">&lt;/</span><span class="n">td</span><span class="o">&gt;</span>
+<span class="w"> </span><span class="o">&lt;/</span><span class="n">tr</span><span class="o">&gt;</span>
+<span class="w">   </span><span class="o">&lt;</span><span class="n">tr</span><span class="o">&gt;&lt;</span><span class="n">td</span><span class="w"> </span><span class="n">colspan</span><span class="o">=</span><span class="s">&quot;2&quot;</span><span class="o">&gt;</span><span class="w">        </span><span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;MSearchBox&quot;</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;MSearchBoxInactive&quot;</span><span class="o">&gt;</span>
+<span class="w">        </span><span class="o">&lt;</span><span class="n">span</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;left&quot;</span><span class="o">&gt;</span>
+<span class="w">          </span><span class="o">&lt;</span><span class="n">span</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;MSearchSelect&quot;</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;search-icon&quot;</span><span class="w"> </span><span class="n">onmouseover</span><span class="o">=</span><span class="s">&quot;return searchBox.OnSearchSelectShow()&quot;</span><span class="w"> </span><span class="n">onmouseout</span><span class="o">=</span><span class="s">&quot;return searchBox.OnSearchSelectHide()&quot;</span><span class="o">&gt;&lt;</span><span class="n">span</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;search-icon-dropdown&quot;</span><span class="o">&gt;&lt;/</span><span class="n">span</span><span class="o">&gt;&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="w">          </span><span class="o">&lt;</span><span class="n">input</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text&quot;</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;MSearchField&quot;</span><span class="w"> </span><span class="n">value</span><span class="o">=</span><span class="s">&quot;&quot;</span><span class="w"> </span><span class="n">placeholder</span><span class="o">=</span><span class="s">&quot;Search&quot;</span><span class="w"> </span><span class="n">accesskey</span><span class="o">=</span><span class="s">&quot;S&quot;</span>
+<span class="w">               </span><span class="n">onfocus</span><span class="o">=</span><span class="s">&quot;searchBox.OnSearchFieldFocus(true)&quot;</span><span class="w"> </span>
+<span class="w">               </span><span class="n">onblur</span><span class="o">=</span><span class="s">&quot;searchBox.OnSearchFieldFocus(false)&quot;</span><span class="w"> </span>
+<span class="w">               </span><span class="n">onkeyup</span><span class="o">=</span><span class="s">&quot;searchBox.OnSearchFieldChange(event)&quot;</span><span class="o">/&gt;</span>
+<span class="w">          </span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;&lt;</span><span class="n">span</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;right&quot;</span><span class="o">&gt;</span>
+<span class="w">            </span><span class="o">&lt;</span><span class="n">a</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;MSearchClose&quot;</span><span class="w"> </span><span class="n">href</span><span class="o">=</span><span class="s">&quot;javascript:searchBox.CloseResultsWindow()&quot;</span><span class="o">&gt;&lt;</span><span class="n">div</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;MSearchCloseImg&quot;</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;close-icon&quot;</span><span class="o">&gt;&lt;/</span><span class="n">div</span><span class="o">&gt;&lt;/</span><span class="n">a</span><span class="o">&gt;</span>
+<span class="w">          </span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span>
+<span class="w">        </span><span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">td</span><span class="o">&gt;&lt;/</span><span class="n">tr</span><span class="o">&gt;</span>
+<span class="w"> </span><span class="o">&lt;/</span><span class="n">tbody</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">table</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="o">&lt;!--</span><span class="w"> </span><span class="n">end</span><span class="w"> </span><span class="n">header</span><span class="w"> </span><span class="n">part</span><span class="w"> </span><span class="o">--&gt;</span>
+<span class="o">&lt;!--</span><span class="w"> </span><span class="n">Generated</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="n">Doxygen</span><span class="w"> </span><span class="mf">1.14.0</span><span class="w"> </span><span class="o">--&gt;</span>
+<span class="o">&lt;</span><span class="n">script</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
+<span class="n">var</span><span class="w"> </span><span class="n">searchBox</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">new</span><span class="w"> </span><span class="n">SearchBox</span><span class="p">(</span><span class="s">&quot;searchBox&quot;</span><span class="p">,</span><span class="w"> </span><span class="s">&quot;search/&quot;</span><span class="p">,</span><span class="err">&#39;</span><span class="p">.</span><span class="n">html</span><span class="err">&#39;</span><span class="p">);</span>
+<span class="o">&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">script</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
+<span class="n">$</span><span class="p">(</span><span class="n">function</span><span class="p">()</span><span class="w"> </span><span class="p">{</span><span class="w"> </span><span class="n">codefold</span><span class="p">.</span><span class="n">init</span><span class="p">();</span><span class="w"> </span><span class="p">});</span>
+<span class="o">&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;&lt;!--</span><span class="w"> </span><span class="n">top</span><span class="w"> </span><span class="o">--&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;nav-tree&quot;</span><span class="o">&gt;</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;nav-tree-contents&quot;</span><span class="o">&gt;</span>
+<span class="w">      </span><span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;nav-sync&quot;</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;sync&quot;</span><span class="o">&gt;&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="w">    </span><span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;splitbar&quot;</span><span class="w"> </span><span class="n">style</span><span class="o">=</span><span class="s">&quot;-moz-user-select:none;&quot;</span><span class="w"> </span>
+<span class="w">       </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;ui-resizable-handle&quot;</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">script</span><span class="w"> </span><span class="n">type</span><span class="o">=</span><span class="s">&quot;text/javascript&quot;</span><span class="o">&gt;</span>
+<span class="n">$</span><span class="p">(</span><span class="n">function</span><span class="p">(){</span><span class="n">initNavTree</span><span class="p">(</span><span class="err">&#39;</span><span class="n">preprocessing</span><span class="p">.</span><span class="n">html</span><span class="sc">&#39;,&#39;&#39;,&#39;</span><span class="err">&#39;</span><span class="p">);</span><span class="w"> </span><span class="p">});</span>
+<span class="o">&lt;/</span><span class="n">script</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;container&quot;</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;doc-content&quot;</span><span class="o">&gt;</span>
+<span class="o">&lt;!--</span><span class="w"> </span><span class="n">window</span><span class="w"> </span><span class="n">showing</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">filter</span><span class="w"> </span><span class="n">options</span><span class="w"> </span><span class="o">--&gt;</span>
+<span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;MSearchSelectWindow&quot;</span>
+<span class="w">     </span><span class="n">onmouseover</span><span class="o">=</span><span class="s">&quot;return searchBox.OnSearchSelectShow()&quot;</span>
+<span class="w">     </span><span class="n">onmouseout</span><span class="o">=</span><span class="s">&quot;return searchBox.OnSearchSelectHide()&quot;</span>
+<span class="w">     </span><span class="n">onkeydown</span><span class="o">=</span><span class="s">&quot;return searchBox.OnSearchSelectKey(event)&quot;</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+
+<span class="o">&lt;!--</span><span class="w"> </span><span class="n">iframe</span><span class="w"> </span><span class="n">showing</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">search</span><span class="w"> </span><span class="n">results</span><span class="w"> </span><span class="p">(</span><span class="n">closed</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="k">default</span><span class="p">)</span><span class="w"> </span><span class="o">--&gt;</span>
+<span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;MSearchResultsWindow&quot;</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;MSearchResults&quot;</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;SRPage&quot;</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;SRIndex&quot;</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;SRResults&quot;</span><span class="o">&gt;&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;SRStatus&quot;</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;Loading&quot;</span><span class="o">&gt;</span><span class="n">Loading</span><span class="p">...</span><span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;SRStatus&quot;</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;Searching&quot;</span><span class="o">&gt;</span><span class="n">Searching</span><span class="p">...</span><span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;SRStatus&quot;</span><span class="w"> </span><span class="n">id</span><span class="o">=</span><span class="s">&quot;NoMatches&quot;</span><span class="o">&gt;</span><span class="n">No</span><span class="w"> </span><span class="n">Matches</span><span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+
+<span class="o">&lt;</span><span class="n">div</span><span class="o">&gt;&lt;</span><span class="n">div</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;header&quot;</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;headertitle&quot;</span><span class="o">&gt;&lt;</span><span class="n">div</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;title&quot;</span><span class="o">&gt;</span><span class="n">Preprocessing</span><span class="w"> </span><span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;&lt;/</span><span class="n">div</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="n">div</span><span class="o">&gt;&lt;!--</span><span class="n">header</span><span class="o">--&gt;</span>
+<span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;contents&quot;</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">div</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;textblock&quot;</span><span class="o">&gt;&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">Source</span><span class="w"> </span><span class="n">files</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">used</span><span class="w"> </span><span class="n">as</span><span class="w"> </span><span class="n">input</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">Doxygen</span><span class="w"> </span><span class="n">can</span><span class="w"> </span><span class="n">be</span><span class="w"> </span><span class="n">parsed</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="n">Doxygen</span><span class="err">&#39;</span><span class="n">s</span><span class="w"> </span><span class="n">built</span><span class="o">-</span><span class="n">in</span><span class="w"> </span><span class="n">C</span><span class="o">-</span><span class="n">preprocessor</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">By</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="n">Doxygen</span><span class="w"> </span><span class="n">does</span><span class="w"> </span><span class="n">only</span><span class="w"> </span><span class="n">partial</span><span class="w"> </span><span class="n">preprocessing</span><span class="p">.</span><span class="w"> </span><span class="n">That</span><span class="w"> </span><span class="n">is</span><span class="p">,</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="n">evaluates</span><span class="w"> </span><span class="n">conditional</span><span class="w"> </span><span class="n">compilation</span><span class="w"> </span><span class="n">statements</span><span class="w"> </span><span class="p">(</span><span class="n">like</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="err">#</span><span class="k">if</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="k">and</span><span class="w"> </span><span class="n">evaluates</span><span class="w"> </span><span class="n">macro</span><span class="w"> </span><span class="n">definitions</span><span class="p">,</span><span class="w"> </span><span class="n">but</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="n">does</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="n">perform</span><span class="w"> </span><span class="n">macro</span><span class="w"> </span><span class="n">expansion</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">So</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">you</span><span class="w"> </span><span class="n">have</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">following</span><span class="w"> </span><span class="n">code</span><span class="w"> </span><span class="n">fragment</span><span class="w"> </span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;&lt;</span><span class="n">pre</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;fragment&quot;</span><span class="o">&gt;</span><span class="err">#</span><span class="n">define</span><span class="w"> </span><span class="n">VERSION</span><span class="w"> </span><span class="mi">200</span>
+<span class="cp">#define CONST_STRING const char *</span>
+
+<span class="cp">#if VERSION &amp;gt;= 200</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="n">CONST_STRING</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2.xx&quot;</span><span class="p">;</span>
+<span class="cp">#else</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="n">CONST_STRING</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;1.xx&quot;</span><span class="p">;</span>
+<span class="cp">#endif</span>
+<span class="o">&lt;/</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">Then</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="k">default</span><span class="w"> </span><span class="n">Doxygen</span><span class="w"> </span><span class="n">will</span><span class="w"> </span><span class="n">feed</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">following</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">its</span><span class="w"> </span><span class="n">parser</span><span class="o">:&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">pre</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;fragment&quot;</span><span class="o">&gt;</span><span class="err">#</span><span class="n">define</span><span class="w"> </span><span class="n">VERSION</span>
+<span class="cp">#define CONST_STRING</span>
+
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="n">CONST_STRING</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2.xx&quot;</span><span class="p">;</span>
+<span class="o">&lt;/</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">You</span><span class="w"> </span><span class="n">can</span><span class="w"> </span><span class="n">disable</span><span class="w"> </span><span class="n">all</span><span class="w"> </span><span class="n">preprocessing</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="n">setting</span><span class="w"> </span><span class="o">&lt;</span><span class="n">a</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;el&quot;</span><span class="w"> </span><span class="n">href</span><span class="o">=</span><span class="s">&quot;config.html#cfg_enable_preprocessing&quot;</span><span class="o">&gt;</span><span class="n">ENABLE_PREPROCESSING</span><span class="o">&lt;/</span><span class="n">a</span><span class="o">&gt;</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">NO</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">configuration</span><span class="w"> </span><span class="n">file</span><span class="p">.</span><span class="w"> </span><span class="n">In</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="k">case</span><span class="w"> </span><span class="no">above</span><span class="w"> </span><span class="no">Doxygen</span><span class="w"> </span><span class="no">will</span><span class="w"> </span><span class="no">then</span><span class="w"> </span><span class="no">read</span><span class="w"> </span><span class="no">both</span><span class="w"> </span><span class="no">statements</span><span class="p">,</span><span class="w"> </span><span class="no">i</span><span class="p">.</span><span class="no">e</span><span class="p">.:</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">pre</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;fragment&quot;</span><span class="o">&gt;</span><span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="n">CONST_STRING</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2.xx&quot;</span><span class="p">;</span>
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="n">CONST_STRING</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;1.xx&quot;</span><span class="p">;</span>
+<span class="o">&lt;/</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">In</span><span class="w"> </span><span class="k">case</span><span class="w"> </span><span class="no">you</span><span class="w"> </span><span class="no">want</span><span class="w"> </span><span class="no">to</span><span class="w"> </span><span class="no">expand</span><span class="w"> </span><span class="no">the</span><span class="w"> </span><span class="o">&lt;</span><span class="no">code</span><span class="o">&gt;</span><span class="no">CONST_STRING</span><span class="o">&lt;/</span><span class="no">code</span><span class="o">&gt;</span><span class="w"> </span><span class="no">macro</span><span class="p">,</span><span class="w"> </span><span class="no">you</span><span class="w"> </span><span class="no">should</span><span class="w"> </span><span class="no">set</span><span class="w"> </span><span class="no">the</span><span class="w"> </span><span class="o">&lt;</span><span class="no">a</span><span class="w"> </span><span class="no">class</span><span class="o">=</span><span class="s">&quot;el&quot;</span><span class="w"> </span><span class="no">href</span><span class="o">=</span><span class="s">&quot;config.html#cfg_macro_expansion&quot;</span><span class="o">&gt;</span><span class="no">MACRO_EXPANSION</span><span class="o">&lt;/</span><span class="no">a</span><span class="o">&gt;</span><span class="w"> </span><span class="no">tag</span><span class="w"> </span><span class="no">in</span><span class="w"> </span><span class="no">the</span><span class="w"> </span><span class="no">configuration</span><span class="w"> </span><span class="no">file</span><span class="w"> </span><span class="no">to</span><span class="w"> </span><span class="o">&lt;</span><span class="no">code</span><span class="o">&gt;</span><span class="no">YES</span><span class="o">&lt;/</span><span class="no">code</span><span class="o">&gt;</span><span class="p">.</span><span class="w"> </span><span class="no">Then</span><span class="w"> </span><span class="no">the</span><span class="w"> </span><span class="no">result</span><span class="w"> </span><span class="no">after</span><span class="w"> </span><span class="no">preprocessing</span><span class="w"> </span><span class="no">becomes</span><span class="p">:</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">pre</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;fragment&quot;</span><span class="o">&gt;</span><span class="err">#</span><span class="n">define</span><span class="w"> </span><span class="n">VERSION</span>
+<span class="cp">#define CONST_STRING</span>
+
+<span class="w">  </span><span class="k">static</span><span class="w"> </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">version</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;2.xx&quot;</span><span class="p">;</span>
+<span class="o">&lt;/</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">Note</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">Doxygen</span><span class="w"> </span><span class="n">will</span><span class="w"> </span><span class="n">now</span><span class="w"> </span><span class="n">expand</span><span class="w"> </span><span class="o">&lt;</span><span class="n">em</span><span class="o">&gt;</span><span class="n">all</span><span class="o">&lt;/</span><span class="n">em</span><span class="o">&gt;</span><span class="w"> </span><span class="n">macro</span><span class="w"> </span><span class="n">definitions</span><span class="w"> </span><span class="p">(</span><span class="n">recursively</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">needed</span><span class="p">).</span><span class="w"> </span><span class="n">This</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">often</span><span class="w"> </span><span class="n">too</span><span class="w"> </span><span class="n">much</span><span class="p">.</span><span class="w"> </span><span class="n">Therefore</span><span class="p">,</span><span class="w"> </span><span class="n">Doxygen</span><span class="w"> </span><span class="n">also</span><span class="w"> </span><span class="n">allows</span><span class="w"> </span><span class="n">you</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">expand</span><span class="w"> </span><span class="n">only</span><span class="w"> </span><span class="n">those</span><span class="w"> </span><span class="n">defines</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">you</span><span class="w"> </span><span class="n">explicitly</span><span class="w"> </span><span class="n">specify</span><span class="p">.</span><span class="w"> </span><span class="n">For</span><span class="w"> </span><span class="k">this</span><span class="w"> </span><span class="n">you</span><span class="w"> </span><span class="n">have</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">set</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="o">&lt;</span><span class="n">a</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;el&quot;</span><span class="w"> </span><span class="n">href</span><span class="o">=</span><span class="s">&quot;config.html#cfg_expand_only_predef&quot;</span><span class="o">&gt;</span><span class="n">EXPAND_ONLY_PREDEF</span><span class="o">&lt;/</span><span class="n">a</span><span class="o">&gt;</span><span class="w"> </span><span class="n">tag</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">YES</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="w"> </span><span class="k">and</span><span class="w"> </span><span class="n">specify</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">macro</span><span class="w"> </span><span class="n">definitions</span><span class="w"> </span><span class="n">after</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="o">&lt;</span><span class="n">a</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;el&quot;</span><span class="w"> </span><span class="n">href</span><span class="o">=</span><span class="s">&quot;config.html#cfg_predefined&quot;</span><span class="o">&gt;</span><span class="n">PREDEFINED</span><span class="o">&lt;/</span><span class="n">a</span><span class="o">&gt;</span><span class="w"> </span><span class="k">or</span><span class="w"> </span><span class="o">&lt;</span><span class="n">a</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;el&quot;</span><span class="w"> </span><span class="n">href</span><span class="o">=</span><span class="s">&quot;config.html#cfg_expand_as_defined&quot;</span><span class="o">&gt;</span><span class="n">EXPAND_AS_DEFINED</span><span class="o">&lt;/</span><span class="n">a</span><span class="o">&gt;</span><span class="w"> </span><span class="n">tag</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">A</span><span class="w"> </span><span class="n">typically</span><span class="w"> </span><span class="n">example</span><span class="w"> </span><span class="n">where</span><span class="w"> </span><span class="n">some</span><span class="w"> </span><span class="n">help</span><span class="w"> </span><span class="n">from</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">preprocessor</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">needed</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">when</span><span class="w"> </span><span class="n">dealing</span><span class="w"> </span><span class="n">with</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">language</span><span class="w"> </span><span class="n">extension</span><span class="w"> </span><span class="n">from</span><span class="w"> </span><span class="n">Microsoft</span><span class="o">:</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="kr">__declspec</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="p">.</span><span class="w"> </span><span class="n">The</span><span class="w"> </span><span class="n">same</span><span class="w"> </span><span class="n">goes</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">GNU</span><span class="err">&#39;</span><span class="n">s</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">__attribute__</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="w"> </span><span class="n">extension</span><span class="p">.</span><span class="w"> </span><span class="n">Here</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">an</span><span class="w"> </span><span class="n">example</span><span class="w"> </span><span class="n">function</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">pre</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;fragment&quot;</span><span class="o">&gt;</span><span class="k">extern</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="kr">__declspec</span><span class="p">(</span><span class="n">dllexport</span><span class="p">)</span><span class="w"> </span><span class="n">ErrorMsg</span><span class="p">(</span><span class="w"> </span><span class="n">String</span><span class="w"> </span><span class="n">aMessage</span><span class="p">,...);</span>
+<span class="o">&lt;/</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">When</span><span class="w"> </span><span class="n">nothing</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">done</span><span class="p">,</span><span class="w"> </span><span class="n">Doxygen</span><span class="w"> </span><span class="n">will</span><span class="w"> </span><span class="n">be</span><span class="w"> </span><span class="n">confused</span><span class="w"> </span><span class="k">and</span><span class="w"> </span><span class="n">see</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="kr">__declspec</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="w"> </span><span class="n">as</span><span class="w"> </span><span class="n">some</span><span class="w"> </span><span class="n">sort</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">function</span><span class="p">.</span><span class="w"> </span><span class="n">To</span><span class="w"> </span><span class="n">help</span><span class="w"> </span><span class="n">Doxygen</span><span class="w"> </span><span class="n">one</span><span class="w"> </span><span class="n">typically</span><span class="w"> </span><span class="n">uses</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">following</span><span class="w"> </span><span class="n">preprocessor</span><span class="w"> </span><span class="n">settings</span><span class="o">:&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">pre</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;fragment&quot;</span><span class="o">&gt;</span><span class="n">ENABLE_PREPROCESSING</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">YES</span>
+<span class="n">MACRO_EXPANSION</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="n">YES</span>
+<span class="n">EXPAND_ONLY_PREDEF</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="n">YES</span>
+<span class="n">PREDEFINED</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="kr">__declspec</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">=</span>
+<span class="o">&lt;/</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">This</span><span class="w"> </span><span class="n">will</span><span class="w"> </span><span class="n">make</span><span class="w"> </span><span class="n">sure</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="kr">__declspec</span><span class="p">(</span><span class="n">dllexport</span><span class="p">)</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">removed</span><span class="w"> </span><span class="n">before</span><span class="w"> </span><span class="n">Doxygen</span><span class="w"> </span><span class="n">parses</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">source</span><span class="w"> </span><span class="n">code</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">Similar</span><span class="w"> </span><span class="n">settings</span><span class="w"> </span><span class="n">can</span><span class="w"> </span><span class="n">be</span><span class="w"> </span><span class="n">used</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">removing</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">__attribute__</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="w"> </span><span class="n">expressions</span><span class="w"> </span><span class="n">from</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">input</span><span class="o">:&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">pre</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;fragment&quot;</span><span class="o">&gt;</span><span class="n">ENABLE_PREPROCESSING</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">YES</span>
+<span class="n">MACRO_EXPANSION</span><span class="w">        </span><span class="o">=</span><span class="w"> </span><span class="n">YES</span>
+<span class="n">EXPAND_ONLY_PREDEF</span><span class="w">     </span><span class="o">=</span><span class="w"> </span><span class="n">YES</span>
+<span class="n">PREDEFINED</span><span class="w">             </span><span class="o">=</span><span class="w"> </span><span class="n">__attribute__</span><span class="p">(</span><span class="n">x</span><span class="p">)</span><span class="o">=</span>
+<span class="o">&lt;/</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">For</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">more</span><span class="w"> </span><span class="n">complex</span><span class="w"> </span><span class="n">example</span><span class="p">,</span><span class="w"> </span><span class="n">suppose</span><span class="w"> </span><span class="n">you</span><span class="w"> </span><span class="n">have</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">following</span><span class="w"> </span><span class="n">obfuscated</span><span class="w"> </span><span class="n">code</span><span class="w"> </span><span class="n">fragment</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">an</span><span class="w"> </span><span class="n">abstract</span><span class="w"> </span><span class="n">base</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">called</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">IUnknown</span><span class="o">:&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="w"> </span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">pre</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;fragment&quot;</span><span class="o">&gt;</span><span class="cm">/*! A reference to an IID */</span>
+<span class="cp">#ifdef __cplusplus</span>
+<span class="cp">#define REFIID const IID &amp;amp;</span>
+<span class="cp">#else</span>
+<span class="cp">#define REFIID const IID *</span>
+<span class="cp">#endif</span>
+
+
+<span class="cm">/*! The IUnknown interface */</span>
+<span class="n">DECLARE_INTERFACE</span><span class="p">(</span><span class="n">IUnknown</span><span class="p">)</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="n">STDMETHOD</span><span class="p">(</span><span class="n">HRESULT</span><span class="p">,</span><span class="n">QueryInterface</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">THIS_</span><span class="w"> </span><span class="n">REFIID</span><span class="w"> </span><span class="n">iid</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">**</span><span class="n">ppv</span><span class="p">)</span><span class="w"> </span><span class="n">PURE</span><span class="p">;</span>
+<span class="w">  </span><span class="n">STDMETHOD</span><span class="p">(</span><span class="n">ULONG</span><span class="p">,</span><span class="n">AddRef</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">THIS</span><span class="p">)</span><span class="w"> </span><span class="n">PURE</span><span class="p">;</span>
+<span class="w">  </span><span class="n">STDMETHOD</span><span class="p">(</span><span class="n">ULONG</span><span class="p">,</span><span class="n">Release</span><span class="p">)</span><span class="w"> </span><span class="p">(</span><span class="n">THIS</span><span class="p">)</span><span class="w"> </span><span class="n">PURE</span><span class="p">;</span>
+<span class="p">};</span>
+<span class="o">&lt;/</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">without</span><span class="w"> </span><span class="n">macro</span><span class="w"> </span><span class="n">expansion</span><span class="w"> </span><span class="n">Doxygen</span><span class="w"> </span><span class="n">will</span><span class="w"> </span><span class="n">get</span><span class="w"> </span><span class="n">confused</span><span class="p">,</span><span class="w"> </span><span class="n">but</span><span class="w"> </span><span class="n">we</span><span class="w"> </span><span class="n">may</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="n">want</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">expand</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">REFIID</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="w"> </span><span class="n">macro</span><span class="p">,</span><span class="w"> </span><span class="n">because</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">documented</span><span class="w"> </span><span class="k">and</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">user</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">reads</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">documentation</span><span class="w"> </span><span class="n">should</span><span class="w"> </span><span class="n">use</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="n">when</span><span class="w"> </span><span class="n">implementing</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">interface</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">By</span><span class="w"> </span><span class="n">setting</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">following</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">configuration</span><span class="w"> </span><span class="n">file</span><span class="o">:&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">pre</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;fragment&quot;</span><span class="o">&gt;</span><span class="n">ENABLE_PREPROCESSING</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">YES</span>
+<span class="n">MACRO_EXPANSION</span><span class="w">      </span><span class="o">=</span><span class="w"> </span><span class="n">YES</span>
+<span class="n">EXPAND_ONLY_PREDEF</span><span class="w">   </span><span class="o">=</span><span class="w"> </span><span class="n">YES</span>
+<span class="n">PREDEFINED</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;DECLARE_INTERFACE(name)=class name&quot;</span><span class="w"> </span>\
+<span class="w">                       </span><span class="s">&quot;STDMETHOD(result,name)=virtual result name&quot;</span><span class="w"> </span>\
+<span class="w">                       </span><span class="s">&quot;PURE= = 0&quot;</span><span class="w"> </span>\
+<span class="w">                       </span><span class="n">THIS_</span><span class="o">=</span><span class="w"> </span>\
+<span class="w">                       </span><span class="n">THIS</span><span class="o">=</span><span class="w"> </span>\
+<span class="w">               </span><span class="n">__cplusplus</span>
+<span class="o">&lt;/</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">we</span><span class="w"> </span><span class="n">can</span><span class="w"> </span><span class="n">make</span><span class="w"> </span><span class="n">sure</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">proper</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">fed</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">Doxygen</span><span class="err">&#39;</span><span class="n">s</span><span class="w"> </span><span class="n">parser</span><span class="o">:</span><span class="w"> </span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;&lt;</span><span class="n">pre</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;fragment&quot;</span><span class="o">&gt;</span><span class="cm">/*! A reference to an IID */</span>
+<span class="cp">#define REFIID</span>
+
+<span class="cm">/*! The IUnknown interface */</span>
+<span class="k">class</span><span class="w">  </span><span class="nc">IUnknown</span>
+<span class="p">{</span>
+<span class="w">  </span><span class="k">virtual</span><span class="w">  </span><span class="n">HRESULT</span><span class="w">   </span><span class="nf">QueryInterface</span><span class="w"> </span><span class="p">(</span><span class="w"> </span><span class="n">REFIID</span><span class="w"> </span><span class="n">iid</span><span class="p">,</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="o">**</span><span class="n">ppv</span><span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="k">virtual</span><span class="w">  </span><span class="n">ULONG</span><span class="w">   </span><span class="nf">AddRef</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="w">  </span><span class="k">virtual</span><span class="w">  </span><span class="n">ULONG</span><span class="w">   </span><span class="nf">Release</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">0</span><span class="p">;</span>
+<span class="p">};</span>
+<span class="o">&lt;/</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">Note</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="o">&lt;</span><span class="n">a</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;el&quot;</span><span class="w"> </span><span class="n">href</span><span class="o">=</span><span class="s">&quot;config.html#cfg_predefined&quot;</span><span class="o">&gt;</span><span class="n">PREDEFINED</span><span class="o">&lt;/</span><span class="n">a</span><span class="o">&gt;</span><span class="w"> </span><span class="n">tag</span><span class="w"> </span><span class="n">accepts</span><span class="w"> </span><span class="n">function</span><span class="w"> </span><span class="n">like</span><span class="w"> </span><span class="n">macro</span><span class="w"> </span><span class="n">definitions</span><span class="w"> </span><span class="p">(</span><span class="n">like</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">DECLARE_INTERFACE</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="w"> </span><span class="p">),</span><span class="w"> </span><span class="n">normal</span><span class="w"> </span><span class="n">macro</span><span class="w"> </span><span class="n">substitutions</span><span class="w"> </span><span class="p">(</span><span class="n">like</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">PURE</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="w"> </span><span class="k">and</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">THIS</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="p">)</span><span class="w"> </span><span class="k">and</span><span class="w"> </span><span class="n">plain</span><span class="w"> </span><span class="n">defines</span><span class="w"> </span><span class="p">(</span><span class="n">like</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">__cplusplus</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="p">).</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">Note</span><span class="w"> </span><span class="n">also</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">preprocessor</span><span class="w"> </span><span class="n">definitions</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">normally</span><span class="w"> </span><span class="n">defined</span><span class="w"> </span><span class="n">automatically</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">preprocessor</span><span class="w"> </span><span class="p">(</span><span class="n">like</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">__cplusplus</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="p">),</span><span class="w"> </span><span class="n">have</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">be</span><span class="w"> </span><span class="n">defined</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="n">hand</span><span class="w"> </span><span class="n">with</span><span class="w"> </span><span class="n">Doxygen</span><span class="err">&#39;</span><span class="n">s</span><span class="w"> </span><span class="n">parser</span><span class="w"> </span><span class="p">(</span><span class="k">this</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">done</span><span class="w"> </span><span class="n">because</span><span class="w"> </span><span class="n">these</span><span class="w"> </span><span class="n">defines</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">often</span><span class="w"> </span><span class="n">platform</span><span class="o">/</span><span class="n">compiler</span><span class="w"> </span><span class="n">specific</span><span class="p">).</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">In</span><span class="w"> </span><span class="n">some</span><span class="w"> </span><span class="n">cases</span><span class="w"> </span><span class="n">you</span><span class="w"> </span><span class="n">may</span><span class="w"> </span><span class="n">want</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">substitute</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="n">macro</span><span class="w"> </span><span class="n">name</span><span class="w"> </span><span class="k">or</span><span class="w"> </span><span class="n">function</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="n">something</span><span class="w"> </span><span class="k">else</span><span class="w"> </span><span class="n">without</span><span class="w"> </span><span class="n">exposing</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">result</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">further</span><span class="w"> </span><span class="n">macro</span><span class="w"> </span><span class="n">substitution</span><span class="p">.</span><span class="w"> </span><span class="n">You</span><span class="w"> </span><span class="n">can</span><span class="w"> </span><span class="k">do</span><span class="w"> </span><span class="k">this</span><span class="w"> </span><span class="n">but</span><span class="w"> </span><span class="k">using</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;:=&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="w"> </span><span class="k">operator</span><span class="w"> </span><span class="n">instead</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;=&lt;/</span><span class="n">code</span><span class="o">&gt;&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">As</span><span class="w"> </span><span class="n">an</span><span class="w"> </span><span class="n">example</span><span class="w"> </span><span class="n">suppose</span><span class="w"> </span><span class="n">we</span><span class="w"> </span><span class="n">have</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">following</span><span class="w"> </span><span class="n">piece</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">code</span><span class="o">:</span><span class="w"> </span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;&lt;</span><span class="n">pre</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;fragment&quot;</span><span class="o">&gt;</span><span class="err">#</span><span class="n">define</span><span class="w"> </span><span class="n">QList</span><span class="w"> </span><span class="n">QListT</span>
+<span class="k">class</span><span class="w"> </span><span class="nc">QListT</span>
+<span class="p">{</span>
+<span class="p">};</span>
+<span class="o">&lt;/</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">Then</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">only</span><span class="w"> </span><span class="n">way</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">get</span><span class="w"> </span><span class="n">Doxygen</span><span class="w"> </span><span class="n">interpret</span><span class="w"> </span><span class="k">this</span><span class="w"> </span><span class="n">as</span><span class="w"> </span><span class="n">a</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">definition</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">QList</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">define</span><span class="o">:</span><span class="w"> </span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;&lt;</span><span class="n">pre</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;fragment&quot;</span><span class="o">&gt;</span><span class="n">PREDEFINED</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">QListT</span><span class="o">:=</span><span class="n">QList</span>
+<span class="o">&lt;/</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">Here</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">an</span><span class="w"> </span><span class="n">example</span><span class="w"> </span><span class="n">provided</span><span class="w"> </span><span class="n">by</span><span class="w"> </span><span class="n">Valter</span><span class="w"> </span><span class="n">Minute</span><span class="w"> </span><span class="k">and</span><span class="w"> </span><span class="n">Reyes</span><span class="w"> </span><span class="n">Ponce</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">helps</span><span class="w"> </span><span class="n">Doxygen</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">wade</span><span class="w"> </span><span class="n">through</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">boilerplate</span><span class="w"> </span><span class="n">code</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">Microsoft</span><span class="err">&#39;</span><span class="n">s</span><span class="w"> </span><span class="n">ATL</span><span class="w"> </span><span class="o">&amp;</span><span class="n">amp</span><span class="p">;</span><span class="w"> </span><span class="n">MFC</span><span class="w"> </span><span class="n">libraries</span><span class="o">:&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">pre</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;fragment&quot;</span><span class="o">&gt;</span><span class="n">PREDEFINED</span><span class="w">           </span><span class="o">=</span><span class="w"> </span><span class="s">&quot;DECLARE_INTERFACE(name)=class name&quot;</span><span class="w"> </span>\
+<span class="w">                       </span><span class="s">&quot;STDMETHOD(result,name)=virtual result name&quot;</span><span class="w"> </span>\
+<span class="w">                       </span><span class="s">&quot;PURE= = 0&quot;</span><span class="w"> </span>\
+<span class="w">                       </span><span class="n">THIS_</span><span class="o">=</span><span class="w"> </span>\
+<span class="w">                       </span><span class="n">THIS</span><span class="o">=</span><span class="w"> </span>\
+<span class="w">                       </span><span class="n">DECLARE_REGISTRY_RESOURCEID</span><span class="o">=</span><span class="c1">// \</span>
+<span class="c1">                       DECLARE_PROTECT_FINAL_CONSTRUCT=// \</span>
+<span class="c1">                       &quot;DECLARE_AGGREGATABLE(Class)= &quot; \</span>
+<span class="c1">                       &quot;DECLARE_REGISTRY_RESOURCEID(Id)= &quot; \</span>
+<span class="c1">                       DECLARE_MESSAGE_MAP= \</span>
+<span class="c1">                       BEGIN_MESSAGE_MAP=/* \</span>
+<span class="c1">                       END_MESSAGE_MAP=*/// \</span>
+<span class="c1">                       BEGIN_COM_MAP=/* \</span>
+<span class="c1">                       END_COM_MAP=*/// \</span>
+<span class="c1">                       BEGIN_PROP_MAP=/* \</span>
+<span class="c1">                       END_PROP_MAP=*/// \</span>
+<span class="c1">                       BEGIN_MSG_MAP=/* \</span>
+<span class="c1">                       END_MSG_MAP=*/// \</span>
+<span class="c1">                       BEGIN_PROPERTY_MAP=/* \</span>
+<span class="c1">                       END_PROPERTY_MAP=*/// \</span>
+<span class="c1">                       BEGIN_OBJECT_MAP=/* \</span>
+<span class="c1">                       END_OBJECT_MAP()=*/// \</span>
+<span class="c1">                       DECLARE_VIEW_STATUS=// \</span>
+<span class="c1">                       &quot;STDMETHOD(a)=HRESULT a&quot; \</span>
+<span class="c1">                       &quot;ATL_NO_VTABLE= &quot; \</span>
+<span class="c1">                       &quot;__declspec(a)= &quot; \</span>
+<span class="c1">                       BEGIN_CONNECTION_POINT_MAP=/* \</span>
+<span class="c1">                       END_CONNECTION_POINT_MAP=*/// \</span>
+<span class="c1">                       &quot;DECLARE_DYNAMIC(class)= &quot; \</span>
+<span class="c1">                       &quot;IMPLEMENT_DYNAMIC(class1, class2)= &quot; \</span>
+<span class="c1">                       &quot;DECLARE_DYNCREATE(class)= &quot; \</span>
+<span class="c1">                       &quot;IMPLEMENT_DYNCREATE(class1, class2)= &quot; \</span>
+<span class="c1">                       &quot;IMPLEMENT_SERIAL(class1, class2, class3)= &quot; \</span>
+<span class="c1">                       &quot;DECLARE_MESSAGE_MAP()= &quot; \</span>
+<span class="c1">                       TRY=try \</span>
+<span class="c1">                       &quot;CATCH_ALL(e)= catch(...)&quot; \</span>
+<span class="c1">                       END_CATCH_ALL= \</span>
+<span class="c1">                       &quot;THROW_LAST()= throw&quot;\</span>
+<span class="c1">                       &quot;RUNTIME_CLASS(class)=class&quot; \</span>
+<span class="c1">                       &quot;MAKEINTRESOURCE(nId)=nId&quot; \</span>
+<span class="c1">                       &quot;IMPLEMENT_REGISTER(v, w, x, y, z)= &quot; \</span>
+<span class="c1">                       &quot;ASSERT(x)=assert(x)&quot; \</span>
+<span class="c1">                       &quot;ASSERT_VALID(x)=assert(x)&quot; \</span>
+<span class="c1">                       &quot;TRACE0(x)=printf(x)&quot; \</span>
+<span class="c1">                       &quot;OS_ERR(A,B)={ #A, B }&quot; \</span>
+<span class="c1">                       __cplusplus \</span>
+<span class="c1">                       &quot;DECLARE_OLECREATE(class)= &quot; \</span>
+<span class="c1">                       &quot;BEGIN_DISPATCH_MAP(class1, class2)= &quot; \</span>
+<span class="c1">                       &quot;BEGIN_INTERFACE_MAP(class1, class2)= &quot; \</span>
+<span class="c1">                       &quot;INTERFACE_PART(class, id, name)= &quot; \</span>
+<span class="c1">                       &quot;END_INTERFACE_MAP()=&quot; \</span>
+<span class="c1">                       &quot;DISP_FUNCTION(class, name, function, result, id)=&quot; \</span>
+<span class="c1">                       &quot;END_DISPATCH_MAP()=&quot; \</span>
+<span class="c1">                       &quot;IMPLEMENT_OLECREATE2(class, name, id1, id2, id3, id4,\</span>
+<span class="c1">                        id5, id6, id7, id8, id9, id10, id11)=&quot;</span>
+<span class="o">&lt;/</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">As</span><span class="w"> </span><span class="n">you</span><span class="w"> </span><span class="n">can</span><span class="w"> </span><span class="n">see</span><span class="w"> </span><span class="n">Doxygen</span><span class="err">&#39;</span><span class="n">s</span><span class="w"> </span><span class="n">preprocessor</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">quite</span><span class="w"> </span><span class="n">powerful</span><span class="p">,</span><span class="w"> </span><span class="n">but</span><span class="w"> </span><span class="k">if</span><span class="w"> </span><span class="n">you</span><span class="w"> </span><span class="n">want</span><span class="w"> </span><span class="n">even</span><span class="w"> </span><span class="n">more</span><span class="w"> </span><span class="n">flexibility</span><span class="w"> </span><span class="n">you</span><span class="w"> </span><span class="n">can</span><span class="w"> </span><span class="n">always</span><span class="w"> </span><span class="n">write</span><span class="w"> </span><span class="n">an</span><span class="w"> </span><span class="n">input</span><span class="w"> </span><span class="n">filter</span><span class="w"> </span><span class="k">and</span><span class="w"> </span><span class="n">specify</span><span class="w"> </span><span class="n">it</span><span class="w"> </span><span class="n">after</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="o">&lt;</span><span class="n">a</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;el&quot;</span><span class="w"> </span><span class="n">href</span><span class="o">=</span><span class="s">&quot;config.html#cfg_input_filter&quot;</span><span class="o">&gt;</span><span class="n">INPUT_FILTER</span><span class="o">&lt;/</span><span class="n">a</span><span class="o">&gt;</span><span class="w"> </span><span class="n">tag</span><span class="w"> </span><span class="k">or</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="o">&lt;</span><span class="n">a</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;el&quot;</span><span class="w"> </span><span class="n">href</span><span class="o">=</span><span class="s">&quot;config.html#cfg_filter_patterns&quot;</span><span class="o">&gt;</span><span class="n">FILTER_PATTERNS</span><span class="o">&lt;/</span><span class="n">a</span><span class="o">&gt;</span><span class="w"> </span><span class="n">tag</span><span class="w"> </span><span class="p">(</span><span class="k">or</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="o">&lt;</span><span class="n">a</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;el&quot;</span><span class="w"> </span><span class="n">href</span><span class="o">=</span><span class="s">&quot;config.html#cfg_filter_source_patterns&quot;</span><span class="o">&gt;</span><span class="n">FILTER_SOURCE_PATTERNS</span><span class="o">&lt;/</span><span class="n">a</span><span class="o">&gt;</span><span class="w"> </span><span class="n">tag</span><span class="p">).</span><span class="o">&lt;</span><span class="n">br</span><span class="w">  </span><span class="o">/&gt;</span>
+<span class="w"> </span><span class="n">If</span><span class="w"> </span><span class="n">you</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">unsure</span><span class="w"> </span><span class="n">what</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">effect</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">filter</span><span class="w"> </span><span class="n">will</span><span class="w"> </span><span class="n">be</span><span class="w"> </span><span class="n">you</span><span class="w"> </span><span class="n">can</span><span class="w"> </span><span class="n">run</span><span class="w"> </span><span class="n">Doxygen</span><span class="w"> </span><span class="n">as</span><span class="w"> </span><span class="n">follows</span><span class="o">:</span><span class="w"> </span><span class="o">&lt;</span><span class="n">span</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;tt&quot;</span><span class="o">&gt;</span><span class="n">doxygen</span><span class="w"> </span><span class="o">-</span><span class="n">d</span><span class="w"> </span><span class="n">filteroutput</span><span class="o">&lt;/</span><span class="n">span</span><span class="o">&gt;</span><span class="p">.</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">If</span><span class="w"> </span><span class="n">you</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="n">unsure</span><span class="w"> </span><span class="n">what</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">effect</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="n">Doxygen</span><span class="err">&#39;</span><span class="n">s</span><span class="w"> </span><span class="n">preprocessing</span><span class="w"> </span><span class="n">will</span><span class="w"> </span><span class="n">be</span><span class="w"> </span><span class="n">you</span><span class="w"> </span><span class="n">can</span><span class="w"> </span><span class="n">run</span><span class="w"> </span><span class="n">Doxygen</span><span class="w"> </span><span class="n">as</span><span class="w"> </span><span class="n">follows</span><span class="o">:</span><span class="w"> </span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;&lt;</span><span class="n">pre</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;fragment&quot;</span><span class="o">&gt;</span><span class="w">  </span><span class="n">doxygen</span><span class="w"> </span><span class="o">-</span><span class="n">d</span><span class="w"> </span><span class="n">Preprocessor</span>
+<span class="o">&lt;/</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="w"> </span><span class="k">or</span><span class="w"> </span><span class="n">when</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">line</span><span class="w"> </span><span class="n">numbers</span><span class="w"> </span><span class="n">are</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="n">wanted</span><span class="o">:</span><span class="w"> </span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;&lt;</span><span class="n">pre</span><span class="w"> </span><span class="k">class</span><span class="o">=</span><span class="s">&quot;fragment&quot;</span><span class="o">&gt;</span><span class="w">  </span><span class="n">doxygen</span><span class="w"> </span><span class="o">-</span><span class="n">d</span><span class="w"> </span><span class="n">Preprocessor</span><span class="w"> </span><span class="o">-</span><span class="n">d</span><span class="w"> </span><span class="n">NoLineno</span>
+<span class="o">&lt;/</span><span class="n">pre</span><span class="o">&gt;&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="w"> </span><span class="n">This</span><span class="w"> </span><span class="n">will</span><span class="w"> </span><span class="n">instruct</span><span class="w"> </span><span class="n">Doxygen</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">dump</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">input</span><span class="w"> </span><span class="n">sources</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">standard</span><span class="w"> </span><span class="n">output</span><span class="w"> </span><span class="n">after</span><span class="w"> </span><span class="n">preprocessing</span><span class="w"> </span><span class="n">has</span><span class="w"> </span><span class="n">been</span><span class="w"> </span><span class="n">done</span><span class="w"> </span><span class="p">(</span><span class="n">Hint</span><span class="o">:</span><span class="w"> </span><span class="n">set</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">QUIET</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">YES</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="w"> </span><span class="k">and</span><span class="w"> </span><span class="o">&lt;</span><span class="n">code</span><span class="o">&gt;</span><span class="n">WARNINGS</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">NO</span><span class="o">&lt;/</span><span class="n">code</span><span class="o">&gt;</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">configuration</span><span class="w"> </span><span class="n">file</span><span class="w"> </span><span class="n">to</span><span class="w"> </span><span class="n">disable</span><span class="w"> </span><span class="n">any</span><span class="w"> </span><span class="n">other</span><span class="w"> </span><span class="n">output</span><span class="p">).</span><span class="o">&lt;/</span><span class="n">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="n">p</span><span class="o">&gt;</span><span class="n">Note</span><span class="w"> </span><span class="n">preprocessing</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="k">not</span><span class="w"> </span><span class="n">done</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">all</span><span class="w"> </span><span class="n">languages</span><span class="p">.</span><span class="w"> </span><span class="n">Preprocessing</span><span class="w"> </span><span class="n">is</span><span class="w"> </span><span class="n">enabled</span><span class="w"> </span><span class="k">for</span><span class="w"> </span><span class="n">files</span><span class="w"> </span><span class="n">that</span><span class="w"> </span><span class="n">use</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="s">&quot;C&quot;</span><span class="w"> </span><span class="n">scanner</span><span class="w"> </span><span class="p">(</span><span class="n">with</span><span class="w"> </span><span class="n">the</span><span class="w"> </span><span class="n">exception</span><span class="w"> </span><span class="n">of</span><span class="w"> </span><span class="err">&#39;</span><span class="n">java</span><span class="err">&#39;</span><span class="p">,</span><span class="w"> </span><span class="sc">&#39;d&#39;</span><span class="w"> </span><span class="k">and</span><span class="w"> </span><span class="err">&#39;</span><span class="n">php</span><span class="err">&#39;</span><span class="p">),</span><span class="w"> </span><span class="n">Fortran</span><span class="w"> </span><span class="n">files</span><span class="w"> </span><span class="p">(</span><span class="n">only</span><span class="w"> </span><span class="n">in</span><span class="w"> </span><span class="k">case</span><span class="w"> </span><span class="no">the</span><span class="w"> </span><span class="no">extension</span><span class="w"> </span><span class="no">contains</span><span class="w"> </span><span class="no">at</span><span class="w"> </span><span class="no">least</span><span class="w"> </span><span class="no">one</span><span class="w"> </span><span class="no">upper</span><span class="w"> </span><span class="no">case</span><span class="w"> </span><span class="no">character</span><span class="p">)</span><span class="w"> </span><span class="no">and</span><span class="w"> </span><span class="no">vhdl</span><span class="w"> </span><span class="no">files</span><span class="p">.</span><span class="o">&lt;/</span><span class="no">p</span><span class="o">&gt;</span>
+<span class="o">&lt;</span><span class="no">p</span><span class="o">&gt;</span><span class="w"> </span>
+<span class="no">Go</span><span class="w"> </span><span class="no">to</span><span class="w"> </span><span class="no">the</span><span class="w"> </span><span class="o">&lt;</span><span class="no">a</span><span class="w"> </span><span class="no">href</span><span class="o">=</span><span class="s">&quot;autolink.html&quot;</span><span class="o">&gt;</span><span class="no">next</span><span class="o">&lt;/</span><span class="no">a</span><span class="o">&gt;</span><span class="w"> </span><span class="no">section</span><span class="w"> </span><span class="no">or</span><span class="w"> </span><span class="no">return</span><span class="w"> </span><span class="no">to</span><span class="w"> </span><span class="no">the</span>
+<span class="w"> </span><span class="o">&lt;</span><span class="no">a</span><span class="w"> </span><span class="no">href</span><span class="o">=</span><span class="s">&quot;index.html&quot;</span><span class="o">&gt;</span><span class="no">index</span><span class="o">&lt;/</span><span class="no">a</span><span class="o">&gt;</span><span class="p">.</span>
+<span class="w"> </span><span class="o">&lt;/</span><span class="no">p</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="no">div</span><span class="o">&gt;&lt;/</span><span class="no">div</span><span class="o">&gt;&lt;!--</span><span class="w"> </span><span class="no">contents</span><span class="w"> </span><span class="o">--&gt;</span>
+<span class="o">&lt;/</span><span class="no">div</span><span class="o">&gt;&lt;!--</span><span class="w"> </span><span class="no">PageDoc</span><span class="w"> </span><span class="o">--&gt;</span>
+<span class="o">&lt;/</span><span class="no">div</span><span class="o">&gt;&lt;!--</span><span class="w"> </span><span class="no">doc</span><span class="o">-</span><span class="no">content</span><span class="w"> </span><span class="o">--&gt;</span>
+<span class="o">&lt;/</span><span class="no">div</span><span class="o">&gt;&lt;!--</span><span class="w"> </span><span class="no">container</span><span class="w"> </span><span class="o">--&gt;</span>
+<span class="o">&lt;!--</span><span class="w"> </span><span class="no">start</span><span class="w"> </span><span class="no">footer</span><span class="w"> </span><span class="no">part</span><span class="w"> </span><span class="o">--&gt;</span>
+<span class="o">&lt;</span><span class="no">div</span><span class="w"> </span><span class="no">id</span><span class="o">=</span><span class="s">&quot;nav-path&quot;</span><span class="w"> </span><span class="no">class</span><span class="o">=</span><span class="s">&quot;navpath&quot;</span><span class="o">&gt;&lt;!--</span><span class="w"> </span><span class="no">id</span><span class="w"> </span><span class="no">is</span><span class="w"> </span><span class="no">needed</span><span class="w"> </span><span class="no">for</span><span class="w"> </span><span class="no">treeview</span><span class="w"> </span><span class="no">function</span><span class="o">!</span><span class="w"> </span><span class="o">--&gt;</span>
+<span class="w">  </span><span class="o">&lt;</span><span class="no">ul</span><span class="o">&gt;</span>
+<span class="w">    </span><span class="o">&lt;</span><span class="no">li</span><span class="w"> </span><span class="no">class</span><span class="o">=</span><span class="s">&quot;footer&quot;</span><span class="o">&gt;</span><span class="no">Generated</span><span class="w"> </span><span class="no">by</span><span class="w"> </span><span class="o">&lt;</span><span class="no">a</span><span class="w"> </span><span class="no">href</span><span class="o">=</span><span class="s">&quot;https://www.doxygen.org/index.html&quot;</span><span class="o">&gt;&lt;</span><span class="no">img</span><span class="w"> </span><span class="no">class</span><span class="o">=</span><span class="s">&quot;footer&quot;</span><span class="w"> </span><span class="no">src</span><span class="o">=</span><span class="s">&quot;doxygen.svg&quot;</span><span class="w"> </span><span class="no">width</span><span class="o">=</span><span class="s">&quot;104&quot;</span><span class="w"> </span><span class="no">height</span><span class="o">=</span><span class="s">&quot;31&quot;</span><span class="w"> </span><span class="no">alt</span><span class="o">=</span><span class="s">&quot;doxygen&quot;</span><span class="o">/&gt;&lt;/</span><span class="no">a</span><span class="o">&gt;</span><span class="w"> </span><span class="mf">1.14.0</span><span class="w"> </span><span class="o">&lt;/</span><span class="no">li</span><span class="o">&gt;</span>
+<span class="w">  </span><span class="o">&lt;/</span><span class="no">ul</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="no">div</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="no">body</span><span class="o">&gt;</span>
+<span class="o">&lt;/</span><span class="no">html</span><span class="o">&gt;</span>
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/wagnerks/ecss" target="_blank" rel="noopener" title="ECSS GitHub Repository" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="https://github.com/wagnerks" target="_blank" rel="noopener" title="Me" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "content.code.copy", "content.code.annotate", "header.autohide", "header.social"], "search": "../../assets/javascripts/workers/search.7a47a382.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.e71a0d61.min.js"></script>
+      
+    
+  </body>
+</html>

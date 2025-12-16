@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_2df48ef1a7d9f8042cfea19bdbe50aea" kind="dir">
+    <compoundname>html</compoundname>
+    <innerfile refid="example_2html_2annotated_8html">example/html/annotated.html</innerfile>
+    <innerfile refid="class__example______test-members_8html">class_example___test-members.html</innerfile>
+    <innerfile refid="class__example______test_8html">class_example___test.html</innerfile>
+    <innerfile refid="example_2html_2classes_8html">example/html/classes.html</innerfile>
+    <innerfile refid="examples_2example_2html_2doxygen__crawl_8html">examples/example/html/doxygen_crawl.html</innerfile>
+    <innerfile refid="example__test__8cpp-example_8html">example_test_8cpp-example.html</innerfile>
+    <innerfile refid="examples_8html">examples.html</innerfile>
+    <innerfile refid="example_2html_2functions_8html">example/html/functions.html</innerfile>
+    <innerfile refid="example_2html_2functions__func_8html">example/html/functions_func.html</innerfile>
+    <innerfile refid="examples_2example_2html_2index_8html">examples/example/html/index.html</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/example/html/"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,230 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Memory::detail::SparseMap&lt; true &gt;</compoundname>
+    <includes refid="SectorsArray_8h" local="no">SectorsArray.h</includes>
+    <innerclass refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1_1SparseView" prot="private">ecss::Memory::detail::SparseMap&lt; true &gt;::SparseView</innerclass>
+    <templateparamlist>
+    </templateparamlist>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1aab4db40953d37709f595a7ed4bb7fd21" prot="private" static="no" mutable="yes">
+        <type>Memory::RetireBin</type>
+        <definition>Memory::RetireBin ecss::Memory::detail::SparseMap&lt; true &gt;::bin</definition>
+        <argsstring></argsstring>
+        <name>bin</name>
+        <qualifiedname>ecss::Memory::detail::SparseMap&lt; true &gt;::bin</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="102" column="27" bodyfile="ecss/memory/SectorsArray.h" bodystart="102" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1aed8d351ace33e38c87ea4a61e3c38b07" prot="private" static="no" mutable="yes">
+        <type>std::atomic&lt; SparseView &gt;</type>
+        <definition>std::atomic&lt;SparseView&gt; ecss::Memory::detail::SparseMap&lt; true &gt;::sparseMapView</definition>
+        <argsstring></argsstring>
+        <name>sparseMapView</name>
+        <qualifiedname>ecss::Memory::detail::SparseMap&lt; true &gt;::sparseMapView</qualifiedname>
+        <initializer>{ SparseView{nullptr, 0} }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="112" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="112" bodyend="112"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1ad4c5b6cf3c910acd75dccaba81b10e38" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="structecss_1_1Memory_1_1detail_1_1SlotInfo" kindref="compound">SlotInfo</ref>, <ref refid="structecss_1_1Memory_1_1RetireAllocator" kindref="compound">Memory::RetireAllocator</ref>&lt; <ref refid="structecss_1_1Memory_1_1detail_1_1SlotInfo" kindref="compound">SlotInfo</ref> &gt; &gt;</type>
+        <definition>std::vector&lt;SlotInfo, Memory::RetireAllocator&lt;SlotInfo&gt; &gt; ecss::Memory::detail::SparseMap&lt; true &gt;::sparse</definition>
+        <argsstring></argsstring>
+        <name>sparse</name>
+        <qualifiedname>ecss::Memory::detail::SparseMap&lt; true &gt;::sparse</qualifiedname>
+        <initializer>{ <ref refid="structecss_1_1Memory_1_1RetireAllocator" kindref="compound">Memory::RetireAllocator</ref>&lt;<ref refid="structecss_1_1Memory_1_1detail_1_1SlotInfo" kindref="compound">SlotInfo</ref>&gt;{&amp;bin} }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="105" column="13" bodyfile="ecss/memory/SectorsArray.h" bodystart="105" bodyend="105"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1a9c633f63c66af05ba2e64968e12d66a6" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE size_t</type>
+        <definition>FORCE_INLINE size_t ecss::Memory::detail::SparseMap&lt; true &gt;::capacity</definition>
+        <argsstring>() const</argsstring>
+        <name>capacity</name>
+        <qualifiedname>ecss::Memory::detail::SparseMap&lt; true &gt;::capacity</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="84" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="84" bodyend="84"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1afe0d5006e46632ea76a699c17e3f5fcd" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::detail::SparseMap&lt; true &gt;::drainRetired</definition>
+        <argsstring>()</argsstring>
+        <name>drainRetired</name>
+        <qualifiedname>ecss::Memory::detail::SparseMap&lt; true &gt;::drainRetired</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="91" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="91" bodyend="91"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1ae9895d2463291c4fa25d641285b0dbdc" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE <ref refid="structecss_1_1Memory_1_1detail_1_1SlotInfo" kindref="compound">SlotInfo</ref></type>
+        <definition>FORCE_INLINE SlotInfo ecss::Memory::detail::SparseMap&lt; true &gt;::find</definition>
+        <argsstring>(SectorId id) const</argsstring>
+        <name>find</name>
+        <qualifiedname>ecss::Memory::detail::SparseMap&lt; true &gt;::find</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="69" column="23" bodyfile="ecss/memory/SectorsArray.h" bodystart="69" bodyend="72"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1a764629d3b935279a3bf0ddf92fff0148" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE uint32_t</type>
+        <definition>FORCE_INLINE uint32_t ecss::Memory::detail::SparseMap&lt; true &gt;::findLinearIdx</definition>
+        <argsstring>(SectorId id) const</argsstring>
+        <name>findLinearIdx</name>
+        <qualifiedname>ecss::Memory::detail::SparseMap&lt; true &gt;::findLinearIdx</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="79" column="23" bodyfile="ecss/memory/SectorsArray.h" bodystart="79" bodyend="82"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1a290d762314b2f20f6d35b8dd7f0bbea3" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE <ref refid="structecss_1_1Memory_1_1detail_1_1SlotInfo" kindref="compound">SlotInfo</ref></type>
+        <definition>FORCE_INLINE SlotInfo ecss::Memory::detail::SparseMap&lt; true &gt;::get</definition>
+        <argsstring>(SectorId id) const</argsstring>
+        <name>get</name>
+        <qualifiedname>ecss::Memory::detail::SparseMap&lt; true &gt;::get</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="74" column="23" bodyfile="ecss/memory/SectorsArray.h" bodystart="74" bodyend="77"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1ad61396a606d35b579511ae19b0160a03" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE <ref refid="structecss_1_1Memory_1_1detail_1_1SlotInfo" kindref="compound">SlotInfo</ref> &amp;</type>
+        <definition>FORCE_INLINE SlotInfo &amp; ecss::Memory::detail::SparseMap&lt; true &gt;::operator[]</definition>
+        <argsstring>(SectorId id)</argsstring>
+        <name>operator[]</name>
+        <qualifiedname>ecss::Memory::detail::SparseMap&lt; true &gt;::operator[]</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="98" column="23" bodyfile="ecss/memory/SectorsArray.h" bodystart="98" bodyend="98"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1ad44f5eac6fad248de26465f59ac0577c" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE const <ref refid="structecss_1_1Memory_1_1detail_1_1SlotInfo" kindref="compound">SlotInfo</ref> &amp;</type>
+        <definition>FORCE_INLINE const SlotInfo &amp; ecss::Memory::detail::SparseMap&lt; true &gt;::operator[]</definition>
+        <argsstring>(SectorId id) const</argsstring>
+        <name>operator[]</name>
+        <qualifiedname>ecss::Memory::detail::SparseMap&lt; true &gt;::operator[]</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="99" column="29" bodyfile="ecss/memory/SectorsArray.h" bodystart="99" bodyend="99"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1aa807e62a6e456bde753d58ff554c3536" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::detail::SparseMap&lt; true &gt;::resize</definition>
+        <argsstring>(size_t newSize)</argsstring>
+        <name>resize</name>
+        <qualifiedname>ecss::Memory::detail::SparseMap&lt; true &gt;::resize</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>newSize</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="93" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="93" bodyend="96"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1a75e431102bcceff973c63398359f8d16" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::detail::SparseMap&lt; true &gt;::storeView</definition>
+        <argsstring>()</argsstring>
+        <name>storeView</name>
+        <qualifiedname>ecss::Memory::detail::SparseMap&lt; true &gt;::storeView</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="86" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="86" bodyend="89"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Thread-safe sparse map with atomic view for lock-free reads. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/SectorsArray.h" line="68" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="68" bodyend="113"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1aab4db40953d37709f595a7ed4bb7fd21" prot="private" virt="non-virtual"><scope>ecss::Memory::detail::SparseMap&lt; true &gt;</scope><name>bin</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1a9c633f63c66af05ba2e64968e12d66a6" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::SparseMap&lt; true &gt;</scope><name>capacity</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1afe0d5006e46632ea76a699c17e3f5fcd" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::SparseMap&lt; true &gt;</scope><name>drainRetired</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1ae9895d2463291c4fa25d641285b0dbdc" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::SparseMap&lt; true &gt;</scope><name>find</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1a764629d3b935279a3bf0ddf92fff0148" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::SparseMap&lt; true &gt;</scope><name>findLinearIdx</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1a290d762314b2f20f6d35b8dd7f0bbea3" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::SparseMap&lt; true &gt;</scope><name>get</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1ad61396a606d35b579511ae19b0160a03" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::SparseMap&lt; true &gt;</scope><name>operator[]</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1ad44f5eac6fad248de26465f59ac0577c" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::SparseMap&lt; true &gt;</scope><name>operator[]</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1aa807e62a6e456bde753d58ff554c3536" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::SparseMap&lt; true &gt;</scope><name>resize</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1ad4c5b6cf3c910acd75dccaba81b10e38" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::SparseMap&lt; true &gt;</scope><name>sparse</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1aed8d351ace33e38c87ea4a61e3c38b07" prot="private" virt="non-virtual"><scope>ecss::Memory::detail::SparseMap&lt; true &gt;</scope><name>sparseMapView</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1a75e431102bcceff973c63398359f8d16" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::SparseMap&lt; true &gt;</scope><name>storeView</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

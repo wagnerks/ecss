@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_e7f1083f405bcedc183bd34d48b485bd" kind="dir">
+    <compoundname>html</compoundname>
+    <innerfile refid="qtstyle_2html_2annotated_8html">qtstyle/html/annotated.html</innerfile>
+    <innerfile refid="class__q__tstyle______test-members_8html">class_q_tstyle___test-members.html</innerfile>
+    <innerfile refid="class__q__tstyle______test_8html">class_q_tstyle___test.html</innerfile>
+    <innerfile refid="qtstyle_2html_2classes_8html">qtstyle/html/classes.html</innerfile>
+    <innerfile refid="examples_2qtstyle_2html_2doxygen__crawl_8html">examples/qtstyle/html/doxygen_crawl.html</innerfile>
+    <innerfile refid="qtstyle_2html_2functions_8html">qtstyle/html/functions.html</innerfile>
+    <innerfile refid="qtstyle_2html_2functions__enum_8html">qtstyle/html/functions_enum.html</innerfile>
+    <innerfile refid="qtstyle_2html_2functions__eval_8html">qtstyle/html/functions_eval.html</innerfile>
+    <innerfile refid="qtstyle_2html_2functions__func_8html">qtstyle/html/functions_func.html</innerfile>
+    <innerfile refid="qtstyle_2html_2functions__vars_8html">qtstyle/html/functions_vars.html</innerfile>
+    <innerfile refid="examples_2qtstyle_2html_2index_8html">examples/qtstyle/html/index.html</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/qtstyle/html/"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,600 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="classecss_1_1ArraysView_1_1Iterator" kind="class" language="C++" prot="public">
+    <compoundname>ecss::ArraysView::Iterator</compoundname>
+    <includes refid="Registry_8h" local="no">Registry.h</includes>
+    <sectiondef kind="public-type">
+      <memberdef kind="typedef" id="classecss_1_1ArraysView_1_1Iterator_1aa880c8ed02055dc06527573c76b804a1" prot="public" static="no">
+        <type>std::ptrdiff_t</type>
+        <definition>using ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::difference_type =  std::ptrdiff_t</definition>
+        <argsstring></argsstring>
+        <name>difference_type</name>
+        <qualifiedname>ecss::ArraysView::Iterator::difference_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="873" column="1" bodyfile="ecss/Registry.h" bodystart="873" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="classecss_1_1ArraysView_1_1Iterator_1a352bbe09ed806c81f5bbff532469fa6c" prot="public" static="no">
+        <type>std::forward_iterator_tag</type>
+        <definition>using ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::iterator_category =  std::forward_iterator_tag</definition>
+        <argsstring></argsstring>
+        <name>iterator_category</name>
+        <qualifiedname>ecss::ArraysView::Iterator::iterator_category</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="871" column="1" bodyfile="ecss/Registry.h" bodystart="871" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="classecss_1_1ArraysView_1_1Iterator_1a191f80013960cc10dc00b075545d21f3" prot="public" static="no">
+        <type>value_type *</type>
+        <definition>using ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::pointer =  value_type*</definition>
+        <argsstring></argsstring>
+        <name>pointer</name>
+        <qualifiedname>ecss::ArraysView::Iterator::pointer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="874" column="1" bodyfile="ecss/Registry.h" bodystart="874" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="classecss_1_1ArraysView_1_1Iterator_1a293db49565f63f73823a03d33e31be89" prot="public" static="no">
+        <type>value_type &amp;</type>
+        <definition>using ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::reference =  value_type&amp;</definition>
+        <argsstring></argsstring>
+        <name>reference</name>
+        <qualifiedname>ecss::ArraysView::Iterator::reference</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="875" column="1" bodyfile="ecss/Registry.h" bodystart="875" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="classecss_1_1ArraysView_1_1Iterator_1ae9c3adcd6706050dfc62d8282305fb9d" prot="public" static="no">
+        <type>std::array&lt; <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Sectors</ref> *, TypesCount &gt;</type>
+        <definition>using ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::SectorArrays =  std::array&lt;Sectors*, TypesCount&gt;</definition>
+        <argsstring></argsstring>
+        <name>SectorArrays</name>
+        <qualifiedname>ecss::ArraysView::Iterator::SectorArrays</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="868" column="1" bodyfile="ecss/Registry.h" bodystart="868" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="classecss_1_1ArraysView_1_1Iterator_1afa68c0c6523880540af0a5e566cd1428" prot="public" static="no">
+        <type>std::tuple&lt; <ref refid="structecss_1_1TypeAccessInfo" kindref="compound">TypeInfo</ref>, decltype((void) sizeof(CompTypes), <ref refid="structecss_1_1TypeAccessInfo" kindref="compound">TypeInfo</ref>{})... &gt;</type>
+        <definition>using ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::TypeAccessTuple =  std::tuple&lt;TypeInfo, decltype((void)sizeof(CompTypes), TypeInfo{})...&gt;</definition>
+        <argsstring></argsstring>
+        <name>TypeAccessTuple</name>
+        <qualifiedname>ecss::ArraysView::Iterator::TypeAccessTuple</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="869" column="1" bodyfile="ecss/Registry.h" bodystart="869" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="classecss_1_1ArraysView_1_1Iterator_1af52a90e01a97925252b4d112ff1001f8" prot="public" static="no">
+        <type>std::tuple&lt; EntityId, T *, CompTypes *... &gt;</type>
+        <definition>using ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::value_type =  std::tuple&lt;EntityId, T*, CompTypes*...&gt;</definition>
+        <argsstring></argsstring>
+        <name>value_type</name>
+        <qualifiedname>ecss::ArraysView::Iterator::value_type</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="872" column="1" bodyfile="ecss/Registry.h" bodystart="872" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classecss_1_1ArraysView_1_1Iterator_1ab4b3fa391cbe2f983c1dfb8c43086136" prot="private" static="no" mutable="no">
+        <type>SectorsIt</type>
+        <definition>SectorsIt ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::mIterator</definition>
+        <argsstring></argsstring>
+        <name>mIterator</name>
+        <qualifiedname>ecss::ArraysView::Iterator::mIterator</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1006" column="10" bodyfile="ecss/Registry.h" bodystart="1006" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1ArraysView_1_1Iterator_1a55f08cb2c742613db0d6d68055d578c0" prot="private" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::mMainOffset</definition>
+        <argsstring></argsstring>
+        <name>mMainOffset</name>
+        <qualifiedname>ecss::ArraysView::Iterator::mMainOffset</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1007" column="9" bodyfile="ecss/Registry.h" bodystart="1007" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1ArraysView_1_1Iterator_1aa0012a1e2183e27c6c81b00b15f98704" prot="private" static="no" mutable="no">
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Sectors</ref> *</type>
+        <definition>Sectors* ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::mSecondaryArrays[CTCount ? CTCount :1]</definition>
+        <argsstring>[CTCount ? CTCount :1]</argsstring>
+        <name>mSecondaryArrays</name>
+        <qualifiedname>ecss::ArraysView::Iterator::mSecondaryArrays</qualifiedname>
+        <initializer>= {}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1004" column="8" bodyfile="ecss/Registry.h" bodystart="1004" bodyend="1004"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1ArraysView_1_1Iterator_1a6d4829aceb99aff2a822dfc7c8fb0af8" prot="private" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::mSecondaryCount</definition>
+        <argsstring></argsstring>
+        <name>mSecondaryCount</name>
+        <qualifiedname>ecss::ArraysView::Iterator::mSecondaryCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1008" column="8" bodyfile="ecss/Registry.h" bodystart="1008" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1ArraysView_1_1Iterator_1acd28bbc6963044a9b4aa18a25e1eb73d" prot="private" static="no" mutable="yes">
+        <type>SectorsRangeIt</type>
+        <definition>SectorsRangeIt ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::mSecondaryIterators[CTCount ? CTCount :1]</definition>
+        <argsstring>[CTCount ? CTCount :1]</argsstring>
+        <name>mSecondaryIterators</name>
+        <qualifiedname>ecss::ArraysView::Iterator::mSecondaryIterators</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1005" column="24" bodyfile="ecss/Registry.h" bodystart="1005" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1ArraysView_1_1Iterator_1a20bd6eb333cb1158b52b78eb26387f59" prot="private" static="no" mutable="no">
+        <type>TypeAccessTuple</type>
+        <definition>TypeAccessTuple ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::mTypeAccessInfo</definition>
+        <argsstring></argsstring>
+        <name>mTypeAccessInfo</name>
+        <qualifiedname>ecss::ArraysView::Iterator::mTypeAccessInfo</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1003" column="17" bodyfile="ecss/Registry.h" bodystart="1003" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classecss_1_1ArraysView_1_1Iterator_1aff202ba7138929c5138aa63316fb9ac9" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::Iterator</definition>
+        <argsstring>() noexcept=default</argsstring>
+        <name>Iterator</name>
+        <qualifiedname>ecss::ArraysView::Iterator::Iterator</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="878" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1ArraysView_1_1Iterator_1ae6405b37f33f2a1b959095f08e8bc9e5" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::Iterator</definition>
+        <argsstring>(const SectorArrays &amp;arrays, SectorsIt iterator, const std::vector&lt; std::pair&lt; Sectors *, SectorsRangeIt &gt; &gt; &amp;secondary)</argsstring>
+        <name>Iterator</name>
+        <qualifiedname>ecss::ArraysView::Iterator::Iterator</qualifiedname>
+        <param>
+          <type>const SectorArrays &amp;</type>
+          <declname>arrays</declname>
+        </param>
+        <param>
+          <type>SectorsIt</type>
+          <declname>iterator</declname>
+        </param>
+        <param>
+          <type>const std::vector&lt; std::pair&lt; <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Sectors</ref> *, SectorsRangeIt &gt; &gt; &amp;</type>
+          <declname>secondary</declname>
+        </param>
+        <briefdescription>
+<para>Construct iterator with main iterator + secondary arrays. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>arrays</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Array of sector arrays for all involved component types. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>iterator</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Alive iterator for main component. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>secondary</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Arrays (+ iterators for ThreadSafe) for component lookup. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="886" column="1" bodyfile="ecss/Registry.h" bodystart="886" bodyend="889"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1ArraysView_1_1Iterator_1a87c162e413ecfae7e5b38e849923978e" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::operator!=</definition>
+        <argsstring>(const EndIterator &amp;) const noexcept</argsstring>
+        <name>operator!=</name>
+        <qualifiedname>ecss::ArraysView::Iterator::operator!=</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1ArraysView_1_1EndIterator" kindref="compound">EndIterator</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="909" column="19" bodyfile="ecss/Registry.h" bodystart="909" bodyend="909"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1ArraysView_1_1Iterator_1a5f9eea8ef2402cf3ad3cdbe8c74883e5" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::operator!=</definition>
+        <argsstring>(const Iterator &amp;other) const noexcept</argsstring>
+        <name>operator!=</name>
+        <qualifiedname>ecss::ArraysView::Iterator::operator!=</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1ArraysView_1_1Iterator" kindref="compound">Iterator</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="904" column="19" bodyfile="ecss/Registry.h" bodystart="904" bodyend="904"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1ArraysView_1_1Iterator_1ae31006ac6533a091e14cba3c1c5d8943" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE value_type</type>
+        <definition>FORCE_INLINE value_type ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::operator*</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>operator*</name>
+        <qualifiedname>ecss::ArraysView::Iterator::operator*</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="891" column="25" bodyfile="ecss/Registry.h" bodystart="891" bodyend="896"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1ArraysView_1_1Iterator_1a08596961cfb0658fe8e5b62a821e596d" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE <ref refid="classecss_1_1ArraysView_1_1Iterator" kindref="compound">Iterator</ref> &amp;</type>
+        <definition>FORCE_INLINE Iterator &amp; ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::operator++</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>operator++</name>
+        <qualifiedname>ecss::ArraysView::Iterator::operator++</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="897" column="23" bodyfile="ecss/Registry.h" bodystart="897" bodyend="902"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1ArraysView_1_1Iterator_1a4c9d49ecb05a3740f0e60db2135cbb27" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::operator==</definition>
+        <argsstring>(const EndIterator &amp;) const noexcept</argsstring>
+        <name>operator==</name>
+        <qualifiedname>ecss::ArraysView::Iterator::operator==</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1ArraysView_1_1EndIterator" kindref="compound">EndIterator</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="908" column="19" bodyfile="ecss/Registry.h" bodystart="908" bodyend="908"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1ArraysView_1_1Iterator_1ae4bd79c8da1f85cd9e157ecfa04e9aba" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::operator==</definition>
+        <argsstring>(const Iterator &amp;other) const noexcept</argsstring>
+        <name>operator==</name>
+        <qualifiedname>ecss::ArraysView::Iterator::operator==</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1ArraysView_1_1Iterator" kindref="compound">Iterator</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="905" column="19" bodyfile="ecss/Registry.h" bodystart="905" bodyend="905"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1ArraysView_1_1Iterator_1ac3f345131ca7dfa5f60591563fa20100" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename Func</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::tryInvoke</definition>
+        <argsstring>(Func &amp;&amp;func) const noexcept</argsstring>
+        <name>tryInvoke</name>
+        <qualifiedname>ecss::ArraysView::Iterator::tryInvoke</qualifiedname>
+        <param>
+          <type>Func &amp;&amp;</type>
+          <declname>func</declname>
+        </param>
+        <briefdescription>
+<para>Invoke func directly without tuple creation. Returns true if all components found. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="915" column="19" bodyfile="ecss/Registry.h" bodystart="915" bodyend="927"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="friend">
+      <memberdef kind="friend" id="classecss_1_1ArraysView_1_1Iterator_1a3d3270ecf522846dac71636de0891e28" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE friend bool</type>
+        <definition>FORCE_INLINE friend bool operator!=</definition>
+        <argsstring>(const EndIterator endIt, const Iterator &amp;it) noexcept</argsstring>
+        <name>operator!=</name>
+        <qualifiedname>ecss::ArraysView::Iterator::operator!=</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1ArraysView_1_1EndIterator" kindref="compound">EndIterator</ref></type>
+          <declname>endIt</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classecss_1_1ArraysView_1_1Iterator" kindref="compound">Iterator</ref> &amp;</type>
+          <declname>it</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="911" column="26" bodyfile="ecss/Registry.h" bodystart="911" bodyend="911"/>
+      </memberdef>
+      <memberdef kind="friend" id="classecss_1_1ArraysView_1_1Iterator_1af620874b9bacf69deedd8284025f5fdc" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE friend bool</type>
+        <definition>FORCE_INLINE friend bool operator==</definition>
+        <argsstring>(const EndIterator endIt, const Iterator &amp;it) noexcept</argsstring>
+        <name>operator==</name>
+        <qualifiedname>ecss::ArraysView::Iterator::operator==</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1ArraysView_1_1EndIterator" kindref="compound">EndIterator</ref></type>
+          <declname>endIt</declname>
+        </param>
+        <param>
+          <type>const <ref refid="classecss_1_1ArraysView_1_1Iterator" kindref="compound">Iterator</ref> &amp;</type>
+          <declname>it</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="910" column="26" bodyfile="ecss/Registry.h" bodystart="910" bodyend="910"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classecss_1_1ArraysView_1_1Iterator_1a9793b577822e43cf239974604b1cfb61" prot="private" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename ComponentType</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE ComponentType *</type>
+        <definition>FORCE_INLINE ComponentType * ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::getComponent</definition>
+        <argsstring>(const SlotInfo &amp;slot) const noexcept</argsstring>
+        <name>getComponent</name>
+        <qualifiedname>ecss::ArraysView::Iterator::getComponent</qualifiedname>
+        <param>
+          <type>const SlotInfo &amp;</type>
+          <declname>slot</declname>
+        </param>
+        <briefdescription>
+<para>Fetch component pointer for specific entity id (may be nullptr). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="949" column="28" bodyfile="ecss/Registry.h" bodystart="949" bodyend="968"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1ArraysView_1_1Iterator_1a7c20f06a6e8fa7f51849855b78f642f5" prot="private" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename...</type>
+            <declname>Types</declname>
+            <defname>Types</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::initTypeAccessInfo</definition>
+        <argsstring>(const SectorArrays &amp;arrays, const std::vector&lt; std::pair&lt; Sectors *, SectorsRangeIt &gt; &gt; &amp;secondary) noexcept</argsstring>
+        <name>initTypeAccessInfo</name>
+        <qualifiedname>ecss::ArraysView::Iterator::initTypeAccessInfo</qualifiedname>
+        <param>
+          <type>const SectorArrays &amp;</type>
+          <declname>arrays</declname>
+        </param>
+        <param>
+          <type>const std::vector&lt; std::pair&lt; <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Sectors</ref> *, SectorsRangeIt &gt; &gt; &amp;</type>
+          <declname>secondary</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="971" column="6" bodyfile="ecss/Registry.h" bodystart="971" bodyend="988"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1ArraysView_1_1Iterator_1a32a0c68522a39a305c3dcbf6ca3d24aa" prot="private" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename ComponentType</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::initTypeAccessInfoImpl</definition>
+        <argsstring>(Sectors *main, Sectors *sectorArray, uint8_t *iteratorIndexes) noexcept</argsstring>
+        <name>initTypeAccessInfoImpl</name>
+        <qualifiedname>ecss::ArraysView::Iterator::initTypeAccessInfoImpl</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Sectors</ref> *</type>
+          <declname>main</declname>
+        </param>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Sectors</ref> *</type>
+          <declname>sectorArray</declname>
+        </param>
+        <param>
+          <type>uint8_t *</type>
+          <declname>iteratorIndexes</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="991" column="19" bodyfile="ecss/Registry.h" bodystart="991" bodyend="1000"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1ArraysView_1_1Iterator_1a5eefcc1a6f4ad3408f38a16cda222511" prot="private" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename Func</type>
+          </param>
+          <param>
+            <type>typename...</type>
+            <declname>Got</declname>
+            <defname>Got</defname>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::ArraysView&lt; ThreadSafe, Allocator, Ranged, T, CompTypes &gt;::Iterator::tryInvokeRec</definition>
+        <argsstring>(Func &amp;&amp;func, const SlotInfo &amp;slot, T *main, Got *... got) const noexcept</argsstring>
+        <name>tryInvokeRec</name>
+        <qualifiedname>ecss::ArraysView::Iterator::tryInvokeRec</qualifiedname>
+        <param>
+          <type>Func &amp;&amp;</type>
+          <declname>func</declname>
+        </param>
+        <param>
+          <type>const SlotInfo &amp;</type>
+          <declname>slot</declname>
+        </param>
+        <param>
+          <type>T *</type>
+          <declname>main</declname>
+        </param>
+        <param>
+          <type>Got *...</type>
+          <declname>got</declname>
+        </param>
+        <briefdescription>
+<para>Recursive helper that collects component pointers without tuple. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="932" column="19" bodyfile="ecss/Registry.h" bodystart="932" bodyend="944"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Forward iterator over alive sectors of the main component type. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Dereferencing produces a tuple (EntityId, T*, CompTypes*...). Non-main pointers may be nullptr if component not present for that entity.</para>
+<para><simplesect kind="note"><para><ref refid="classecss_1_1ArraysView_1_1Iterator" kindref="compound">Iterator</ref> validity is bounded by the pinned back-sector (thread-safe mode). </para>
+</simplesect>
+</para>
+    </detaileddescription>
+    <location file="ecss/Registry.h" line="866" column="1" bodyfile="ecss/Registry.h" bodystart="866" bodyend="1009"/>
+    <listofallmembers>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1aa880c8ed02055dc06527573c76b804a1" prot="public" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>difference_type</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1a9793b577822e43cf239974604b1cfb61" prot="private" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>getComponent</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1a7c20f06a6e8fa7f51849855b78f642f5" prot="private" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>initTypeAccessInfo</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1a32a0c68522a39a305c3dcbf6ca3d24aa" prot="private" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>initTypeAccessInfoImpl</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1aff202ba7138929c5138aa63316fb9ac9" prot="public" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>Iterator</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1ae6405b37f33f2a1b959095f08e8bc9e5" prot="public" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>Iterator</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1a352bbe09ed806c81f5bbff532469fa6c" prot="public" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>iterator_category</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1ab4b3fa391cbe2f983c1dfb8c43086136" prot="private" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>mIterator</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1a55f08cb2c742613db0d6d68055d578c0" prot="private" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>mMainOffset</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1aa0012a1e2183e27c6c81b00b15f98704" prot="private" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>mSecondaryArrays</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1a6d4829aceb99aff2a822dfc7c8fb0af8" prot="private" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>mSecondaryCount</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1acd28bbc6963044a9b4aa18a25e1eb73d" prot="private" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>mSecondaryIterators</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1a20bd6eb333cb1158b52b78eb26387f59" prot="private" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>mTypeAccessInfo</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1a5f9eea8ef2402cf3ad3cdbe8c74883e5" prot="public" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>operator!=</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1a87c162e413ecfae7e5b38e849923978e" prot="public" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>operator!=</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1a3d3270ecf522846dac71636de0891e28" prot="public" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>operator!=</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1ae31006ac6533a091e14cba3c1c5d8943" prot="public" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>operator*</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1a08596961cfb0658fe8e5b62a821e596d" prot="public" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>operator++</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1ae4bd79c8da1f85cd9e157ecfa04e9aba" prot="public" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>operator==</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1a4c9d49ecb05a3740f0e60db2135cbb27" prot="public" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>operator==</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1af620874b9bacf69deedd8284025f5fdc" prot="public" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>operator==</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1a191f80013960cc10dc00b075545d21f3" prot="public" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>pointer</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1a293db49565f63f73823a03d33e31be89" prot="public" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>reference</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1ae9c3adcd6706050dfc62d8282305fb9d" prot="public" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>SectorArrays</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1ac3f345131ca7dfa5f60591563fa20100" prot="public" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>tryInvoke</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1a5eefcc1a6f4ad3408f38a16cda222511" prot="private" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>tryInvokeRec</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1afa68c0c6523880540af0a5e566cd1428" prot="public" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>TypeAccessTuple</name></member>
+      <member refid="classecss_1_1ArraysView_1_1Iterator_1af52a90e01a97925252b4d112ff1001f8" prot="public" virt="non-virtual"><scope>ecss::ArraysView::Iterator</scope><name>value_type</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

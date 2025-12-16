@@ -1,0 +1,293 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1PinnedSector" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Memory::PinnedSector</compoundname>
+    <includes refid="SectorsArray_8h" local="no">SectorsArray.h</includes>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1PinnedSector_1a91b0da426831b122fb5c65c7e6162a82" prot="private" static="no" mutable="no">
+        <type>std::byte *</type>
+        <definition>std::byte* ecss::Memory::PinnedSector::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <qualifiedname>ecss::Memory::PinnedSector::data</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="364" column="11" bodyfile="ecss/memory/SectorsArray.h" bodystart="364" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1PinnedSector_1ae2ca925afff8c4b8738cfdf5842f55a5" prot="private" static="no" mutable="no">
+        <type>SectorId</type>
+        <definition>SectorId ecss::Memory::PinnedSector::id</definition>
+        <argsstring></argsstring>
+        <name>id</name>
+        <qualifiedname>ecss::Memory::PinnedSector::id</qualifiedname>
+        <initializer>= INVALID_ID</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="363" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="363" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1PinnedSector_1aee8caa687521b4f4310a27fac66d379d" prot="private" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t ecss::Memory::PinnedSector::isAliveData</definition>
+        <argsstring></argsstring>
+        <name>isAliveData</name>
+        <qualifiedname>ecss::Memory::PinnedSector::isAliveData</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="365" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="365" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1PinnedSector_1a3b995424574c8549491be527624e3e79" prot="private" static="no" mutable="no">
+        <type>const <ref refid="structecss_1_1Threads_1_1PinCounters" kindref="compound">Threads::PinCounters</ref> *</type>
+        <definition>const Threads::PinCounters* ecss::Memory::PinnedSector::owner</definition>
+        <argsstring></argsstring>
+        <name>owner</name>
+        <qualifiedname>ecss::Memory::PinnedSector::owner</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="362" column="28" bodyfile="ecss/memory/SectorsArray.h" bodystart="362" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1Memory_1_1PinnedSector_1aacc850428d726a02f0266168cda51fc0" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::byte *</type>
+        <definition>std::byte * ecss::Memory::PinnedSector::getData</definition>
+        <argsstring>() const</argsstring>
+        <name>getData</name>
+        <qualifiedname>ecss::Memory::PinnedSector::getData</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="356" column="11" bodyfile="ecss/memory/SectorsArray.h" bodystart="356" bodyend="356"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1PinnedSector_1a2c60770ab896bbdf813ac8a656ec6e93" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>SectorId</type>
+        <definition>SectorId ecss::Memory::PinnedSector::getId</definition>
+        <argsstring>() const</argsstring>
+        <name>getId</name>
+        <qualifiedname>ecss::Memory::PinnedSector::getId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="359" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="359" bodyend="359"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1PinnedSector_1ad98783c379c9e0ddda2d66c9dbecb4d5" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>uint32_t</type>
+        <definition>uint32_t ecss::Memory::PinnedSector::getIsAlive</definition>
+        <argsstring>() const</argsstring>
+        <name>getIsAlive</name>
+        <qualifiedname>ecss::Memory::PinnedSector::getIsAlive</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="357" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="357" bodyend="357"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1PinnedSector_1a77d38750bd48ea5b5aa8630640c1a1a5" prot="public" static="no" const="yes" explicit="yes" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::PinnedSector::operator bool</definition>
+        <argsstring>() const</argsstring>
+        <name>operator bool</name>
+        <qualifiedname>ecss::Memory::PinnedSector::operator bool</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="358" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="358" bodyend="358"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1PinnedSector_1af3efd3f41d5cd26f3f30bf737812a9e7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structecss_1_1Memory_1_1PinnedSector" kindref="compound">PinnedSector</ref> &amp;</type>
+        <definition>PinnedSector &amp; ecss::Memory::PinnedSector::operator=</definition>
+        <argsstring>(const PinnedSector &amp;)=delete</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::PinnedSector::operator=</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1PinnedSector" kindref="compound">PinnedSector</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="327" column="14"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1PinnedSector_1a82737c4e3b5830542126cab865ab5dde" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type><ref refid="structecss_1_1Memory_1_1PinnedSector" kindref="compound">PinnedSector</ref> &amp;</type>
+        <definition>PinnedSector &amp; ecss::Memory::PinnedSector::operator=</definition>
+        <argsstring>(PinnedSector &amp;&amp;other) noexcept</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::PinnedSector::operator=</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1Memory_1_1PinnedSector" kindref="compound">PinnedSector</ref> &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="330" column="14" bodyfile="ecss/memory/SectorsArray.h" bodystart="330" bodyend="342"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1PinnedSector_1a9d880ec5c916a2fda5745870113b7ed5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::PinnedSector::PinnedSector</definition>
+        <argsstring>()=default</argsstring>
+        <name>PinnedSector</name>
+        <qualifiedname>ecss::Memory::PinnedSector::PinnedSector</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="318" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1PinnedSector_1a262d0f630b67398dab553ad2b51c1a2b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::PinnedSector::PinnedSector</definition>
+        <argsstring>(const PinnedSector &amp;)=delete</argsstring>
+        <name>PinnedSector</name>
+        <qualifiedname>ecss::Memory::PinnedSector::PinnedSector</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1PinnedSector" kindref="compound">PinnedSector</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="326" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1PinnedSector_1a08e56217969bd50c01e942a557ad241c" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::PinnedSector::PinnedSector</definition>
+        <argsstring>(const Threads::PinCounters &amp;o, SectorId sid, std::byte *d, uint32_t alive)</argsstring>
+        <name>PinnedSector</name>
+        <qualifiedname>ecss::Memory::PinnedSector::PinnedSector</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Threads_1_1PinCounters" kindref="compound">Threads::PinCounters</ref> &amp;</type>
+          <declname>o</declname>
+        </param>
+        <param>
+          <type>SectorId</type>
+          <declname>sid</declname>
+        </param>
+        <param>
+          <type>std::byte *</type>
+          <declname>d</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>alive</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="320" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="320" bodyend="324"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1PinnedSector_1afe796427ab8e66dbca639d1dfc2e551c" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::PinnedSector::PinnedSector</definition>
+        <argsstring>(PinnedSector &amp;&amp;other) noexcept</argsstring>
+        <name>PinnedSector</name>
+        <qualifiedname>ecss::Memory::PinnedSector::PinnedSector</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1Memory_1_1PinnedSector" kindref="compound">PinnedSector</ref> &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="329" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="329" bodyend="329"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1PinnedSector_1a2d91015ce789428760c35ce3ff696bcb" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Memory::PinnedSector::release</definition>
+        <argsstring>()</argsstring>
+        <name>release</name>
+        <qualifiedname>ecss::Memory::PinnedSector::release</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="346" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="346" bodyend="354"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1PinnedSector_1a9df1ec59f5376c7970c15b8cba848268" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::PinnedSector::~PinnedSector</definition>
+        <argsstring>()</argsstring>
+        <name>~PinnedSector</name>
+        <qualifiedname>ecss::Memory::PinnedSector::~PinnedSector</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="344" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="344" bodyend="344"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>RAII pin for a sector to prevent relocation / destruction while in use. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/SectorsArray.h" line="317" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="317" bodyend="366"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Memory_1_1PinnedSector_1a91b0da426831b122fb5c65c7e6162a82" prot="private" virt="non-virtual"><scope>ecss::Memory::PinnedSector</scope><name>data</name></member>
+      <member refid="structecss_1_1Memory_1_1PinnedSector_1aacc850428d726a02f0266168cda51fc0" prot="public" virt="non-virtual"><scope>ecss::Memory::PinnedSector</scope><name>getData</name></member>
+      <member refid="structecss_1_1Memory_1_1PinnedSector_1a2c60770ab896bbdf813ac8a656ec6e93" prot="public" virt="non-virtual"><scope>ecss::Memory::PinnedSector</scope><name>getId</name></member>
+      <member refid="structecss_1_1Memory_1_1PinnedSector_1ad98783c379c9e0ddda2d66c9dbecb4d5" prot="public" virt="non-virtual"><scope>ecss::Memory::PinnedSector</scope><name>getIsAlive</name></member>
+      <member refid="structecss_1_1Memory_1_1PinnedSector_1ae2ca925afff8c4b8738cfdf5842f55a5" prot="private" virt="non-virtual"><scope>ecss::Memory::PinnedSector</scope><name>id</name></member>
+      <member refid="structecss_1_1Memory_1_1PinnedSector_1aee8caa687521b4f4310a27fac66d379d" prot="private" virt="non-virtual"><scope>ecss::Memory::PinnedSector</scope><name>isAliveData</name></member>
+      <member refid="structecss_1_1Memory_1_1PinnedSector_1a77d38750bd48ea5b5aa8630640c1a1a5" prot="public" virt="non-virtual"><scope>ecss::Memory::PinnedSector</scope><name>operator bool</name></member>
+      <member refid="structecss_1_1Memory_1_1PinnedSector_1af3efd3f41d5cd26f3f30bf737812a9e7" prot="public" virt="non-virtual"><scope>ecss::Memory::PinnedSector</scope><name>operator=</name></member>
+      <member refid="structecss_1_1Memory_1_1PinnedSector_1a82737c4e3b5830542126cab865ab5dde" prot="public" virt="non-virtual"><scope>ecss::Memory::PinnedSector</scope><name>operator=</name></member>
+      <member refid="structecss_1_1Memory_1_1PinnedSector_1a3b995424574c8549491be527624e3e79" prot="private" virt="non-virtual"><scope>ecss::Memory::PinnedSector</scope><name>owner</name></member>
+      <member refid="structecss_1_1Memory_1_1PinnedSector_1a9d880ec5c916a2fda5745870113b7ed5" prot="public" virt="non-virtual"><scope>ecss::Memory::PinnedSector</scope><name>PinnedSector</name></member>
+      <member refid="structecss_1_1Memory_1_1PinnedSector_1a08e56217969bd50c01e942a557ad241c" prot="public" virt="non-virtual"><scope>ecss::Memory::PinnedSector</scope><name>PinnedSector</name></member>
+      <member refid="structecss_1_1Memory_1_1PinnedSector_1a262d0f630b67398dab553ad2b51c1a2b" prot="public" virt="non-virtual"><scope>ecss::Memory::PinnedSector</scope><name>PinnedSector</name></member>
+      <member refid="structecss_1_1Memory_1_1PinnedSector_1afe796427ab8e66dbca639d1dfc2e551c" prot="public" virt="non-virtual"><scope>ecss::Memory::PinnedSector</scope><name>PinnedSector</name></member>
+      <member refid="structecss_1_1Memory_1_1PinnedSector_1a2d91015ce789428760c35ce3ff696bcb" prot="public" virt="non-virtual"><scope>ecss::Memory::PinnedSector</scope><name>release</name></member>
+      <member refid="structecss_1_1Memory_1_1PinnedSector_1a9df1ec59f5376c7970c15b8cba848268" prot="public" virt="non-virtual"><scope>ecss::Memory::PinnedSector</scope><name>~PinnedSector</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

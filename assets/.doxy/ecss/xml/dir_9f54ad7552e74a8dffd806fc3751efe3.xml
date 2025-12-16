@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_9f54ad7552e74a8dffd806fc3751efe3" kind="dir">
+    <compoundname>html</compoundname>
+    <innerfile refid="afterdoc__8h__source_8html">afterdoc_8h_source.html</innerfile>
+    <innerfile refid="afterdoc_2html_2annotated_8html">afterdoc/html/annotated.html</innerfile>
+    <innerfile refid="class__afterdoc______test-members_8html">class_afterdoc___test-members.html</innerfile>
+    <innerfile refid="class__afterdoc______test_8html">class_afterdoc___test.html</innerfile>
+    <innerfile refid="afterdoc_2html_2classes_8html">afterdoc/html/classes.html</innerfile>
+    <innerfile refid="examples_2afterdoc_2html_2doxygen__crawl_8html">examples/afterdoc/html/doxygen_crawl.html</innerfile>
+    <innerfile refid="afterdoc_2html_2files_8html">afterdoc/html/files.html</innerfile>
+    <innerfile refid="afterdoc_2html_2functions_8html">afterdoc/html/functions.html</innerfile>
+    <innerfile refid="afterdoc_2html_2functions__enum_8html">afterdoc/html/functions_enum.html</innerfile>
+    <innerfile refid="afterdoc_2html_2functions__eval_8html">afterdoc/html/functions_eval.html</innerfile>
+    <innerfile refid="afterdoc_2html_2functions__func_8html">afterdoc/html/functions_func.html</innerfile>
+    <innerfile refid="afterdoc_2html_2functions__vars_8html">afterdoc/html/functions_vars.html</innerfile>
+    <innerfile refid="examples_2afterdoc_2html_2index_8html">examples/afterdoc/html/index.html</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/afterdoc/html/"/>
+  </compounddef>
+</doxygen>

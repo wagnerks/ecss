@@ -1,0 +1,414 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator" kind="class" language="C++" prot="public">
+    <compoundname>ecss::Memory::SectorsArray::RangedIterator</compoundname>
+    <includes refid="SectorsArray_8h" local="no">SectorsArray.h</includes>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a4a1b6d785215e993e30658581f7218d4" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::mChunkIdx</definition>
+        <argsstring></argsstring>
+        <name>mChunkIdx</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::mChunkIdx</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="772" column="8" bodyfile="ecss/memory/SectorsArray.h" bodystart="772" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a8694dfdff63a14e9bcd61a6448210b54" prot="private" static="no" mutable="no">
+        <type>void *const  *</type>
+        <definition>void* const* ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::mChunks</definition>
+        <argsstring></argsstring>
+        <name>mChunks</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::mChunks</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="769" column="12" bodyfile="ecss/memory/SectorsArray.h" bodystart="769" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a3306491fde136cf712a2d8353a597c7d" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::mChunksCount</definition>
+        <argsstring></argsstring>
+        <name>mChunksCount</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::mChunksCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="771" column="8" bodyfile="ecss/memory/SectorsArray.h" bodystart="771" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1ab532735acd4116237a6e16a5a115f3cf" prot="private" static="no" mutable="no">
+        <type>std::byte *</type>
+        <definition>std::byte* ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::mDataPtr</definition>
+        <argsstring></argsstring>
+        <name>mDataPtr</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::mDataPtr</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="770" column="11" bodyfile="ecss/memory/SectorsArray.h" bodystart="770" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a4534558703ed5190f1ed987f6a65517d" prot="private" static="no" mutable="no">
+        <type>const SectorId *</type>
+        <definition>const SectorId* ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::mIds</definition>
+        <argsstring></argsstring>
+        <name>mIds</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::mIds</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="767" column="16" bodyfile="ecss/memory/SectorsArray.h" bodystart="767" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1af9d00b0388df5ffa0f54b643213a8fa8" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::mIdx</definition>
+        <argsstring></argsstring>
+        <name>mIdx</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::mIdx</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="775" column="8" bodyfile="ecss/memory/SectorsArray.h" bodystart="775" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1ad89192eb3d4dc10f84c332a7786d9f19" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::mInChunkIdx</definition>
+        <argsstring></argsstring>
+        <name>mInChunkIdx</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::mInChunkIdx</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="773" column="8" bodyfile="ecss/memory/SectorsArray.h" bodystart="773" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1ae9b610361cbadafa5b6f81a32871acff" prot="private" static="no" mutable="no">
+        <type>const uint32_t *</type>
+        <definition>const uint32_t* ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::mIsAlive</definition>
+        <argsstring></argsstring>
+        <name>mIsAlive</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::mIsAlive</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="768" column="16" bodyfile="ecss/memory/SectorsArray.h" bodystart="768" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1aabff57401fcc5271d743fe83692df8e9" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; std::pair&lt; size_t, size_t &gt; &gt;</type>
+        <definition>std::vector&lt;std::pair&lt;size_t, size_t&gt; &gt; ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::mLinearRanges</definition>
+        <argsstring></argsstring>
+        <name>mLinearRanges</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::mLinearRanges</qualifiedname>
+        <briefdescription>
+<para>Linear index ranges [begin, end) </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="774" column="13" bodyfile="ecss/memory/SectorsArray.h" bodystart="774" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a2b6d16858501305e110b83787e38b379" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::mRangeIdx</definition>
+        <argsstring></argsstring>
+        <name>mRangeIdx</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::mRangeIdx</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="777" column="8" bodyfile="ecss/memory/SectorsArray.h" bodystart="777" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a3001164fbf334b84f9d8ca8de6a36961" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::mSize</definition>
+        <argsstring></argsstring>
+        <name>mSize</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::mSize</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="776" column="8" bodyfile="ecss/memory/SectorsArray.h" bodystart="776" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1ab43337da06e7cb2659790deb29aa890d" prot="private" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::mStride</definition>
+        <argsstring></argsstring>
+        <name>mStride</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::mStride</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="778" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="778" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1ace2f39593d7b92c4ac7cffa721843296" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::advanceToLinearIdx</definition>
+        <argsstring>(size_t targetIdx)</argsstring>
+        <name>advanceToLinearIdx</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::advanceToLinearIdx</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>targetIdx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="701" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="701" bodyend="705"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a6d51ae67fa9022dda3600ef90bc94c3d" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE size_t</type>
+        <definition>FORCE_INLINE size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::linearIndex</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>linearIndex</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::linearIndex</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="708" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="708" bodyend="708"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a7c92b86bf2e337d5e317be3722a30b39" prot="public" static="no" const="yes" explicit="yes" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE</type>
+        <definition>FORCE_INLINE ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::operator bool</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>operator bool</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::operator bool</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="710" column="23" bodyfile="ecss/memory/SectorsArray.h" bodystart="710" bodyend="710"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a7ec27e131905ffc9bdf92b1e77b5ddd9" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE value_type</type>
+        <definition>FORCE_INLINE value_type ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::operator*</definition>
+        <argsstring>() const</argsstring>
+        <name>operator*</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::operator*</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="674" column="25" bodyfile="ecss/memory/SectorsArray.h" bodystart="674" bodyend="681"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a43815a6df5d3a767400d84ded5c0fce2" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE <ref refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator" kindref="compound">RangedIterator</ref> &amp;</type>
+        <definition>FORCE_INLINE RangedIterator &amp; ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::operator++</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>operator++</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::operator++</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="683" column="29" bodyfile="ecss/memory/SectorsArray.h" bodystart="683" bodyend="699"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1ad4d7dd361ee9bc4d2a6522901bb4e88a" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::operator==</definition>
+        <argsstring>(const RangedIterator &amp;other) const noexcept</argsstring>
+        <name>operator==</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::operator==</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator" kindref="compound">RangedIterator</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="707" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="707" bodyend="707"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1aab3f169887d2759c63de58545f05f17f" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::RangedIterator</definition>
+        <argsstring>(const SectorsArray *array, const Ranges&lt; SectorId &gt; &amp;ranges)</argsstring>
+        <name>RangedIterator</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::RangedIterator</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> *</type>
+          <declname>array</declname>
+        </param>
+        <param>
+          <type>const Ranges&lt; SectorId &gt; &amp;</type>
+          <declname>ranges</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="648" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="648" bodyend="672"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a6679c5b741976b38845760ddcad2436a" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE std::byte *</type>
+        <definition>FORCE_INLINE std::byte * ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::rawPtr</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>rawPtr</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::rawPtr</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="709" column="24" bodyfile="ecss/memory/SectorsArray.h" bodystart="709" bodyend="709"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a592264faf86000c5220f13e7439ccfd1" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::advanceToNextRange</definition>
+        <argsstring>()</argsstring>
+        <name>advanceToNextRange</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::advanceToNextRange</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="727" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="727" bodyend="736"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a670d78f66187cb7661fa315caabcc325" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::clampToRangeAndUpdatePtr</definition>
+        <argsstring>()</argsstring>
+        <name>clampToRangeAndUpdatePtr</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::clampToRangeAndUpdatePtr</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="738" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="738" bodyend="755"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1ad8269f469dc63483ee31a9110a95fe8c" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE size_t</type>
+        <definition>FORCE_INLINE size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::lowerBound</definition>
+        <argsstring>(SectorId sectorId) const</argsstring>
+        <name>lowerBound</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::lowerBound</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>sectorId</declname>
+        </param>
+        <briefdescription>
+<para>Binary search to find first linear index where mIds[idx] &gt;= sectorId. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="714" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="714" bodyend="725"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1aedb164fccaa7aad8970fc8a78098812f" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::RangedIterator::updatePtrFromIdx</definition>
+        <argsstring>()</argsstring>
+        <name>updatePtrFromIdx</name>
+        <qualifiedname>ecss::Memory::SectorsArray::RangedIterator::updatePtrFromIdx</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="757" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="757" bodyend="765"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para><ref refid="classecss_1_1Memory_1_1SectorsArray_1_1Iterator" kindref="compound">Iterator</ref> over sectors whose IDs fall within specified SectorId ranges. Converts SectorId ranges to linear index ranges using binary search. Optimized: chunk-aware pointer access. Uses atomic view snapshots for thread-safe iteration. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/SectorsArray.h" line="644" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="644" bodyend="779"/>
+    <listofallmembers>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1ace2f39593d7b92c4ac7cffa721843296" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>advanceToLinearIdx</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a592264faf86000c5220f13e7439ccfd1" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>advanceToNextRange</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a670d78f66187cb7661fa315caabcc325" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>clampToRangeAndUpdatePtr</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a6d51ae67fa9022dda3600ef90bc94c3d" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>linearIndex</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1ad8269f469dc63483ee31a9110a95fe8c" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>lowerBound</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a4a1b6d785215e993e30658581f7218d4" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>mChunkIdx</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a8694dfdff63a14e9bcd61a6448210b54" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>mChunks</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a3306491fde136cf712a2d8353a597c7d" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>mChunksCount</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1ab532735acd4116237a6e16a5a115f3cf" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>mDataPtr</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a4534558703ed5190f1ed987f6a65517d" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>mIds</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1af9d00b0388df5ffa0f54b643213a8fa8" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>mIdx</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1ad89192eb3d4dc10f84c332a7786d9f19" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>mInChunkIdx</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1ae9b610361cbadafa5b6f81a32871acff" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>mIsAlive</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1aabff57401fcc5271d743fe83692df8e9" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>mLinearRanges</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a2b6d16858501305e110b83787e38b379" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>mRangeIdx</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a3001164fbf334b84f9d8ca8de6a36961" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>mSize</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1ab43337da06e7cb2659790deb29aa890d" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>mStride</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a7c92b86bf2e337d5e317be3722a30b39" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>operator bool</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a7ec27e131905ffc9bdf92b1e77b5ddd9" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>operator*</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a43815a6df5d3a767400d84ded5c0fce2" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>operator++</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1ad4d7dd361ee9bc4d2a6522901bb4e88a" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>operator==</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1aab3f169887d2759c63de58545f05f17f" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>RangedIterator</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1a6679c5b741976b38845760ddcad2436a" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>rawPtr</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator_1aedb164fccaa7aad8970fc8a78098812f" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::RangedIterator</scope><name>updatePtrFromIdx</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

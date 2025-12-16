@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="namespaceecss_1_1Memory_1_1detail" kind="namespace" language="C++">
+    <compoundname>ecss::Memory::detail</compoundname>
+    <innerclass refid="structecss_1_1Memory_1_1detail_1_1DenseArrays" prot="public">ecss::Memory::detail::DenseArrays</innerclass>
+    <innerclass refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01false_01_4" prot="public">ecss::Memory::detail::DenseArrays&lt; false &gt;</innerclass>
+    <innerclass refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4" prot="public">ecss::Memory::detail::DenseArrays&lt; true &gt;</innerclass>
+    <innerclass refid="structecss_1_1Memory_1_1detail_1_1SlotInfo" prot="public">ecss::Memory::detail::SlotInfo</innerclass>
+    <innerclass refid="structecss_1_1Memory_1_1detail_1_1SparseMap" prot="public">ecss::Memory::detail::SparseMap</innerclass>
+    <innerclass refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01false_01_4" prot="public">ecss::Memory::detail::SparseMap&lt; false &gt;</innerclass>
+    <innerclass refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4" prot="public">ecss::Memory::detail::SparseMap&lt; true &gt;</innerclass>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="SectorsArray_8h_1a1757b9a0f62efe45ba76168d04b7ffdf" prot="public" static="no" constexpr="yes" mutable="no">
+        <type><ref refid="structecss_1_1Memory_1_1detail_1_1SlotInfo" kindref="compound">SlotInfo</ref></type>
+        <definition>SlotInfo ecss::Memory::detail::INVALID_SLOT</definition>
+        <argsstring></argsstring>
+        <name>INVALID_SLOT</name>
+        <qualifiedname>ecss::Memory::detail::INVALID_SLOT</qualifiedname>
+        <initializer>{ nullptr, INVALID_IDX }</initializer>
+        <briefdescription>
+<para>Invalid slot info constant. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="61" column="27" bodyfile="ecss/memory/SectorsArray.h" bodystart="61" bodyend="61"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/SectorsArray.h" line="49" column="1"/>
+  </compounddef>
+</doxygen>

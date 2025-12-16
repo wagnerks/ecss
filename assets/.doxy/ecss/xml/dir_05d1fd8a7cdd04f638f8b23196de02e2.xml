@@ -1,0 +1,47 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_05d1fd8a7cdd04f638f8b23196de02e2" kind="dir">
+    <compoundname>html</compoundname>
+    <innerdir refid="dir_aa52e73a32d193037813a53dcfe817b6">examples</innerdir>
+    <innerfile refid="additional_8html">additional.html</innerfile>
+    <innerfile refid="arch_8html">arch.html</innerfile>
+    <innerfile refid="autolink_8html">autolink.html</innerfile>
+    <innerfile refid="changelog_8html">changelog.html</innerfile>
+    <innerfile refid="commands_8html">commands.html</innerfile>
+    <innerfile refid="config_8html">config.html</innerfile>
+    <innerfile refid="custcmd_8html">custcmd.html</innerfile>
+    <innerfile refid="customize_8html">customize.html</innerfile>
+    <innerfile refid="diagrams_8html">diagrams.html</innerfile>
+    <innerfile refid="docblocks_8html">docblocks.html</innerfile>
+    <innerfile refid="doxygen__crawl_8html">doxygen_crawl.html</innerfile>
+    <innerfile refid="doxygen__usage_8html">doxygen_usage.html</innerfile>
+    <innerfile refid="doxywizard__usage_8html">doxywizard_usage.html</innerfile>
+    <innerfile refid="emojisup_8html">emojisup.html</innerfile>
+    <innerfile refid="external_8html">external.html</innerfile>
+    <innerfile refid="extsearch_8html">extsearch.html</innerfile>
+    <innerfile refid="faq_8html">faq.html</innerfile>
+    <innerfile refid="features_8html">features.html</innerfile>
+    <innerfile refid="formulas_8html">formulas.html</innerfile>
+    <innerfile refid="grouping_8html">grouping.html</innerfile>
+    <innerfile refid="htmlcmds_8html">htmlcmds.html</innerfile>
+    <innerfile refid="index_8html">index.html</innerfile>
+    <innerfile refid="install_8html">install.html</innerfile>
+    <innerfile refid="langhowto_8html">langhowto.html</innerfile>
+    <innerfile refid="lists_8html">lists.html</innerfile>
+    <innerfile refid="markdown_8html">markdown.html</innerfile>
+    <innerfile refid="output_8html">output.html</innerfile>
+    <innerfile refid="pages_8html">pages.html</innerfile>
+    <innerfile refid="perlmod_8html">perlmod.html</innerfile>
+    <innerfile refid="preprocessing_8html">preprocessing.html</innerfile>
+    <innerfile refid="searching_8html">searching.html</innerfile>
+    <innerfile refid="starting_8html">starting.html</innerfile>
+    <innerfile refid="tables_8html">tables.html</innerfile>
+    <innerfile refid="trouble_8html">trouble.html</innerfile>
+    <innerfile refid="xmlcmds_8html">xmlcmds.html</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/"/>
+  </compounddef>
+</doxygen>

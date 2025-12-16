@@ -1,0 +1,420 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive" kind="class" language="C++" prot="public">
+    <compoundname>ecss::Memory::SectorsArray::IteratorAlive</compoundname>
+    <includes refid="SectorsArray_8h" local="no">SectorsArray.h</includes>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a0e8ad2bc1bce30815af5bd6557822f7c" prot="private" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::mAliveMask</definition>
+        <argsstring></argsstring>
+        <name>mAliveMask</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::mAliveMask</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="618" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="618" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1ae3a4a074ce9a49f7b3e01cfcf40a9c80" prot="private" static="no" mutable="no">
+        <type>std::byte *</type>
+        <definition>std::byte* ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::mChunkBase</definition>
+        <argsstring></argsstring>
+        <name>mChunkBase</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::mChunkBase</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="610" column="11" bodyfile="ecss/memory/SectorsArray.h" bodystart="610" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1ad29a5b370c48b32bb35e6b9a523e9547" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::mChunkIdx</definition>
+        <argsstring></argsstring>
+        <name>mChunkIdx</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::mChunkIdx</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="613" column="8" bodyfile="ecss/memory/SectorsArray.h" bodystart="613" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1ae93649e8eff9d9334c6a6bc10defd29b" prot="private" static="no" mutable="no">
+        <type>void *const  *</type>
+        <definition>void* const* ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::mChunks</definition>
+        <argsstring></argsstring>
+        <name>mChunks</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::mChunks</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="609" column="12" bodyfile="ecss/memory/SectorsArray.h" bodystart="609" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a237e2715803a91859d1c559ca296e563" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::mChunksCount</definition>
+        <argsstring></argsstring>
+        <name>mChunksCount</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::mChunksCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="612" column="8" bodyfile="ecss/memory/SectorsArray.h" bodystart="612" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a0d509fc5f15e68074ab815d983bfd79d" prot="private" static="no" mutable="no">
+        <type>std::byte *</type>
+        <definition>std::byte* ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::mDataPtr</definition>
+        <argsstring></argsstring>
+        <name>mDataPtr</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::mDataPtr</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="611" column="11" bodyfile="ecss/memory/SectorsArray.h" bodystart="611" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1aae6bc640d7ef95f8fe74ced182fc371f" prot="private" static="no" mutable="no">
+        <type>const SectorId *</type>
+        <definition>const SectorId* ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::mIds</definition>
+        <argsstring></argsstring>
+        <name>mIds</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::mIds</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="607" column="16" bodyfile="ecss/memory/SectorsArray.h" bodystart="607" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1adb9e9b0c1831a220455638673b97c236" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::mIdx</definition>
+        <argsstring></argsstring>
+        <name>mIdx</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::mIdx</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="615" column="8" bodyfile="ecss/memory/SectorsArray.h" bodystart="615" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a19c6b24b388654182affc21a574d7663" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::mInChunkIdx</definition>
+        <argsstring></argsstring>
+        <name>mInChunkIdx</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::mInChunkIdx</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="614" column="8" bodyfile="ecss/memory/SectorsArray.h" bodystart="614" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a7ada182f6c6be28f1a1c9c56d3576af2" prot="private" static="no" mutable="no">
+        <type>const uint32_t *</type>
+        <definition>const uint32_t* ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::mIsAlive</definition>
+        <argsstring></argsstring>
+        <name>mIsAlive</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::mIsAlive</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="608" column="16" bodyfile="ecss/memory/SectorsArray.h" bodystart="608" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a72f191d6b4a1753d72026dd671625aaa" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::mIsPacked</definition>
+        <argsstring></argsstring>
+        <name>mIsPacked</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::mIsPacked</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="619" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="619" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a5e3f2352254ee4cf12ee2b6143c5cbb8" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::mSize</definition>
+        <argsstring></argsstring>
+        <name>mSize</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::mSize</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="616" column="8" bodyfile="ecss/memory/SectorsArray.h" bodystart="616" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a4811369ee95843a9705943419d4496a2" prot="private" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::mStride</definition>
+        <argsstring></argsstring>
+        <name>mStride</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::mStride</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="617" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="617" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1af1ced8024a8d5a5e6752985659305994" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::IteratorAlive</definition>
+        <argsstring>(const SectorsArray *array, size_t idx, size_t sz, uint32_t aliveMask, bool isPacked=false)</argsstring>
+        <name>IteratorAlive</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::IteratorAlive</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> *</type>
+          <declname>array</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>idx</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>sz</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>aliveMask</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>isPacked</declname>
+          <defval>false</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="512" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="512" bodyend="529"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a0903d02b2cb889c8103ad711469f1d99" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE size_t</type>
+        <definition>FORCE_INLINE size_t ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::linearIndex</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>linearIndex</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::linearIndex</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="553" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="553" bodyend="553"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a30ae4d3449ac45b8bb23e2fad03bb5ff" prot="public" static="no" const="yes" explicit="yes" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE</type>
+        <definition>FORCE_INLINE ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::operator bool</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>operator bool</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::operator bool</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="555" column="23" bodyfile="ecss/memory/SectorsArray.h" bodystart="555" bodyend="555"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a8d85f67401bdf808dbae08be9a1d0d16" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE value_type</type>
+        <definition>FORCE_INLINE value_type ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::operator*</definition>
+        <argsstring>() const</argsstring>
+        <name>operator*</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::operator*</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="531" column="25" bodyfile="ecss/memory/SectorsArray.h" bodystart="531" bodyend="538"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a373db69b676f8264087c9ec23ae26d03" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE <ref refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive" kindref="compound">IteratorAlive</ref> &amp;</type>
+        <definition>FORCE_INLINE IteratorAlive &amp; ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::operator++</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>operator++</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::operator++</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="540" column="28" bodyfile="ecss/memory/SectorsArray.h" bodystart="540" bodyend="550"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a4b26479a334c18ea00460ce503aff652" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::operator==</definition>
+        <argsstring>(const IteratorAlive &amp;other) const noexcept</argsstring>
+        <name>operator==</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::operator==</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive" kindref="compound">IteratorAlive</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="552" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="552" bodyend="552"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1aae6b01b32f80eb7c3781cd33e7e01747" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE std::byte *</type>
+        <definition>FORCE_INLINE std::byte * ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::rawPtr</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>rawPtr</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::rawPtr</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="554" column="24" bodyfile="ecss/memory/SectorsArray.h" bodystart="554" bodyend="554"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a9fcd0ee0f0e767a98093dab50fb2c221" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::advanceDataPtr</definition>
+        <argsstring>()</argsstring>
+        <name>advanceDataPtr</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::advanceDataPtr</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="571" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="571" bodyend="584"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a9e2d1f3cb92d89c3847d9b5bc2ea6c92" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::initChunkState</definition>
+        <argsstring>()</argsstring>
+        <name>initChunkState</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::initChunkState</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="605" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="605" bodyend="605"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a8ae6f777df9f43030bdfd86152b22a41" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::skipDeadFast</definition>
+        <argsstring>()</argsstring>
+        <name>skipDeadFast</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::skipDeadFast</qualifiedname>
+        <briefdescription>
+<para>Fast skip: only scan isAliveData, update pointer once at the end. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="587" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="587" bodyend="603"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a7e6325c485a5cc80d16dae10e289a377" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::IteratorAlive::syncDataPtr</definition>
+        <argsstring>()</argsstring>
+        <name>syncDataPtr</name>
+        <qualifiedname>ecss::Memory::SectorsArray::IteratorAlive::syncDataPtr</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="558" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="558" bodyend="569"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Forward iterator skipping slots where component is not alive. Optimized: uses chunk-aware pointer increment for O(1) per-element access. When isPacked=true (defragmentSize==0), skipDead is bypassed for maximum speed. Uses atomic view snapshots for thread-safe iteration. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/SectorsArray.h" line="508" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="508" bodyend="620"/>
+    <listofallmembers>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a9fcd0ee0f0e767a98093dab50fb2c221" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>advanceDataPtr</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a9e2d1f3cb92d89c3847d9b5bc2ea6c92" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>initChunkState</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1af1ced8024a8d5a5e6752985659305994" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>IteratorAlive</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a0903d02b2cb889c8103ad711469f1d99" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>linearIndex</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a0e8ad2bc1bce30815af5bd6557822f7c" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>mAliveMask</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1ae3a4a074ce9a49f7b3e01cfcf40a9c80" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>mChunkBase</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1ad29a5b370c48b32bb35e6b9a523e9547" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>mChunkIdx</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1ae93649e8eff9d9334c6a6bc10defd29b" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>mChunks</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a237e2715803a91859d1c559ca296e563" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>mChunksCount</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a0d509fc5f15e68074ab815d983bfd79d" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>mDataPtr</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1aae6bc640d7ef95f8fe74ced182fc371f" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>mIds</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1adb9e9b0c1831a220455638673b97c236" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>mIdx</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a19c6b24b388654182affc21a574d7663" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>mInChunkIdx</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a7ada182f6c6be28f1a1c9c56d3576af2" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>mIsAlive</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a72f191d6b4a1753d72026dd671625aaa" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>mIsPacked</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a5e3f2352254ee4cf12ee2b6143c5cbb8" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>mSize</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a4811369ee95843a9705943419d4496a2" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>mStride</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a30ae4d3449ac45b8bb23e2fad03bb5ff" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>operator bool</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a8d85f67401bdf808dbae08be9a1d0d16" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>operator*</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a373db69b676f8264087c9ec23ae26d03" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>operator++</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a4b26479a334c18ea00460ce503aff652" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>operator==</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1aae6b01b32f80eb7c3781cd33e7e01747" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>rawPtr</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a8ae6f777df9f43030bdfd86152b22a41" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>skipDeadFast</name></member>
+      <member refid="classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive_1a7e6325c485a5cc80d16dae10e289a377" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorsArray::IteratorAlive</scope><name>syncDataPtr</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

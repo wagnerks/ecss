@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1ArraysView_1_1EndIterator" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::ArraysView::EndIterator</compoundname>
+    <includes refid="Registry_8h" local="no">Registry.h</includes>
+    <briefdescription>
+<para>Sentinel end iterator tag. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/Registry.h" line="856" column="1" bodyfile="ecss/Registry.h" bodystart="856" bodyend="856"/>
+    <listofallmembers>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

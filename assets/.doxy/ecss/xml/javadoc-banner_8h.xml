@@ -1,0 +1,116 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="javadoc-banner_8h" kind="file" language="C++">
+    <compoundname>javadoc-banner.h</compoundname>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="javadoc-banner_8h_1a6ec4bf0132201719721e103451590a9e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void cstyle</definition>
+        <argsstring>(int theory)</argsstring>
+        <name>cstyle</name>
+        <param>
+          <type>int</type>
+          <declname>theory</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>A brief history of JavaDoc-style (C-style) comments.</para>
+<para>This is the typical JavaDoc-style C-style comment. It starts with two asterisks.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>theory</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Even if there is only one possible unified theory. it is just a set of rules and equations. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="doxygen-1.14.0/examples/javadoc-banner.h" line="10" column="6" declfile="doxygen-1.14.0/examples/javadoc-banner.h" declline="10" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="javadoc-banner_8h_1a7acf20d2740fdb0d6086abf738c8688f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void doxygenBanner</definition>
+        <argsstring>(int theory)</argsstring>
+        <name>doxygenBanner</name>
+        <param>
+          <type>int</type>
+          <declname>theory</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>A brief history of Doxygen-style banner comments.</para>
+<para>This is a Doxygen-style C-style &quot;banner&quot; comment. It starts with a &quot;normal&quot; comment and is then converted to a &quot;special&quot; comment block near the end of the first line. It is written this way to be more &quot;visible&quot; to developers who are reading the source code. This style of commenting behaves poorly with clang-format.</para>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>theory</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Even if there is only one possible unified theory. it is just a set of rules and equations. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="doxygen-1.14.0/examples/javadoc-banner.h" line="45" column="6" declfile="doxygen-1.14.0/examples/javadoc-banner.h" declline="45" declcolumn="6"/>
+      </memberdef>
+      <memberdef kind="function" id="javadoc-banner_8h_1a62d4ceb96f5b5b75450244869482de68" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>void</type>
+        <definition>void javadocBanner</definition>
+        <argsstring>(int theory)</argsstring>
+        <name>javadocBanner</name>
+        <param>
+          <type>int</type>
+          <declname>theory</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="doxygen-1.14.0/examples/javadoc-banner.h" line="31" column="6" declfile="doxygen-1.14.0/examples/javadoc-banner.h" declline="31" declcolumn="6"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>cstyle(<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>theory<sp/>);</highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="12"><highlight class="normal"></highlight><highlight class="comment">/******************************************************************************</highlight></codeline>
+<codeline lineno="13"><highlight class="comment"><sp/>*<sp/>A<sp/>brief<sp/>history<sp/>of<sp/>JavaDoc-style<sp/>(C-style)<sp/>banner<sp/>comments.</highlight></codeline>
+<codeline lineno="14"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="15"><highlight class="comment"><sp/>*<sp/>This<sp/>is<sp/>the<sp/>typical<sp/>JavaDoc-style<sp/>C-style<sp/>&quot;banner&quot;<sp/>comment.<sp/>It<sp/>starts<sp/>with</highlight></codeline>
+<codeline lineno="16"><highlight class="comment"><sp/>*<sp/>a<sp/>forward<sp/>slash<sp/>followed<sp/>by<sp/>some<sp/>number,<sp/>n,<sp/>of<sp/>asterisks,<sp/>where<sp/>n<sp/>&gt;<sp/>2.<sp/>It&apos;s</highlight></codeline>
+<codeline lineno="17"><highlight class="comment"><sp/>*<sp/>written<sp/>this<sp/>way<sp/>to<sp/>be<sp/>more<sp/>&quot;visible&quot;<sp/>to<sp/>developers<sp/>who<sp/>are<sp/>reading<sp/>the</highlight></codeline>
+<codeline lineno="18"><highlight class="comment"><sp/>*<sp/>source<sp/>code.</highlight></codeline>
+<codeline lineno="19"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="20"><highlight class="comment"><sp/>*<sp/>Often,<sp/>developers<sp/>are<sp/>unaware<sp/>that<sp/>this<sp/>is<sp/>not<sp/>(by<sp/>default)<sp/>a<sp/>valid<sp/>Doxygen</highlight></codeline>
+<codeline lineno="21"><highlight class="comment"><sp/>*<sp/>comment<sp/>block!</highlight></codeline>
+<codeline lineno="22"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="23"><highlight class="comment"><sp/>*<sp/>However,<sp/>as<sp/>long<sp/>as<sp/>JAVADOC_BANNER<sp/>=<sp/>YES<sp/>is<sp/>added<sp/>to<sp/>the<sp/>Doxyfile,<sp/>it<sp/>will</highlight></codeline>
+<codeline lineno="24"><highlight class="comment"><sp/>*<sp/>work<sp/>as<sp/>expected.</highlight></codeline>
+<codeline lineno="25"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="26"><highlight class="comment"><sp/>*<sp/>This<sp/>style<sp/>of<sp/>commenting<sp/>behaves<sp/>well<sp/>with<sp/>clang-format.</highlight></codeline>
+<codeline lineno="27"><highlight class="comment"><sp/>*</highlight></codeline>
+<codeline lineno="28"><highlight class="comment"><sp/>*<sp/>@param<sp/>theory<sp/>Even<sp/>if<sp/>there<sp/>is<sp/>only<sp/>one<sp/>possible<sp/>unified<sp/>theory.<sp/>it<sp/>is<sp/>just<sp/>a</highlight></codeline>
+<codeline lineno="29"><highlight class="comment"><sp/>*<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>set<sp/>of<sp/>rules<sp/>and<sp/>equations.</highlight></codeline>
+<codeline lineno="30"><highlight class="comment"><sp/>******************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>javadocBanner(<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>theory<sp/>);</highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="comment">/**************************************************************************/</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="45"><highlight class="normal"></highlight><highlight class="keywordtype">void</highlight><highlight class="normal"><sp/>doxygenBanner(<sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>theory<sp/>);</highlight></codeline>
+    </programlisting>
+    <location file="doxygen-1.14.0/examples/javadoc-banner.h"/>
+  </compounddef>
+</doxygen>

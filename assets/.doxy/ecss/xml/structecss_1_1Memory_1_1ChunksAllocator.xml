@@ -1,0 +1,733 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1ChunksAllocator" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Memory::ChunksAllocator</compoundname>
+    <includes refid="ChunksAllocator_8h" local="no">ChunksAllocator.h</includes>
+    <innerclass refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor" prot="public">ecss::Memory::ChunksAllocator::Cursor</innerclass>
+    <innerclass refid="structecss_1_1Memory_1_1ChunksAllocator_1_1RangesCursor" prot="public">ecss::Memory::ChunksAllocator::RangesCursor</innerclass>
+    <templateparamlist>
+      <param>
+        <type>uint32_t</type>
+        <declname>ChunkCapacity</declname>
+        <defname>ChunkCapacity</defname>
+        <defval>8192</defval>
+      </param>
+    </templateparamlist>
+    <sectiondef kind="friend">
+      <memberdef kind="friend" id="structecss_1_1Memory_1_1ChunksAllocator_1a42e16ee258aa4a8e3b6b6754056a472b" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>uint32_t</type>
+          </param>
+        </templateparamlist>
+        <type>struct</type>
+        <definition>friend struct ChunksAllocator</definition>
+        <argsstring></argsstring>
+        <name>ChunksAllocator</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::ChunksAllocator</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">ChunksAllocator</ref></type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="49" column="15" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="49" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1ChunksAllocator_1a5e4a643d65c0ac7647a1d1c7fd39cc9e" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::mChunkCapacity</definition>
+        <argsstring></argsstring>
+        <name>mChunkCapacity</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::mChunkCapacity</qualifiedname>
+        <initializer>= nextPowerOfTwo(ChunkCapacity)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="488" column="27" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="488" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1ChunksAllocator_1a6a668347a387b4562be1dc6a761501ce" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::mChunkShift</definition>
+        <argsstring></argsstring>
+        <name>mChunkShift</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::mChunkShift</qualifiedname>
+        <initializer>= std::countr_zero(mChunkCapacity)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="489" column="27" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="489" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1ChunksAllocator_1a6eda2a1e24633e098029a73da73d2fd9" prot="public" static="no" mutable="yes">
+        <type>Memory::RetireBin</type>
+        <definition>Memory::RetireBin ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::mBin</definition>
+        <argsstring></argsstring>
+        <name>mBin</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::mBin</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="491" column="27" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="491" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1ChunksAllocator_1a4892848b8ccb99e727c70c6ae2384347" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; void *, <ref refid="structecss_1_1Memory_1_1RetireAllocator" kindref="compound">Memory::RetireAllocator</ref>&lt; void * &gt; &gt;</type>
+        <definition>std::vector&lt;void*, Memory::RetireAllocator&lt;void*&gt; &gt; ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::mChunks</definition>
+        <argsstring></argsstring>
+        <name>mChunks</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::mChunks</qualifiedname>
+        <initializer>{ <ref refid="structecss_1_1Memory_1_1RetireAllocator" kindref="compound">Memory::RetireAllocator</ref>&lt;void*&gt;{ &amp;mBin } }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="492" column="13" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="492" bodyend="492"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1ChunksAllocator_1af7ec19280a1f8f35072ed0913f71f68f" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::mIsSectorTrivial</definition>
+        <argsstring></argsstring>
+        <name>mIsSectorTrivial</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::mIsSectorTrivial</qualifiedname>
+        <initializer>= true</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="497" column="6" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="497" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1ChunksAllocator_1a0ed6088e3f686645db2153c768805bd2" prot="public" static="no" mutable="no">
+        <type>SectorLayoutMeta *</type>
+        <definition>SectorLayoutMeta* ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::mSectorLayout</definition>
+        <argsstring></argsstring>
+        <name>mSectorLayout</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::mSectorLayout</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="494" column="18" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="494" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1ChunksAllocator_1a48c7792e9dc50e007f5c536d960401f1" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::mSectorSize</definition>
+        <argsstring></argsstring>
+        <name>mSectorSize</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::mSectorSize</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="495" column="10" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="495" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1ae83183663e98aedf9e318decb69a0832" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::allocate</definition>
+        <argsstring>(size_t newCapacity)</argsstring>
+        <name>allocate</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::allocate</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>newCapacity</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="356" column="6" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="356" bodyend="366"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1a9ffb131681f14f11ba8f5bfae4605092" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE std::byte *</type>
+        <definition>FORCE_INLINE std::byte * ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::at</definition>
+        <argsstring>(size_t index) const</argsstring>
+        <name>at</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::at</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="305" column="24" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="305" bodyend="307"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1a8f987eaea90cb3b13d9db125d09f8f6b" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE size_t</type>
+        <definition>FORCE_INLINE size_t ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::capacity</definition>
+        <argsstring>() const</argsstring>
+        <name>capacity</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::capacity</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="368" column="21" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="368" bodyend="368"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1a42b8e69c77063a742fa539298cd90fc1" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::ChunksAllocator</definition>
+        <argsstring>()=default</argsstring>
+        <name>ChunksAllocator</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::ChunksAllocator</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="286" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1ab797f41b4a95eb2ee39898e62ef94509" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::ChunksAllocator</definition>
+        <argsstring>(ChunksAllocator &amp;&amp;other) noexcept</argsstring>
+        <name>ChunksAllocator</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::ChunksAllocator</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">ChunksAllocator</ref> &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="279" column="1" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="279" bodyend="279"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1a8958afc3fd033f8b8a3ffacd3e6282b5" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>uint32_t</type>
+            <declname>OC</declname>
+            <defname>OC</defname>
+          </param>
+        </templateparamlist>
+        <type></type>
+        <definition>ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::ChunksAllocator</definition>
+        <argsstring>(ChunksAllocator&lt; OC &gt; &amp;&amp;other) noexcept</argsstring>
+        <name>ChunksAllocator</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::ChunksAllocator</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">ChunksAllocator</ref>&lt; OC &gt; &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="278" column="1" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="278" bodyend="278"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1a731bd8d7c7b5116d75d567b111ce024c" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::ChunksAllocator</definition>
+        <argsstring>(const ChunksAllocator &amp;other)</argsstring>
+        <name>ChunksAllocator</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::ChunksAllocator</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">ChunksAllocator</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="270" column="1" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="270" bodyend="270"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1acef0cfac80b5e87001b08ebfbfa05ad5" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>uint32_t</type>
+            <declname>OC</declname>
+            <defname>OC</defname>
+          </param>
+        </templateparamlist>
+        <type></type>
+        <definition>ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::ChunksAllocator</definition>
+        <argsstring>(const ChunksAllocator&lt; OC &gt; &amp;other)</argsstring>
+        <name>ChunksAllocator</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::ChunksAllocator</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">ChunksAllocator</ref>&lt; OC &gt; &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="269" column="1" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="269" bodyend="269"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1a6458f087bedf0c303b7b4631b97b5c86" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>uint32_t</type>
+            <declname>OC</declname>
+            <defname>OC</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::copyCommonData</definition>
+        <argsstring>(const ChunksAllocator&lt; OC &gt; &amp;other)</argsstring>
+        <name>copyCommonData</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::copyCommonData</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">ChunksAllocator</ref>&lt; OC &gt; &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="402" column="6" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="402" bodyend="406"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1ae121d9c9799ddf1754193e5c3986a67a" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::deallocate</definition>
+        <argsstring>(size_t from, size_t to)</argsstring>
+        <name>deallocate</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::deallocate</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>from</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>to</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="344" column="6" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="344" bodyend="354"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1a41704c65179606b4b39122b414738616" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::find</definition>
+        <argsstring>(const std::byte *dataPtr) const</argsstring>
+        <name>find</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::find</qualifiedname>
+        <param>
+          <type>const std::byte *</type>
+          <declname>dataPtr</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="370" column="8" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="370" bodyend="397"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1a03c879e4631a0e538a571f8f5aadc517" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE <ref refid="structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor" kindref="compound">Cursor</ref></type>
+        <definition>FORCE_INLINE Cursor ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::getCursor</definition>
+        <argsstring>(size_t index=0) const</argsstring>
+        <name>getCursor</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::getCursor</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>index</declname>
+          <defval>0</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="127" column="21" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="127" bodyend="127"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1ad7429180ec7827e0aa6c208f0b3f924e" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE <ref refid="structecss_1_1Memory_1_1ChunksAllocator_1_1RangesCursor" kindref="compound">RangesCursor</ref></type>
+        <definition>FORCE_INLINE RangesCursor ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::getRangesCursor</definition>
+        <argsstring>(const Ranges&lt; SectorId &gt; &amp;ranges, size_t size) const</argsstring>
+        <name>getRangesCursor</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::getRangesCursor</qualifiedname>
+        <param>
+          <type>const Ranges&lt; SectorId &gt; &amp;</type>
+          <declname>ranges</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>size</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="264" column="27" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="264" bodyend="264"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1a8f34cc4880b1c2a81de8f40dec397ced" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE SectorLayoutMeta *</type>
+        <definition>FORCE_INLINE SectorLayoutMeta * ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::getSectorLayout</definition>
+        <argsstring>() const</argsstring>
+        <name>getSectorLayout</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::getSectorLayout</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="291" column="31" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="291" bodyend="291"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1a562772174b3dac5c9f59a1fec8d92218" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::init</definition>
+        <argsstring>(SectorLayoutMeta *layoutMeta)</argsstring>
+        <name>init</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::init</qualifiedname>
+        <param>
+          <type>SectorLayoutMeta *</type>
+          <declname>layoutMeta</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="293" column="19" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="293" bodyend="298"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1ae72c4ed8f86486cd32caec8f4a035eee" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::moveSectorsDataTrivial</definition>
+        <argsstring>(size_t dst, size_t src, size_t n) const</argsstring>
+        <name>moveSectorsDataTrivial</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::moveSectorsDataTrivial</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>dst</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>src</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>n</declname>
+        </param>
+        <briefdescription>
+<para>Simple memmove for trivial sector data (no alive array needed) </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="311" column="6" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="311" bodyend="342"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1ab7c22ddc3a08cef2431486ebc96252b5" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type><ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">ChunksAllocator</ref> &amp;</type>
+        <definition>ChunksAllocator &amp; ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::operator=</definition>
+        <argsstring>(ChunksAllocator &amp;&amp;other) noexcept</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::operator=</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">ChunksAllocator</ref> &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="283" column="17" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="283" bodyend="283"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1a647eaf5e8bd500a11d836ca57bf7ab43" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>uint32_t</type>
+            <declname>OC</declname>
+            <defname>OC</defname>
+          </param>
+        </templateparamlist>
+        <type><ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">ChunksAllocator</ref> &amp;</type>
+        <definition>ChunksAllocator &amp; ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::operator=</definition>
+        <argsstring>(ChunksAllocator&lt; OC &gt; &amp;&amp;other) noexcept</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::operator=</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">ChunksAllocator</ref>&lt; OC &gt; &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="282" column="17" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="282" bodyend="282"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1a59c60b228121deea852ad5c9ff58d020" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">ChunksAllocator</ref> &amp;</type>
+        <definition>ChunksAllocator &amp; ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::operator=</definition>
+        <argsstring>(const ChunksAllocator &amp;other)</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::operator=</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">ChunksAllocator</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="274" column="17" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="274" bodyend="274"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1ad29b89a5422f723e839056e5c0401054" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>uint32_t</type>
+            <declname>OC</declname>
+            <defname>OC</defname>
+          </param>
+        </templateparamlist>
+        <type><ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">ChunksAllocator</ref> &amp;</type>
+        <definition>ChunksAllocator &amp; ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::operator=</definition>
+        <argsstring>(const ChunksAllocator&lt; OC &gt; &amp;other)</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::operator=</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">ChunksAllocator</ref>&lt; OC &gt; &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="273" column="17" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="273" bodyend="273"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1aa3433a5680613427dd729c196ec4ec6d" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE std::byte *</type>
+        <definition>FORCE_INLINE std::byte * ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::operator[]</definition>
+        <argsstring>(size_t index) const</argsstring>
+        <name>operator[]</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::operator[]</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>index</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Raw pointer to sector data at given linear index </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="302" column="24" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="302" bodyend="304"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1ad5b4e02a9d8d48ff7fa8f6c5e5026ed8" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::~ChunksAllocator</definition>
+        <argsstring>()</argsstring>
+        <name>~ChunksAllocator</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::~ChunksAllocator</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="287" column="1" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="287" bodyend="289"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-func">
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1a80029e37c84d850cb066dae0d423e355" prot="private" static="yes" constexpr="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE constexpr size_t</type>
+        <definition>static FORCE_INLINE constexpr size_t ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::calcChunkIndex</definition>
+        <argsstring>(size_t sectorIdx)</argsstring>
+        <name>calcChunkIndex</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::calcChunkIndex</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>sectorIdx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="409" column="38" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="409" bodyend="409"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1abccaa73c9b0ecbab1d8933f0655cc1dd" prot="private" static="yes" constexpr="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE constexpr size_t</type>
+        <definition>static FORCE_INLINE constexpr size_t ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::calcInChunkShift</definition>
+        <argsstring>(size_t sectorIdx, size_t sectorSize)</argsstring>
+        <name>calcInChunkShift</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::calcInChunkShift</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>sectorIdx</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>sectorSize</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="410" column="38" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="410" bodyend="410"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1a6df65549e2875ac92542b6f0534e6255" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>uint32_t</type>
+            <declname>OC</declname>
+            <defname>OC</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::copy</definition>
+        <argsstring>(const ChunksAllocator&lt; OC &gt; &amp;other)</argsstring>
+        <name>copy</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::copy</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">ChunksAllocator</ref>&lt; OC &gt; &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="413" column="6" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="413" bodyend="458"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1ChunksAllocator_1a54cbf4ce45d04e8b98a74e74d1b03e52" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>uint32_t</type>
+            <declname>OC</declname>
+            <defname>OC</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::move</definition>
+        <argsstring>(ChunksAllocator&lt; OC &gt; &amp;&amp;other)</argsstring>
+        <name>move</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::move</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">ChunksAllocator</ref>&lt; OC &gt; &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="461" column="6" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="461" bodyend="485"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Chunked memory allocator for sector data. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Stores raw sector data (component payloads only) in fixed-size chunks. <ref refid="namespaceecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> metadata (id, isAliveData) is stored externally in <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref>.</para>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>ChunkCapacity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of sectors per chunk (rounded up to power of 2). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+    </detaileddescription>
+    <location file="ecss/memory/ChunksAllocator.h" line="47" column="1" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="47" bodyend="498"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1ae83183663e98aedf9e318decb69a0832" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>allocate</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a9ffb131681f14f11ba8f5bfae4605092" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>at</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a80029e37c84d850cb066dae0d423e355" prot="private" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>calcChunkIndex</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1abccaa73c9b0ecbab1d8933f0655cc1dd" prot="private" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>calcInChunkShift</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a8f987eaea90cb3b13d9db125d09f8f6b" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>capacity</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1acef0cfac80b5e87001b08ebfbfa05ad5" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>ChunksAllocator</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a731bd8d7c7b5116d75d567b111ce024c" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>ChunksAllocator</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a8958afc3fd033f8b8a3ffacd3e6282b5" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>ChunksAllocator</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1ab797f41b4a95eb2ee39898e62ef94509" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>ChunksAllocator</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a42b8e69c77063a742fa539298cd90fc1" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>ChunksAllocator</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a6df65549e2875ac92542b6f0534e6255" prot="private" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>copy</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a6458f087bedf0c303b7b4631b97b5c86" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>copyCommonData</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1ae121d9c9799ddf1754193e5c3986a67a" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>deallocate</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a41704c65179606b4b39122b414738616" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>find</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a03c879e4631a0e538a571f8f5aadc517" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>getCursor</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1ad7429180ec7827e0aa6c208f0b3f924e" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>getRangesCursor</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a8f34cc4880b1c2a81de8f40dec397ced" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>getSectorLayout</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a562772174b3dac5c9f59a1fec8d92218" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>init</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a6eda2a1e24633e098029a73da73d2fd9" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>mBin</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a5e4a643d65c0ac7647a1d1c7fd39cc9e" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>mChunkCapacity</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a4892848b8ccb99e727c70c6ae2384347" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>mChunks</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a6a668347a387b4562be1dc6a761501ce" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>mChunkShift</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1af7ec19280a1f8f35072ed0913f71f68f" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>mIsSectorTrivial</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a54cbf4ce45d04e8b98a74e74d1b03e52" prot="private" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>move</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1ae72c4ed8f86486cd32caec8f4a035eee" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>moveSectorsDataTrivial</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a0ed6088e3f686645db2153c768805bd2" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>mSectorLayout</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a48c7792e9dc50e007f5c536d960401f1" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>mSectorSize</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1ad29b89a5422f723e839056e5c0401054" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>operator=</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a59c60b228121deea852ad5c9ff58d020" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>operator=</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1a647eaf5e8bd500a11d836ca57bf7ab43" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>operator=</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1ab7c22ddc3a08cef2431486ebc96252b5" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>operator=</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1aa3433a5680613427dd729c196ec4ec6d" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>operator[]</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1ad5b4e02a9d8d48ff7fa8f6c5e5026ed8" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator</scope><name>~ChunksAllocator</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

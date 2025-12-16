@@ -1,0 +1,18 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_105673838bf0960c95e87a8959f85bb9" kind="dir">
+    <compoundname>html</compoundname>
+    <innerfile refid="examples_2javadoc-banner_2html_2doxygen__crawl_8html">examples/javadoc-banner/html/doxygen_crawl.html</innerfile>
+    <innerfile refid="javadoc-banner_2html_2files_8html">javadoc-banner/html/files.html</innerfile>
+    <innerfile refid="javadoc-banner_2html_2globals_8html">javadoc-banner/html/globals.html</innerfile>
+    <innerfile refid="javadoc-banner_2html_2globals__func_8html">javadoc-banner/html/globals_func.html</innerfile>
+    <innerfile refid="examples_2javadoc-banner_2html_2index_8html">examples/javadoc-banner/html/index.html</innerfile>
+    <innerfile refid="javadoc-banner__8h_8html">javadoc-banner_8h.html</innerfile>
+    <innerfile refid="javadoc-banner__8h__source_8html">javadoc-banner_8h_source.html</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/javadoc-banner/html/"/>
+  </compounddef>
+</doxygen>

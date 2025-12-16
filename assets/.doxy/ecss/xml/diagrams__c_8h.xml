@@ -1,0 +1,37 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="diagrams__c_8h" kind="file" language="C++">
+    <compoundname>diagrams_c.h</compoundname>
+    <includes refid="diagrams__c_8h" local="yes">diagrams_c.h</includes>
+    <includedby refid="diagrams__c_8h" local="yes">diagrams_c.h</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>diagrams_c.h</label>
+        <link refid="diagrams__c_8h"/>
+        <childnode refid="1" relation="include">
+        </childnode>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="1">
+        <label>diagrams_c.h</label>
+        <link refid="diagrams__c_8h"/>
+        <childnode refid="1" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#ifndef<sp/>DIAGRAMS_C_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="2"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>DIAGRAMS_C_H</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="3"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&quot;diagrams_c.h&quot;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="4"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">D;</highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight><highlight class="keyword">class<sp/></highlight><highlight class="normal">C<sp/>:<sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal"><sp/>A<sp/>{<sp/></highlight><highlight class="keyword">public</highlight><highlight class="normal">:<sp/>D<sp/>*m_d;<sp/>};</highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight></codeline>
+    </programlisting>
+    <location file="doxygen-1.14.0/examples/diagrams_c.h"/>
+  </compounddef>
+</doxygen>

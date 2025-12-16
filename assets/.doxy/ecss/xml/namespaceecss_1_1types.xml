@@ -1,0 +1,155 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="namespaceecss_1_1types" kind="namespace" language="C++">
+    <compoundname>ecss::types</compoundname>
+    <innerclass refid="structecss_1_1types_1_1EmptyBase" prot="public">ecss::types::EmptyBase</innerclass>
+    <innerclass refid="structecss_1_1types_1_1OffsetArray" prot="public">ecss::types::OffsetArray</innerclass>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="Types_8h_1a27c8d137a4b46bb41926298d87330a33" prot="public" static="no" constexpr="yes" mutable="no">
+        <templateparamlist>
+          <param>
+            <type>typename...</type>
+          </param>
+        </templateparamlist>
+        <type>bool</type>
+        <definition>bool ecss::types::areUnique</definition>
+        <argsstring></argsstring>
+        <name>areUnique</name>
+        <qualifiedname>ecss::types::areUnique</qualifiedname>
+        <initializer>= true</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="91" column="16" bodyfile="ecss/Types.h" bodystart="91" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="Types_8h_1ae441f5a7561e01a8d0a3a20b3e84f224" prot="public" static="no" constexpr="yes" mutable="no">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>typename...</type>
+            <declname>Ts</declname>
+            <defname>Ts</defname>
+          </param>
+        </templateparamlist>
+        <type>bool</type>
+        <definition>bool ecss::types::areUnique&lt; T, Ts... &gt;</definition>
+        <argsstring></argsstring>
+        <name>areUnique&lt; T, Ts... &gt;</name>
+        <qualifiedname>ecss::types::areUnique&lt; T, Ts... &gt;</qualifiedname>
+        <initializer>= (!std::is_same_v&lt;T, Ts&gt; &amp;&amp; ...)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="94" column="11" bodyfile="ecss/Types.h" bodystart="94" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="Types_8h_1a38b1c1012d52f4dcac4d9ac59845344a" prot="public" static="no" constexpr="yes" mutable="no">
+        <templateparamlist>
+          <param>
+            <type>typename...</type>
+          </param>
+        </templateparamlist>
+        <type>size_t</type>
+        <definition>size_t ecss::types::typeIndex</definition>
+        <argsstring></argsstring>
+        <name>typeIndex</name>
+        <qualifiedname>ecss::types::typeIndex</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="105" column="18" bodyfile="ecss/Types.h" bodystart="105" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="Types_8h_1a4882c6ec19bc56da6605728726f896d4" prot="public" static="no" constexpr="yes" mutable="no">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>typename...</type>
+            <declname>Ts</declname>
+            <defname>Ts</defname>
+          </param>
+        </templateparamlist>
+        <type>size_t</type>
+        <definition>size_t ecss::types::typeIndex&lt; T, Ts... &gt;</definition>
+        <argsstring></argsstring>
+        <name>typeIndex&lt; T, Ts... &gt;</name>
+        <qualifiedname>ecss::types::typeIndex&lt; T, Ts... &gt;</qualifiedname>
+        <initializer>= getIndex&lt;T, Ts...&gt;()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="107" column="11" bodyfile="ecss/Types.h" bodystart="107" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="Types_8h_1a138a28c1b6ad805d8fb6220bd4f641e9" prot="public" static="no" constexpr="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>typename...</type>
+            <declname>Ts</declname>
+            <defname>Ts</defname>
+          </param>
+        </templateparamlist>
+        <type>int</type>
+        <definition>int ecss::types::getIndex</definition>
+        <argsstring>()</argsstring>
+        <name>getIndex</name>
+        <qualifiedname>ecss::types::getIndex</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="100" column="15" bodyfile="ecss/Types.h" bodystart="100" bodyend="102"/>
+      </memberdef>
+      <memberdef kind="function" id="Types_8h_1a9f6235d3993d05227a70ea5c315e3f9b" prot="public" static="no" constexpr="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>int</type>
+        <definition>int ecss::types::getIndex</definition>
+        <argsstring>(int x=0)</argsstring>
+        <name>getIndex</name>
+        <qualifiedname>ecss::types::getIndex</qualifiedname>
+        <param>
+          <type>int</type>
+          <declname>x</declname>
+          <defval>0</defval>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="97" column="15" bodyfile="ecss/Types.h" bodystart="97" bodyend="97"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/Types.h" line="24" column="1"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,59 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1_1SparseView" kind="struct" language="C++" prot="private">
+    <compoundname>ecss::Memory::detail::SparseMap&lt; true &gt;::SparseView</compoundname>
+    <templateparamlist>
+    </templateparamlist>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1_1SparseView_1afa00e6a1ecba894f034b402b9c2a9ae1" prot="public" static="no" mutable="no">
+        <type>const <ref refid="structecss_1_1Memory_1_1detail_1_1SlotInfo" kindref="compound">SlotInfo</ref> *</type>
+        <definition>const SlotInfo* ecss::Memory::detail::SparseMap&lt; true &gt;::SparseView::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <qualifiedname>ecss::Memory::detail::SparseMap&lt; true &gt;::SparseView::data</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="109" column="16" bodyfile="ecss/memory/SectorsArray.h" bodystart="109" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1_1SparseView_1a119cb6989a6a44dbc5e57fd4d8a2bf10" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::detail::SparseMap&lt; true &gt;::SparseView::size</definition>
+        <argsstring></argsstring>
+        <name>size</name>
+        <qualifiedname>ecss::Memory::detail::SparseMap&lt; true &gt;::SparseView::size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="110" column="8" bodyfile="ecss/memory/SectorsArray.h" bodystart="110" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>ecss::Memory::detail::SlotInfo</label>
+        <link refid="structecss_1_1Memory_1_1detail_1_1SlotInfo"/>
+      </node>
+      <node id="1">
+        <label>ecss::Memory::detail::SparseMap&lt; true &gt;::SparseView</label>
+        <childnode refid="2" relation="usage">
+          <edgelabel>data</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="ecss/memory/SectorsArray.h" line="108" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="108" bodyend="111"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1_1SparseView_1afa00e6a1ecba894f034b402b9c2a9ae1" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::SparseMap&lt; true &gt;::SparseView</scope><name>data</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1_1SparseView_1a119cb6989a6a44dbc5e57fd4d8a2bf10" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::SparseMap&lt; true &gt;::SparseView</scope><name>size</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

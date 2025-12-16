@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_4326963d12fa1d64c0e99b1caca435ed" kind="dir">
+    <compoundname>mux</compoundname>
+    <innerdir refid="dir_ad367ac560c23093b005e99df2c54428">html</innerdir>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/mux/"/>
+  </compounddef>
+</doxygen>

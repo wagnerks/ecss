@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1_1View" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Memory::detail::DenseArrays&lt; true &gt;::View</compoundname>
+    <templateparamlist>
+    </templateparamlist>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1_1View_1a37bc0dbeb24b75994a199d49a61ed314" prot="public" static="no" mutable="no">
+        <type>const SectorId *</type>
+        <definition>const SectorId* ecss::Memory::detail::DenseArrays&lt; true &gt;::View::ids</definition>
+        <argsstring></argsstring>
+        <name>ids</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::View::ids</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="140" column="16" bodyfile="ecss/memory/SectorsArray.h" bodystart="140" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1_1View_1a8bac91f574aa897c3ea19144470597da" prot="public" static="no" mutable="no">
+        <type>const uint32_t *</type>
+        <definition>const uint32_t* ecss::Memory::detail::DenseArrays&lt; true &gt;::View::isAlive</definition>
+        <argsstring></argsstring>
+        <name>isAlive</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::View::isAlive</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="141" column="16" bodyfile="ecss/memory/SectorsArray.h" bodystart="141" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1_1View_1a694dcd45d69c61c27dec5d74129cb4c3" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::detail::DenseArrays&lt; true &gt;::View::size</definition>
+        <argsstring></argsstring>
+        <name>size</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::View::size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="142" column="8" bodyfile="ecss/memory/SectorsArray.h" bodystart="142" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/SectorsArray.h" line="139" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="139" bodyend="143"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1_1View_1a37bc0dbeb24b75994a199d49a61ed314" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;::View</scope><name>ids</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1_1View_1a8bac91f574aa897c3ea19144470597da" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;::View</scope><name>isAlive</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1_1View_1a694dcd45d69c61c27dec5d74129cb4c3" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;::View</scope><name>size</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

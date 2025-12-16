@@ -1,0 +1,653 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1SectorLayoutMeta" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Memory::SectorLayoutMeta</compoundname>
+    <innerclass refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator" prot="public">ecss::Memory::SectorLayoutMeta::Iterator</innerclass>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1SectorLayoutMeta_1af57b5f2a561761a093b5981d1eb15afc" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorLayoutMeta::maxComponentsPerSector</definition>
+        <argsstring></argsstring>
+        <name>maxComponentsPerSector</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::maxComponentsPerSector</qualifiedname>
+        <initializer>= 32</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="240" column="32" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="240" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1SectorLayoutMeta_1ab7c1e758f1f17c75c3a0f19df47a3c10" prot="private" static="no" mutable="no">
+        <type>uint8_t</type>
+        <definition>uint8_t ecss::Memory::SectorLayoutMeta::count</definition>
+        <argsstring></argsstring>
+        <name>count</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::count</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+<para>Number of component types in this layout. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="247" column="10" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="247" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1SectorLayoutMeta_1ae5279e8dac2b083abef5df57820769e0" prot="private" static="no" mutable="no">
+        <type><ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref></type>
+        <definition>LayoutData ecss::Memory::SectorLayoutMeta::layout[maxComponentsPerSector]</definition>
+        <argsstring>[maxComponentsPerSector]</argsstring>
+        <name>layout</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::layout</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="242" column="11" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="242" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1SectorLayoutMeta_1a68603d9519e6351f42b23fb529004d15" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ecss::Memory::SectorLayoutMeta::mIsTrivial</definition>
+        <argsstring></argsstring>
+        <name>mIsTrivial</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::mIsTrivial</qualifiedname>
+        <initializer>= true</initializer>
+        <briefdescription>
+<para>True if all components are trivial. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="248" column="6" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="248" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1SectorLayoutMeta_1a9551961eef425fb44e8aa8cc455993b2" prot="private" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t ecss::Memory::SectorLayoutMeta::totalSize</definition>
+        <argsstring></argsstring>
+        <name>totalSize</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::totalSize</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+<para>Total bytes required for sector data (component payloads only). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="246" column="10" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="246" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1SectorLayoutMeta_1adb80f60903b5fa3bf47fd284e41eec77" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::SectorLayoutMeta::typeIds[maxComponentsPerSector]</definition>
+        <argsstring>[maxComponentsPerSector]</argsstring>
+        <name>typeIds</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::typeIds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="243" column="7" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="243" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1a4393ee4c2b612cf8b3608f82b17d6b82" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator" kindref="compound">Iterator</ref></type>
+        <definition>Iterator ecss::Memory::SectorLayoutMeta::begin</definition>
+        <argsstring>() const</argsstring>
+        <name>begin</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::begin</qualifiedname>
+        <briefdescription>
+<para>Begin/end iterators over layout records. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="136" column="10" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="136" bodyend="136"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1a56b4849763fed8bf8999a72c686feaa1" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator" kindref="compound">Iterator</ref></type>
+        <definition>Iterator ecss::Memory::SectorLayoutMeta::end</definition>
+        <argsstring>() const</argsstring>
+        <name>end</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::end</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="137" column="10" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="137" bodyend="137"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1a434e675af2ddb6da7c9f4cfd338701e0" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>const <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> &amp;</type>
+        <definition>const LayoutData &amp; ecss::Memory::SectorLayoutMeta::getLayoutData</definition>
+        <argsstring>() const</argsstring>
+        <name>getLayoutData</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::getLayoutData</qualifiedname>
+        <briefdescription>
+<para>Access <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> for a given component type T (throws in debug if not present). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="188" column="25" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="188" bodyend="188"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1a3bf932b76ba63c1891088eab92a06e1e" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>const <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> &amp;</type>
+        <definition>const LayoutData &amp; ecss::Memory::SectorLayoutMeta::getLayoutData</definition>
+        <argsstring>(uint8_t idx) const</argsstring>
+        <name>getLayoutData</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::getLayoutData</qualifiedname>
+        <param>
+          <type>uint8_t</type>
+          <declname>idx</declname>
+        </param>
+        <briefdescription>
+<para>Access <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> by index (0..count-1). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="191" column="18" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="191" bodyend="191"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1a42bfe2d667ee592ebde6b5ebc98b380e" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>uint16_t</type>
+        <definition>uint16_t ecss::Memory::SectorLayoutMeta::getTotalSize</definition>
+        <argsstring>() const</argsstring>
+        <name>getTotalSize</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::getTotalSize</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Total bytes consumed by sector data (component payloads only, no header). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="181" column="10" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="181" bodyend="181"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1a0331b5361e74be38bfe84880949071e7" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename...</type>
+            <declname>Types</declname>
+            <defname>Types</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::SectorLayoutMeta::initData</definition>
+        <argsstring>()</argsstring>
+        <name>initData</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::initData</qualifiedname>
+        <briefdescription>
+<para>Compute counts, total size, allocate storage, and populate per-type metadata. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Initializes:<itemizedlist>
+<listitem><para><computeroutput>\p count</computeroutput> (number of component types)</para>
+</listitem><listitem><para><computeroutput>\p totalSize</computeroutput> (bytes for component payloads, starting from offset 0)</para>
+</listitem><listitem><para><computeroutput>\p typeIds</computeroutput> (stable per-process type tokens)</para>
+</listitem><listitem><para><computeroutput>\p layout</computeroutput> (array of <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> entries) Also computes <computeroutput>mIsTrivial</computeroutput> (true if all components are trivial). </para>
+</listitem></itemizedlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="165" column="6" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="165" bodyend="178"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1a9982b4b856b043d300dae03448c67ec2" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename...</type>
+            <declname>U</declname>
+            <defname>U</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::SectorLayoutMeta::initLayoutData</definition>
+        <argsstring>()</argsstring>
+        <name>initLayoutData</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::initLayoutData</qualifiedname>
+        <briefdescription>
+<para>Initialize an array of <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> for a parameter pack of types. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Uses the compile-time OffsetArray to compute per-type offsets and calls the single-type initializer for each entry. Offsets now start from 0.</para>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>U</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>... Component types to lay out in the sector. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="98" column="13" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="98" bodyend="105"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1ac3d15990a4569439a0d5673979c84bd9" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename U</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::SectorLayoutMeta::initLayoutData</definition>
+        <argsstring>(LayoutData &amp;data, uint8_t &amp;index, uint16_t offset) const noexcept</argsstring>
+        <name>initLayoutData</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::initLayoutData</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> &amp;</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>uint8_t &amp;</type>
+          <declname>index</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>offset</declname>
+        </param>
+        <briefdescription>
+<para>Initialize <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> for a single component type U. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Populates per-type metadata: byte offset in the sector data, index, liveness bit masks, triviality flag, and the type-erased function table (move/copy/destroy).</para>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>U</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> record to fill. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>index</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Running index (incremented after use). The index determines which liveness bit is used; the mask is (1 &lt;&lt; index). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>offset</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Byte offset from the beginning of sector data at which U is stored.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>U must be move-constructible. </para>
+</simplesect>
+<simplesect kind="warning"><para>The function table stores operations using type-erased lambdas; these must match the object lifetime semantics you expect. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="66" column="13" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="66" bodyend="87"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1a71cfff6bf4638937d568c4557b65e5e0" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ecss::Memory::SectorLayoutMeta::isTrivial</definition>
+        <argsstring>() const</argsstring>
+        <name>isTrivial</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::isTrivial</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>True if all component types are trivial (copy/move/destroy are trivial). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="184" column="6" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="184" bodyend="184"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1afbdc5ca2abe97328cc95d1459ce3c76a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>SectorLayoutMeta &amp;</type>
+        <definition>SectorLayoutMeta &amp; ecss::Memory::SectorLayoutMeta::operator=</definition>
+        <argsstring>(const SectorLayoutMeta &amp;other)=delete</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::operator=</qualifiedname>
+        <param>
+          <type>const SectorLayoutMeta &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="44" column="18"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1a0c3c145dfd4ec2ec4c72eda143e765b8" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type>SectorLayoutMeta &amp;</type>
+        <definition>SectorLayoutMeta &amp; ecss::Memory::SectorLayoutMeta::operator=</definition>
+        <argsstring>(SectorLayoutMeta &amp;&amp;other) noexcept=delete</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::operator=</qualifiedname>
+        <param>
+          <type>SectorLayoutMeta &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="45" column="18"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1a3c530a31723d06067be264b4fe9ff1bc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::SectorLayoutMeta::SectorLayoutMeta</definition>
+        <argsstring>(const SectorLayoutMeta &amp;other)=delete</argsstring>
+        <name>SectorLayoutMeta</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::SectorLayoutMeta</qualifiedname>
+        <param>
+          <type>const SectorLayoutMeta &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="42" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1ae540adb31e21407d7a854b06bdd19f87" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::SectorLayoutMeta::SectorLayoutMeta</definition>
+        <argsstring>(SectorLayoutMeta &amp;&amp;other) noexcept=delete</argsstring>
+        <name>SectorLayoutMeta</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::SectorLayoutMeta</qualifiedname>
+        <param>
+          <type>SectorLayoutMeta &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="43" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1a13cdd6173ceeb332a7d790bb3a5a8def" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::SectorLayoutMeta::~SectorLayoutMeta</definition>
+        <argsstring>()=default</argsstring>
+        <name>~SectorLayoutMeta</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::~SectorLayoutMeta</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="46" column="1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1aa113e9f8218bb6c4816c112379ea5218" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename...</type>
+            <declname>Types</declname>
+            <defname>Types</defname>
+          </param>
+        </templateparamlist>
+        <type>SectorLayoutMeta *</type>
+        <definition>static SectorLayoutMeta * ecss::Memory::SectorLayoutMeta::create</definition>
+        <argsstring>()</argsstring>
+        <name>create</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::create</qualifiedname>
+        <briefdescription>
+<para>Factory: allocate and initialize metadata for a set of component types. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>Types</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>... Component types stored in a sector. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Newly allocated SectorLayoutMeta*; caller owns and must delete. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="147" column="32" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="147" bodyend="152"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1ae8ab1bf84abfbd49b4c84ea7978dd16f" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>size_t</type>
+        <definition>static size_t ecss::Memory::SectorLayoutMeta::TypeId</definition>
+        <argsstring>()</argsstring>
+        <name>TypeId</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::TypeId</qualifiedname>
+        <briefdescription>
+<para>Get a process-stable (but not ABI/serialization-stable) type token for T. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Implementation uses the address of an internal static tag, which is:<itemizedlist>
+<listitem><para>Unique per (type, process)</para>
+</listitem><listitem><para>NOT stable across processes/builds/DSOs</para>
+</listitem></itemizedlist>
+</para>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Opaque size_t token; suitable for in-process lookup only. </para>
+</simplesect>
+<simplesect kind="warning"><para>Do not persist/serialize this value; it is not stable across runs. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="206" column="22" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="206" bodyend="206"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1ab4ed658b56ad1f8bc88285b0448c2f0a" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>uint8_t</type>
+        <definition>uint8_t ecss::Memory::SectorLayoutMeta::getIndex</definition>
+        <argsstring>() const</argsstring>
+        <name>getIndex</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::getIndex</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="215" column="16" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="215" bodyend="215"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1a7a08b2496fc2b611d7de7a4ad4b36178" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>uint8_t</type>
+        <definition>uint8_t ecss::Memory::SectorLayoutMeta::getIndexByType</definition>
+        <argsstring>(size_t hash) const</argsstring>
+        <name>getIndexByType</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::getIndexByType</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>hash</declname>
+        </param>
+        <briefdescription>
+<para>Find component index by type token. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>hash</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Type token returned by TypeId&lt;T&gt;(). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Index in [0, count), or <computeroutput>count</computeroutput> after an assertion failure in debug builds.</para>
+</simplesect>
+<simplesect kind="note"><para>Linear scan is fine for small component counts typical per sector. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="226" column="9" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="226" bodyend="235"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1a61a288d7f111feeeb52467e4243fa836" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>const <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> *</type>
+        <definition>const LayoutData * ecss::Memory::SectorLayoutMeta::getLayouts</definition>
+        <argsstring>() const</argsstring>
+        <name>getLayouts</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::getLayouts</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="217" column="18" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="217" bodyend="217"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1a9e6dcac468e8113fd8eeccfa71cee01b" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>uint8_t</type>
+        <definition>uint8_t ecss::Memory::SectorLayoutMeta::getTypesCount</definition>
+        <argsstring>() const</argsstring>
+        <name>getTypesCount</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::getTypesCount</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="237" column="9" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="237" bodyend="237"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1a8e6f054d694397df7b2c440f5dd46f5e" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::SectorLayoutMeta::SectorLayoutMeta</definition>
+        <argsstring>()=default</argsstring>
+        <name>SectorLayoutMeta</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::SectorLayoutMeta</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="209" column="1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-func">
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorLayoutMeta_1a38cede3e624da6a798986f4c7329318c" prot="private" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>size_t</type>
+        <definition>static size_t ecss::Memory::SectorLayoutMeta::TypeIdImpl</definition>
+        <argsstring>()</argsstring>
+        <name>TypeIdImpl</name>
+        <qualifiedname>ecss::Memory::SectorLayoutMeta::TypeIdImpl</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="212" column="22" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="212" bodyend="212"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/SectorLayoutMeta.h" line="39" column="1" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="39" bodyend="249"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a4393ee4c2b612cf8b3608f82b17d6b82" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>begin</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1ab7c1e758f1f17c75c3a0f19df47a3c10" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>count</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1aa113e9f8218bb6c4816c112379ea5218" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>create</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a56b4849763fed8bf8999a72c686feaa1" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>end</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1ab4ed658b56ad1f8bc88285b0448c2f0a" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>getIndex</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a7a08b2496fc2b611d7de7a4ad4b36178" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>getIndexByType</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a434e675af2ddb6da7c9f4cfd338701e0" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>getLayoutData</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a3bf932b76ba63c1891088eab92a06e1e" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>getLayoutData</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a61a288d7f111feeeb52467e4243fa836" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>getLayouts</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a42bfe2d667ee592ebde6b5ebc98b380e" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>getTotalSize</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a9e6dcac468e8113fd8eeccfa71cee01b" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>getTypesCount</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a0331b5361e74be38bfe84880949071e7" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>initData</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1ac3d15990a4569439a0d5673979c84bd9" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>initLayoutData</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a9982b4b856b043d300dae03448c67ec2" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>initLayoutData</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a71cfff6bf4638937d568c4557b65e5e0" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>isTrivial</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1ae5279e8dac2b083abef5df57820769e0" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>layout</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1af57b5f2a561761a093b5981d1eb15afc" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>maxComponentsPerSector</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a68603d9519e6351f42b23fb529004d15" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>mIsTrivial</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1afbdc5ca2abe97328cc95d1459ce3c76a" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>operator=</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a0c3c145dfd4ec2ec4c72eda143e765b8" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>operator=</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a3c530a31723d06067be264b4fe9ff1bc" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>SectorLayoutMeta</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1ae540adb31e21407d7a854b06bdd19f87" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>SectorLayoutMeta</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a8e6f054d694397df7b2c440f5dd46f5e" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>SectorLayoutMeta</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a9551961eef425fb44e8aa8cc455993b2" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>totalSize</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1ae8ab1bf84abfbd49b4c84ea7978dd16f" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>TypeId</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a38cede3e624da6a798986f4c7329318c" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>TypeIdImpl</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1adb80f60903b5fa3bf47fd284e41eec77" prot="private" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>typeIds</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a13cdd6173ceeb332a7d790bb3a5a8def" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorLayoutMeta</scope><name>~SectorLayoutMeta</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,62 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01false_01_4_1_1View" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Memory::detail::DenseArrays&lt; false &gt;::View</compoundname>
+    <templateparamlist>
+    </templateparamlist>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01false_01_4_1_1View_1a986fa43bd296006437a56df3c5619d3e" prot="public" static="no" mutable="no">
+        <type>const SectorId *</type>
+        <definition>const SectorId* ecss::Memory::detail::DenseArrays&lt; false &gt;::View::ids</definition>
+        <argsstring></argsstring>
+        <name>ids</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; false &gt;::View::ids</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="257" column="16" bodyfile="ecss/memory/SectorsArray.h" bodystart="257" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01false_01_4_1_1View_1a6036efa2421cc6e6bbbf9f017f6b0305" prot="public" static="no" mutable="no">
+        <type>const uint32_t *</type>
+        <definition>const uint32_t* ecss::Memory::detail::DenseArrays&lt; false &gt;::View::isAlive</definition>
+        <argsstring></argsstring>
+        <name>isAlive</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; false &gt;::View::isAlive</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="258" column="16" bodyfile="ecss/memory/SectorsArray.h" bodystart="258" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01false_01_4_1_1View_1a1680cd09ed7c36cd30403a5445af73e6" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::detail::DenseArrays&lt; false &gt;::View::size</definition>
+        <argsstring></argsstring>
+        <name>size</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; false &gt;::View::size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="259" column="8" bodyfile="ecss/memory/SectorsArray.h" bodystart="259" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/SectorsArray.h" line="256" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="256" bodyend="260"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01false_01_4_1_1View_1a986fa43bd296006437a56df3c5619d3e" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; false &gt;::View</scope><name>ids</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01false_01_4_1_1View_1a6036efa2421cc6e6bbbf9f017f6b0305" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; false &gt;::View</scope><name>isAlive</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01false_01_4_1_1View_1a1680cd09ed7c36cd30403a5445af73e6" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; false &gt;::View</scope><name>size</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

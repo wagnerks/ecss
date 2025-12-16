@@ -1,0 +1,115 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="namespaceecss_1_1Memory" kind="namespace" language="C++">
+    <compoundname>ecss::Memory</compoundname>
+    <innerclass refid="structecss_1_1Memory_1_1ChunksAllocator" prot="public">ecss::Memory::ChunksAllocator</innerclass>
+    <innerclass refid="classecss_1_1Memory_1_1DenseTypeIdGenerator" prot="public">ecss::Memory::DenseTypeIdGenerator</innerclass>
+    <innerclass refid="structecss_1_1Memory_1_1LayoutData" prot="public">ecss::Memory::LayoutData</innerclass>
+    <innerclass refid="structecss_1_1Memory_1_1PinnedSector" prot="public">ecss::Memory::PinnedSector</innerclass>
+    <innerclass refid="structecss_1_1Memory_1_1RetireAllocator" prot="public">ecss::Memory::RetireAllocator</innerclass>
+    <innerclass refid="structecss_1_1Memory_1_1RetireBin" prot="public">ecss::Memory::RetireBin</innerclass>
+    <innerclass refid="structecss_1_1Memory_1_1SectorLayoutMeta" prot="public">ecss::Memory::SectorLayoutMeta</innerclass>
+    <innerclass refid="classecss_1_1Memory_1_1SectorsArray" prot="public">ecss::Memory::SectorsArray</innerclass>
+    <innernamespace refid="namespaceecss_1_1Memory_1_1detail">ecss::Memory::detail</innernamespace>
+    <innernamespace refid="namespaceecss_1_1Memory_1_1Sector">ecss::Memory::Sector</innernamespace>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="Reflection_8h_1a15986c13b78150219a5b5185d6c5a6a3" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE size_t</type>
+        <definition>FORCE_INLINE size_t ecss::Memory::GlobalTypeId</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>GlobalTypeId</name>
+        <qualifiedname>ecss::Memory::GlobalTypeId</qualifiedname>
+        <briefdescription>
+<para>Ultra-fast compile-time type ID generation. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Uses address of static variable as unique type identifier. This is resolved at compile/link time - zero runtime overhead. IDs are stable across the program lifetime but NOT dense (not sequential). </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Reflection.h" line="16" column="21" bodyfile="ecss/memory/Reflection.h" bodystart="16" bodyend="19"/>
+      </memberdef>
+      <memberdef kind="function" id="ChunksAllocator_8h_1ae3c2a8499dbdfde44d5db004c62018e3" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T1</type>
+          </param>
+          <param>
+            <type>typename T2</type>
+          </param>
+        </templateparamlist>
+        <type>bool</type>
+        <definition>static bool ecss::Memory::isSameAdr</definition>
+        <argsstring>(T1 *ptr1, T2 *ptr2)</argsstring>
+        <name>isSameAdr</name>
+        <qualifiedname>ecss::Memory::isSameAdr</qualifiedname>
+        <param>
+          <type>T1 *</type>
+          <declname>ptr1</declname>
+        </param>
+        <param>
+          <type>T2 *</type>
+          <declname>ptr2</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="23" column="13" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="23" bodyend="25"/>
+      </memberdef>
+      <memberdef kind="function" id="ChunksAllocator_8h_1afc06f7729f3603f05b9e1331d25bbe78" prot="public" static="yes" constexpr="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>uint32_t</type>
+        <definition>static constexpr uint32_t ecss::Memory::nextPowerOfTwo</definition>
+        <argsstring>(uint32_t x)</argsstring>
+        <name>nextPowerOfTwo</name>
+        <qualifiedname>ecss::Memory::nextPowerOfTwo</qualifiedname>
+        <param>
+          <type>uint32_t</type>
+          <declname>x</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="27" column="27" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="27" bodyend="36"/>
+      </memberdef>
+      <memberdef kind="function" id="ChunksAllocator_8h_1a4c9c5c01dfa08bd41a801304776045a2" prot="public" static="yes" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>void *</type>
+        <definition>static void * ecss::Memory::toAdr</definition>
+        <argsstring>(T *ptr)</argsstring>
+        <name>toAdr</name>
+        <qualifiedname>ecss::Memory::toAdr</qualifiedname>
+        <param>
+          <type>T *</type>
+          <declname>ptr</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="13" column="13" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="13" bodyend="20"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/ChunksAllocator.h" line="10" column="1"/>
+  </compounddef>
+</doxygen>
