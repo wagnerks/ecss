@@ -154,9 +154,10 @@ namespace ecss {
 		~Registry() noexcept { for (auto array : mComponentsArrays) delete array; }
 
 		/**
-		 * @brief Maintenance pass (thread-safe build): process deferred erases and optionally defragment.
+		 * @brief Maintenance pass (thread-safe build): process deferred erases, free retired memory, and optionally defragment.
 		 * @param withDefragment If true, arrays that exceed thresholds may compact themselves.
 		 * @note Recommended to call once per frame at a stable synchronization point.
+		 * @note Automatically frees retired memory that has passed the grace period (default 3 ticks).
 		 * @thread_safety Internally synchronized.
 		 */
 		void update(bool withDefragment = true) noexcept requires(ThreadSafe) {
@@ -167,6 +168,7 @@ namespace ecss {
 			}
 
 			for (auto* array : arrays) {
+				array->tick();  // Free retired memory older than grace period
 				array->processPendingErases(withDefragment);
 			}
 		}
@@ -183,6 +185,50 @@ namespace ecss {
 						array->defragment();
 					}
 				}
+			}
+		}
+
+		/**
+		 * @brief Process one tick of the grace period for retired memory.
+		 * 
+		 * Call this once per frame/update cycle. Memory blocks that have waited
+		 * the full grace period (default 3 ticks) will be freed.
+		 * 
+		 * This is safe to call while iterators may be active in other threads -
+		 * only sufficiently old memory (older than grace period) will be freed.
+		 * 
+		 * @note Only available in thread-safe mode. In non-thread-safe mode,
+		 *       memory is freed immediately during reallocation (no deferred reclamation).
+		 * 
+		 * @return Total number of memory blocks freed across all arrays
+		 */
+		size_t tick() noexcept requires(ThreadSafe) {
+			size_t freed = 0;
+			std::shared_lock lock(componentsArrayMapMutex);
+			for (auto* array : mComponentsArrays) {
+				freed += array->tick();
+			}
+			return freed;
+		}
+
+		/**
+		 * @brief Set the grace period (in ticks) before retired memory is freed.
+		 * 
+		 * Higher values = safer but more memory usage.
+		 * Lower values = less memory but risk of use-after-free if iterators live long.
+		 * 
+		 * Default is 3 ticks, which is safe for typical game loops where
+		 * iterators don't survive across frames.
+		 * 
+		 * @note Only available in thread-safe mode. In non-thread-safe mode,
+		 *       memory is freed immediately (no deferred reclamation).
+		 * 
+		 * @param ticks Number of tick() calls before memory is freed
+		 */
+		void setRetireGracePeriod(uint32_t ticks) noexcept requires(ThreadSafe) {
+			std::shared_lock lock(componentsArrayMapMutex);
+			for (auto* array : mComponentsArrays) {
+				array->setGracePeriod(ticks);
 			}
 		}
 

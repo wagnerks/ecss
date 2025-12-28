@@ -48,14 +48,17 @@ namespace ecss::Memory {
 
 namespace detail {
 	/// @brief Slot info for fast sparse lookup - stores data pointer and linear index
-	/// This enables O(1) component access with a single sparse map lookup
+	/// data pointer (8 bytes) is read/written atomically for thread-safety
+	/// linearIdx is written BEFORE data on insert, so it's valid when data != nullptr
+	/// Memory ordering: release on write, acquire on read - ensures linearIdx visible when data is
 	struct SlotInfo {
-		std::byte* data = nullptr;       ///< Direct pointer to sector data (nullptr = not present)
-		uint32_t linearIdx = INVALID_IDX; ///< Linear index for isAlive access via dense arrays
+		std::byte* data = nullptr;        ///< Direct pointer (nullptr = not present), atomically accessed
+		uint32_t linearIdx = INVALID_IDX; ///< Linear index for isAlive access
 		
 		FORCE_INLINE bool isValid() const { return data != nullptr; }
 		FORCE_INLINE explicit operator bool() const { return isValid(); }
 	};
+	static_assert(std::atomic<std::byte*>::is_always_lock_free, "Pointer atomics must be lock-free for performance");
 
 	/// @brief Invalid slot info constant
 	inline constexpr SlotInfo INVALID_SLOT{ nullptr, INVALID_IDX };
@@ -64,52 +67,67 @@ namespace detail {
 	struct SparseMap;
 
 	/// @brief Thread-safe sparse map with atomic view for lock-free reads
+	/// data pointer is read/written atomically (8 bytes, lock-free on x64/ARM64)
+	/// linearIdx is written BEFORE data on insert, read AFTER data on lookup
 	template<>
 	struct SparseMap<true> {
 		FORCE_INLINE SlotInfo find(SectorId id) const {
-			auto map = sparseMapView.load(std::memory_order_acquire);
-			return id < map.size ? map.data[id] : INVALID_SLOT;
+			auto view = sparseView.load(std::memory_order_acquire);
+			if (id >= view.size) return INVALID_SLOT;
+			// Atomic read of data pointer, then non-atomic read of linearIdx
+			// Safe because linearIdx is written before data on insert
+			auto* dataPtr = std::atomic_ref<std::byte*>(const_cast<std::byte*&>(view.data[id].data)).load(std::memory_order_acquire);
+			if (!dataPtr) return INVALID_SLOT;
+			return SlotInfo{ dataPtr, view.data[id].linearIdx };
 		}
 
 		FORCE_INLINE SlotInfo get(SectorId id) const {
-			assert(id < sparseMapView.load().size);
-			return sparseMapView.load(std::memory_order_acquire).data[id];
+			auto view = sparseView.load(std::memory_order_acquire);
+			assert(id < view.size);
+			auto* dataPtr = std::atomic_ref<std::byte*>(const_cast<std::byte*&>(view.data[id].data)).load(std::memory_order_acquire);
+			return SlotInfo{ dataPtr, view.data[id].linearIdx };
 		}
 
 		FORCE_INLINE uint32_t findLinearIdx(SectorId id) const {
-			auto map = sparseMapView.load(std::memory_order_acquire);
-			return id < map.size ? map.data[id].linearIdx : INVALID_IDX;
+			return find(id).linearIdx;
 		}
 
-		FORCE_INLINE size_t capacity() const { return sparseMapView.load(std::memory_order_acquire).size; }
+		FORCE_INLINE size_t capacity() const { 
+			return sparseView.load(std::memory_order_acquire).size;
+		}
 		
 		FORCE_INLINE void storeView() {
-			sparseMapView.store(SparseView { sparse.data(), sparse.size() }, std::memory_order_release);
-			// Note: drainAll() NOT called here - must be called under unique lock at safe point
+			sparseView.store(SparseView{ sparse.data(), sparse.size() }, std::memory_order_release);
 		}
 
 		FORCE_INLINE void drainRetired() { bin.drainAll(); }
+		FORCE_INLINE size_t tickRetired() { return bin.tick(); }
+		FORCE_INLINE void setGracePeriod(uint32_t ticks) { bin.setGracePeriod(ticks); }
 
+		/// @brief Resize sparse map and publish view (caller must hold write lock)
 		FORCE_INLINE void resize(size_t newSize) {
 			sparse.resize(newSize, INVALID_SLOT);
 			storeView();
 		}
 
-		FORCE_INLINE SlotInfo& operator[](SectorId id) { return sparse[id]; }
-		FORCE_INLINE const SlotInfo& operator[](SectorId id) const { return sparse[id]; }
+		/// @brief Set slot value: write linearIdx first, then data atomically
+		/// This ordering ensures readers see valid linearIdx when data != nullptr
+		FORCE_INLINE void set(SectorId id, SlotInfo info) { 
+			sparse[id].linearIdx = info.linearIdx;  // Write linearIdx first (non-atomic)
+			std::atomic_ref<std::byte*>(sparse[id].data).store(info.data, std::memory_order_release);  // Then data (atomic)
+		}
 
 	private:
 		mutable Memory::RetireBin bin;
 
-	public:
-		std::vector<SlotInfo, Memory::RetireAllocator<SlotInfo>> sparse{ Memory::RetireAllocator<SlotInfo>{&bin} };
-
-	private:
 		struct SparseView {
 			const SlotInfo* data;
 			size_t size;
 		};
-		mutable std::atomic<SparseView> sparseMapView{ SparseView{nullptr, 0} };
+		std::atomic<SparseView> sparseView{ SparseView{nullptr, 0} };
+
+	public:
+		std::vector<SlotInfo, Memory::RetireAllocator<SlotInfo>> sparse{ Memory::RetireAllocator<SlotInfo>{&bin} };
 	};
 
 	/// @brief Non-thread-safe sparse map (simple vector)
@@ -121,7 +139,10 @@ namespace detail {
 		FORCE_INLINE size_t capacity() const { return sparse.size(); }
 		FORCE_INLINE void storeView() {} // dummy
 		FORCE_INLINE void drainRetired() {} // dummy
+		FORCE_INLINE size_t tickRetired() { return 0; } // dummy
+		FORCE_INLINE void setGracePeriod(uint32_t) {} // dummy
 		FORCE_INLINE void resize(size_t newSize) { sparse.resize(newSize, INVALID_SLOT); }
+		FORCE_INLINE void set(SectorId id, SlotInfo info) { sparse[id] = info; }
 
 		FORCE_INLINE SlotInfo& operator[](SectorId id) { return sparse[id]; }
 		FORCE_INLINE const SlotInfo& operator[](SectorId id) const { return sparse[id]; }
@@ -208,6 +229,8 @@ namespace detail {
 		}
 
 		FORCE_INLINE void drainRetired() { bin.drainAll(); }
+		FORCE_INLINE size_t tickRetired() { return bin.tick(); }
+		FORCE_INLINE void setGracePeriod(uint32_t ticks) { bin.setGracePeriod(ticks); }
 
 		FORCE_INLINE void resize(size_t newSize, size_t actualSize) {
 			ids.resize(newSize);
@@ -265,6 +288,8 @@ namespace detail {
 
 		FORCE_INLINE void storeView(size_t) {} // dummy
 		FORCE_INLINE void drainRetired() {} // dummy
+		FORCE_INLINE size_t tickRetired() { return 0; } // dummy
+		FORCE_INLINE void setGracePeriod(uint32_t) {} // dummy
 
 		FORCE_INLINE void resize(size_t newSize, size_t) {
 			ids.resize(newSize);
@@ -961,6 +986,40 @@ public:
 		TS_GUARD(TS && ThreadSafe, UNIQUE, mDefragThreshold = std::max(0.f, std::min(threshold, 1.f));); 
 	}
 
+	// ==================== Retired Memory Management (ThreadSafe only) ====================
+
+	/**
+	 * @brief Process one tick of the grace period for retired memory.
+	 * 
+	 * Call this once per frame/update cycle. Memory blocks that have waited
+	 * the full grace period (default 3 ticks) will be freed.
+	 * 
+	 * This is safe to call while iterators may be active - only sufficiently
+	 * old memory (older than grace period) will be freed.
+	 * 
+	 * @note Only available in thread-safe mode. In non-thread-safe mode,
+	 *       memory is freed immediately during reallocation.
+	 * 
+	 * @return Number of memory blocks freed this tick
+	 */
+	size_t tick() requires(ThreadSafe) { return tickRetired(); }
+
+	/**
+	 * @brief Set the grace period (in ticks) before retired memory is freed.
+	 * 
+	 * Higher values = safer but more memory usage.
+	 * Lower values = less memory but risk of use-after-free if iterators live long.
+	 * 
+	 * Default is 3 ticks, which is safe for typical game loops where
+	 * iterators don't survive across frames.
+	 * 
+	 * @note Only available in thread-safe mode. In non-thread-safe mode,
+	 *       memory is freed immediately (no deferred reclamation).
+	 * 
+	 * @param ticks Number of tick() calls before memory is freed (0 = immediate)
+	 */
+	void setGracePeriod(uint32_t ticks) requires(ThreadSafe) { setRetireGracePeriod(ticks); }
+
 	// ==================== Insert / Emplace ====================
 
 	template<typename T, bool TS = ThreadSafe>
@@ -1014,6 +1073,33 @@ private:
 		mAllocator.mBin.drainAll();
 	}
 
+	/**
+	 * @brief Process one tick of the grace period for retired memory.
+	 * 
+	 * Call this once per frame/update cycle to gradually free old memory.
+	 * Memory is freed only after the grace period expires (default 3 ticks),
+	 * giving concurrent iterators time to finish using old buffers.
+	 * 
+	 * This is safe to call while iterators are active - only sufficiently
+	 * old memory will be freed.
+	 * 
+	 * @return Total number of memory blocks freed this tick
+	 */
+	size_t tickRetired() {
+		size_t freed = 0;
+		freed += mDenseArrays.tickRetired();
+		freed += mSparseMap.tickRetired();
+		freed += mAllocator.mBin.tick();
+		return freed;
+	}
+
+	/// @brief Set grace period (in ticks) before retired memory is freed
+	void setRetireGracePeriod(uint32_t ticks) {
+		mDenseArrays.setGracePeriod(ticks);
+		mSparseMap.setGracePeriod(ticks);
+		mAllocator.mBin.setGracePeriod(ticks);
+	}
+
 	FORCE_INLINE size_t sizeImpl() const { return mSize; }
 
 	/// @brief Find slot info by sector id (returns data pointer + linearIdx)
@@ -1030,7 +1116,7 @@ private:
 	}
 
 	FORCE_INLINE std::byte* findSectorDataImpl(SectorId id) const {
-		return mSparseMap.find(id).data;  // Direct pointer access - no second lookup!
+		return mSparseMap.find(id).data;
 	}
 
 	[[nodiscard]] PinnedSector pinSectorImpl(SectorId id) const requires(ThreadSafe) {
@@ -1105,8 +1191,8 @@ private:
 			mSparseMap.resize(static_cast<size_t>(sectorId) + 1);
 		}
 
-		// Check if already exists
-		auto& existingSlot = mSparseMap[sectorId];
+		// Check if already exists (thread-safe read)
+		auto existingSlot = mSparseMap.find(sectorId);
 		if (existingSlot.isValid()) [[unlikely]] {
 			return existingSlot.linearIdx;
 		}
@@ -1121,7 +1207,7 @@ private:
 		if (isAppend) [[likely]] {
 			// Fast append - push_back handles capacity automatically (amortized O(1))
 			mDenseArrays.pushBack(sectorId, 0);
-			mSparseMap[sectorId] = detail::SlotInfo{ mAllocator.at(pos), static_cast<uint32_t>(pos) };
+			mSparseMap.set(sectorId, detail::SlotInfo{ mAllocator.at(pos), static_cast<uint32_t>(pos) });
 			++mSize;
 			mDenseArrays.storeView(mSize);
 			return pos;
@@ -1138,8 +1224,8 @@ private:
 
 		mDenseArrays.idAt(insertPos) = sectorId;
 		mDenseArrays.isAliveAt(insertPos) = 0;
-		// Store data pointer and linear index for O(1) lookup
-		mSparseMap[sectorId] = detail::SlotInfo{ mAllocator.at(insertPos), static_cast<uint32_t>(insertPos) };
+		// Store data pointer + linear index (linearIdx written first, then data atomically)
+		mSparseMap.set(sectorId, detail::SlotInfo{ mAllocator.at(insertPos), static_cast<uint32_t>(insertPos) });
 		
 		// Update atomic view to show new size now that data is valid
 		mDenseArrays.storeView(mSize);
@@ -1155,7 +1241,7 @@ private:
 
 		// Move component data (iterate backwards to avoid overwriting)
 		if (getLayout()->isTrivial()) {
-			mAllocator.moveSectorsDataTrivial(from + count, from, tail);
+		mAllocator.moveSectorsDataTrivial(from + count, from, tail);
 		} else {
 			for (size_t i = tail; i > 0; --i) {
 				size_t srcIdx = from + i - 1;
@@ -1167,13 +1253,13 @@ private:
 			}
 		}
 
-		// Shift metadata and update sparse map with new data pointers
+		// Shift metadata and update sparse map with new pointers
 		for (size_t i = oldSize + count - 1; i >= from + count; --i) {
 			mDenseArrays.idAt(i) = mDenseArrays.idAt(i - count);
 			if (getLayout()->isTrivial()) {
 				mDenseArrays.isAliveAt(i) = mDenseArrays.isAliveAt(i - count);
 			}
-			mSparseMap[mDenseArrays.idAt(i)] = detail::SlotInfo{ mAllocator.at(i), static_cast<uint32_t>(i) };
+			mSparseMap.set(mDenseArrays.idAt(i), detail::SlotInfo{ mAllocator.at(i), static_cast<uint32_t>(i) });
 		}
 	}
 
@@ -1185,7 +1271,7 @@ private:
 
 		// Move component data (iterate forwards)
 		if (getLayout()->isTrivial()) {
-			mAllocator.moveSectorsDataTrivial(from - count, from, tail);
+		mAllocator.moveSectorsDataTrivial(from - count, from, tail);
 		} else {
 			for (size_t i = 0; i < tail; ++i) {
 				size_t srcIdx = from + i;
@@ -1197,13 +1283,13 @@ private:
 			}
 		}
 
-		// Shift metadata and update sparse map with new data pointers
+		// Shift metadata and update sparse map with new pointers
 		for (size_t i = from - count; i < from - count + tail; ++i) {
 			mDenseArrays.idAt(i) = mDenseArrays.idAt(i + count);
 			if (getLayout()->isTrivial()) {
 				mDenseArrays.isAliveAt(i) = mDenseArrays.isAliveAt(i + count);
 			}
-			mSparseMap[mDenseArrays.idAt(i)] = detail::SlotInfo{ mAllocator.at(i), static_cast<uint32_t>(i) };
+			mSparseMap.set(mDenseArrays.idAt(i), detail::SlotInfo{ mAllocator.at(i), static_cast<uint32_t>(i) });
 		}
 	}
 
@@ -1234,7 +1320,7 @@ private:
 		for (size_t i = beginIdx; i < beginIdx + count; ++i) {
 			auto id = mDenseArrays.idAt(i);
 			if (id < mSparseMap.capacity()) {
-				mSparseMap[id] = detail::INVALID_SLOT;
+				mSparseMap.set(id, detail::INVALID_SLOT);
 			}
 			Sector::destroySectorData(mAllocator.at(i), mDenseArrays.isAliveAt(i), getLayout());
 		}
@@ -1263,7 +1349,7 @@ private:
 			if (idx == INVALID_IDX) return;
 			
 			if (mPinsCounter.canMoveSector(id)) {
-				mSparseMap[id] = detail::INVALID_SLOT;
+				mSparseMap.set(id, detail::INVALID_SLOT);
 				Sector::destroySectorData(mAllocator.at(idx), mDenseArrays.isAliveAt(idx), getLayout());
 				incDefragmentSize();
 			} else {
@@ -1293,7 +1379,7 @@ private:
 			if (idx == INVALID_IDX) continue;
 
 			if (mPinsCounter.canMoveSector(id)) {
-				mSparseMap[id] = detail::INVALID_SLOT;
+				mSparseMap.set(id, detail::INVALID_SLOT);
 				Sector::destroySectorData(mAllocator.at(idx), mDenseArrays.isAliveAt(idx), getLayout());
 				incDefragmentSize();
 			} else {
@@ -1319,7 +1405,7 @@ private:
 		while (read < n) {
 			// Skip dead slots
 			while (read < n && !Sector::isSectorAlive(mDenseArrays.isAliveAt(read))) {
-				mSparseMap[mDenseArrays.idAt(read)] = detail::INVALID_SLOT;
+				mSparseMap.set(mDenseArrays.idAt(read), detail::INVALID_SLOT);
 				++read; ++deleted;
 			}
 			if (read >= n) break;
@@ -1335,11 +1421,11 @@ private:
 			if (write != runBeg) {
 				if (isTrivial) {
 					// Trivial types: fast memmove
-					mAllocator.moveSectorsDataTrivial(write, runBeg, runLen);
-					for (size_t i = 0; i < runLen; ++i) {
+				mAllocator.moveSectorsDataTrivial(write, runBeg, runLen);
+				for (size_t i = 0; i < runLen; ++i) {
 						mDenseArrays.idAt(write + i) = mDenseArrays.idAt(runBeg + i);
 						mDenseArrays.isAliveAt(write + i) = mDenseArrays.isAliveAt(runBeg + i);
-						mSparseMap[mDenseArrays.idAt(write + i)] = detail::SlotInfo{ mAllocator.at(write + i), static_cast<uint32_t>(write + i) };
+						mSparseMap.set(mDenseArrays.idAt(write + i), detail::SlotInfo{ mAllocator.at(write + i), static_cast<uint32_t>(write + i) });
 					}
 				} else {
 					// Non-trivial types: proper move semantics for each sector
@@ -1350,7 +1436,7 @@ private:
 							mAllocator.at(write + i), mDenseArrays.isAliveAt(write + i),
 							getLayout());
 						mDenseArrays.idAt(write + i) = mDenseArrays.idAt(runBeg + i);
-						mSparseMap[mDenseArrays.idAt(write + i)] = detail::SlotInfo{ mAllocator.at(write + i), static_cast<uint32_t>(write + i) };
+						mSparseMap.set(mDenseArrays.idAt(write + i), detail::SlotInfo{ mAllocator.at(write + i), static_cast<uint32_t>(write + i) });
 					}
 				}
 			}
@@ -1419,7 +1505,7 @@ private:
 		
 		mSparseMap.resize(other.mSparseMap.capacity());
 		for (size_t i = 0; i < mSize; ++i) {
-			mSparseMap[mDenseArrays.idAt(i)] = detail::SlotInfo{ mAllocator.at(i), static_cast<uint32_t>(i) };
+			mSparseMap.set(mDenseArrays.idAt(i), detail::SlotInfo{ mAllocator.at(i), static_cast<uint32_t>(i) });
 		}
 
 		mDefragmentSize = other.mDefragmentSize;
@@ -1457,7 +1543,7 @@ private:
 		
 		mSparseMap.resize(other.mSparseMap.capacity());
 		for (size_t i = 0; i < mSize; ++i) {
-			mSparseMap[mDenseArrays.idAt(i)] = detail::SlotInfo{ mAllocator.at(i), static_cast<uint32_t>(i) };
+			mSparseMap.set(mDenseArrays.idAt(i), detail::SlotInfo{ mAllocator.at(i), static_cast<uint32_t>(i) });
 		}
 
 		mDefragmentSize = other.mDefragmentSize;

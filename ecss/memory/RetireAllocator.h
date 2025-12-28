@@ -4,40 +4,120 @@
 #include <vector>
 #include <mutex>
 #include <type_traits>
+#include <cstdint>
 
 namespace ecss::Memory {
+	/**
+	 * @brief Deferred memory reclamation bin with grace period support.
+	 *
+	 * Memory blocks are not freed immediately when retired. Instead, they wait
+	 * for a configurable number of tick() calls (grace period) before being freed.
+	 * This allows concurrent readers to safely finish using old memory even after
+	 * a container reallocation.
+	 *
+	 * Usage patterns:
+	 * 1. Call tick() once per frame/update cycle to gradually free old memory
+	 * 2. Call drainAll() to immediately free everything (use only at safe points)
+	 *
+	 * Default grace period is 3 ticks, which is safe for typical game loops where
+	 * iterators don't survive across frames.
+	 */
 	struct RetireBin {
+		static constexpr uint32_t DEFAULT_GRACE_PERIOD = 3;
+
 		RetireBin() = default;
+		explicit RetireBin(uint32_t gracePeriod) : mGracePeriod(gracePeriod) {}
 		~RetireBin() { drainAll(); }
 
-		RetireBin(const RetireBin&){}
+		RetireBin(const RetireBin&) {}
 		RetireBin& operator=(const RetireBin&) { return *this; }
 
-		RetireBin(RetireBin&& other) noexcept : mRetired(std::move(other.mRetired)){}
+		RetireBin(RetireBin&& other) noexcept 
+			: mRetired(std::move(other.mRetired))
+			, mGracePeriod(other.mGracePeriod) {}
+		
 		RetireBin& operator=(RetireBin&& other) noexcept {
 			if (this == &other) { return *this; }
-				
 			mRetired = std::move(other.mRetired);
+			mGracePeriod = other.mGracePeriod;
 			return *this;
 		}
 
+		/// @brief Queue memory block for deferred freeing
 		void retire(void* p) {
+			if (!p) return;
 			auto lock = std::lock_guard(mMtx);
-			mRetired.emplace_back(p);
+			mRetired.push_back({p, mGracePeriod});
 		}
 
+		/**
+		 * @brief Process one tick of the grace period.
+		 * 
+		 * Call this once per frame/update cycle. Memory blocks whose countdown
+		 * reaches zero will be freed. This is safe to call from any thread.
+		 * 
+		 * @return Number of blocks freed this tick
+		 */
+		size_t tick() {
+			std::vector<void*> toFree;
+			{
+				auto lock = std::lock_guard(mMtx);
+				auto it = mRetired.begin();
+				while (it != mRetired.end()) {
+					if (it->countdown == 0 || --it->countdown == 0) {
+						toFree.push_back(it->ptr);
+						it = mRetired.erase(it);
+					}
+					else {
+						++it;
+					}
+				}
+			}
+			
+			for (auto p : toFree) {
+				std::free(p);
+			}
+			return toFree.size();
+		}
+
+		/// @brief Immediately free all retired memory (use only at safe sync points)
 		void drainAll() {
 			std::vector<void*> tmp;
-			{ auto lock = std::lock_guard(mMtx); tmp.swap(mRetired); }
+			{
+				auto lock = std::lock_guard(mMtx);
+				tmp.reserve(mRetired.size());
+				for (auto& block : mRetired) {
+					tmp.push_back(block.ptr);
+				}
+				mRetired.clear();
+			}
 
-			for (auto b : tmp){
+			for (auto b : tmp) {
 				std::free(b);
 			}
 		}
 
+		/// @brief Set grace period for newly retired blocks
+		void setGracePeriod(uint32_t ticks) { mGracePeriod = ticks; }
+		
+		/// @brief Get current grace period
+		uint32_t getGracePeriod() const { return mGracePeriod; }
+		
+		/// @brief Get number of blocks waiting to be freed
+		size_t pendingCount() const {
+			auto lock = std::lock_guard(mMtx);
+			return mRetired.size();
+		}
+
 	private:
+		struct RetiredBlock {
+			void* ptr;
+			uint32_t countdown;
+		};
+
 		mutable std::mutex mMtx;
-		std::vector<void*> mRetired;
+		std::vector<RetiredBlock> mRetired;
+		uint32_t mGracePeriod = DEFAULT_GRACE_PERIOD;
 	};
 
 	/**
