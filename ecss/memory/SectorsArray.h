@@ -89,6 +89,8 @@ namespace detail {
 		}
 
 		FORCE_INLINE void drainRetired() { bin.drainAll(); }
+		FORCE_INLINE size_t tickRetired() { return bin.tick(); }
+		FORCE_INLINE void setGracePeriod(uint32_t ticks) { bin.setGracePeriod(ticks); }
 
 		FORCE_INLINE void resize(size_t newSize) {
 			sparse.resize(newSize, INVALID_SLOT);
@@ -121,6 +123,8 @@ namespace detail {
 		FORCE_INLINE size_t capacity() const { return sparse.size(); }
 		FORCE_INLINE void storeView() {} // dummy
 		FORCE_INLINE void drainRetired() {} // dummy
+		FORCE_INLINE size_t tickRetired() { return 0; } // dummy
+		FORCE_INLINE void setGracePeriod(uint32_t) {} // dummy
 		FORCE_INLINE void resize(size_t newSize) { sparse.resize(newSize, INVALID_SLOT); }
 
 		FORCE_INLINE SlotInfo& operator[](SectorId id) { return sparse[id]; }
@@ -208,6 +212,8 @@ namespace detail {
 		}
 
 		FORCE_INLINE void drainRetired() { bin.drainAll(); }
+		FORCE_INLINE size_t tickRetired() { return bin.tick(); }
+		FORCE_INLINE void setGracePeriod(uint32_t ticks) { bin.setGracePeriod(ticks); }
 
 		FORCE_INLINE void resize(size_t newSize, size_t actualSize) {
 			ids.resize(newSize);
@@ -265,6 +271,8 @@ namespace detail {
 
 		FORCE_INLINE void storeView(size_t) {} // dummy
 		FORCE_INLINE void drainRetired() {} // dummy
+		FORCE_INLINE size_t tickRetired() { return 0; } // dummy
+		FORCE_INLINE void setGracePeriod(uint32_t) {} // dummy
 
 		FORCE_INLINE void resize(size_t newSize, size_t) {
 			ids.resize(newSize);
@@ -961,6 +969,40 @@ public:
 		TS_GUARD(TS && ThreadSafe, UNIQUE, mDefragThreshold = std::max(0.f, std::min(threshold, 1.f));); 
 	}
 
+	// ==================== Retired Memory Management (ThreadSafe only) ====================
+
+	/**
+	 * @brief Process one tick of the grace period for retired memory.
+	 * 
+	 * Call this once per frame/update cycle. Memory blocks that have waited
+	 * the full grace period (default 3 ticks) will be freed.
+	 * 
+	 * This is safe to call while iterators may be active - only sufficiently
+	 * old memory (older than grace period) will be freed.
+	 * 
+	 * @note Only available in thread-safe mode. In non-thread-safe mode,
+	 *       memory is freed immediately during reallocation.
+	 * 
+	 * @return Number of memory blocks freed this tick
+	 */
+	size_t tick() requires(ThreadSafe) { return tickRetired(); }
+
+	/**
+	 * @brief Set the grace period (in ticks) before retired memory is freed.
+	 * 
+	 * Higher values = safer but more memory usage.
+	 * Lower values = less memory but risk of use-after-free if iterators live long.
+	 * 
+	 * Default is 3 ticks, which is safe for typical game loops where
+	 * iterators don't survive across frames.
+	 * 
+	 * @note Only available in thread-safe mode. In non-thread-safe mode,
+	 *       memory is freed immediately (no deferred reclamation).
+	 * 
+	 * @param ticks Number of tick() calls before memory is freed (0 = immediate)
+	 */
+	void setGracePeriod(uint32_t ticks) requires(ThreadSafe) { setRetireGracePeriod(ticks); }
+
 	// ==================== Insert / Emplace ====================
 
 	template<typename T, bool TS = ThreadSafe>
@@ -1012,6 +1054,33 @@ private:
 		mDenseArrays.drainRetired();
 		mSparseMap.drainRetired();
 		mAllocator.mBin.drainAll();
+	}
+
+	/**
+	 * @brief Process one tick of the grace period for retired memory.
+	 * 
+	 * Call this once per frame/update cycle to gradually free old memory.
+	 * Memory is freed only after the grace period expires (default 3 ticks),
+	 * giving concurrent iterators time to finish using old buffers.
+	 * 
+	 * This is safe to call while iterators are active - only sufficiently
+	 * old memory will be freed.
+	 * 
+	 * @return Total number of memory blocks freed this tick
+	 */
+	size_t tickRetired() {
+		size_t freed = 0;
+		freed += mDenseArrays.tickRetired();
+		freed += mSparseMap.tickRetired();
+		freed += mAllocator.mBin.tick();
+		return freed;
+	}
+
+	/// @brief Set grace period (in ticks) before retired memory is freed
+	void setRetireGracePeriod(uint32_t ticks) {
+		mDenseArrays.setGracePeriod(ticks);
+		mSparseMap.setGracePeriod(ticks);
+		mAllocator.mBin.setGracePeriod(ticks);
 	}
 
 	FORCE_INLINE size_t sizeImpl() const { return mSize; }
