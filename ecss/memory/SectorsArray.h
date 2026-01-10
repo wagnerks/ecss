@@ -1219,6 +1219,12 @@ private:
 		
 		size_t insertPos = findInsertPositionImpl(sectorId, pos);
 		if (insertPos != mSize - 1) {
+			// Shift moves all sectors from insertPos onwards - wait for pins if any exist
+			if constexpr (ThreadSafe) {
+				if (mPinsCounter.isArrayLocked()) {
+					mPinsCounter.waitUntilChangeable();
+				}
+			}
 			shiftRightImpl(insertPos, 1);
 		}
 
