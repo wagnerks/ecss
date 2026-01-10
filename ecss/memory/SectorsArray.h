@@ -1145,7 +1145,7 @@ private:
 		if (mSize) {
 			if (!getLayout()->isTrivial()) {
 				for (size_t i = 0; i < mSize; ++i) {
-					Sector::destroySectorData(mAllocator.at(i), mDenseArrays.isAliveAt(i), getLayout());
+					Sector::destroySectorData<ThreadSafe>(mAllocator.at(i), mDenseArrays.isAliveAt(i), getLayout());
 				}
 			}
 			// Clear sparse map
@@ -1302,9 +1302,9 @@ private:
 
 		const auto& layout = getLayoutData<U>();
 		if constexpr (std::is_lvalue_reference_v<T>) {
-			return Sector::copyMember<U>(data, slotData, mDenseArrays.isAliveAt(pos), layout);
+			return Sector::copyMember<U, ThreadSafe>(data, slotData, mDenseArrays.isAliveAt(pos), layout);
 		} else {
-			return Sector::moveMember<U>(std::forward<T>(data), slotData, mDenseArrays.isAliveAt(pos), layout);
+			return Sector::moveMember<U, ThreadSafe>(std::forward<T>(data), slotData, mDenseArrays.isAliveAt(pos), layout);
 		}
 	}
 
@@ -1312,7 +1312,7 @@ private:
 	T* emplaceImpl(SectorId sectorId, Args&&... args) {
 		size_t pos = acquireSlotImpl(sectorId);
 		std::byte* slotData = mAllocator.at(pos);
-		return Sector::emplaceMember<T>(slotData, mDenseArrays.isAliveAt(pos), getLayoutData<T>(), std::forward<Args>(args)...);
+		return Sector::emplaceMember<T, ThreadSafe>(slotData, mDenseArrays.isAliveAt(pos), getLayoutData<T>(), std::forward<Args>(args)...);
 	}
 
 	void eraseRangeImpl(size_t beginIdx, size_t count, bool defragment) {
@@ -1322,7 +1322,7 @@ private:
 			if (id < mSparseMap.capacity()) {
 				mSparseMap.set(id, detail::INVALID_SLOT);
 			}
-			Sector::destroySectorData(mAllocator.at(i), mDenseArrays.isAliveAt(i), getLayout());
+			Sector::destroySectorData<ThreadSafe>(mAllocator.at(i), mDenseArrays.isAliveAt(i), getLayout());
 		}
 
 		if (defragment) {
@@ -1350,7 +1350,7 @@ private:
 			
 			if (mPinsCounter.canMoveSector(id)) {
 				mSparseMap.set(id, detail::INVALID_SLOT);
-				Sector::destroySectorData(mAllocator.at(idx), mDenseArrays.isAliveAt(idx), getLayout());
+				Sector::destroySectorData<ThreadSafe>(mAllocator.at(idx), mDenseArrays.isAliveAt(idx), getLayout());
 				incDefragmentSize();
 			} else {
 				mPendingErase.push_back(id);
@@ -1380,7 +1380,7 @@ private:
 
 			if (mPinsCounter.canMoveSector(id)) {
 				mSparseMap.set(id, detail::INVALID_SLOT);
-				Sector::destroySectorData(mAllocator.at(idx), mDenseArrays.isAliveAt(idx), getLayout());
+				Sector::destroySectorData<ThreadSafe>(mAllocator.at(idx), mDenseArrays.isAliveAt(idx), getLayout());
 				incDefragmentSize();
 			} else {
 				mPendingErase.push_back(id);

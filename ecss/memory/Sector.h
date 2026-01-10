@@ -1,5 +1,6 @@
 ﻿#pragma once
 
+#include <atomic>
 #include <ecss/memory/SectorLayoutMeta.h>
 
 namespace ecss::Memory {
@@ -74,23 +75,44 @@ namespace ecss::Memory {
 		}
 
 		/** @brief Set or clear bits in isAliveData.
+		 *  @tparam ThreadSafe If true, uses atomic store for race-free lockless reads.
 		 *  @param isAliveData Reference to alive data to modify
 		 *  @param mask Bitmask of bits to modify
 		 *  @param value If true, sets the bits; if false, clears them
 		 *  @note When value == false, mask should already be ~mask
 		 */
+		template<bool ThreadSafe = false>
 		FORCE_INLINE void setAlive(uint32_t& isAliveData, uint32_t mask, bool value) noexcept {
-			value ? isAliveData |= mask : isAliveData &= mask;
+			auto newVal = value ? (isAliveData | mask) : (isAliveData & mask);
+			if constexpr (ThreadSafe) {
+				std::atomic_ref(isAliveData).store(newVal, std::memory_order_relaxed);
+			} else {
+				isAliveData = newVal;
+			}
 		}
 
-		/** @brief Mark bits as alive (sets them to 1). */
+		/** @brief Mark bits as alive (sets them to 1).
+		 *  @tparam ThreadSafe If true, uses atomic store for race-free lockless reads.
+		 */
+		template<bool ThreadSafe = false>
 		FORCE_INLINE void markAlive(uint32_t& isAliveData, uint32_t mask) noexcept {
-			isAliveData |= mask;
+			if constexpr (ThreadSafe) {
+				std::atomic_ref(isAliveData).store(isAliveData | mask, std::memory_order_relaxed);
+			} else {
+				isAliveData |= mask;
+			}
 		}
 
-		/** @brief Mark bits as not alive (clears them to 0). */
+		/** @brief Mark bits as not alive (clears them to 0).
+		 *  @tparam ThreadSafe If true, uses atomic store for race-free lockless reads.
+		 */
+		template<bool ThreadSafe = false>
 		FORCE_INLINE void markNotAlive(uint32_t& isAliveData, uint32_t mask) noexcept {
-			isAliveData &= mask;
+			if constexpr (ThreadSafe) {
+				std::atomic_ref(isAliveData).store(isAliveData & mask, std::memory_order_relaxed);
+			} else {
+				isAliveData &= mask;
+			}
 		}
 
 		/** @brief Fetch component pointer of type T using layout; may be nullptr if not alive. */
@@ -114,13 +136,15 @@ namespace ecss::Memory {
 		}
 
 		/** @brief (Re)construct member T in place and mark it alive. Destroys previous value if present.
+		 *  @tparam T Component type
+		 *  @tparam TS If true, uses atomic store for race-free lockless reads.
 		 *  @param data Raw pointer to sector data
 		 *  @param isAliveData Reference to alive data (will be modified)
 		 *  @param layout Layout data for this component type
 		 *  @param args Constructor arguments
 		 *  @return Pointer to constructed component
 		 */
-		template<typename T, class ...Args>
+		template<typename T, bool TS = false, class ...Args>
 		T* emplaceMember(std::byte* data, uint32_t& isAliveData, const LayoutData& layout, Args&&... args) {
 			void* memberPtr = getMemberPtr(data, layout.offset);
 			if constexpr (!std::is_trivially_destructible_v<T>) {
@@ -129,22 +153,29 @@ namespace ecss::Memory {
 				}
 			}
 
-			markAlive(isAliveData, layout.isAliveMask);
-
-			return new(memberPtr) T(std::forward<Args>(args)...);
+			// Construct FIRST, then mark alive - ensures readers see fully constructed data
+			T* result = new(memberPtr) T(std::forward<Args>(args)...);
+			markAlive<TS>(isAliveData, layout.isAliveMask);
+			return result;
 		}
 
-		/** @brief Destroy a specific member if alive and clear its liveness bits. */
+		/** @brief Destroy a specific member if alive and clear its liveness bits.
+		 *  @tparam ThreadSafe If true, uses atomic store for race-free lockless reads.
+		 */
+		template<bool ThreadSafe = false>
 		inline void destroyMember(std::byte* data, uint32_t& isAliveData, const LayoutData& layout) {
 			if (!layout.isTrivial) {
 				if (isAlive(isAliveData, layout.isAliveMask)) {
 					layout.functionTable.destructor(getMemberPtr(data, layout.offset));
 				}
 			}
-			setAlive(isAliveData, layout.isNotAliveMask, false);
+			setAlive<ThreadSafe>(isAliveData, layout.isNotAliveMask, false);
 		}
 
-		/** @brief Destroy all alive members in sector data and clear liveness bits. */
+		/** @brief Destroy all alive members in sector data and clear liveness bits.
+		 *  @tparam ThreadSafe If true, uses atomic store for race-free lockless reads.
+		 */
+		template<bool ThreadSafe = false>
 		inline void destroySectorData(std::byte* data, uint32_t& isAliveData, const SectorLayoutMeta* layouts) {
 			if (!data || !isSectorAlive(isAliveData)) {
 				return;
@@ -157,70 +188,98 @@ namespace ecss::Memory {
 					}
 				}
 			}
-			isAliveData = 0;
+			if constexpr (ThreadSafe) {
+				std::atomic_ref(isAliveData).store(0, std::memory_order_relaxed);
+			} else {
+				isAliveData = 0;
+			}
 		}
 
-		/** @brief Copy-assign member T into destination and mark alive. */
-		template<typename T>
+		/** @brief Copy-assign member T into destination and mark alive.
+		 *  @tparam T Component type
+		 *  @tparam TS If true, uses atomic store for race-free lockless reads.
+		 */
+		template<typename T, bool TS = false>
 		T* copyMember(const T& from, std::byte* toData, uint32_t& toIsAlive, const LayoutData& layout) {
 			assert(toData);
-			Sector::destroyMember(toData, toIsAlive, layout);
-			setAlive(toIsAlive, layout.isAliveMask, true);
-			return new(getMemberPtr(toData, layout.offset)) T(from);
+			Sector::destroyMember<TS>(toData, toIsAlive, layout);
+			// Construct FIRST, then mark alive - ensures readers see fully constructed data
+			T* result = new(getMemberPtr(toData, layout.offset)) T(from);
+			setAlive<TS>(toIsAlive, layout.isAliveMask, true);
+			return result;
 		}
 
-		/** @brief Move-assign member T into destination and mark alive. */
-		template<typename T>
+		/** @brief Move-assign member T into destination and mark alive.
+		 *  @tparam T Component type
+		 *  @tparam TS If true, uses atomic store for race-free lockless reads.
+		 */
+		template<typename T, bool TS = false>
 		T* moveMember(T&& from, std::byte* toData, uint32_t& toIsAlive, const LayoutData& layout) {
 			assert(toData);
-			Sector::destroyMember(toData, toIsAlive, layout);
-			setAlive(toIsAlive, layout.isAliveMask, true);
-			return new(getMemberPtr(toData, layout.offset)) T(std::forward<T>(from));
+			Sector::destroyMember<TS>(toData, toIsAlive, layout);
+			// Construct FIRST, then mark alive - ensures readers see fully constructed data
+			T* result = new(getMemberPtr(toData, layout.offset)) T(std::forward<T>(from));
+			setAlive<TS>(toIsAlive, layout.isAliveMask, true);
+			return result;
 		}
 
-		/** @brief Copy-assign an opaque member using layout function table. */
+		/** @brief Copy-assign an opaque member using layout function table.
+		 *  @tparam ThreadSafe If true, uses atomic store for race-free lockless reads.
+		 */
+		template<bool ThreadSafe = false>
 		inline void* copyMember(const void* from, std::byte* toData, uint32_t& toIsAlive, const LayoutData& layout) {
 			assert(toData);
-			Sector::destroyMember(toData, toIsAlive, layout);
+			Sector::destroyMember<ThreadSafe>(toData, toIsAlive, layout);
 
 			auto ptr = getMemberPtr(toData, layout.offset);
 			if (!from) {
 				return ptr;
 			}
+			// Copy FIRST, then mark alive - ensures readers see fully constructed data
 			layout.functionTable.copy(ptr, from);
-			setAlive(toIsAlive, from ? layout.isAliveMask : layout.isNotAliveMask, from != nullptr);
+			setAlive<ThreadSafe>(toIsAlive, layout.isAliveMask, true);
 			return ptr;
 		}
 
-		/** @brief Move-assign an opaque member using layout function table. */
+		/** @brief Move-assign an opaque member using layout function table.
+		 *  @tparam ThreadSafe If true, uses atomic store for race-free lockless reads.
+		 */
+		template<bool ThreadSafe = false>
 		inline void* moveMember(void* from, std::byte* toData, uint32_t& toIsAlive, const LayoutData& layout) {
 			assert(toData);
-			Sector::destroyMember(toData, toIsAlive, layout);
+			Sector::destroyMember<ThreadSafe>(toData, toIsAlive, layout);
 			auto ptr = getMemberPtr(toData, layout.offset);
 			if (!from) {
 				return ptr;
 			}
+			// Move FIRST, then mark alive - ensures readers see fully constructed data
 			layout.functionTable.move(ptr, from);
-			setAlive(toIsAlive, from ? layout.isAliveMask : layout.isNotAliveMask, from != nullptr);
+			setAlive<ThreadSafe>(toIsAlive, layout.isAliveMask, true);
 			layout.functionTable.destructor(from);
 			return ptr;
 		}
 
 		/** @brief Copy sector data from one location to another.
+		 *  @tparam ThreadSafe If true, uses atomic store for race-free lockless reads.
 		 *  @param fromData Source sector data
 		 *  @param fromIsAlive Source alive state
 		 *  @param toData Destination sector data
 		 *  @param toIsAlive Reference to destination alive state (will be modified)
 		 *  @param layouts Sector layout metadata
 		 */
+		template<bool ThreadSafe = false>
 		inline void copySectorData(const std::byte* fromData, uint32_t fromIsAlive,
 		                           std::byte* toData, uint32_t& toIsAlive,
 		                           const SectorLayoutMeta* layouts) {
 			assert(fromData != toData);
 			assert(fromData && toData);
-			Sector::destroySectorData(toData, toIsAlive, layouts);
+			Sector::destroySectorData<ThreadSafe>(toData, toIsAlive, layouts);
 
-			toIsAlive = fromIsAlive;
+			if constexpr (ThreadSafe) {
+				std::atomic_ref(toIsAlive).store(fromIsAlive, std::memory_order_relaxed);
+			} else {
+				toIsAlive = fromIsAlive;
+			}
 
 			for (const auto& layout : *layouts) {
 				if (!isAlive(fromIsAlive, layout.isAliveMask)) {
@@ -232,20 +291,26 @@ namespace ecss::Memory {
 		}
 
 		/** @brief Move sector data from one location to another.
+		 *  @tparam ThreadSafe If true, uses atomic store for race-free lockless reads.
 		 *  @param fromData Source sector data
 		 *  @param fromIsAlive Reference to source alive state (will be cleared)
 		 *  @param toData Destination sector data
 		 *  @param toIsAlive Reference to destination alive state (will be modified)
 		 *  @param layouts Sector layout metadata
 		 */
+		template<bool ThreadSafe = false>
 		inline void moveSectorData(std::byte* fromData, uint32_t& fromIsAlive,
 		                           std::byte* toData, uint32_t& toIsAlive,
 		                           const SectorLayoutMeta* layouts) {
 			assert(fromData != toData);
 			assert(fromData && toData);
-			Sector::destroySectorData(toData, toIsAlive, layouts);
+			Sector::destroySectorData<ThreadSafe>(toData, toIsAlive, layouts);
 
-			toIsAlive = fromIsAlive;
+			if constexpr (ThreadSafe) {
+				std::atomic_ref(toIsAlive).store(fromIsAlive, std::memory_order_relaxed);
+			} else {
+				toIsAlive = fromIsAlive;
+			}
 
 			for (const auto& layout : *layouts) {
 				if (!isAlive(fromIsAlive, layout.isAliveMask)) {
@@ -255,7 +320,7 @@ namespace ecss::Memory {
 				                          getMemberPtr(fromData, layout.offset));
 			}
 
-			Sector::destroySectorData(fromData, fromIsAlive, layouts);
+			Sector::destroySectorData<ThreadSafe>(fromData, fromIsAlive, layouts);
 		}
 
 	} // namespace Sector

@@ -329,7 +329,7 @@ namespace ecss {
 					if (idx != INVALID_IDX) {
 						auto& isAlive = container->template getIsAliveRef<false>(idx);
 						auto before = isAlive;
-						Memory::Sector::destroyMember(container->mAllocator.at(idx), isAlive, container->template getLayoutData<T>());
+						Memory::Sector::destroyMember<ThreadSafe>(container->mAllocator.at(idx), isAlive, container->template getLayoutData<T>());
 						if (before != isAlive) {
 							container->incDefragmentSize();
 						}
@@ -340,7 +340,7 @@ namespace ecss {
 					if (idx != INVALID_IDX) {
 						auto& isAlive = container->template getIsAliveRef<false>(idx);
 						auto before = isAlive;
-						Memory::Sector::destroyMember(container->mAllocator.at(idx), isAlive, container->template getLayoutData<T>());
+						Memory::Sector::destroyMember<ThreadSafe>(container->mAllocator.at(idx), isAlive, container->template getLayoutData<T>());
 						if (before != isAlive) {
 							container->incDefragmentSize();
 						}
@@ -377,7 +377,7 @@ namespace ecss {
 						if (slotInfo) {
 							auto& isAlive = container->template getIsAliveRef<false>(slotInfo.linearIdx);
 							auto before = isAlive;
-							Memory::Sector::destroyMember(slotInfo.data, isAlive, layout);
+							Memory::Sector::destroyMember<ThreadSafe>(slotInfo.data, isAlive, layout);
 							if (before != isAlive) {
 								container->incDefragmentSize();
 							}
@@ -393,7 +393,7 @@ namespace ecss {
 						if (slotInfo) {
 							auto& isAlive = container->template getIsAliveRef<false>(slotInfo.linearIdx);
 							auto before = isAlive;
-							Memory::Sector::destroyMember(slotInfo.data, isAlive, layout);
+							Memory::Sector::destroyMember<ThreadSafe>(slotInfo.data, isAlive, layout);
 							if (before != isAlive) {
 								container->incDefragmentSize();
 							}
@@ -701,7 +701,7 @@ namespace ecss {
 						// Use findSlot for single lookup (returns data ptr + linearIdx)
 						auto slotInfo = array->template findSlot<false>(sectorId);
 						if (slotInfo) {
-							Memory::Sector::destroySectorData(slotInfo.data, array->template getIsAliveRef<false>(slotInfo.linearIdx), layout);
+							Memory::Sector::destroySectorData<ThreadSafe>(slotInfo.data, array->template getIsAliveRef<false>(slotInfo.linearIdx), layout);
 						}
 					}
 				}
@@ -715,7 +715,7 @@ namespace ecss {
 						// Use findSlot for single lookup (returns data ptr + linearIdx)
 						auto slotInfo = array->template findSlot<false>(sectorId);
 						if (slotInfo) {
-							Memory::Sector::destroySectorData(slotInfo.data, array->template getIsAliveRef<false>(slotInfo.linearIdx), layout);
+							Memory::Sector::destroySectorData<ThreadSafe>(slotInfo.data, array->template getIsAliveRef<false>(slotInfo.linearIdx), layout);
 							array->incDefragmentSize();
 						}
 					}
@@ -763,7 +763,7 @@ namespace ecss {
 
 					auto idx = array->template findLinearIdx<false>(entityId);
 					if (idx != INVALID_IDX) {
-						Memory::Sector::destroySectorData(array->mAllocator.at(idx), array->template getIsAliveRef<false>(idx), array->getLayout());
+						Memory::Sector::destroySectorData<ThreadSafe>(array->mAllocator.at(idx), array->template getIsAliveRef<false>(idx), array->getLayout());
 						array->incDefragmentSize();
 					}
 				}
@@ -772,7 +772,7 @@ namespace ecss {
 				for (auto array : mComponentsArrays) {
 					auto idx = array->template findLinearIdx<false>(entityId);
 					if (idx != INVALID_IDX) {
-						Memory::Sector::destroySectorData(array->mAllocator.at(idx), array->template getIsAliveRef<false>(idx), array->getLayout());
+						Memory::Sector::destroySectorData<ThreadSafe>(array->mAllocator.at(idx), array->template getIsAliveRef<false>(idx), array->getLayout());
 						array->incDefragmentSize();
 					}
 				}
@@ -999,17 +999,18 @@ namespace ecss {
 				if (info.iteratorIdx == TypeInfo::kMainIteratorIdx) [[likely]] {
 					return (slot.isAlive & info.typeAliveMask) ? reinterpret_cast<ComponentType*>(slot.data + info.typeOffsetInSector) : nullptr;
 				}
-				// Sparse lookup using optimized findSlot - single lookup returns data ptr + linearIdx
-				// O(1) sparse lookup + O(1) dense array access for isAlive
-				auto* arr = mSecondaryArrays[info.iteratorIdx];
-				auto slotInfo = arr->template findSlot<false>(slot.id);
-				if (!slotInfo) [[unlikely]] {
-					return nullptr;
-				}
-				auto isAlive = arr->template getIsAliveRef<false>(slotInfo.linearIdx);
-				if (!(isAlive & info.typeAliveMask)) [[unlikely]] {
-					return nullptr;
-				}
+			// Sparse lookup using optimized findSlot - single lookup returns data ptr + linearIdx
+			// O(1) sparse lookup + O(1) dense array access for isAlive
+			auto* arr = mSecondaryArrays[info.iteratorIdx];
+			auto slotInfo = arr->template findSlot<false>(slot.id);
+			if (!slotInfo) [[unlikely]] {
+				return nullptr;
+			}
+			// Atomic load (relaxed) to avoid data race with concurrent writes - no torn reads
+			auto isAlive = std::atomic_ref(arr->template getIsAliveRef<false>(slotInfo.linearIdx)).load(std::memory_order_relaxed);
+			if (!(isAlive & info.typeAliveMask)) [[unlikely]] {
+				return nullptr;
+			}
 				return reinterpret_cast<ComponentType*>(slotInfo.data + info.typeOffsetInSector);
 			}
 
