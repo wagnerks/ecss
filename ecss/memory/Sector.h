@@ -153,9 +153,10 @@ namespace ecss::Memory {
 				}
 			}
 
+			// Construct FIRST, then mark alive - ensures readers see fully constructed data
+			T* result = new(memberPtr) T(std::forward<Args>(args)...);
 			markAlive<TS>(isAliveData, layout.isAliveMask);
-
-			return new(memberPtr) T(std::forward<Args>(args)...);
+			return result;
 		}
 
 		/** @brief Destroy a specific member if alive and clear its liveness bits.
@@ -202,8 +203,10 @@ namespace ecss::Memory {
 		T* copyMember(const T& from, std::byte* toData, uint32_t& toIsAlive, const LayoutData& layout) {
 			assert(toData);
 			Sector::destroyMember<TS>(toData, toIsAlive, layout);
+			// Construct FIRST, then mark alive - ensures readers see fully constructed data
+			T* result = new(getMemberPtr(toData, layout.offset)) T(from);
 			setAlive<TS>(toIsAlive, layout.isAliveMask, true);
-			return new(getMemberPtr(toData, layout.offset)) T(from);
+			return result;
 		}
 
 		/** @brief Move-assign member T into destination and mark alive.
@@ -214,8 +217,10 @@ namespace ecss::Memory {
 		T* moveMember(T&& from, std::byte* toData, uint32_t& toIsAlive, const LayoutData& layout) {
 			assert(toData);
 			Sector::destroyMember<TS>(toData, toIsAlive, layout);
+			// Construct FIRST, then mark alive - ensures readers see fully constructed data
+			T* result = new(getMemberPtr(toData, layout.offset)) T(std::forward<T>(from));
 			setAlive<TS>(toIsAlive, layout.isAliveMask, true);
-			return new(getMemberPtr(toData, layout.offset)) T(std::forward<T>(from));
+			return result;
 		}
 
 		/** @brief Copy-assign an opaque member using layout function table.
@@ -230,8 +235,9 @@ namespace ecss::Memory {
 			if (!from) {
 				return ptr;
 			}
+			// Copy FIRST, then mark alive - ensures readers see fully constructed data
 			layout.functionTable.copy(ptr, from);
-			setAlive<ThreadSafe>(toIsAlive, from ? layout.isAliveMask : layout.isNotAliveMask, from != nullptr);
+			setAlive<ThreadSafe>(toIsAlive, layout.isAliveMask, true);
 			return ptr;
 		}
 
@@ -246,8 +252,9 @@ namespace ecss::Memory {
 			if (!from) {
 				return ptr;
 			}
+			// Move FIRST, then mark alive - ensures readers see fully constructed data
 			layout.functionTable.move(ptr, from);
-			setAlive<ThreadSafe>(toIsAlive, from ? layout.isAliveMask : layout.isNotAliveMask, from != nullptr);
+			setAlive<ThreadSafe>(toIsAlive, layout.isAliveMask, true);
 			layout.functionTable.destructor(from);
 			return ptr;
 		}
