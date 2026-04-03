@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <atomic>
 #include <ecss/memory/SectorLayoutMeta.h>
@@ -83,33 +83,28 @@ namespace ecss::Memory {
 		 */
 		template<bool ThreadSafe = false>
 		FORCE_INLINE void setAlive(uint32_t& isAliveData, uint32_t mask, bool value) noexcept {
-			auto newVal = value ? (isAliveData | mask) : (isAliveData & mask);
 			if constexpr (ThreadSafe) {
-				std::atomic_ref(isAliveData).store(newVal, std::memory_order_relaxed);
+				if (value) std::atomic_ref(isAliveData).fetch_or(mask, std::memory_order_relaxed);
+				else       std::atomic_ref(isAliveData).fetch_and(mask, std::memory_order_relaxed);
 			} else {
-				isAliveData = newVal;
+				if (value) isAliveData |= mask;
+				else       isAliveData &= mask;
 			}
 		}
 
-		/** @brief Mark bits as alive (sets them to 1).
-		 *  @tparam ThreadSafe If true, uses atomic store for race-free lockless reads.
-		 */
 		template<bool ThreadSafe = false>
 		FORCE_INLINE void markAlive(uint32_t& isAliveData, uint32_t mask) noexcept {
 			if constexpr (ThreadSafe) {
-				std::atomic_ref(isAliveData).store(isAliveData | mask, std::memory_order_relaxed);
+				std::atomic_ref(isAliveData).fetch_or(mask, std::memory_order_relaxed);
 			} else {
 				isAliveData |= mask;
 			}
 		}
 
-		/** @brief Mark bits as not alive (clears them to 0).
-		 *  @tparam ThreadSafe If true, uses atomic store for race-free lockless reads.
-		 */
 		template<bool ThreadSafe = false>
 		FORCE_INLINE void markNotAlive(uint32_t& isAliveData, uint32_t mask) noexcept {
 			if constexpr (ThreadSafe) {
-				std::atomic_ref(isAliveData).store(isAliveData & mask, std::memory_order_relaxed);
+				std::atomic_ref(isAliveData).fetch_and(mask, std::memory_order_relaxed);
 			} else {
 				isAliveData &= mask;
 			}

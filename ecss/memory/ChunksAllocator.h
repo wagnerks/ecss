@@ -1,9 +1,10 @@
-﻿#pragma once
+#pragma once
 
 #include <vector>
 #include <cstring>
 
 #include <ecss/Types.h>
+#include <ecss/Ranges.h>
 #include <ecss/memory/SectorLayoutMeta.h>
 #include <ecss/memory/RetireAllocator.h>
 

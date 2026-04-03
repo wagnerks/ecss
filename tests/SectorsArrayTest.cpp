@@ -1331,9 +1331,10 @@ TEST(SectorsArray_Concurrent, CopyWhileModifying) {
 	auto* arr = SA_T::create<Trivial>();
 	std::atomic<bool> running{true};
 	std::atomic<int> copies{0};
+	std::atomic<bool> bothReady{false};
 	
-	// Writer thread
 	std::thread writer([&] {
+		while (!bothReady.load(std::memory_order_acquire)) { std::this_thread::yield(); }
 		for (int i = 0; i < 500 && running; ++i) {
 			arr->insert<Trivial>(i, Trivial{i});
 			if (i % 10 == 0) {
@@ -1342,15 +1343,17 @@ TEST(SectorsArray_Concurrent, CopyWhileModifying) {
 		}
 	});
 	
-	// Copier thread
 	std::thread copier([&] {
+		while (!bothReady.load(std::memory_order_acquire)) { std::this_thread::yield(); }
 		while (running && copies < 10) {
 			auto* copy = new SA_T(*arr);
 			EXPECT_GE(copy->size<false>(), 0u);
 			delete copy;
-			++copies;
+			copies.fetch_add(1, std::memory_order_relaxed);
 		}
 	});
+	
+	bothReady.store(true, std::memory_order_release);
 	
 	writer.join();
 	running = false;

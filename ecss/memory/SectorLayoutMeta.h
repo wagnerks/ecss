@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <cstdint>
 
@@ -96,6 +96,7 @@ namespace ecss::Memory {
 		*/
 		template<typename... U>
 		inline void initLayoutData() {
+			static_assert(sizeof...(U) <= maxComponentsPerSector, "Too many component types per sector (max 32)");
 			uint8_t counter = 0;
 			// Use EmptyBase for offset calculation - offsets start from 0
 			(initLayoutData<std::remove_const_t<std::remove_pointer_t<std::remove_reference_t<U>>>>(

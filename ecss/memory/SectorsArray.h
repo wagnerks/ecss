@@ -67,25 +67,35 @@ namespace detail {
 	struct SparseMap;
 
 	/// @brief Thread-safe sparse map with atomic view for lock-free reads
-	/// data pointer is read/written atomically (8 bytes, lock-free on x64/ARM64)
-	/// linearIdx is written BEFORE data on insert, read AFTER data on lookup
+	/// Writer: store data (release) then store linearIdx (release) -- single consistent update.
+	/// Reader: load linearIdx (acquire), load data (acquire), re-load linearIdx (acquire).
+	/// If linearIdx unchanged, the pair is consistent. Otherwise retry (seqlock pattern).
+	/// On the hot path (no concurrent write) this is one load + one branch, never retries.
 	template<>
 	struct SparseMap<true> {
 		FORCE_INLINE SlotInfo find(SectorId id) const {
 			auto view = sparseView.load(std::memory_order_acquire);
 			if (id >= view.size) return INVALID_SLOT;
-			// Atomic read of data pointer, then non-atomic read of linearIdx
-			// Safe because linearIdx is written before data on insert
-			auto* dataPtr = std::atomic_ref<std::byte*>(const_cast<std::byte*&>(view.data[id].data)).load(std::memory_order_acquire);
-			if (!dataPtr) return INVALID_SLOT;
-			return SlotInfo{ dataPtr, view.data[id].linearIdx };
+			auto& slot = const_cast<SlotInfo&>(view.data[id]);
+			for (;;) {
+				auto idx = std::atomic_ref<uint32_t>(slot.linearIdx).load(std::memory_order_acquire);
+				auto* dataPtr = std::atomic_ref<std::byte*>(slot.data).load(std::memory_order_acquire);
+				if (!dataPtr) return INVALID_SLOT;
+				auto idx2 = std::atomic_ref<uint32_t>(slot.linearIdx).load(std::memory_order_acquire);
+				if (idx == idx2) [[likely]] return SlotInfo{ dataPtr, idx };
+			}
 		}
 
 		FORCE_INLINE SlotInfo get(SectorId id) const {
 			auto view = sparseView.load(std::memory_order_acquire);
 			assert(id < view.size);
-			auto* dataPtr = std::atomic_ref<std::byte*>(const_cast<std::byte*&>(view.data[id].data)).load(std::memory_order_acquire);
-			return SlotInfo{ dataPtr, view.data[id].linearIdx };
+			auto& slot = const_cast<SlotInfo&>(view.data[id]);
+			for (;;) {
+				auto idx = std::atomic_ref<uint32_t>(slot.linearIdx).load(std::memory_order_acquire);
+				auto* dataPtr = std::atomic_ref<std::byte*>(slot.data).load(std::memory_order_acquire);
+				auto idx2 = std::atomic_ref<uint32_t>(slot.linearIdx).load(std::memory_order_acquire);
+				if (idx == idx2) [[likely]] return SlotInfo{ dataPtr, idx };
+			}
 		}
 
 		FORCE_INLINE uint32_t findLinearIdx(SectorId id) const {
@@ -110,11 +120,12 @@ namespace detail {
 			storeView();
 		}
 
-		/// @brief Set slot value: write linearIdx first, then data atomically
-		/// This ordering ensures readers see valid linearIdx when data != nullptr
+		/// @brief Set slot value atomically.
+		/// Store linearIdx first, then data (data != nullptr acts as commit).
+		/// Reader checks linearIdx before and after reading data -- retry on mismatch.
 		FORCE_INLINE void set(SectorId id, SlotInfo info) { 
-			sparse[id].linearIdx = info.linearIdx;  // Write linearIdx first (non-atomic)
-			std::atomic_ref<std::byte*>(sparse[id].data).store(info.data, std::memory_order_release);  // Then data (atomic)
+			std::atomic_ref<uint32_t>(sparse[id].linearIdx).store(info.linearIdx, std::memory_order_release);
+			std::atomic_ref<std::byte*>(sparse[id].data).store(info.data, std::memory_order_release);
 		}
 
 	private:
@@ -646,7 +657,7 @@ public:
 
 	/// @brief Check if array has no dead slots (defragmentSize == 0)
 	template<bool TS = ThreadSafe>
-	bool isPacked() const { TS_GUARD(TS, SHARED, return mDefragmentSize == 0;); }
+	bool isPacked() const { TS_GUARD(TS, SHARED, return mDefragmentSize.load(std::memory_order_relaxed) == 0;); }
 
 	template<class T, bool TS = ThreadSafe>
 	IteratorAlive beginAlive() const { 
@@ -890,6 +901,7 @@ public:
 			mPinsCounter.waitUntilChangeable(mDenseArrays.idAt(beginIdx));
 			eraseRangeImpl(beginIdx, count, defragment);
 		} else {
+			if (beginIdx >= sizeImpl()) return;
 			eraseRangeImpl(beginIdx, count, defragment);
 		}
 	}
@@ -973,11 +985,11 @@ public:
 	template<bool TS = ThreadSafe>
 	void tryDefragment() { TS_GUARD_S(TS && ThreadSafe, UNIQUE, if (mPinsCounter.isArrayLocked()) return;, defragmentImpl();); }
 
-	void incDefragmentSize(uint32_t count = 1) { mDefragmentSize += count; }
+	void incDefragmentSize(uint32_t count = 1) { mDefragmentSize.fetch_add(count, std::memory_order_relaxed); }
 
-	template<bool TS = ThreadSafe> auto getDefragmentationSize() const { TS_GUARD(TS && ThreadSafe, SHARED, return mDefragmentSize;); }
+	template<bool TS = ThreadSafe> auto getDefragmentationSize() const { TS_GUARD(TS && ThreadSafe, SHARED, return mDefragmentSize.load(std::memory_order_relaxed);); }
 	template<bool TS = ThreadSafe> auto getDefragmentationRatio() const { 
-		TS_GUARD(TS && ThreadSafe, SHARED, return mSize ? (static_cast<float>(mDefragmentSize) / static_cast<float>(mSize)) : 0.f;); 
+		TS_GUARD(TS && ThreadSafe, SHARED, auto sz = sizeImpl(); return sz ? (static_cast<float>(mDefragmentSize.load(std::memory_order_relaxed)) / static_cast<float>(sz)) : 0.f;); 
 	}
 	template<bool TS = ThreadSafe> bool needDefragment() const { 
 		TS_GUARD(TS && ThreadSafe, SHARED, return getDefragmentationRatio<false>() > mDefragThreshold;); 
@@ -1100,7 +1112,7 @@ private:
 		mAllocator.mBin.setGracePeriod(ticks);
 	}
 
-	FORCE_INLINE size_t sizeImpl() const { return mSize; }
+	FORCE_INLINE size_t sizeImpl() const { return mSize.load(std::memory_order_relaxed); }
 
 	/// @brief Find slot info by sector id (returns data pointer + linearIdx)
 	FORCE_INLINE detail::SlotInfo findSlotImpl(SectorId id) const {
@@ -1137,14 +1149,15 @@ private:
 	}
 
 	void shrinkToFitImpl() {
-		mAllocator.deallocate(mSize, mAllocator.capacity());
+		mAllocator.deallocate(sizeImpl(), mAllocator.capacity());
 		mDenseArrays.shrinkToFit();
 	}
 
 	void clearImpl() {
-		if (mSize) {
+		auto sz = sizeImpl();
+		if (sz) {
 			if (!getLayout()->isTrivial()) {
-				for (size_t i = 0; i < mSize; ++i) {
+				for (size_t i = 0; i < sz; ++i) {
 					Sector::destroySectorData<ThreadSafe>(mAllocator.at(i), mDenseArrays.isAliveAt(i), getLayout());
 				}
 			}
@@ -1152,8 +1165,8 @@ private:
 			std::fill(mSparseMap.sparse.begin(), mSparseMap.sparse.end(), detail::INVALID_SLOT);
 			mDenseArrays.clear(0);
 			mPendingErase.clear();
-			mSize = 0;
-			mDefragmentSize = 0;
+			mSize.store(0, std::memory_order_relaxed);
+			mDefragmentSize.store(0, std::memory_order_relaxed);
 			// Note: retired memory is drained on destruction, not here
 			// to avoid freeing memory while readers might still hold view pointers
 		}
@@ -1164,9 +1177,13 @@ private:
 			mAllocator.allocate(newCapacity);
 			mDenseArrays.reserve(newCapacity);
 		}
-		// Pre-allocate sparse map for expected entity IDs
 		if (mSparseMap.capacity() < newCapacity) {
 			mSparseMap.resize(newCapacity);
+		}
+		if constexpr (ThreadSafe) {
+			if (newCapacity > 0) {
+				mPinsCounter.reserve(newCapacity - 1);
+			}
 		}
 	}
 
@@ -1198,27 +1215,25 @@ private:
 		}
 
 		// Ensure chunk memory available
-		mAllocator.allocate(mSize + 1);
+		auto sz = sizeImpl();
+		mAllocator.allocate(sz + 1);
 
-		// Fast path: append to end (common case - sequential entity IDs)
-		const size_t pos = mSize;
+		const size_t pos = sz;
 		const bool isAppend = (pos == 0) || (sectorId > mDenseArrays.idAt(pos - 1));
 		
 		if (isAppend) [[likely]] {
-			// Fast append - push_back handles capacity automatically (amortized O(1))
 			mDenseArrays.pushBack(sectorId, 0);
 			mSparseMap.set(sectorId, detail::SlotInfo{ mAllocator.at(pos), static_cast<uint32_t>(pos) });
-			++mSize;
-			mDenseArrays.storeView(mSize);
+			mSize.store(sz + 1, std::memory_order_relaxed);
+			mDenseArrays.storeView(sz + 1);
 			return pos;
 		}
 		
-		// Slow path: insert in middle (maintain sorted order)
-		mDenseArrays.resize(mSize + 1, mSize);
-		++mSize;
+		mDenseArrays.resize(sz + 1, sz);
+		mSize.store(sz + 1, std::memory_order_relaxed);
 		
 		size_t insertPos = findInsertPositionImpl(sectorId, pos);
-		if (insertPos != mSize - 1) {
+		if (insertPos != sz) {
 			// Shift moves all sectors from insertPos onwards - wait for pins if any exist
 			if constexpr (ThreadSafe) {
 				if (mPinsCounter.isArrayLocked()) {
@@ -1233,15 +1248,13 @@ private:
 		// Store data pointer + linear index (linearIdx written first, then data atomically)
 		mSparseMap.set(sectorId, detail::SlotInfo{ mAllocator.at(insertPos), static_cast<uint32_t>(insertPos) });
 		
-		// Update atomic view to show new size now that data is valid
-		mDenseArrays.storeView(mSize);
+		mDenseArrays.storeView(sizeImpl());
 
 		return insertPos;
 	}
 
 	void shiftRightImpl(size_t from, size_t count) {
-		// Shift data right to make room at 'from'
-		const size_t oldSize = mSize - count;
+		const size_t oldSize = sizeImpl() - count;
 		const size_t tail = oldSize > from ? (oldSize - from) : 0;
 		if (!tail) return;
 
@@ -1270,9 +1283,9 @@ private:
 	}
 
 	void shiftLeftImpl(size_t from, size_t count) {
-		// Shift data left to fill gap
 		if (from < count) return;
-		const size_t tail = from > mSize ? 0 : mSize - from;
+		auto sz = sizeImpl();
+		const size_t tail = from > sz ? 0 : sz - from;
 		if (!tail) return;
 
 		// Move component data (iterate forwards)
@@ -1322,7 +1335,7 @@ private:
 	}
 
 	void eraseRangeImpl(size_t beginIdx, size_t count, bool defragment) {
-		count = std::min(count, mSize - beginIdx);
+		count = std::min(count, sizeImpl() - beginIdx);
 		for (size_t i = beginIdx; i < beginIdx + count; ++i) {
 			auto id = mDenseArrays.idAt(i);
 			if (id < mSparseMap.capacity()) {
@@ -1333,9 +1346,10 @@ private:
 
 		if (defragment) {
 			shiftLeftImpl(beginIdx + count, count);
-			mSize -= count;
-			mDenseArrays.resize(mSize, mSize);
-			mDenseArrays.storeView(mSize);
+			auto newSz = sizeImpl() - count;
+			mSize.store(newSz, std::memory_order_relaxed);
+			mDenseArrays.resize(newSz, newSz);
+			mDenseArrays.storeView(newSz);
 		} else {
 			incDefragmentSize(static_cast<uint32_t>(count));
 		}
@@ -1405,7 +1419,7 @@ private:
 		}
 
 		size_t read = 0, write = 0, deleted = 0;
-		const size_t n = mSize;
+		const size_t n = sizeImpl();
 		const bool isTrivial = getLayout()->isTrivial();
 
 		while (read < n) {
@@ -1449,10 +1463,12 @@ private:
 			write += runLen;
 		}
 
-		mSize -= deleted;
-		mDefragmentSize -= std::min(mDefragmentSize, static_cast<uint32_t>(deleted));
-		mDenseArrays.resize(mSize, mSize);
-		mDenseArrays.storeView(mSize);
+		auto newSz = n - deleted;
+		mSize.store(newSz, std::memory_order_relaxed);
+		auto curDefrag = mDefragmentSize.load(std::memory_order_relaxed);
+		mDefragmentSize.store(curDefrag - std::min(curDefrag, static_cast<uint32_t>(deleted)), std::memory_order_relaxed);
+		mDenseArrays.resize(newSz, newSz);
+		mDenseArrays.storeView(newSz);
 		shrinkToFitImpl();
 	}
 
@@ -1461,7 +1477,9 @@ private:
 		if constexpr (ThreadSafe || T) {
 			auto lock = writeLock();
 			auto otherLock = other.readLock();
-			mPinsCounter.waitUntilChangeable();
+			if constexpr (ThreadSafe) {
+				mPinsCounter.waitUntilChangeable();
+			}
 			copyImpl(other);
 		} else {
 			copyImpl(other);
@@ -1473,7 +1491,8 @@ private:
 		clearImpl();
 		shrinkToFitImpl();
 
-		mSize = other.mSize;
+		auto otherSz = other.sizeImpl();
+		mSize.store(otherSz, std::memory_order_relaxed);
 		
 		// Copy layout metadata first - required before we can check isTrivial()
 		mAllocator.copyCommonData(other.mAllocator);
@@ -1481,23 +1500,20 @@ private:
 		// For non-trivial types, we must NOT use ChunksAllocator's memcpy-based copy!
 		// Instead: allocate chunks, then properly copy-construct each member via layout.
 		if (getLayout()->isTrivial()) {
-			mAllocator = other.mAllocator; // Trivial: memcpy is safe
+			mAllocator = other.mAllocator;
 		} else {
-			// Non-trivial: just allocate storage, copy will be done via copySectorData below
-			mAllocator.allocate(mSize);
+			mAllocator.allocate(otherSz);
 		}
 		
-		// Copy dense arrays data
-		mDenseArrays.resize(mSize, mSize);
-		for (size_t i = 0; i < mSize; ++i) {
+		mDenseArrays.resize(otherSz, otherSz);
+		for (size_t i = 0; i < otherSz; ++i) {
 			mDenseArrays.idAt(i) = other.mDenseArrays.idAt(i);
 			mDenseArrays.isAliveAt(i) = other.mDenseArrays.isAliveAt(i);
 		}
-		mDenseArrays.storeView(mSize);
+		mDenseArrays.storeView(otherSz);
 		
-		// For non-trivial types, properly copy-construct each sector's members
 		if (!getLayout()->isTrivial()) {
-			for (size_t i = 0; i < mSize; ++i) {
+			for (size_t i = 0; i < otherSz; ++i) {
 				uint32_t srcIsAlive = other.mDenseArrays.isAliveAt(i);
 				uint32_t dstIsAlive = 0;
 				Sector::copySectorData(
@@ -1506,15 +1522,15 @@ private:
 					getLayout());
 				mDenseArrays.isAliveAt(i) = dstIsAlive;
 			}
-			mDenseArrays.storeView(mSize);
+			mDenseArrays.storeView(otherSz);
 		}
 		
 		mSparseMap.resize(other.mSparseMap.capacity());
-		for (size_t i = 0; i < mSize; ++i) {
+		for (size_t i = 0; i < otherSz; ++i) {
 			mSparseMap.set(mDenseArrays.idAt(i), detail::SlotInfo{ mAllocator.at(i), static_cast<uint32_t>(i) });
 		}
 
-		mDefragmentSize = other.mDefragmentSize;
+		mDefragmentSize.store(other.mDefragmentSize.load(std::memory_order_relaxed), std::memory_order_relaxed);
 		mDefragThreshold = other.mDefragThreshold;
 	}
 
@@ -1523,8 +1539,12 @@ private:
 		if constexpr (ThreadSafe || T) {
 			auto lock = writeLock();
 			auto otherLock = other.writeLock();
-			mPinsCounter.waitUntilChangeable();
-			other.mPinsCounter.waitUntilChangeable();
+			if constexpr (ThreadSafe) {
+				mPinsCounter.waitUntilChangeable();
+			}
+			if constexpr (T) {
+				other.mPinsCounter.waitUntilChangeable();
+			}
 			moveImpl(std::move(other));
 		} else {
 			moveImpl(std::move(other));
@@ -1536,26 +1556,26 @@ private:
 		clearImpl();
 		shrinkToFitImpl();
 
-		mSize = other.mSize;
+		auto otherSz = other.sizeImpl();
+		mSize.store(otherSz, std::memory_order_relaxed);
 		mAllocator = std::move(other.mAllocator);
 		
-		// Move dense arrays data (copy for cross-template moves)
-		mDenseArrays.resize(mSize, mSize);
-		for (size_t i = 0; i < mSize; ++i) {
+		mDenseArrays.resize(otherSz, otherSz);
+		for (size_t i = 0; i < otherSz; ++i) {
 			mDenseArrays.idAt(i) = other.mDenseArrays.idAt(i);
 			mDenseArrays.isAliveAt(i) = other.mDenseArrays.isAliveAt(i);
 		}
-		mDenseArrays.storeView(mSize);
+		mDenseArrays.storeView(otherSz);
 		
 		mSparseMap.resize(other.mSparseMap.capacity());
-		for (size_t i = 0; i < mSize; ++i) {
+		for (size_t i = 0; i < otherSz; ++i) {
 			mSparseMap.set(mDenseArrays.idAt(i), detail::SlotInfo{ mAllocator.at(i), static_cast<uint32_t>(i) });
 		}
 
-		mDefragmentSize = other.mDefragmentSize;
+		mDefragmentSize.store(other.mDefragmentSize.load(std::memory_order_relaxed), std::memory_order_relaxed);
 		mDefragThreshold = other.mDefragThreshold;
 		
-		other.mSize = 0;
+		other.mSize.store(0, std::memory_order_relaxed);
 		other.mDenseArrays.clear(0);
 		other.shrinkToFitImpl();
 	}
@@ -1581,9 +1601,9 @@ private:
 
 	std::vector<SectorId> mPendingErase;
 
-	size_t mSize = 0;
+	std::atomic<size_t> mSize{0};
 	float mDefragThreshold = 0.2f;
-	uint32_t mDefragmentSize = 0;
+	std::atomic<uint32_t> mDefragmentSize{0};
 };
 
 #undef SHARED_LOCK

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include <shared_mutex>
 #include <bit>
@@ -67,6 +67,11 @@ namespace ecss::Threads {
 
 			} while (w != 0);
 
+			auto curTop = mTopLevel.load(std::memory_order_relaxed);
+			if (static_cast<int>(level) - 1 > curTop) {
+				mTopLevel.store(static_cast<int>(level) - 1, std::memory_order_relaxed);
+			}
+
 			return level;
 		}
 
@@ -112,6 +117,14 @@ namespace ecss::Threads {
 					const auto parentWord = path[lvl];
 					const auto bm = bitMask(bitOffsetOf(childWord));
 					auto old = std::atomic_ref{ bits[lvl][parentWord] }.fetch_and(~bm, std::memory_order_acq_rel);
+
+					// Re-check: concurrent set() may have added bits to child after our clear
+					auto childVal = std::atomic_ref{ bits[lvl - 1][childWord] }.load(std::memory_order_acquire);
+					if (childVal != 0) {
+						std::atomic_ref{ bits[lvl][parentWord] }.fetch_or(bm, std::memory_order_acq_rel);
+						break;
+					}
+
 					if (old & ~bm) {
 						break; // sibling still present
 					}
@@ -147,7 +160,7 @@ namespace ecss::Threads {
 		PinIndex highestSet() const  {
 			auto lock = std::shared_lock(mtx);
 
-			int top = static_cast<int>(bits.size() - 1);
+			int top = mTopLevel.load(std::memory_order_relaxed);
 			while (top >= 0 && (bits[top].empty() || std::atomic_ref{ bits[top][0] }.load(std::memory_order_acquire) == 0)) {
 				--top;
 			}
@@ -173,6 +186,7 @@ namespace ecss::Threads {
 	private:
 		mutable std::shared_mutex mtx;
 		mutable std::array<std::vector<BITS_TYPE>, maxlvl> bits;
+		std::atomic<int> mTopLevel{0};
 	};
 
 	/**
@@ -209,7 +223,6 @@ namespace ecss::Threads {
 		void pin(SectorId id)  {
 			assert(id != INVALID_ID);
 
-			epoch.fetch_add(1, std::memory_order_release);
 			auto prev = get(id).fetch_add(1, std::memory_order_release);
 			if (prev == 0) {
 				pinsBitMask.set(id, true);
@@ -228,8 +241,6 @@ namespace ecss::Threads {
 		 */
 		void unpin(SectorId id)  {
 			assert(id != INVALID_ID);
-
-			epoch.fetch_add(1, std::memory_order_release);
 
 			auto& var = get(id);
 			auto prev = var.fetch_sub(1, std::memory_order_release);
@@ -306,6 +317,18 @@ namespace ecss::Threads {
 			return totalPinnedSectors.load(std::memory_order_acquire) != 0;
 		}
 
+		void reserve(SectorId maxId) {
+			const size_t bi = maxId / BLOCK;
+			std::unique_lock w(mtx);
+			if (bi >= blocks.size()) blocks.resize(bi + 1);
+			for (size_t i = 0; i <= bi; ++i) {
+				if (!blocks[i]) {
+					blocks[i] = std::make_unique<std::atomic<uint16_t>[]>(BLOCK);
+					for (size_t j = 0; j < BLOCK; ++j) blocks[i][j].store(0, std::memory_order_relaxed);
+				}
+			}
+		}
+
 	private:
 		/// @brief Get (lazy allocate) atomic pin counter for sector id.
 		std::atomic<uint16_t>& get(SectorId id) const {
@@ -329,16 +352,17 @@ namespace ecss::Threads {
 
 		/**
 		 * @brief Recompute highest pinned id (maxPinnedSector) after a last unpin.
-		 * @details Uses epoch to bail out if concurrent pin modified state mid-flight.
+		 * @details Retry CAS until successful to prevent stale maxPinnedSector.
+		 *          Always notify_all -- spurious wakes are safe (waitUntilChangeable re-checks).
 		 */
 		void updateMaxPinned()  {
-			const auto e1 = epoch.load(std::memory_order_acquire);
 			auto cur = maxPinnedSector.load(std::memory_order_relaxed);
-			if (cur != -1) {
-				if ((epoch.load(std::memory_order_acquire) == e1) && maxPinnedSector.compare_exchange_strong(cur, pinsBitMask.highestSet(), std::memory_order_release, std::memory_order_relaxed)) {
-					maxPinnedSector.notify_all();
-				}
+			while (cur != -1) {
+				auto newMax = pinsBitMask.highestSet();
+				if (maxPinnedSector.compare_exchange_weak(cur, newMax, std::memory_order_release, std::memory_order_relaxed))
+					break;
 			}
+			maxPinnedSector.notify_all();
 		}
 
 	private:
@@ -350,7 +374,6 @@ namespace ecss::Threads {
 		mutable std::vector<std::unique_ptr<std::atomic<uint16_t>[]>> blocks; ///< Lazy pin counter blocks.
 
 		std::atomic<PinIndex>  maxPinnedSector{ -1 };         ///< Highest currently pinned sector id or -1.
-		std::atomic<uint64_t>  epoch{ 0 };                    ///< Mutation epoch (helps detect races in recompute).
 		std::atomic<uint32_t>  totalPinnedSectors{ 0 };       ///< Distinct sectors with counter > 0.
 	};
 

@@ -1,5 +1,6 @@
-﻿#pragma once
+#pragma once
 
+#include <atomic>
 #include <cstddef>
 #include <vector>
 #include <mutex>
@@ -34,12 +35,12 @@ namespace ecss::Memory {
 
 		RetireBin(RetireBin&& other) noexcept 
 			: mRetired(std::move(other.mRetired))
-			, mGracePeriod(other.mGracePeriod) {}
+			, mGracePeriod(other.mGracePeriod.load(std::memory_order_relaxed)) {}
 		
 		RetireBin& operator=(RetireBin&& other) noexcept {
 			if (this == &other) { return *this; }
 			mRetired = std::move(other.mRetired);
-			mGracePeriod = other.mGracePeriod;
+			mGracePeriod.store(other.mGracePeriod.load(std::memory_order_relaxed), std::memory_order_relaxed);
 			return *this;
 		}
 
@@ -47,7 +48,7 @@ namespace ecss::Memory {
 		void retire(void* p) {
 			if (!p) return;
 			auto lock = std::lock_guard(mMtx);
-			mRetired.push_back({p, mGracePeriod});
+			mRetired.push_back({p, mGracePeriod.load(std::memory_order_relaxed)});
 		}
 
 		/**
@@ -97,11 +98,8 @@ namespace ecss::Memory {
 			}
 		}
 
-		/// @brief Set grace period for newly retired blocks
-		void setGracePeriod(uint32_t ticks) { mGracePeriod = ticks; }
-		
-		/// @brief Get current grace period
-		uint32_t getGracePeriod() const { return mGracePeriod; }
+		void setGracePeriod(uint32_t ticks) { mGracePeriod.store(ticks, std::memory_order_relaxed); }
+		uint32_t getGracePeriod() const { return mGracePeriod.load(std::memory_order_relaxed); }
 		
 		/// @brief Get number of blocks waiting to be freed
 		size_t pendingCount() const {
@@ -117,7 +115,7 @@ namespace ecss::Memory {
 
 		mutable std::mutex mMtx;
 		std::vector<RetiredBlock> mRetired;
-		uint32_t mGracePeriod = DEFAULT_GRACE_PERIOD;
+		std::atomic<uint32_t> mGracePeriod{DEFAULT_GRACE_PERIOD};
 	};
 
 	/**
@@ -167,7 +165,7 @@ namespace ecss::Memory {
 		bool operator!=(const RetireAllocator<U>& rhs) const noexcept { return !(*this == rhs); }
 
 		using propagate_on_container_move_assignment = std::false_type;
-		using is_always_equal = std::true_type;
+		using is_always_equal = std::false_type;
 
 		RetireBin* bin = nullptr;
 	};
