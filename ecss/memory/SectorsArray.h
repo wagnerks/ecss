@@ -121,9 +121,21 @@ namespace detail {
 		}
 
 		/// @brief Set slot value atomically.
-		/// Store linearIdx first, then data (data != nullptr acts as commit).
-		/// Reader checks linearIdx before and after reading data -- retry on mismatch.
-		FORCE_INLINE void set(SectorId id, SlotInfo info) { 
+		/// Three-phase write so lock-free readers never observe a torn {data, linearIdx} pair
+		/// during a valid->valid update:
+		///   (1) flash data to nullptr  -- slot appears "not present" to readers mid-update
+		///   (2) publish new linearIdx  -- reader still sees INVALID_SLOT (data still null)
+		///   (3) publish new data       -- commit; slot is now consistently visible
+		/// Combined with the reader's nullptr short-circuit, every observable state is internally
+		/// consistent:
+		///   pre-update: {old_data, old_idx}
+		///   mid-update: INVALID_SLOT  (brief "not present" window)
+		///   post-update: {new_data, new_idx}
+		/// Cost: one extra atomic store on the write path. Reader hot path unchanged.
+		/// Note: only one writer runs at a time (caller holds the array's unique write lock),
+		/// so consecutive set() calls cannot interleave.
+		FORCE_INLINE void set(SectorId id, SlotInfo info) {
+			std::atomic_ref<std::byte*>(sparse[id].data).store(nullptr, std::memory_order_release);
 			std::atomic_ref<uint32_t>(sparse[id].linearIdx).store(info.linearIdx, std::memory_order_release);
 			std::atomic_ref<std::byte*>(sparse[id].data).store(info.data, std::memory_order_release);
 		}
@@ -175,30 +187,30 @@ namespace detail {
 		};
 
 		DenseArrays() = default;
-		
+
 		// Copy constructor - create new vectors with allocators bound to OUR bin
-		DenseArrays(const DenseArrays& other) 
+		DenseArrays(const DenseArrays& other)
 			: ids(other.ids.begin(), other.ids.end(), Memory::RetireAllocator<SectorId>{&bin})
 			, isAlive(other.isAlive.begin(), other.isAlive.end(), Memory::RetireAllocator<uint32_t>{&bin}) {
-			auto otherView = other.view.load(std::memory_order_acquire);
+			auto otherView = other.loadView();
 			storeView(otherView.size);
 		}
-		
+
 		DenseArrays& operator=(const DenseArrays& other) {
 			if (this != &other) {
 				ids.assign(other.ids.begin(), other.ids.end());
 				isAlive.assign(other.isAlive.begin(), other.isAlive.end());
-				auto otherView = other.view.load(std::memory_order_acquire);
+				auto otherView = other.loadView();
 				storeView(otherView.size);
 			}
 			return *this;
 		}
-		
+
 		// Move constructor - create new vectors, move data, bind to OUR bin
-		DenseArrays(DenseArrays&& other) noexcept 
+		DenseArrays(DenseArrays&& other) noexcept
 			: ids(Memory::RetireAllocator<SectorId>{&bin})
 			, isAlive(Memory::RetireAllocator<uint32_t>{&bin}) {
-			auto otherView = other.view.load(std::memory_order_acquire);
+			auto otherView = other.loadView();
 			ids.reserve(other.ids.capacity());
 			isAlive.reserve(other.isAlive.capacity());
 			for (size_t i = 0; i < other.ids.size(); ++i) {
@@ -210,7 +222,7 @@ namespace detail {
 			other.isAlive.clear();
 			other.storeView(0);
 		}
-		
+
 		DenseArrays& operator=(DenseArrays&& other) noexcept {
 			if (this != &other) {
 				ids.clear();
@@ -221,7 +233,7 @@ namespace detail {
 					ids.push_back(other.ids[i]);
 					isAlive.push_back(other.isAlive[i]);
 				}
-				auto otherView = other.view.load(std::memory_order_acquire);
+				auto otherView = other.loadView();
 				storeView(otherView.size);
 				other.ids.clear();
 				other.isAlive.clear();
@@ -230,12 +242,46 @@ namespace detail {
 			return *this;
 		}
 
-		FORCE_INLINE View loadView() const {
-			return view.load(std::memory_order_acquire);
+		/// @brief Seqlock snapshot of {ids, isAlive, size}.
+		/// Hot path (no concurrent writer): 2 x 8B atomic loads (seq) + 3 relaxed loads + 1 compare.
+		/// On x86-64 all loads compile to plain MOVs and the acquire fence is a no-op.
+		/// Replaces the previous std::atomic<View> which was mutex-backed (View is 24 bytes,
+		/// exceeds the 16-byte lock-free boundary on every mainstream platform).
+		/// Data fields are std::atomic<> with relaxed ordering -- the seq counter provides all
+		/// real synchronization; atomics just tell the compiler/TSan these concurrent accesses
+		/// are intentional (torn reads are detected and retried via the seq comparison).
+		FORCE_INLINE View loadView() const noexcept {
+			for (;;) {
+				uint64_t s1 = seq_.load(std::memory_order_acquire);
+				if (s1 & 1ull) { // odd = writer in progress, spin
+#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
+					__builtin_ia32_pause();
+#elif defined(__aarch64__) || defined(_M_ARM64)
+					__asm__ __volatile__("yield" ::: "memory");
+#endif
+					continue;
+				}
+				View v{
+					ids_ptr_.load(std::memory_order_relaxed),
+					alive_ptr_.load(std::memory_order_relaxed),
+					size_.load(std::memory_order_relaxed),
+				};
+				std::atomic_thread_fence(std::memory_order_acquire);
+				if (seq_.load(std::memory_order_relaxed) == s1) [[likely]] return v;
+			}
 		}
 
+		/// @brief Publish a new view. Caller must hold the SectorsArray write lock so
+		/// storeView() is never called concurrently with itself. loadView() is lock-free
+		/// and may run concurrently with storeView().
 		FORCE_INLINE void storeView(size_t size) {
-			view.store(View{ ids.data(), isAlive.data(), size }, std::memory_order_release);
+			uint64_t s = seq_.load(std::memory_order_relaxed);
+			seq_.store(s + 1, std::memory_order_relaxed);            // enter: odd
+			std::atomic_thread_fence(std::memory_order_release);
+			ids_ptr_.store(ids.data(),       std::memory_order_relaxed);
+			alive_ptr_.store(isAlive.data(), std::memory_order_relaxed);
+			size_.store(size,                std::memory_order_relaxed);
+			seq_.store(s + 2, std::memory_order_release);            // exit: even, publishes stores above
 			// Note: drainAll() NOT called here - must be called under unique lock at safe point
 		}
 
@@ -281,7 +327,20 @@ namespace detail {
 		std::vector<uint32_t, Memory::RetireAllocator<uint32_t>> isAlive{ Memory::RetireAllocator<uint32_t>{&bin} };
 
 	private:
-		std::atomic<View> view{ View{nullptr, nullptr, 0} };
+		// Seqlock state. seq_ is even when stable, odd while a writer is updating.
+		// Aligned to a cache line so reader acquire-loads don't false-share with adjacent fields.
+		// Data fields are atomic with relaxed ordering -- synchronization comes from seq_.
+		alignas(64) std::atomic<uint64_t>            seq_       {0};
+		std::atomic<const SectorId*>                 ids_ptr_   {nullptr};
+		std::atomic<const uint32_t*>                 alive_ptr_ {nullptr};
+		std::atomic<size_t>                          size_      {0};
+
+		static_assert(std::atomic<uint64_t>::is_always_lock_free,
+			"seqlock counter must be lock-free; widen or switch platform otherwise");
+		static_assert(std::atomic<const SectorId*>::is_always_lock_free,
+			"seqlock pointer field must be lock-free");
+		static_assert(std::atomic<size_t>::is_always_lock_free,
+			"seqlock size field must be lock-free");
 	};
 
 	/// @brief Non-thread-safe dense arrays (simple vectors)
@@ -431,6 +490,25 @@ public:
 
 	// ==================== Iterators ====================
 
+	/// @brief Relaxed atomic load of an alive-bit word. Compiles to a plain MOV on x86-64
+	/// and a plain LDR on ARM64 -- identical codegen to a raw read. Exists purely to
+	/// satisfy the C++ memory model when the word may be concurrently written by
+	/// Sector::markAlive<true>/markNotAlive<true>.
+	/// Declared static so nested iterator classes can call it without an enclosing instance.
+	static FORCE_INLINE uint32_t loadAliveRelaxed(const uint32_t* p, size_t i) noexcept {
+		return std::atomic_ref<uint32_t>(const_cast<uint32_t&>(p[i]))
+			.load(std::memory_order_relaxed);
+	}
+
+	/// @brief Acquire load of an alive-bit word. Pairs with the release fetch_or in
+	/// Sector::markAlive<true>, so a reader observing a set bit is guaranteed to see
+	/// the fully-constructed component bytes written before the bit was set.
+	/// x86-64: plain MOV (all loads are acquire). ARM64: LDAR instead of LDR.
+	static FORCE_INLINE uint32_t loadAliveAcquire(const uint32_t* p, size_t i) noexcept {
+		return std::atomic_ref<uint32_t>(const_cast<uint32_t&>(p[i]))
+			.load(std::memory_order_acquire);
+	}
+
 #define ITERATOR_COMMON_USING(IteratorName)                                         \
 	using iterator_concept  = std::forward_iterator_tag;                            \
 	using iterator_category = std::forward_iterator_tag;                            \
@@ -465,9 +543,11 @@ public:
 		}
 
 		FORCE_INLINE value_type operator*() const {
+			// Acquire-load the alive word so a set bit synchronizes-with the
+			// release in Sector::markAlive<true>, making the component bytes visible.
 			return SlotInfo{
 				mIds[mIdx],
-				mIsAlive[mIdx],
+				loadAliveAcquire(mIsAlive, mIdx),
 				mDataPtr,
 				mIdx
 			};
@@ -565,9 +645,11 @@ public:
 		}
 
 		FORCE_INLINE value_type operator*() const {
+			// Acquire-load the alive word so a set bit synchronizes-with the
+			// release in Sector::markAlive<true>, making the component bytes visible.
 			return SlotInfo{
 				mIds[mIdx],
-				mIsAlive[mIdx],
+				loadAliveAcquire(mIsAlive, mIdx),
 				mDataPtr,
 				mIdx
 			};
@@ -619,19 +701,25 @@ public:
 			}
 		}
 
-		/// @brief Fast skip: only scan isAliveData, update pointer once at the end
+		/// @brief Fast skip: only scan isAliveData, update pointer once at the end.
+		/// Uses relaxed atomic loads -- same codegen as plain loads on every mainstream
+		/// target, but tells the compiler (and TSan) that concurrent writers are allowed.
+		/// Acquire ordering is deferred to operator*()'s yield point so the scan itself
+		/// costs nothing extra.
 		FORCE_INLINE void skipDeadFast() {
 			const uint32_t mask = mAliveMask;
 			// Batch check 4 elements at a time (cache-friendly)
 			while (mIdx + 4 <= mSize) {
-				if ((mIsAlive[mIdx] & mask) | (mIsAlive[mIdx+1] & mask) | 
-				    (mIsAlive[mIdx+2] & mask) | (mIsAlive[mIdx+3] & mask)) {
+				if ((loadAliveRelaxed(mIsAlive, mIdx)   & mask) |
+				    (loadAliveRelaxed(mIsAlive, mIdx+1) & mask) |
+				    (loadAliveRelaxed(mIsAlive, mIdx+2) & mask) |
+				    (loadAliveRelaxed(mIsAlive, mIdx+3) & mask)) {
 					break; // At least one alive in this batch
 				}
 				mIdx += 4;
 			}
 			// Fine-grained search for exact position
-			while (mIdx < mSize && !(mIsAlive[mIdx] & mask)) {
+			while (mIdx < mSize && !(loadAliveRelaxed(mIsAlive, mIdx) & mask)) {
 				++mIdx;
 			}
 			// Update data pointer once
@@ -708,9 +796,11 @@ public:
 		}
 
 		FORCE_INLINE value_type operator*() const {
+			// Acquire-load the alive word so a set bit synchronizes-with the
+			// release in Sector::markAlive<true>, making the component bytes visible.
 			return SlotInfo{
 				mIds[mIdx],
-				mIsAlive[mIdx],
+				loadAliveAcquire(mIsAlive, mIdx),
 				mDataPtr,
 				mIdx
 			};
@@ -961,6 +1051,24 @@ public:
 		return mDenseArrays.isAliveAt(linearIdx);
 	}
 
+	/// @brief Thread-safe alive-word read that routes through the seqlock snapshot.
+	/// Unlike getIsAliveRef, this never dereferences the live std::vector, so it is
+	/// safe against concurrent push_back reallocation -- the vector's internal
+	/// _M_start field would otherwise race with the reader's non-atomic read of it.
+	/// Old isAlive buffers remain valid because RetireAllocator defers their free.
+	/// Returns 0 if linearIdx is outside the snapshot (newly allocated slot not yet
+	/// published), which callers treat as "not alive".
+	template<bool TS = ThreadSafe>
+	FORCE_INLINE uint32_t loadAliveWord(size_t linearIdx) const noexcept {
+		if constexpr (TS) {
+			auto view = mDenseArrays.loadView();
+			if (linearIdx >= view.size) [[unlikely]] return 0;
+			return loadAliveAcquire(view.isAlive, linearIdx);
+		} else {
+			return mDenseArrays.isAliveAt(linearIdx);
+		}
+	}
+
 	template<bool TS = ThreadSafe>
 	SectorId getId(size_t linearIdx) const {
 		return mDenseArrays.idAt(linearIdx);
@@ -1134,7 +1242,12 @@ private:
 	[[nodiscard]] PinnedSector pinSectorImpl(SectorId id) const requires(ThreadSafe) {
 		auto slot = mSparseMap.find(id);
 		if (!slot) return PinnedSector{};
-		return PinnedSector(mPinsCounter, id, slot.data, mDenseArrays.isAliveAt(slot.linearIdx));
+		// Use loadAliveWord (seqlock + bounds-checked) instead of mDenseArrays.isAliveAt:
+		// slot.linearIdx can be stale relative to the live dense arrays if a shrink
+		// or reshuffle is in flight, which would turn a direct isAliveAt() into an
+		// out-of-bounds read. loadAliveWord returns 0 ("not alive") for out-of-range
+		// indices, which is the correct conservative answer at the pin point.
+		return PinnedSector(mPinsCounter, id, slot.data, loadAliveWord<ThreadSafe>(slot.linearIdx));
 	}
 
 	[[nodiscard]] PinnedSector pinSectorAtImpl(size_t idx) const requires(ThreadSafe) {

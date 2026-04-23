@@ -346,11 +346,20 @@ namespace ecss::Memory {
 			from = std::min(mChunks.size(), calcChunkIndex(from) + static_cast<size_t>((from & (mChunkCapacity - 1)) > 0)); // chunkIndex returns chunk in which "from" exists, we need to delete next chunk if it is not the chunk start
 			to = std::min(mChunks.size(), calcChunkIndex(to));
 			if (from < to) {
-				for (auto i = from; i < to; i++) { std::free(mChunks[i]); }
+				// Route chunk frees through the RetireBin so lock-free readers that have
+				// cached a chunk pointer (e.g. ArraysView iterator resolving a stale
+				// data pointer returned by SparseMap::find) cannot dereference a freed
+				// chunk. Chunks are reclaimed later via tickRetired() once the grace
+				// period expires, or via RetireBin's destructor at teardown.
+				for (auto i = from; i < to; i++) { mBin.retire(mChunks[i]); }
 
 				mChunks.erase(mChunks.begin() + static_cast<int64_t>(from), mChunks.begin() + static_cast<int64_t>(to));
 				mChunks.shrink_to_fit();
-				mBin.drainAll();
+				// Do NOT call mBin.drainAll() here: it would defeat the grace period
+				// for both the chunks we just retired and the old mChunks slot buffer
+				// that erase/shrink_to_fit routed through RetireAllocator. The owning
+				// SectorsArray ticks the bin each frame; on destruction, RetireBin's
+				// dtor drains anything still pending.
 			}
 		}
 
