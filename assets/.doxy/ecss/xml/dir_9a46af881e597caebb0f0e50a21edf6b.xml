@@ -1,0 +1,26 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_9a46af881e597caebb0f0e50a21edf6b" kind="dir">
+    <compoundname>html</compoundname>
+    <innerfile refid="docstring_2html_2annotated_8html">docstring/html/annotated.html</innerfile>
+    <innerfile refid="classdocstring__1__1__py__class-members_8html">classdocstring_1_1_py_class-members.html</innerfile>
+    <innerfile refid="classdocstring__1__1__py__class_8html">classdocstring_1_1_py_class.html</innerfile>
+    <innerfile refid="docstring_2html_2classes_8html">docstring/html/classes.html</innerfile>
+    <innerfile refid="docstring__8py_8html">docstring_8py.html</innerfile>
+    <innerfile refid="examples_2docstring_2html_2doxygen__crawl_8html">examples/docstring/html/doxygen_crawl.html</innerfile>
+    <innerfile refid="docstring_2html_2files_8html">docstring/html/files.html</innerfile>
+    <innerfile refid="docstring_2html_2functions_8html">docstring/html/functions.html</innerfile>
+    <innerfile refid="docstring_2html_2functions__func_8html">docstring/html/functions_func.html</innerfile>
+    <innerfile refid="docstring_2html_2functions__vars_8html">docstring/html/functions_vars.html</innerfile>
+    <innerfile refid="examples_2docstring_2html_2index_8html">examples/docstring/html/index.html</innerfile>
+    <innerfile refid="namespacedocstring_8html">namespacedocstring.html</innerfile>
+    <innerfile refid="docstring_2html_2namespacemembers_8html">docstring/html/namespacemembers.html</innerfile>
+    <innerfile refid="docstring_2html_2namespacemembers__func_8html">docstring/html/namespacemembers_func.html</innerfile>
+    <innerfile refid="docstring_2html_2namespaces_8html">docstring/html/namespaces.html</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/docstring/html/"/>
+  </compounddef>
+</doxygen>

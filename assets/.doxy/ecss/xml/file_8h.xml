@@ -1,0 +1,33 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="file_8h" kind="file" language="C++">
+    <compoundname>file.h</compoundname>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="file_8h_1a4a86bef4b6181cb3f53bd0461a9a511b" prot="public" static="no" extern="yes" mutable="no">
+        <type>int</type>
+        <definition>int globalValue</definition>
+        <argsstring></argsstring>
+        <name>globalValue</name>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>A global integer value. More details about this value. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="doxygen-1.14.0/examples/file.h" line="10" column="12" declfile="doxygen-1.14.0/examples/file.h" declline="10" declcolumn="12"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>A brief file description. A more elaborated file description. </para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="5"><highlight class="normal"></highlight></codeline>
+<codeline lineno="10"><highlight class="normal"></highlight><highlight class="keyword">extern</highlight><highlight class="normal"><sp/></highlight><highlight class="keywordtype">int</highlight><highlight class="normal"><sp/>globalValue;</highlight></codeline>
+    </programlisting>
+    <location file="doxygen-1.14.0/examples/file.h"/>
+  </compounddef>
+</doxygen>

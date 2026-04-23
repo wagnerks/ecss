@@ -1,0 +1,91 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="classecss_1_1Memory_1_1DenseTypeIdGenerator" kind="class" language="C++" prot="public">
+    <compoundname>ecss::Memory::DenseTypeIdGenerator</compoundname>
+    <includes refid="Reflection_8h" local="no">Reflection.h</includes>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="classecss_1_1Memory_1_1DenseTypeIdGenerator_1a6a97d963d9772612ae45b05f9a03fafc" prot="private" static="yes" mutable="no">
+        <type>std::atomic&lt; ECSType &gt;</type>
+        <definition>std::atomic&lt;ECSType&gt; ecss::Memory::DenseTypeIdGenerator::sNextId</definition>
+        <argsstring></argsstring>
+        <name>sNextId</name>
+        <qualifiedname>ecss::Memory::DenseTypeIdGenerator::sNextId</qualifiedname>
+        <initializer>{0}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Reflection.h" line="29" column="27" bodyfile="ecss/memory/Reflection.h" bodystart="29" bodyend="29"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classecss_1_1Memory_1_1DenseTypeIdGenerator_1a87a3a58f38e23e6455a3a9bda6d3081e" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>ECSType</type>
+        <definition>static ECSType ecss::Memory::DenseTypeIdGenerator::getCount</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>getCount</name>
+        <qualifiedname>ecss::Memory::DenseTypeIdGenerator::getCount</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Reflection.h" line="44" column="16" bodyfile="ecss/memory/Reflection.h" bodystart="44" bodyend="46"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1DenseTypeIdGenerator_1a1a9a945476d377c0e037ba22520f7a38" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE ECSType</type>
+        <definition>static FORCE_INLINE ECSType ecss::Memory::DenseTypeIdGenerator::getId</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>getId</name>
+        <qualifiedname>ecss::Memory::DenseTypeIdGenerator::getId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Reflection.h" line="33" column="29" bodyfile="ecss/memory/Reflection.h" bodystart="33" bodyend="37"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Memory_1_1DenseTypeIdGenerator_1adad196e8052e07e83dfdc775e85e2db6" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE ECSType</type>
+        <definition>static FORCE_INLINE ECSType ecss::Memory::DenseTypeIdGenerator::getTypeId</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>getTypeId</name>
+        <qualifiedname>ecss::Memory::DenseTypeIdGenerator::getTypeId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Reflection.h" line="40" column="29" bodyfile="ecss/memory/Reflection.h" bodystart="40" bodyend="42"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Dense sequential type ID generator for efficient array indexing. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Assigns sequential IDs (0, 1, 2, ...) to types on first use. Thread-safe initialization, then lock-free reads. IDs are global - same type gets same ID across all <ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> instances. </para>
+    </detaileddescription>
+    <location file="ecss/memory/Reflection.h" line="28" column="1" bodyfile="ecss/memory/Reflection.h" bodystart="28" bodyend="47"/>
+    <listofallmembers>
+      <member refid="classecss_1_1Memory_1_1DenseTypeIdGenerator_1a87a3a58f38e23e6455a3a9bda6d3081e" prot="public" virt="non-virtual"><scope>ecss::Memory::DenseTypeIdGenerator</scope><name>getCount</name></member>
+      <member refid="classecss_1_1Memory_1_1DenseTypeIdGenerator_1a1a9a945476d377c0e037ba22520f7a38" prot="public" virt="non-virtual"><scope>ecss::Memory::DenseTypeIdGenerator</scope><name>getId</name></member>
+      <member refid="classecss_1_1Memory_1_1DenseTypeIdGenerator_1adad196e8052e07e83dfdc775e85e2db6" prot="public" virt="non-virtual"><scope>ecss::Memory::DenseTypeIdGenerator</scope><name>getTypeId</name></member>
+      <member refid="classecss_1_1Memory_1_1DenseTypeIdGenerator_1a6a97d963d9772612ae45b05f9a03fafc" prot="private" virt="non-virtual"><scope>ecss::Memory::DenseTypeIdGenerator</scope><name>sNextId</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

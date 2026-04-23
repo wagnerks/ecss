@@ -1,0 +1,60 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1LayoutData_1_1FunctionTable" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Memory::LayoutData::FunctionTable</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1LayoutData_1_1FunctionTable_1af4ede8271dda57ef714390ebb0c7dd0d" prot="public" static="no" mutable="no">
+        <type>void(*</type>
+        <definition>void(* ecss::Memory::LayoutData::FunctionTable::copy) (void *dest, const void *src)</definition>
+        <argsstring>)(void *dest, const void *src)</argsstring>
+        <name>copy</name>
+        <qualifiedname>ecss::Memory::LayoutData::FunctionTable::copy</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="26" column="1" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="26" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1LayoutData_1_1FunctionTable_1a58e1795bfc0e1998dc043e3baf045e75" prot="public" static="no" mutable="no">
+        <type>void(*</type>
+        <definition>void(* ecss::Memory::LayoutData::FunctionTable::destructor) (void *src)</definition>
+        <argsstring>)(void *src)</argsstring>
+        <name>destructor</name>
+        <qualifiedname>ecss::Memory::LayoutData::FunctionTable::destructor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="27" column="1" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="27" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1LayoutData_1_1FunctionTable_1ae5823d4d319d79869f581791cde2adb1" prot="public" static="no" mutable="no">
+        <type>void(*</type>
+        <definition>void(* ecss::Memory::LayoutData::FunctionTable::move) (void *dest, void *src)</definition>
+        <argsstring>)(void *dest, void *src)</argsstring>
+        <name>move</name>
+        <qualifiedname>ecss::Memory::LayoutData::FunctionTable::move</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="25" column="1" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="25" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/SectorLayoutMeta.h" line="24" column="1" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="24" bodyend="28"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Memory_1_1LayoutData_1_1FunctionTable_1af4ede8271dda57ef714390ebb0c7dd0d" prot="public" virt="non-virtual"><scope>ecss::Memory::LayoutData::FunctionTable</scope><name>copy</name></member>
+      <member refid="structecss_1_1Memory_1_1LayoutData_1_1FunctionTable_1a58e1795bfc0e1998dc043e3baf045e75" prot="public" virt="non-virtual"><scope>ecss::Memory::LayoutData::FunctionTable</scope><name>destructor</name></member>
+      <member refid="structecss_1_1Memory_1_1LayoutData_1_1FunctionTable_1ae5823d4d319d79869f581791cde2adb1" prot="public" virt="non-virtual"><scope>ecss::Memory::LayoutData::FunctionTable</scope><name>move</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_0a11f3cdc8251bbe9cb1931e4a0f54d7" kind="dir">
+    <compoundname>html</compoundname>
+    <innerfile refid="examples_2structcmd_2html_2doxygen__crawl_8html">examples/structcmd/html/doxygen_crawl.html</innerfile>
+    <innerfile refid="structcmd_2html_2files_8html">structcmd/html/files.html</innerfile>
+    <innerfile refid="structcmd_2html_2globals_8html">structcmd/html/globals.html</innerfile>
+    <innerfile refid="structcmd_2html_2globals__defs_8html">structcmd/html/globals_defs.html</innerfile>
+    <innerfile refid="structcmd_2html_2globals__func_8html">structcmd/html/globals_func.html</innerfile>
+    <innerfile refid="structcmd_2html_2globals__type_8html">structcmd/html/globals_type.html</innerfile>
+    <innerfile refid="structcmd_2html_2globals__vars_8html">structcmd/html/globals_vars.html</innerfile>
+    <innerfile refid="examples_2structcmd_2html_2index_8html">examples/structcmd/html/index.html</innerfile>
+    <innerfile refid="structcmd__8h_8html">structcmd_8h.html</innerfile>
+    <innerfile refid="structcmd__8h__source_8html">structcmd_8h_source.html</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/structcmd/html/"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,137 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1LayoutData" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Memory::LayoutData</compoundname>
+    <includes refid="SectorLayoutMeta_8h" local="no">SectorLayoutMeta.h</includes>
+    <innerclass refid="structecss_1_1Memory_1_1LayoutData_1_1FunctionTable" prot="public">ecss::Memory::LayoutData::FunctionTable</innerclass>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1LayoutData_1aa5f74dffa276cc978edc28e0671bac72" prot="public" static="no" mutable="no">
+        <type>FunctionTable</type>
+        <definition>FunctionTable ecss::Memory::LayoutData::functionTable</definition>
+        <argsstring></argsstring>
+        <name>functionTable</name>
+        <qualifiedname>ecss::Memory::LayoutData::functionTable</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="30" column="15" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="30" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1LayoutData_1ab8feb503c58967aa6378b5b9f263ff1b" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t ecss::Memory::LayoutData::index</definition>
+        <argsstring></argsstring>
+        <name>index</name>
+        <qualifiedname>ecss::Memory::LayoutData::index</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="35" column="10" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="35" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1LayoutData_1a108bc8716a377c73b1c72c11e3aa0d2e" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t ecss::Memory::LayoutData::isAliveMask</definition>
+        <argsstring></argsstring>
+        <name>isAliveMask</name>
+        <qualifiedname>ecss::Memory::LayoutData::isAliveMask</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="32" column="10" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="32" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1LayoutData_1a315f4f0ec7f59b7a3da56f3c9d502560" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t ecss::Memory::LayoutData::isNotAliveMask</definition>
+        <argsstring></argsstring>
+        <name>isNotAliveMask</name>
+        <qualifiedname>ecss::Memory::LayoutData::isNotAliveMask</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="33" column="10" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="33" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1LayoutData_1a9e50869ce3b16698d88e2d44e2183357" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ecss::Memory::LayoutData::isTrivial</definition>
+        <argsstring></argsstring>
+        <name>isTrivial</name>
+        <qualifiedname>ecss::Memory::LayoutData::isTrivial</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="36" column="6" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="36" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1LayoutData_1a560c6a98df413adf998d7e0168bbd549" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t ecss::Memory::LayoutData::offset</definition>
+        <argsstring></argsstring>
+        <name>offset</name>
+        <qualifiedname>ecss::Memory::LayoutData::offset</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="34" column="10" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="34" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1LayoutData_1a411e05c1d82a23967920efad0ef0d488" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::LayoutData::typeHash</definition>
+        <argsstring></argsstring>
+        <name>typeHash</name>
+        <qualifiedname>ecss::Memory::LayoutData::typeHash</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorLayoutMeta.h" line="31" column="8" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="31" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Metadata describing how a component type is laid out within sector data. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Each component stored in a sector has a corresponding <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> that specifies its byte offset, liveness bit masks, and the functions required to move/copy/destroy the value. This enables type-erased operations while keeping the sector data trivially copyable for trivial types.</para>
+<para>Notes:<itemizedlist>
+<listitem><para>For trivial types, <computeroutput>isTrivial</computeroutput> should be true and the <computeroutput>functionTable</computeroutput> may hold empty/no-op functors.</para>
+</listitem><listitem><para><computeroutput>isAliveMask</computeroutput> marks the bit(s) that indicate the component is present.</para>
+</listitem><listitem><para><computeroutput>isNotAliveMask</computeroutput> is typically the bitwise complement used when clearing.</para>
+</listitem><listitem><para>Offsets now start from 0 (no embedded id/isAlive header in sector data). </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <location file="ecss/memory/SectorLayoutMeta.h" line="23" column="1" bodyfile="ecss/memory/SectorLayoutMeta.h" bodystart="23" bodyend="37"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Memory_1_1LayoutData_1aa5f74dffa276cc978edc28e0671bac72" prot="public" virt="non-virtual"><scope>ecss::Memory::LayoutData</scope><name>functionTable</name></member>
+      <member refid="structecss_1_1Memory_1_1LayoutData_1ab8feb503c58967aa6378b5b9f263ff1b" prot="public" virt="non-virtual"><scope>ecss::Memory::LayoutData</scope><name>index</name></member>
+      <member refid="structecss_1_1Memory_1_1LayoutData_1a108bc8716a377c73b1c72c11e3aa0d2e" prot="public" virt="non-virtual"><scope>ecss::Memory::LayoutData</scope><name>isAliveMask</name></member>
+      <member refid="structecss_1_1Memory_1_1LayoutData_1a315f4f0ec7f59b7a3da56f3c9d502560" prot="public" virt="non-virtual"><scope>ecss::Memory::LayoutData</scope><name>isNotAliveMask</name></member>
+      <member refid="structecss_1_1Memory_1_1LayoutData_1a9e50869ce3b16698d88e2d44e2183357" prot="public" virt="non-virtual"><scope>ecss::Memory::LayoutData</scope><name>isTrivial</name></member>
+      <member refid="structecss_1_1Memory_1_1LayoutData_1a560c6a98df413adf998d7e0168bbd549" prot="public" virt="non-virtual"><scope>ecss::Memory::LayoutData</scope><name>offset</name></member>
+      <member refid="structecss_1_1Memory_1_1LayoutData_1a411e05c1d82a23967920efad0ef0d488" prot="public" virt="non-virtual"><scope>ecss::Memory::LayoutData</scope><name>typeHash</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

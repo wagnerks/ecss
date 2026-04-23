@@ -1,0 +1,1597 @@
+
+
+# File SectorsArray.h
+
+[**File List**](files.md) **>** [**ecss**](dir_194708e763cf312315c6b23555bce86f.md) **>** [**memory**](dir_3333283e221f8a8f53c5923bc4c386e0.md) **>** [**SectorsArray.h**](SectorsArray_8h.md)
+
+[Go to the documentation of this file](SectorsArray_8h.md)
+
+
+```C++
+#pragma once
+
+#include <algorithm>
+#include <cassert>
+#include <shared_mutex>
+#include <utility>
+#include <vector>
+
+// CPU pause intrinsic for seqlock spin loops.
+// - MSVC: _mm_pause() via <intrin.h>
+// - GCC/Clang: __builtin_ia32_pause() / yield (compiler builtins, no header needed)
+#if defined(_MSC_VER)
+#  include <intrin.h>
+#endif
+
+#include <ecss/Ranges.h>
+#include <ecss/threads/PinCounters.h>
+#include <ecss/memory/ChunksAllocator.h>
+#include <ecss/memory/Sector.h>
+
+namespace ecss
+{
+    template <bool ThreadSafe, typename Allocator>
+    class Registry;
+
+    template <bool ThreadSafe, typename Allocator, bool Ranged, typename T, typename ...ComponentTypes>
+    class ArraysView;
+}
+
+namespace ecss::Memory {
+
+namespace detail {
+    struct SlotInfo {
+        std::byte* data = nullptr;        
+        uint32_t linearIdx = INVALID_IDX; 
+        
+        FORCE_INLINE bool isValid() const { return data != nullptr; }
+        FORCE_INLINE explicit operator bool() const { return isValid(); }
+    };
+    static_assert(std::atomic<std::byte*>::is_always_lock_free, "Pointer atomics must be lock-free for performance");
+
+    inline constexpr SlotInfo INVALID_SLOT{ nullptr, INVALID_IDX };
+
+    template<bool TS>
+    struct SparseMap;
+
+    template<>
+    struct SparseMap<true> {
+        FORCE_INLINE SlotInfo find(SectorId id) const {
+            auto view = sparseView.load(std::memory_order_acquire);
+            if (id >= view.size) return INVALID_SLOT;
+            auto& slot = const_cast<SlotInfo&>(view.data[id]);
+            for (;;) {
+                auto idx = std::atomic_ref<uint32_t>(slot.linearIdx).load(std::memory_order_acquire);
+                auto* dataPtr = std::atomic_ref<std::byte*>(slot.data).load(std::memory_order_acquire);
+                if (!dataPtr) return INVALID_SLOT;
+                auto idx2 = std::atomic_ref<uint32_t>(slot.linearIdx).load(std::memory_order_acquire);
+                if (idx == idx2) [[likely]] return SlotInfo{ dataPtr, idx };
+            }
+        }
+
+        FORCE_INLINE SlotInfo get(SectorId id) const {
+            auto view = sparseView.load(std::memory_order_acquire);
+            assert(id < view.size);
+            auto& slot = const_cast<SlotInfo&>(view.data[id]);
+            for (;;) {
+                auto idx = std::atomic_ref<uint32_t>(slot.linearIdx).load(std::memory_order_acquire);
+                auto* dataPtr = std::atomic_ref<std::byte*>(slot.data).load(std::memory_order_acquire);
+                auto idx2 = std::atomic_ref<uint32_t>(slot.linearIdx).load(std::memory_order_acquire);
+                if (idx == idx2) [[likely]] return SlotInfo{ dataPtr, idx };
+            }
+        }
+
+        FORCE_INLINE uint32_t findLinearIdx(SectorId id) const {
+            return find(id).linearIdx;
+        }
+
+        FORCE_INLINE size_t capacity() const { 
+            return sparseView.load(std::memory_order_acquire).size;
+        }
+        
+        FORCE_INLINE void storeView() {
+            sparseView.store(SparseView{ sparse.data(), sparse.size() }, std::memory_order_release);
+        }
+
+        FORCE_INLINE void drainRetired() { bin.drainAll(); }
+        FORCE_INLINE size_t tickRetired() { return bin.tick(); }
+        FORCE_INLINE void setGracePeriod(uint32_t ticks) { bin.setGracePeriod(ticks); }
+
+        FORCE_INLINE void resize(size_t newSize) {
+            sparse.resize(newSize, INVALID_SLOT);
+            storeView();
+        }
+
+        FORCE_INLINE void set(SectorId id, SlotInfo info) {
+            std::atomic_ref<std::byte*>(sparse[id].data).store(nullptr, std::memory_order_release);
+            std::atomic_ref<uint32_t>(sparse[id].linearIdx).store(info.linearIdx, std::memory_order_release);
+            std::atomic_ref<std::byte*>(sparse[id].data).store(info.data, std::memory_order_release);
+        }
+
+    private:
+        mutable Memory::RetireBin bin;
+
+        struct SparseView {
+            const SlotInfo* data;
+            size_t size;
+        };
+        std::atomic<SparseView> sparseView{ SparseView{nullptr, 0} };
+
+    public:
+        std::vector<SlotInfo, Memory::RetireAllocator<SlotInfo>> sparse{ Memory::RetireAllocator<SlotInfo>{&bin} };
+    };
+
+    template<>
+    struct SparseMap<false> {
+        FORCE_INLINE SlotInfo find(SectorId id) const { return id < sparse.size() ? sparse[id] : INVALID_SLOT; }
+        FORCE_INLINE SlotInfo get(SectorId id) const { assert(id < sparse.size()); return sparse[id]; }
+        FORCE_INLINE uint32_t findLinearIdx(SectorId id) const { return id < sparse.size() ? sparse[id].linearIdx : INVALID_IDX; }
+        FORCE_INLINE size_t capacity() const { return sparse.size(); }
+        FORCE_INLINE void storeView() {} // dummy
+        FORCE_INLINE void drainRetired() {} // dummy
+        FORCE_INLINE size_t tickRetired() { return 0; } // dummy
+        FORCE_INLINE void setGracePeriod(uint32_t) {} // dummy
+        FORCE_INLINE void resize(size_t newSize) { sparse.resize(newSize, INVALID_SLOT); }
+        FORCE_INLINE void set(SectorId id, SlotInfo info) { sparse[id] = info; }
+
+        FORCE_INLINE SlotInfo& operator[](SectorId id) { return sparse[id]; }
+        FORCE_INLINE const SlotInfo& operator[](SectorId id) const { return sparse[id]; }
+
+        std::vector<SlotInfo> sparse;
+    };
+
+    template<bool TS>
+    struct DenseArrays;
+
+    template<>
+    struct DenseArrays<true> {
+        struct View {
+            const SectorId* ids;
+            const uint32_t* isAlive;
+            size_t size;
+        };
+
+        DenseArrays() = default;
+
+        // Copy constructor - create new vectors with allocators bound to OUR bin
+        DenseArrays(const DenseArrays& other)
+            : ids(other.ids.begin(), other.ids.end(), Memory::RetireAllocator<SectorId>{&bin})
+            , isAlive(other.isAlive.begin(), other.isAlive.end(), Memory::RetireAllocator<uint32_t>{&bin}) {
+            auto otherView = other.loadView();
+            storeView(otherView.size);
+        }
+
+        DenseArrays& operator=(const DenseArrays& other) {
+            if (this != &other) {
+                ids.assign(other.ids.begin(), other.ids.end());
+                isAlive.assign(other.isAlive.begin(), other.isAlive.end());
+                auto otherView = other.loadView();
+                storeView(otherView.size);
+            }
+            return *this;
+        }
+
+        // Move constructor - create new vectors, move data, bind to OUR bin
+        DenseArrays(DenseArrays&& other) noexcept
+            : ids(Memory::RetireAllocator<SectorId>{&bin})
+            , isAlive(Memory::RetireAllocator<uint32_t>{&bin}) {
+            auto otherView = other.loadView();
+            ids.reserve(other.ids.capacity());
+            isAlive.reserve(other.isAlive.capacity());
+            for (size_t i = 0; i < other.ids.size(); ++i) {
+                ids.push_back(other.ids[i]);
+                isAlive.push_back(other.isAlive[i]);
+            }
+            storeView(otherView.size);
+            other.ids.clear();
+            other.isAlive.clear();
+            other.storeView(0);
+        }
+
+        DenseArrays& operator=(DenseArrays&& other) noexcept {
+            if (this != &other) {
+                ids.clear();
+                isAlive.clear();
+                ids.reserve(other.ids.capacity());
+                isAlive.reserve(other.isAlive.capacity());
+                for (size_t i = 0; i < other.ids.size(); ++i) {
+                    ids.push_back(other.ids[i]);
+                    isAlive.push_back(other.isAlive[i]);
+                }
+                auto otherView = other.loadView();
+                storeView(otherView.size);
+                other.ids.clear();
+                other.isAlive.clear();
+                other.storeView(0);
+            }
+            return *this;
+        }
+
+        FORCE_INLINE View loadView() const noexcept {
+            for (;;) {
+                uint64_t s1 = seq_.load(std::memory_order_acquire);
+                if (s1 & 1ull) { // odd = writer in progress, spin
+#if defined(_MSC_VER)
+#  if defined(_M_X64) || defined(_M_IX86)
+                    _mm_pause();
+#  elif defined(_M_ARM64)
+                    __yield();
+#  endif
+#else
+#  if defined(__x86_64__) || defined(__i386__)
+                    __builtin_ia32_pause();
+#  elif defined(__aarch64__)
+                    __asm__ __volatile__("yield" ::: "memory");
+#  endif
+#endif
+                    continue;
+                }
+                View v{
+                    ids_ptr_.load(std::memory_order_relaxed),
+                    alive_ptr_.load(std::memory_order_relaxed),
+                    size_.load(std::memory_order_relaxed),
+                };
+                std::atomic_thread_fence(std::memory_order_acquire);
+                if (seq_.load(std::memory_order_relaxed) == s1) [[likely]] return v;
+            }
+        }
+
+        FORCE_INLINE void storeView(size_t size) {
+            uint64_t s = seq_.load(std::memory_order_relaxed);
+            seq_.store(s + 1, std::memory_order_relaxed);            // enter: odd
+            std::atomic_thread_fence(std::memory_order_release);
+            ids_ptr_.store(ids.data(),       std::memory_order_relaxed);
+            alive_ptr_.store(isAlive.data(), std::memory_order_relaxed);
+            size_.store(size,                std::memory_order_relaxed);
+            seq_.store(s + 2, std::memory_order_release);            // exit: even, publishes stores above
+            // Note: drainAll() NOT called here - must be called under unique lock at safe point
+        }
+
+        FORCE_INLINE void drainRetired() { bin.drainAll(); }
+        FORCE_INLINE size_t tickRetired() { return bin.tick(); }
+        FORCE_INLINE void setGracePeriod(uint32_t ticks) { bin.setGracePeriod(ticks); }
+
+        FORCE_INLINE void resize(size_t newSize, size_t actualSize) {
+            ids.resize(newSize);
+            isAlive.resize(newSize, 0);
+            storeView(actualSize);
+        }
+        
+        // Fast append - caller must call storeView() after
+        FORCE_INLINE void pushBack(SectorId id, uint32_t alive) {
+            ids.push_back(id);
+            isAlive.push_back(alive);
+        }
+
+        FORCE_INLINE void reserve(size_t newCapacity) {
+            ids.reserve(newCapacity);
+            isAlive.reserve(newCapacity);
+        }
+
+        FORCE_INLINE void clear(size_t actualSize) {
+            ids.clear();
+            isAlive.clear();
+            storeView(actualSize);
+        }
+
+        FORCE_INLINE void shrinkToFit() {
+            ids.shrink_to_fit();
+            isAlive.shrink_to_fit();
+        }
+
+        FORCE_INLINE SectorId& idAt(size_t idx) { return ids[idx]; }
+        FORCE_INLINE uint32_t& isAliveAt(size_t idx) { return isAlive[idx]; }
+        FORCE_INLINE const SectorId& idAt(size_t idx) const { return ids[idx]; }
+        FORCE_INLINE const uint32_t& isAliveAt(size_t idx) const { return isAlive[idx]; }
+
+        mutable Memory::RetireBin bin;
+        std::vector<SectorId, Memory::RetireAllocator<SectorId>> ids{ Memory::RetireAllocator<SectorId>{&bin} };
+        std::vector<uint32_t, Memory::RetireAllocator<uint32_t>> isAlive{ Memory::RetireAllocator<uint32_t>{&bin} };
+
+    private:
+        // Seqlock state. seq_ is even when stable, odd while a writer is updating.
+        // Aligned to a cache line so reader acquire-loads don't false-share with adjacent fields.
+        // Data fields are atomic with relaxed ordering -- synchronization comes from seq_.
+        alignas(64) std::atomic<uint64_t>            seq_       {0};
+        std::atomic<const SectorId*>                 ids_ptr_   {nullptr};
+        std::atomic<const uint32_t*>                 alive_ptr_ {nullptr};
+        std::atomic<size_t>                          size_      {0};
+
+        static_assert(std::atomic<uint64_t>::is_always_lock_free,
+            "seqlock counter must be lock-free; widen or switch platform otherwise");
+        static_assert(std::atomic<const SectorId*>::is_always_lock_free,
+            "seqlock pointer field must be lock-free");
+        static_assert(std::atomic<size_t>::is_always_lock_free,
+            "seqlock size field must be lock-free");
+    };
+
+    template<>
+    struct DenseArrays<false> {
+        struct View {
+            const SectorId* ids;
+            const uint32_t* isAlive;
+            size_t size;
+        };
+
+        FORCE_INLINE View loadView() const {
+            return View{ ids.data(), isAlive.data(), ids.size() };
+        }
+
+        FORCE_INLINE void storeView(size_t) {} // dummy
+        FORCE_INLINE void drainRetired() {} // dummy
+        FORCE_INLINE size_t tickRetired() { return 0; } // dummy
+        FORCE_INLINE void setGracePeriod(uint32_t) {} // dummy
+
+        FORCE_INLINE void resize(size_t newSize, size_t) {
+            ids.resize(newSize);
+            isAlive.resize(newSize, 0);
+        }
+        
+        // Fast append without size checks - caller ensures capacity
+        FORCE_INLINE void pushBack(SectorId id, uint32_t alive) {
+            ids.push_back(id);
+            isAlive.push_back(alive);
+        }
+
+        FORCE_INLINE void reserve(size_t newCapacity) {
+            ids.reserve(newCapacity);
+            isAlive.reserve(newCapacity);
+        }
+
+        FORCE_INLINE void clear(size_t) {
+            ids.clear();
+            isAlive.clear();
+        }
+
+        FORCE_INLINE void shrinkToFit() {
+            ids.shrink_to_fit();
+            isAlive.shrink_to_fit();
+        }
+
+        FORCE_INLINE SectorId& idAt(size_t idx) { return ids[idx]; }
+        FORCE_INLINE uint32_t& isAliveAt(size_t idx) { return isAlive[idx]; }
+        FORCE_INLINE const SectorId& idAt(size_t idx) const { return ids[idx]; }
+        FORCE_INLINE const uint32_t& isAliveAt(size_t idx) const { return isAlive[idx]; }
+
+        std::vector<SectorId> ids;
+        std::vector<uint32_t> isAlive;
+    };
+} // namespace detail
+
+#define SHARED_LOCK() auto lock = readLock()
+#define UNIQUE_LOCK() auto lock = writeLock()
+
+#define TS_GUARD(TS_FLAG, LOCK_MACRO, EXPR) \
+    do {enforceTSMode<TS>(); if constexpr (TS_FLAG) { LOCK_MACRO##_LOCK(); EXPR; } else { EXPR; }} while(0)
+
+#define TS_GUARD_S(TS_FLAG, LOCK_MACRO, ADDITIONAL_SINK, EXPR) \
+    do {enforceTSMode<TS>(); if constexpr (TS_FLAG) { LOCK_MACRO##_LOCK(); ADDITIONAL_SINK; EXPR; } else { EXPR; }} while(0)
+
+struct PinnedSector {
+    PinnedSector() = default;
+
+    PinnedSector(const Threads::PinCounters& o, SectorId sid, std::byte* d, uint32_t alive)
+        : owner(&o), id(sid), data(d), isAliveData(alive) {
+        assert(id != INVALID_ID);
+        const_cast<Threads::PinCounters*>(owner)->pin(id);
+    }
+
+    PinnedSector(const PinnedSector&) = delete;
+    PinnedSector& operator=(const PinnedSector&) = delete;
+
+    PinnedSector(PinnedSector&& other) noexcept { *this = std::move(other); }
+    PinnedSector& operator=(PinnedSector&& other) noexcept {
+        if (this == &other) { return *this; }
+        release();
+        owner = other.owner;
+        id = other.id;
+        data = other.data;
+        isAliveData = other.isAliveData;
+        other.owner = nullptr;
+        other.data = nullptr;
+        other.id = INVALID_ID;
+        other.isAliveData = 0;
+        return *this;
+    }
+
+    ~PinnedSector() { release(); }
+
+    void release() {
+        if (owner) {
+            const_cast<Threads::PinCounters*>(owner)->unpin(id);
+        }
+        owner = nullptr;
+        data = nullptr;
+        id = INVALID_ID;
+        isAliveData = 0;
+    }
+
+    std::byte* getData() const { return data; }
+    uint32_t getIsAlive() const { return isAliveData; }
+    explicit operator bool() const { return data != nullptr; }
+    SectorId getId() const { return id; }
+
+private:
+    const Threads::PinCounters* owner = nullptr;
+    SectorId id = INVALID_ID;
+    std::byte* data = nullptr;
+    uint32_t isAliveData = 0;
+};
+
+template<bool ThreadSafe = true, typename Allocator = ChunksAllocator<8192>>
+class SectorsArray final {
+    template<bool, typename>
+    friend class SectorsArray;
+
+    template<bool, typename>
+    friend class ecss::Registry;
+
+    template <bool TS, typename Alloc, bool Ranged, typename T, typename ...ComponentTypes>
+    friend class ecss::ArraysView;
+
+public:
+    struct SlotInfo {
+        SectorId id;
+        uint32_t isAlive;
+        std::byte* data;
+        size_t linearIdx;
+
+        explicit operator bool() const { return data != nullptr; }
+    };
+
+    // ==================== Iterators ====================
+
+    static FORCE_INLINE uint32_t loadAliveRelaxed(const uint32_t* p, size_t i) noexcept {
+        return std::atomic_ref<uint32_t>(const_cast<uint32_t&>(p[i]))
+            .load(std::memory_order_relaxed);
+    }
+
+    static FORCE_INLINE uint32_t loadAliveAcquire(const uint32_t* p, size_t i) noexcept {
+        return std::atomic_ref<uint32_t>(const_cast<uint32_t&>(p[i]))
+            .load(std::memory_order_acquire);
+    }
+
+#define ITERATOR_COMMON_USING(IteratorName)                                         \
+    using iterator_concept  = std::forward_iterator_tag;                            \
+    using iterator_category = std::forward_iterator_tag;                            \
+    using value_type = SlotInfo;                                                    \
+    using difference_type = std::ptrdiff_t;                                         \
+    using pointer = SlotInfo*;                                                      \
+    using reference = SlotInfo;                                                     \
+    IteratorName() noexcept = default;                                              \
+    FORCE_INLINE IteratorName operator++(int) noexcept { auto tmp = *this; ++(*this); return tmp; } \
+    FORCE_INLINE bool operator!=(const IteratorName& other) const noexcept { return !(*this == other); }
+
+    class Iterator {
+    public:
+        ITERATOR_COMMON_USING(Iterator)
+
+        Iterator(const SectorsArray* array, size_t idx) 
+            : mChunks(array->mAllocator.mChunks.data())
+            , mChunksCount(array->mAllocator.mChunks.size())
+            , mStride(array->mAllocator.mSectorSize) {
+            // Load atomic view snapshot for thread-safe access
+            auto view = array->mDenseArrays.loadView();
+            mIds = view.ids;
+            mIsAlive = view.isAlive;
+            mSize = view.size;
+            mIdx = std::min(idx, mSize);
+            initChunkState();
+        }
+
+        FORCE_INLINE value_type operator*() const {
+            // Acquire-load the alive word so a set bit synchronizes-with the
+            // release in Sector::markAlive<true>, making the component bytes visible.
+            return SlotInfo{
+                mIds[mIdx],
+                loadAliveAcquire(mIsAlive, mIdx),
+                mDataPtr,
+                mIdx
+            };
+        }
+
+        FORCE_INLINE Iterator& operator++() noexcept { 
+            ++mIdx;
+            ++mInChunkIdx;
+            mDataPtr += mStride;
+            if (mInChunkIdx >= Allocator::mChunkCapacity) [[unlikely]] {
+                mInChunkIdx = 0;
+                ++mChunkIdx;
+                if (mChunkIdx < mChunksCount) {
+                    mChunkBase = static_cast<std::byte*>(mChunks[mChunkIdx]);
+                    mDataPtr = mChunkBase;
+                } else {
+                    mDataPtr = nullptr;
+                }
+            }
+            return *this; 
+        }
+        FORCE_INLINE Iterator& operator+=(difference_type n) noexcept { 
+            mIdx += n;
+            mChunkIdx = mIdx >> Allocator::mChunkShift;
+            mInChunkIdx = mIdx & (Allocator::mChunkCapacity - 1);
+            if (mChunkIdx < mChunksCount) {
+                mChunkBase = static_cast<std::byte*>(mChunks[mChunkIdx]);
+                mDataPtr = mChunkBase + mInChunkIdx * mStride;
+            } else {
+                mDataPtr = nullptr;
+            }
+            return *this; 
+        }
+        FORCE_INLINE Iterator operator+(difference_type n) const noexcept { Iterator t(*this); t += n; return t; }
+        
+        FORCE_INLINE bool operator==(const Iterator& other) const noexcept { return mIdx == other.mIdx; }
+        FORCE_INLINE size_t linearIndex() const noexcept { return mIdx; }
+        FORCE_INLINE std::byte* rawPtr() const noexcept { return mDataPtr; }
+
+    private:
+        FORCE_INLINE void initChunkState() {
+            if (mIdx < mSize && mChunksCount > 0) {
+                mChunkIdx = mIdx >> Allocator::mChunkShift;
+                mInChunkIdx = mIdx & (Allocator::mChunkCapacity - 1);
+                if (mChunkIdx < mChunksCount) {
+                    mChunkBase = static_cast<std::byte*>(mChunks[mChunkIdx]);
+                    mDataPtr = mChunkBase + mInChunkIdx * mStride;
+                }
+            }
+        }
+
+        const SectorId* mIds = nullptr;
+        const uint32_t* mIsAlive = nullptr;
+        void* const* mChunks = nullptr;
+        std::byte* mChunkBase = nullptr;
+        std::byte* mDataPtr = nullptr;
+        size_t mChunksCount = 0;
+        size_t mChunkIdx = 0;
+        size_t mInChunkIdx = 0;
+        size_t mIdx = 0;
+        size_t mSize = 0;
+        uint16_t mStride = 0;
+    };
+
+    template<bool TS = ThreadSafe> Iterator begin() const { TS_GUARD(TS, SHARED, return Iterator(this, 0);); }
+    template<bool TS = ThreadSafe> Iterator end()   const { TS_GUARD(TS, SHARED, return Iterator(this, sizeImpl());); }
+
+    class IteratorAlive {
+    public:
+        ITERATOR_COMMON_USING(IteratorAlive)
+
+        IteratorAlive(const SectorsArray* array, size_t idx, size_t sz, uint32_t aliveMask, bool isPacked = false)
+            : mChunks(array->mAllocator.mChunks.data())
+            , mChunksCount(array->mAllocator.mChunks.size())
+            , mIdx(idx)
+            , mStride(array->mAllocator.mSectorSize)
+            , mAliveMask(aliveMask)
+            , mIsPacked(isPacked) {
+            // Load atomic view snapshot for thread-safe access
+            auto view = array->mDenseArrays.loadView();
+            mIds = view.ids;
+            mIsAlive = view.isAlive;
+            mSize = std::min(sz, view.size);
+            if (mIsPacked) {
+                initChunkState();
+            } else {
+                skipDeadFast(); // This also syncs data pointer
+            }
+        }
+
+        FORCE_INLINE value_type operator*() const {
+            // Acquire-load the alive word so a set bit synchronizes-with the
+            // release in Sector::markAlive<true>, making the component bytes visible.
+            return SlotInfo{
+                mIds[mIdx],
+                loadAliveAcquire(mIsAlive, mIdx),
+                mDataPtr,
+                mIdx
+            };
+        }
+
+        FORCE_INLINE IteratorAlive& operator++() noexcept {
+            ++mIdx;
+            if (mIsPacked) [[likely]] {
+                // Fast path: no dead slots, just advance pointer
+                advanceDataPtr();
+            } else {
+                // Slow path: scan isAliveData for next alive, then sync pointer
+                skipDeadFast();
+            }
+            return *this;
+        }
+
+        FORCE_INLINE bool operator==(const IteratorAlive& other) const noexcept { return mIdx == other.mIdx; }
+        FORCE_INLINE size_t linearIndex() const noexcept { return mIdx; }
+        FORCE_INLINE std::byte* rawPtr() const noexcept { return mDataPtr; }
+        FORCE_INLINE explicit operator bool() const noexcept { return mIdx < mSize; }
+
+    private:
+        FORCE_INLINE void syncDataPtr() {
+            if (mIdx < mSize && mChunksCount > 0) {
+                mChunkIdx = mIdx >> Allocator::mChunkShift;
+                mInChunkIdx = mIdx & (Allocator::mChunkCapacity - 1);
+                if (mChunkIdx < mChunksCount) {
+                    mChunkBase = static_cast<std::byte*>(mChunks[mChunkIdx]);
+                    mDataPtr = mChunkBase + mInChunkIdx * mStride;
+                } else {
+                    mDataPtr = nullptr;
+                }
+            }
+        }
+
+        FORCE_INLINE void advanceDataPtr() {
+            ++mInChunkIdx;
+            mDataPtr += mStride;
+            if (mInChunkIdx >= Allocator::mChunkCapacity) [[unlikely]] {
+                mInChunkIdx = 0;
+                ++mChunkIdx;
+                if (mChunkIdx < mChunksCount) {
+                    mChunkBase = static_cast<std::byte*>(mChunks[mChunkIdx]);
+                    mDataPtr = mChunkBase;
+                } else {
+                    mDataPtr = nullptr;
+                }
+            }
+        }
+
+        FORCE_INLINE void skipDeadFast() {
+            const uint32_t mask = mAliveMask;
+            // Batch check 4 elements at a time (cache-friendly)
+            while (mIdx + 4 <= mSize) {
+                if ((loadAliveRelaxed(mIsAlive, mIdx)   & mask) |
+                    (loadAliveRelaxed(mIsAlive, mIdx+1) & mask) |
+                    (loadAliveRelaxed(mIsAlive, mIdx+2) & mask) |
+                    (loadAliveRelaxed(mIsAlive, mIdx+3) & mask)) {
+                    break; // At least one alive in this batch
+                }
+                mIdx += 4;
+            }
+            // Fine-grained search for exact position
+            while (mIdx < mSize && !(loadAliveRelaxed(mIsAlive, mIdx) & mask)) {
+                ++mIdx;
+            }
+            // Update data pointer once
+            syncDataPtr();
+        }
+
+        FORCE_INLINE void initChunkState() { syncDataPtr(); }
+
+        const SectorId* mIds = nullptr;
+        const uint32_t* mIsAlive = nullptr;
+        void* const* mChunks = nullptr;
+        std::byte* mChunkBase = nullptr;
+        std::byte* mDataPtr = nullptr;
+        size_t mChunksCount = 0;
+        size_t mChunkIdx = 0;
+        size_t mInChunkIdx = 0;
+        size_t mIdx = 0;
+        size_t mSize = 0;
+        uint16_t mStride = 0;
+        uint32_t mAliveMask = 0;
+        bool mIsPacked = false;
+    };
+
+    template<bool TS = ThreadSafe>
+    bool isPacked() const { TS_GUARD(TS, SHARED, return mDefragmentSize.load(std::memory_order_relaxed) == 0;); }
+
+    template<class T, bool TS = ThreadSafe>
+    IteratorAlive beginAlive() const { 
+        // Note: isPacked=false because we're filtering by a specific component's alive mask,
+        // not just checking if any component is alive. mDefragmentSize==0 only means no dead
+        // sectors, not that all sectors have this specific component.
+        TS_GUARD(TS, SHARED, return IteratorAlive(this, 0, sizeImpl(), getLayoutData<T>().isAliveMask, false);); 
+    }
+    template<bool TS = ThreadSafe> 
+    IteratorAlive endAlive() const { 
+        TS_GUARD(TS, SHARED, return IteratorAlive(this, sizeImpl(), sizeImpl(), 0, true);); 
+    }
+
+    class RangedIterator {
+    public:
+        ITERATOR_COMMON_USING(RangedIterator)
+
+        RangedIterator(const SectorsArray* array, const Ranges<SectorId>& ranges)
+            : mChunks(array->mAllocator.mChunks.data())
+            , mChunksCount(array->mAllocator.mChunks.size())
+            , mStride(array->mAllocator.mSectorSize) {
+            // Load atomic view snapshot for thread-safe access
+            auto view = array->mDenseArrays.loadView();
+            mIds = view.ids;
+            mIsAlive = view.isAlive;
+            mSize = view.size;
+            // Convert SectorId ranges to linear index ranges
+            for (const auto& [first, last] : ranges.ranges) {
+                size_t beginIdx = lowerBound(first);
+                size_t endIdx = lowerBound(last);
+                if (beginIdx < endIdx) {
+                    mLinearRanges.push_back({beginIdx, endIdx});
+                }
+            }
+            if (!mLinearRanges.empty()) {
+                mRangeIdx = 0;
+                mIdx = mLinearRanges[0].first;
+                updatePtrFromIdx();
+            } else {
+                mIdx = mSize;
+            }
+        }
+
+        FORCE_INLINE value_type operator*() const {
+            // Acquire-load the alive word so a set bit synchronizes-with the
+            // release in Sector::markAlive<true>, making the component bytes visible.
+            return SlotInfo{
+                mIds[mIdx],
+                loadAliveAcquire(mIsAlive, mIdx),
+                mDataPtr,
+                mIdx
+            };
+        }
+
+        FORCE_INLINE RangedIterator& operator++() noexcept {
+            ++mIdx;
+            ++mInChunkIdx;
+            mDataPtr += mStride;
+            if (mInChunkIdx >= Allocator::mChunkCapacity) [[unlikely]] {
+                mInChunkIdx = 0;
+                ++mChunkIdx;
+                if (mChunkIdx < mChunksCount) {
+                    mDataPtr = static_cast<std::byte*>(mChunks[mChunkIdx]);
+                }
+            }
+            // Check range boundary (now using linear index ranges)
+            if (mIdx >= mLinearRanges[mRangeIdx].second) [[unlikely]] {
+                advanceToNextRange();
+            }
+            return *this;
+        }
+
+        FORCE_INLINE void advanceToLinearIdx(size_t targetIdx) {
+            if (mIdx >= targetIdx) return;
+            mIdx = targetIdx;
+            clampToRangeAndUpdatePtr();
+        }
+
+        FORCE_INLINE bool operator==(const RangedIterator& other) const noexcept { return mIdx == other.mIdx; }
+        FORCE_INLINE size_t linearIndex() const noexcept { return mIdx; }
+        FORCE_INLINE std::byte* rawPtr() const noexcept { return mDataPtr; }
+        FORCE_INLINE explicit operator bool() const noexcept { return mIdx < mSize && mRangeIdx < mLinearRanges.size(); }
+
+    private:
+        FORCE_INLINE size_t lowerBound(SectorId sectorId) const {
+            size_t left = 0, right = mSize;
+            while (left < right) {
+                size_t mid = left + (right - left) / 2;
+                if (mIds[mid] < sectorId) {
+                    left = mid + 1;
+                } else {
+                    right = mid;
+                }
+            }
+            return left;
+        }
+
+        FORCE_INLINE void advanceToNextRange() {
+            ++mRangeIdx;
+            if (mRangeIdx < mLinearRanges.size()) {
+                mIdx = mLinearRanges[mRangeIdx].first;
+                updatePtrFromIdx();
+            } else {
+                mIdx = mSize;
+                mDataPtr = nullptr;
+            }
+        }
+
+        FORCE_INLINE void clampToRangeAndUpdatePtr() {
+            while (mRangeIdx < mLinearRanges.size()) {
+                if (mIdx < mLinearRanges[mRangeIdx].second && mIdx >= mLinearRanges[mRangeIdx].first) {
+                    updatePtrFromIdx();
+                    return;
+                }
+                if (mIdx >= mLinearRanges[mRangeIdx].second) {
+                    ++mRangeIdx;
+                    if (mRangeIdx < mLinearRanges.size()) {
+                        mIdx = mLinearRanges[mRangeIdx].first;
+                    }
+                } else {
+                    mIdx = mLinearRanges[mRangeIdx].first;
+                }
+            }
+            mIdx = mSize;
+            mDataPtr = nullptr;
+        }
+
+        FORCE_INLINE void updatePtrFromIdx() {
+            mChunkIdx = mIdx >> Allocator::mChunkShift;
+            mInChunkIdx = mIdx & (Allocator::mChunkCapacity - 1);
+            if (mChunkIdx < mChunksCount) {
+                mDataPtr = static_cast<std::byte*>(mChunks[mChunkIdx]) + mInChunkIdx * mStride;
+            } else {
+                mDataPtr = nullptr;
+            }
+        }
+
+        const SectorId* mIds = nullptr;
+        const uint32_t* mIsAlive = nullptr;
+        void* const* mChunks = nullptr;
+        std::byte* mDataPtr = nullptr;
+        size_t mChunksCount = 0;
+        size_t mChunkIdx = 0;
+        size_t mInChunkIdx = 0;
+        std::vector<std::pair<size_t, size_t>> mLinearRanges;  
+        size_t mIdx = 0;
+        size_t mSize = 0;
+        size_t mRangeIdx = 0;
+        uint16_t mStride = 0;
+    };
+
+    template<bool TS = ThreadSafe> 
+    RangedIterator beginRanged(const Ranges<SectorId>& ranges) const { 
+        TS_GUARD(TS, SHARED, return RangedIterator(this, ranges);); 
+    }
+    template<bool TS = ThreadSafe> 
+    RangedIterator endRanged() const { 
+        TS_GUARD(TS, SHARED, return RangedIterator(this, Ranges<SectorId>{});); 
+    }
+
+    // ==================== Copy / Move ====================
+
+    template<bool T, typename Alloc>
+    SectorsArray(const SectorsArray<T, Alloc>& other) { *this = other; }
+    SectorsArray(const SectorsArray& other) { *this = other; }
+
+    template<bool T, typename Alloc>
+    SectorsArray& operator=(const SectorsArray<T, Alloc>& other) { if (!isSameAdr(this, &other)) { copy(other); } return *this; }
+    SectorsArray& operator=(const SectorsArray& other) { if (this != &other) { copy(other); } return *this; }
+
+    template<bool T, typename Alloc>
+    SectorsArray(SectorsArray<T, Alloc>&& other) noexcept { *this = std::move(other); }
+    SectorsArray(SectorsArray&& other) noexcept { *this = std::move(other); }
+
+    template<bool T, typename Alloc>
+    SectorsArray& operator=(SectorsArray<T, Alloc>&& other) noexcept { if (!isSameAdr(this, &other)) { move(std::move(other)); } return *this; }
+    SectorsArray& operator=(SectorsArray&& other) noexcept { if (this != &other) { move(std::move(other)); } return *this; }
+
+private:
+    SectorsArray(SectorLayoutMeta* meta, Allocator&& allocator = {}) : mAllocator(std::move(allocator)) {
+        mAllocator.init(meta);
+        mSparseMap.storeView();
+    }
+
+public:
+    ~SectorsArray() { clear(); shrinkToFit(); }
+
+    template <typename... Types>
+    static SectorsArray* create(Allocator&& allocator = {}) {
+        static_assert(types::areUnique<Types...>, "Duplicates detected in SectorsArray types!");
+        static SectorLayoutMeta* meta = SectorLayoutMeta::create<Types...>();
+        return new SectorsArray(meta, std::move(allocator));
+    }
+
+    // ==================== Layout helpers ====================
+
+    template<typename T>
+    FORCE_INLINE const LayoutData& getLayoutData() const { return getLayout()->template getLayoutData<T>(); }
+
+    FORCE_INLINE SectorLayoutMeta* getLayout() const { return mAllocator.getSectorLayout(); }
+
+    // ==================== Pin API (ThreadSafe builds) ====================
+
+    template<bool TS = true>
+    [[nodiscard]] PinnedSector pinSector(SectorId id) const requires(ThreadSafe) {
+        TS_GUARD(TS, SHARED, return pinSectorImpl(id););
+    }
+
+    template<bool TS = true>
+    [[nodiscard]] PinnedSector pinSectorAt(size_t idx) const requires(ThreadSafe) {
+        if constexpr (TS) {
+            SHARED_LOCK();
+            return pinSectorAtImpl(idx);
+        } else {
+            return pinSectorAtImpl(idx);
+        }
+    }
+
+    template<bool TS = true>
+    [[nodiscard]] PinnedSector pinBackSector() const requires(ThreadSafe) {
+        if constexpr (TS) {
+            SHARED_LOCK();
+            return pinBackSectorImpl();
+        } else {
+            return pinBackSectorImpl();
+        }
+    }
+
+    // ==================== Erase & maintenance ====================
+
+    template<bool TS = ThreadSafe>
+    void erase(size_t beginIdx, size_t count = 1, bool defragment = false) {
+        if constexpr(TS && ThreadSafe) {
+            UNIQUE_LOCK();
+            if (beginIdx >= sizeImpl()) return;
+            mPinsCounter.waitUntilChangeable(mDenseArrays.idAt(beginIdx));
+            eraseRangeImpl(beginIdx, count, defragment);
+        } else {
+            if (beginIdx >= sizeImpl()) return;
+            eraseRangeImpl(beginIdx, count, defragment);
+        }
+    }
+
+    template<bool TS = ThreadSafe>
+    Iterator erase(Iterator it, bool defragment = false) noexcept {
+        auto idx = it.linearIndex();
+        if (idx >= sizeImpl()) return it;
+        TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable(mDenseArrays.idAt(idx));, 
+            eraseRangeImpl(idx, 1, defragment);
+            return Iterator(this, idx);
+        );
+    }
+
+    void eraseAsync(SectorId id, size_t count = 1) requires(ThreadSafe) {
+        // Note: Uses shared_lock for initial lookup, unique_lock for actual modification.
+        // Early exit optimization if sector not found. Element deletion may be deferred.
+        for (auto i = id; i < id + count; ++i) {
+            eraseAsyncImpl(i);
+        }
+    }
+
+    // ==================== Lookup ====================
+
+    template<bool TS = ThreadSafe> 
+    size_t findLinearIdx(SectorId sectorId) const { 
+        TS_GUARD(TS && ThreadSafe, SHARED, return findLinearIdxImpl(sectorId)); 
+    }
+
+    template<bool TS = ThreadSafe> 
+    bool containsSector(SectorId id) const { 
+        TS_GUARD(TS && ThreadSafe, SHARED, return containsSectorImpl(id)); 
+    }
+
+    template<bool TS = ThreadSafe> 
+    std::byte* findSectorData(SectorId id) const { 
+        TS_GUARD(TS && ThreadSafe, SHARED, return findSectorDataImpl(id)); 
+    }
+
+    template<bool TS = ThreadSafe>
+    detail::SlotInfo findSlot(SectorId id) const {
+        TS_GUARD(TS && ThreadSafe, SHARED, return findSlotImpl(id));
+    }
+
+    template<bool TS = ThreadSafe>
+    uint32_t getIsAlive(SectorId id) const {
+        TS_GUARD(TS && ThreadSafe, SHARED, 
+            auto idx = findLinearIdxImpl(id);
+            return idx != INVALID_IDX ? mDenseArrays.isAliveAt(idx) : 0;
+        );
+    }
+
+    template<bool TS = ThreadSafe>
+    uint32_t& getIsAliveRef(size_t linearIdx) {
+        return mDenseArrays.isAliveAt(linearIdx);
+    }
+
+    template<bool TS = ThreadSafe>
+    FORCE_INLINE uint32_t loadAliveWord(size_t linearIdx) const noexcept {
+        if constexpr (TS) {
+            auto view = mDenseArrays.loadView();
+            if (linearIdx >= view.size) [[unlikely]] return 0;
+            return loadAliveAcquire(view.isAlive, linearIdx);
+        } else {
+            return mDenseArrays.isAliveAt(linearIdx);
+        }
+    }
+
+    template<bool TS = ThreadSafe>
+    SectorId getId(size_t linearIdx) const {
+        return mDenseArrays.idAt(linearIdx);
+    }
+
+    // ==================== Capacity ====================
+
+    template<bool TS = ThreadSafe> size_t sparseCapacity() const { TS_GUARD(TS && ThreadSafe, SHARED, return mSparseMap.capacity()); }
+    template<bool TS = ThreadSafe> size_t capacity() const { TS_GUARD(TS && ThreadSafe, SHARED, return mAllocator.capacity()); }
+    template<bool TS = ThreadSafe> size_t size() const { TS_GUARD(TS && ThreadSafe, SHARED, return sizeImpl()); }
+    template<bool TS = ThreadSafe> bool empty() const { TS_GUARD(TS && ThreadSafe, SHARED, return sizeImpl() == 0); }
+    template<bool TS = ThreadSafe> void shrinkToFit() { TS_GUARD(TS && ThreadSafe, UNIQUE, shrinkToFitImpl()); }
+
+    template<bool TS = ThreadSafe> void reserve(uint32_t newCapacity) { TS_GUARD(TS && ThreadSafe, UNIQUE, reserveImpl(newCapacity)); }
+    template<bool TS = ThreadSafe> void clear() { TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable();, clearImpl();); }
+
+    // ==================== Defragmentation ====================
+
+    template<bool TS = ThreadSafe>
+    void defragment() { TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable();, defragmentImpl();); }
+
+    template<bool TS = ThreadSafe>
+    void tryDefragment() { TS_GUARD_S(TS && ThreadSafe, UNIQUE, if (mPinsCounter.isArrayLocked()) return;, defragmentImpl();); }
+
+    void incDefragmentSize(uint32_t count = 1) { mDefragmentSize.fetch_add(count, std::memory_order_relaxed); }
+
+    template<bool TS = ThreadSafe> auto getDefragmentationSize() const { TS_GUARD(TS && ThreadSafe, SHARED, return mDefragmentSize.load(std::memory_order_relaxed);); }
+    template<bool TS = ThreadSafe> auto getDefragmentationRatio() const { 
+        TS_GUARD(TS && ThreadSafe, SHARED, auto sz = sizeImpl(); return sz ? (static_cast<float>(mDefragmentSize.load(std::memory_order_relaxed)) / static_cast<float>(sz)) : 0.f;); 
+    }
+    template<bool TS = ThreadSafe> bool needDefragment() const { 
+        TS_GUARD(TS && ThreadSafe, SHARED, return getDefragmentationRatio<false>() > mDefragThreshold;); 
+    }
+    template<bool TS = ThreadSafe> void setDefragmentThreshold(float threshold) { 
+        TS_GUARD(TS && ThreadSafe, UNIQUE, mDefragThreshold = std::max(0.f, std::min(threshold, 1.f));); 
+    }
+
+    // ==================== Retired Memory Management (ThreadSafe only) ====================
+
+    size_t tick() requires(ThreadSafe) { return tickRetired(); }
+
+    void setGracePeriod(uint32_t ticks) requires(ThreadSafe) { setRetireGracePeriod(ticks); }
+
+    // ==================== Insert / Emplace ====================
+
+    template<typename T, bool TS = ThreadSafe>
+    std::remove_cvref_t<T>* insert(SectorId sectorId, T&& data) {
+        TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable(sectorId);, 
+            return insertImpl(sectorId, std::forward<T>(data));
+        );
+    }
+
+    template<typename T, bool TS = ThreadSafe, class... Args>
+    T* emplace(SectorId sectorId, Args&&... args) {
+        TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable(sectorId);, 
+            return emplaceImpl<T>(sectorId, std::forward<Args>(args)...);
+        );
+    }
+
+    template<typename T, bool TS = ThreadSafe, class... Args>
+    T* push(SectorId sectorId, Args&&... args) {
+        if constexpr (sizeof...(Args) == 1 && (std::is_same_v<std::remove_cvref_t<Args>, T> && ...)) {
+            return insert<Args..., TS>(sectorId, std::forward<Args>(args)...);
+        } else {
+            return emplace<T, TS>(sectorId, std::forward<Args>(args)...);
+        }
+    }
+
+    template<bool Lock = true>
+    void processPendingErases(bool withDefragment = true) requires(ThreadSafe) {
+        if constexpr(Lock) {
+            auto lock = std::unique_lock(mtx);
+            processPendingErasesImpl(withDefragment);
+        } else {
+            processPendingErasesImpl(withDefragment);
+        }
+    }
+
+    // ==================== Lock access (for Registry) ====================
+    auto readLock() const requires(ThreadSafe) { return std::shared_lock(mtx); }
+    auto writeLock() const requires(ThreadSafe) { return std::unique_lock(mtx); }
+
+private:
+    struct Dummy{};
+    auto readLock() const requires(!ThreadSafe) { return Dummy{}; }
+    auto writeLock() const requires(!ThreadSafe) { return Dummy{}; }
+
+    // ==================== Implementation ====================
+
+    void drainAllRetired() {
+        mDenseArrays.drainRetired();
+        mSparseMap.drainRetired();
+        mAllocator.mBin.drainAll();
+    }
+
+    size_t tickRetired() {
+        size_t freed = 0;
+        freed += mDenseArrays.tickRetired();
+        freed += mSparseMap.tickRetired();
+        freed += mAllocator.mBin.tick();
+        return freed;
+    }
+
+    void setRetireGracePeriod(uint32_t ticks) {
+        mDenseArrays.setGracePeriod(ticks);
+        mSparseMap.setGracePeriod(ticks);
+        mAllocator.mBin.setGracePeriod(ticks);
+    }
+
+    FORCE_INLINE size_t sizeImpl() const { return mSize.load(std::memory_order_relaxed); }
+
+    FORCE_INLINE detail::SlotInfo findSlotImpl(SectorId id) const {
+        return mSparseMap.find(id);
+    }
+
+    FORCE_INLINE uint32_t findLinearIdxImpl(SectorId id) const {
+        return mSparseMap.findLinearIdx(id);
+    }
+
+    FORCE_INLINE bool containsSectorImpl(SectorId id) const {
+        return mSparseMap.find(id).isValid();
+    }
+
+    FORCE_INLINE std::byte* findSectorDataImpl(SectorId id) const {
+        return mSparseMap.find(id).data;
+    }
+
+    [[nodiscard]] PinnedSector pinSectorImpl(SectorId id) const requires(ThreadSafe) {
+        auto slot = mSparseMap.find(id);
+        if (!slot) return PinnedSector{};
+        // Use loadAliveWord (seqlock + bounds-checked) instead of mDenseArrays.isAliveAt:
+        // slot.linearIdx can be stale relative to the live dense arrays if a shrink
+        // or reshuffle is in flight, which would turn a direct isAliveAt() into an
+        // out-of-bounds read. loadAliveWord returns 0 ("not alive") for out-of-range
+        // indices, which is the correct conservative answer at the pin point.
+        return PinnedSector(mPinsCounter, id, slot.data, loadAliveWord<ThreadSafe>(slot.linearIdx));
+    }
+
+    [[nodiscard]] PinnedSector pinSectorAtImpl(size_t idx) const requires(ThreadSafe) {
+        if (idx >= sizeImpl()) return PinnedSector{};
+        return PinnedSector(mPinsCounter, mDenseArrays.idAt(idx), mAllocator.at(idx), mDenseArrays.isAliveAt(idx));
+    }
+
+    [[nodiscard]] PinnedSector pinBackSectorImpl() const requires(ThreadSafe) {
+        auto sz = sizeImpl();
+        if (sz == 0) return PinnedSector{};
+        return PinnedSector(mPinsCounter, mDenseArrays.idAt(sz-1), mAllocator.at(sz-1), mDenseArrays.isAliveAt(sz-1));
+    }
+
+    void shrinkToFitImpl() {
+        mAllocator.deallocate(sizeImpl(), mAllocator.capacity());
+        mDenseArrays.shrinkToFit();
+    }
+
+    void clearImpl() {
+        auto sz = sizeImpl();
+        if (sz) {
+            if (!getLayout()->isTrivial()) {
+                for (size_t i = 0; i < sz; ++i) {
+                    Sector::destroySectorData<ThreadSafe>(mAllocator.at(i), mDenseArrays.isAliveAt(i), getLayout());
+                }
+            }
+            // Clear sparse map
+            std::fill(mSparseMap.sparse.begin(), mSparseMap.sparse.end(), detail::INVALID_SLOT);
+            mDenseArrays.clear(0);
+            mPendingErase.clear();
+            mSize.store(0, std::memory_order_relaxed);
+            mDefragmentSize.store(0, std::memory_order_relaxed);
+            // Note: retired memory is drained on destruction, not here
+            // to avoid freeing memory while readers might still hold view pointers
+        }
+    }
+
+    void reserveImpl(uint32_t newCapacity) {
+        if (mAllocator.capacity() < newCapacity) {
+            mAllocator.allocate(newCapacity);
+            mDenseArrays.reserve(newCapacity);
+        }
+        if (mSparseMap.capacity() < newCapacity) {
+            mSparseMap.resize(newCapacity);
+        }
+        if constexpr (ThreadSafe) {
+            if (newCapacity > 0) {
+                mPinsCounter.reserve(newCapacity - 1);
+            }
+        }
+    }
+
+    size_t findInsertPositionImpl(SectorId sectorId, size_t validSize) const {
+        if (validSize == 0) return 0;
+        if (mDenseArrays.idAt(validSize - 1) < sectorId) return validSize;
+        if (mDenseArrays.idAt(0) > sectorId) return 0;
+
+        // Binary search
+        size_t left = 0, right = validSize;
+        while (right - left > 1) {
+            size_t mid = left + (right - left) / 2;
+            if (mDenseArrays.idAt(mid) < sectorId) left = mid;
+            else right = mid;
+        }
+        return right;
+    }
+
+    size_t acquireSlotImpl(SectorId sectorId) {
+        // Expand sparse map if needed
+        if (sectorId >= mSparseMap.capacity()) [[unlikely]] {
+            mSparseMap.resize(static_cast<size_t>(sectorId) + 1);
+        }
+
+        // Check if already exists (thread-safe read)
+        auto existingSlot = mSparseMap.find(sectorId);
+        if (existingSlot.isValid()) [[unlikely]] {
+            return existingSlot.linearIdx;
+        }
+
+        // Ensure chunk memory available
+        auto sz = sizeImpl();
+        mAllocator.allocate(sz + 1);
+
+        const size_t pos = sz;
+        const bool isAppend = (pos == 0) || (sectorId > mDenseArrays.idAt(pos - 1));
+        
+        if (isAppend) [[likely]] {
+            mDenseArrays.pushBack(sectorId, 0);
+            mSparseMap.set(sectorId, detail::SlotInfo{ mAllocator.at(pos), static_cast<uint32_t>(pos) });
+            mSize.store(sz + 1, std::memory_order_relaxed);
+            mDenseArrays.storeView(sz + 1);
+            return pos;
+        }
+        
+        mDenseArrays.resize(sz + 1, sz);
+        mSize.store(sz + 1, std::memory_order_relaxed);
+        
+        size_t insertPos = findInsertPositionImpl(sectorId, pos);
+        if (insertPos != sz) {
+            // Shift moves all sectors from insertPos onwards - wait for pins if any exist
+            if constexpr (ThreadSafe) {
+                if (mPinsCounter.isArrayLocked()) {
+                    mPinsCounter.waitUntilChangeable();
+                }
+            }
+            shiftRightImpl(insertPos, 1);
+        }
+
+        mDenseArrays.idAt(insertPos) = sectorId;
+        mDenseArrays.isAliveAt(insertPos) = 0;
+        // Store data pointer + linear index (linearIdx written first, then data atomically)
+        mSparseMap.set(sectorId, detail::SlotInfo{ mAllocator.at(insertPos), static_cast<uint32_t>(insertPos) });
+        
+        mDenseArrays.storeView(sizeImpl());
+
+        return insertPos;
+    }
+
+    void shiftRightImpl(size_t from, size_t count) {
+        const size_t oldSize = sizeImpl() - count;
+        const size_t tail = oldSize > from ? (oldSize - from) : 0;
+        if (!tail) return;
+
+        // Move component data (iterate backwards to avoid overwriting)
+        if (getLayout()->isTrivial()) {
+        mAllocator.moveSectorsDataTrivial(from + count, from, tail);
+        } else {
+            for (size_t i = tail; i > 0; --i) {
+                size_t srcIdx = from + i - 1;
+                size_t dstIdx = from + count + i - 1;
+                Sector::moveSectorData(
+                    mAllocator.at(srcIdx), mDenseArrays.isAliveAt(srcIdx),
+                    mAllocator.at(dstIdx), mDenseArrays.isAliveAt(dstIdx),
+                    getLayout());
+            }
+        }
+
+        // Shift metadata and update sparse map with new pointers
+        for (size_t i = oldSize + count - 1; i >= from + count; --i) {
+            mDenseArrays.idAt(i) = mDenseArrays.idAt(i - count);
+            if (getLayout()->isTrivial()) {
+                mDenseArrays.isAliveAt(i) = mDenseArrays.isAliveAt(i - count);
+            }
+            mSparseMap.set(mDenseArrays.idAt(i), detail::SlotInfo{ mAllocator.at(i), static_cast<uint32_t>(i) });
+        }
+    }
+
+    void shiftLeftImpl(size_t from, size_t count) {
+        if (from < count) return;
+        auto sz = sizeImpl();
+        const size_t tail = from > sz ? 0 : sz - from;
+        if (!tail) return;
+
+        // Move component data (iterate forwards)
+        if (getLayout()->isTrivial()) {
+        mAllocator.moveSectorsDataTrivial(from - count, from, tail);
+        } else {
+            for (size_t i = 0; i < tail; ++i) {
+                size_t srcIdx = from + i;
+                size_t dstIdx = from - count + i;
+                Sector::moveSectorData(
+                    mAllocator.at(srcIdx), mDenseArrays.isAliveAt(srcIdx),
+                    mAllocator.at(dstIdx), mDenseArrays.isAliveAt(dstIdx),
+                    getLayout());
+            }
+        }
+
+        // Shift metadata and update sparse map with new pointers
+        for (size_t i = from - count; i < from - count + tail; ++i) {
+            mDenseArrays.idAt(i) = mDenseArrays.idAt(i + count);
+            if (getLayout()->isTrivial()) {
+                mDenseArrays.isAliveAt(i) = mDenseArrays.isAliveAt(i + count);
+            }
+            mSparseMap.set(mDenseArrays.idAt(i), detail::SlotInfo{ mAllocator.at(i), static_cast<uint32_t>(i) });
+        }
+    }
+
+    template<typename T>
+    std::remove_reference_t<T>* insertImpl(SectorId sectorId, T&& data) {
+        using U = std::remove_cvref_t<T>;
+
+        size_t pos = acquireSlotImpl(sectorId);
+        std::byte* slotData = mAllocator.at(pos);
+
+        const auto& layout = getLayoutData<U>();
+        if constexpr (std::is_lvalue_reference_v<T>) {
+            return Sector::copyMember<U, ThreadSafe>(data, slotData, mDenseArrays.isAliveAt(pos), layout);
+        } else {
+            return Sector::moveMember<U, ThreadSafe>(std::forward<T>(data), slotData, mDenseArrays.isAliveAt(pos), layout);
+        }
+    }
+
+    template<typename T, class... Args>
+    T* emplaceImpl(SectorId sectorId, Args&&... args) {
+        size_t pos = acquireSlotImpl(sectorId);
+        std::byte* slotData = mAllocator.at(pos);
+        return Sector::emplaceMember<T, ThreadSafe>(slotData, mDenseArrays.isAliveAt(pos), getLayoutData<T>(), std::forward<Args>(args)...);
+    }
+
+    void eraseRangeImpl(size_t beginIdx, size_t count, bool defragment) {
+        count = std::min(count, sizeImpl() - beginIdx);
+        for (size_t i = beginIdx; i < beginIdx + count; ++i) {
+            auto id = mDenseArrays.idAt(i);
+            if (id < mSparseMap.capacity()) {
+                mSparseMap.set(id, detail::INVALID_SLOT);
+            }
+            Sector::destroySectorData<ThreadSafe>(mAllocator.at(i), mDenseArrays.isAliveAt(i), getLayout());
+        }
+
+        if (defragment) {
+            shiftLeftImpl(beginIdx + count, count);
+            auto newSz = sizeImpl() - count;
+            mSize.store(newSz, std::memory_order_relaxed);
+            mDenseArrays.resize(newSz, newSz);
+            mDenseArrays.storeView(newSz);
+        } else {
+            incDefragmentSize(static_cast<uint32_t>(count));
+        }
+    }
+
+    void eraseAsyncImpl(SectorId id) requires(ThreadSafe) {
+        // Initial check with shared lock - early exit optimization
+        {
+            SHARED_LOCK();
+            if (findLinearIdxImpl(id) == INVALID_IDX) return;
+        }
+
+        if (!mPinsCounter.isPinned(id)) {
+            UNIQUE_LOCK();
+            // Re-read under unique lock to ensure consistency
+            auto idx = findLinearIdxImpl(id);
+            if (idx == INVALID_IDX) return;
+            
+            if (mPinsCounter.canMoveSector(id)) {
+                mSparseMap.set(id, detail::INVALID_SLOT);
+                Sector::destroySectorData<ThreadSafe>(mAllocator.at(idx), mDenseArrays.isAliveAt(idx), getLayout());
+                incDefragmentSize();
+            } else {
+                mPendingErase.push_back(id);
+            }
+        } else {
+            UNIQUE_LOCK();
+            mPendingErase.push_back(id);
+        }
+    }
+
+    void processPendingErasesImpl(bool withDefragment) requires(ThreadSafe) {
+        if (mPendingErase.empty()) {
+            if (needDefragment<false>() && withDefragment) {
+                mPinsCounter.waitUntilChangeable();
+                defragmentImpl();
+            }
+            return;
+        }
+
+        auto tmp = std::move(mPendingErase);
+        std::ranges::sort(tmp);
+        tmp.erase(std::ranges::unique(tmp).begin(), tmp.end());
+
+        for (auto id : tmp) {
+            auto idx = findLinearIdxImpl(id);
+            if (idx == INVALID_IDX) continue;
+
+            if (mPinsCounter.canMoveSector(id)) {
+                mSparseMap.set(id, detail::INVALID_SLOT);
+                Sector::destroySectorData<ThreadSafe>(mAllocator.at(idx), mDenseArrays.isAliveAt(idx), getLayout());
+                incDefragmentSize();
+            } else {
+                mPendingErase.push_back(id);
+            }
+        }
+
+        if (needDefragment<false>() && withDefragment) {
+            mPinsCounter.waitUntilChangeable();
+            defragmentImpl();
+        }
+    }
+
+    void defragmentImpl() {
+        if constexpr (ThreadSafe) {
+            if (mPinsCounter.isArrayLocked()) return;
+        }
+
+        size_t read = 0, write = 0, deleted = 0;
+        const size_t n = sizeImpl();
+        const bool isTrivial = getLayout()->isTrivial();
+
+        while (read < n) {
+            // Skip dead slots
+            while (read < n && !Sector::isSectorAlive(mDenseArrays.isAliveAt(read))) {
+                mSparseMap.set(mDenseArrays.idAt(read), detail::INVALID_SLOT);
+                ++read; ++deleted;
+            }
+            if (read >= n) break;
+
+            // Find run of alive slots
+            size_t runBeg = read;
+            while (read < n && Sector::isSectorAlive(mDenseArrays.isAliveAt(read))) {
+                ++read;
+            }
+            const size_t runLen = read - runBeg;
+
+            // Move run to write position
+            if (write != runBeg) {
+                if (isTrivial) {
+                    // Trivial types: fast memmove
+                mAllocator.moveSectorsDataTrivial(write, runBeg, runLen);
+                for (size_t i = 0; i < runLen; ++i) {
+                        mDenseArrays.idAt(write + i) = mDenseArrays.idAt(runBeg + i);
+                        mDenseArrays.isAliveAt(write + i) = mDenseArrays.isAliveAt(runBeg + i);
+                        mSparseMap.set(mDenseArrays.idAt(write + i), detail::SlotInfo{ mAllocator.at(write + i), static_cast<uint32_t>(write + i) });
+                    }
+                } else {
+                    // Non-trivial types: proper move semantics for each sector
+                    // moveSectorData handles isAlive state, we just need to update id and sparse map
+                    for (size_t i = 0; i < runLen; ++i) {
+                        Sector::moveSectorData(
+                            mAllocator.at(runBeg + i), mDenseArrays.isAliveAt(runBeg + i),
+                            mAllocator.at(write + i), mDenseArrays.isAliveAt(write + i),
+                            getLayout());
+                        mDenseArrays.idAt(write + i) = mDenseArrays.idAt(runBeg + i);
+                        mSparseMap.set(mDenseArrays.idAt(write + i), detail::SlotInfo{ mAllocator.at(write + i), static_cast<uint32_t>(write + i) });
+                    }
+                }
+            }
+            write += runLen;
+        }
+
+        auto newSz = n - deleted;
+        mSize.store(newSz, std::memory_order_relaxed);
+        auto curDefrag = mDefragmentSize.load(std::memory_order_relaxed);
+        mDefragmentSize.store(curDefrag - std::min(curDefrag, static_cast<uint32_t>(deleted)), std::memory_order_relaxed);
+        mDenseArrays.resize(newSz, newSz);
+        mDenseArrays.storeView(newSz);
+        shrinkToFitImpl();
+    }
+
+    template<bool T, typename Alloc>
+    void copy(const SectorsArray<T, Alloc>& other) {
+        if constexpr (ThreadSafe || T) {
+            auto lock = writeLock();
+            auto otherLock = other.readLock();
+            if constexpr (ThreadSafe) {
+                mPinsCounter.waitUntilChangeable();
+            }
+            copyImpl(other);
+        } else {
+            copyImpl(other);
+        }
+    }
+
+    template<bool T, typename Alloc>
+    void copyImpl(const SectorsArray<T, Alloc>& other) {
+        clearImpl();
+        shrinkToFitImpl();
+
+        auto otherSz = other.sizeImpl();
+        mSize.store(otherSz, std::memory_order_relaxed);
+        
+        // Copy layout metadata first - required before we can check isTrivial()
+        mAllocator.copyCommonData(other.mAllocator);
+        
+        // For non-trivial types, we must NOT use ChunksAllocator's memcpy-based copy!
+        // Instead: allocate chunks, then properly copy-construct each member via layout.
+        if (getLayout()->isTrivial()) {
+            mAllocator = other.mAllocator;
+        } else {
+            mAllocator.allocate(otherSz);
+        }
+        
+        mDenseArrays.resize(otherSz, otherSz);
+        for (size_t i = 0; i < otherSz; ++i) {
+            mDenseArrays.idAt(i) = other.mDenseArrays.idAt(i);
+            mDenseArrays.isAliveAt(i) = other.mDenseArrays.isAliveAt(i);
+        }
+        mDenseArrays.storeView(otherSz);
+        
+        if (!getLayout()->isTrivial()) {
+            for (size_t i = 0; i < otherSz; ++i) {
+                uint32_t srcIsAlive = other.mDenseArrays.isAliveAt(i);
+                uint32_t dstIsAlive = 0;
+                Sector::copySectorData(
+                    other.mAllocator.at(i), srcIsAlive,
+                    mAllocator.at(i), dstIsAlive,
+                    getLayout());
+                mDenseArrays.isAliveAt(i) = dstIsAlive;
+            }
+            mDenseArrays.storeView(otherSz);
+        }
+        
+        mSparseMap.resize(other.mSparseMap.capacity());
+        for (size_t i = 0; i < otherSz; ++i) {
+            mSparseMap.set(mDenseArrays.idAt(i), detail::SlotInfo{ mAllocator.at(i), static_cast<uint32_t>(i) });
+        }
+
+        mDefragmentSize.store(other.mDefragmentSize.load(std::memory_order_relaxed), std::memory_order_relaxed);
+        mDefragThreshold = other.mDefragThreshold;
+    }
+
+    template<bool T, typename Alloc>
+    void move(SectorsArray<T, Alloc>&& other) {
+        if constexpr (ThreadSafe || T) {
+            auto lock = writeLock();
+            auto otherLock = other.writeLock();
+            if constexpr (ThreadSafe) {
+                mPinsCounter.waitUntilChangeable();
+            }
+            if constexpr (T) {
+                other.mPinsCounter.waitUntilChangeable();
+            }
+            moveImpl(std::move(other));
+        } else {
+            moveImpl(std::move(other));
+        }
+    }
+
+    template<bool T, typename Alloc>
+    void moveImpl(SectorsArray<T, Alloc>&& other) {
+        clearImpl();
+        shrinkToFitImpl();
+
+        auto otherSz = other.sizeImpl();
+        mSize.store(otherSz, std::memory_order_relaxed);
+        mAllocator = std::move(other.mAllocator);
+        
+        mDenseArrays.resize(otherSz, otherSz);
+        for (size_t i = 0; i < otherSz; ++i) {
+            mDenseArrays.idAt(i) = other.mDenseArrays.idAt(i);
+            mDenseArrays.isAliveAt(i) = other.mDenseArrays.isAliveAt(i);
+        }
+        mDenseArrays.storeView(otherSz);
+        
+        mSparseMap.resize(other.mSparseMap.capacity());
+        for (size_t i = 0; i < otherSz; ++i) {
+            mSparseMap.set(mDenseArrays.idAt(i), detail::SlotInfo{ mAllocator.at(i), static_cast<uint32_t>(i) });
+        }
+
+        mDefragmentSize.store(other.mDefragmentSize.load(std::memory_order_relaxed), std::memory_order_relaxed);
+        mDefragThreshold = other.mDefragThreshold;
+        
+        other.mSize.store(0, std::memory_order_relaxed);
+        other.mDenseArrays.clear(0);
+        other.shrinkToFitImpl();
+    }
+
+    template<bool UseLock>
+    static consteval void enforceTSMode() {
+        if constexpr (!ThreadSafe && UseLock) {
+            static_assert(!UseLock, "Invalid use: TS=true on SectorsArray<ThreadSafe=false>");
+        }
+    }
+
+private:
+    Allocator mAllocator;
+
+    // SoA data: parallel arrays indexed by linearIdx (with atomic view for thread-safe iteration)
+    detail::DenseArrays<ThreadSafe> mDenseArrays;
+
+    // Sparse map: [sectorId] -> linearIdx
+    detail::SparseMap<ThreadSafe> mSparseMap;
+
+    mutable std::conditional_t<ThreadSafe, std::shared_mutex, Dummy> mtx;
+    mutable std::conditional_t<ThreadSafe, Threads::PinCounters, Dummy> mPinsCounter;
+
+    std::vector<SectorId> mPendingErase;
+
+    std::atomic<size_t> mSize{0};
+    float mDefragThreshold = 0.2f;
+    std::atomic<uint32_t> mDefragmentSize{0};
+};
+
+#undef SHARED_LOCK
+#undef UNIQUE_LOCK
+#undef TS_GUARD
+#undef TS_GUARD_S
+#undef ITERATOR_COMMON_USING
+
+} // namespace ecss::Memory
+```
+
+

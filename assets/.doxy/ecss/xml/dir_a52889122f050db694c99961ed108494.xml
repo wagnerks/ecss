@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_a52889122f050db694c99961ed108494" kind="dir">
+    <compoundname>html</compoundname>
+    <innerfile refid="templ_2html_2annotated_8html">templ/html/annotated.html</innerfile>
+    <innerfile refid="class__test-members_8html">class_test-members.html</innerfile>
+    <innerfile refid="templ_2html_2class__test_8html">templ/html/class_test.html</innerfile>
+    <innerfile refid="class__test__3__01__t__01__5__01__4-members_8html">class_test_3_01_t_01_5_01_4-members.html</innerfile>
+    <innerfile refid="class__test__3__01__t__01__5__01__4_8html">class_test_3_01_t_01_5_01_4.html</innerfile>
+    <innerfile refid="class__test__3__01void__01__5__00__01200__01__4-members_8html">class_test_3_01void_01_5_00_01200_01_4-members.html</innerfile>
+    <innerfile refid="class__test__3__01void__01__5__00__01200__01__4_8html">class_test_3_01void_01_5_00_01200_01_4.html</innerfile>
+    <innerfile refid="templ_2html_2classes_8html">templ/html/classes.html</innerfile>
+    <innerfile refid="examples_2templ_2html_2doxygen__crawl_8html">examples/templ/html/doxygen_crawl.html</innerfile>
+    <innerfile refid="templ_2html_2functions_8html">templ/html/functions.html</innerfile>
+    <innerfile refid="templ_2html_2functions__func_8html">templ/html/functions_func.html</innerfile>
+    <innerfile refid="templ_2html_2hierarchy_8html">templ/html/hierarchy.html</innerfile>
+    <innerfile refid="examples_2templ_2html_2index_8html">examples/templ/html/index.html</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/templ/html/"/>
+  </compounddef>
+</doxygen>
