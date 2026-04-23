@@ -652,17 +652,28 @@ namespace ecss {
 		 */
 		void destroyEntity(EntityId entityId) noexcept {
 			if constexpr (ThreadSafe) {
+				// Presence check: cheap early-out without acquiring the write lock.
+				{
+					auto lock = std::shared_lock(mEntitiesMutex);
+					if (!mEntities.contains(entityId)) return;
+				}
+				// Destroy components FIRST, under each array's write lock. If a
+				// concurrent destroyEntity(same id) races us, per-array destroy
+				// is idempotent and safe.
+				destroySector(entityId);
+				// Release the id back to the free pool only AFTER components are gone.
+				// This closes the window where a concurrent takeEntity() could recycle
+				// the id while destroySector was still walking component arrays and
+				// would subsequently destroy the newly-emplaced components.
 				{
 					auto lock = std::unique_lock(mEntitiesMutex);
-					if (!mEntities.contains(entityId)) return;
 					mEntities.erase(entityId);
 				}
-				destroySector(entityId);
 			}
 			else {
 				if (!mEntities.contains(entityId)) return;
-				mEntities.erase(entityId);
 				destroySector(entityId);
+				mEntities.erase(entityId);
 			}
 		}
 
@@ -1001,8 +1012,10 @@ namespace ecss {
 			if (!slotInfo) [[unlikely]] {
 				return nullptr;
 			}
-			// Atomic load (relaxed) to avoid data race with concurrent writes - no torn reads
-			auto isAlive = std::atomic_ref(arr->template getIsAliveRef<false>(slotInfo.linearIdx)).load(std::memory_order_relaxed);
+			// Route the alive-word read through the seqlock snapshot (loadView) so we
+			// don't race with concurrent push_back reallocating the isAlive vector.
+			// RetireAllocator keeps old buffers valid, so the snapshot is always safe.
+			auto isAlive = arr->loadAliveWord(slotInfo.linearIdx);
 			if (!(isAlive & info.typeAliveMask)) [[unlikely]] {
 				return nullptr;
 			}

@@ -15,9 +15,17 @@
 using namespace ecss;
 using namespace ecss::Memory;
 
-// Detect sanitizer builds for scaling down iteration counts
-#if defined(__SANITIZE_THREAD__) || defined(__has_feature)
-#  if defined(__SANITIZE_THREAD__) || __has_feature(thread_sanitizer)
+// Detect sanitizer builds for scaling down iteration counts.
+// gcc sets __SANITIZE_THREAD__ when TSan is on. clang does not -- it exposes
+// __has_feature(thread_sanitizer) instead. We must not reference
+// __has_feature(...) on gcc because gcc leaves it undefined, turning the token
+// into "0(thread_sanitizer)" and a preprocessor error. Gate each branch
+// separately so the expression is only evaluated on the compiler that supports
+// it.
+#if defined(__SANITIZE_THREAD__)
+#  define TSAN_ACTIVE 1
+#elif defined(__has_feature)
+#  if __has_feature(thread_sanitizer)
 #    define TSAN_ACTIVE 1
 #  endif
 #endif

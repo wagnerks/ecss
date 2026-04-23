@@ -7,6 +7,7 @@
 #include <cstddef>
 #include <vector>
 #include <mutex>
+#include <memory>
 #include <type_traits>
 
 namespace ecss::Threads {

@@ -84,7 +84,10 @@ namespace ecss::Memory {
 		template<bool ThreadSafe = false>
 		FORCE_INLINE void setAlive(uint32_t& isAliveData, uint32_t mask, bool value) noexcept {
 			if constexpr (ThreadSafe) {
-				if (value) std::atomic_ref(isAliveData).fetch_or(mask, std::memory_order_relaxed);
+				// Setting alive publishes freshly-constructed bytes -> release (pairs with
+				// the acquire load in IteratorAlive::operator*). Clearing has no data to
+				// publish on this path -> relaxed is sufficient.
+				if (value) std::atomic_ref(isAliveData).fetch_or(mask, std::memory_order_release);
 				else       std::atomic_ref(isAliveData).fetch_and(mask, std::memory_order_relaxed);
 			} else {
 				if (value) isAliveData |= mask;
@@ -95,7 +98,12 @@ namespace ecss::Memory {
 		template<bool ThreadSafe = false>
 		FORCE_INLINE void markAlive(uint32_t& isAliveData, uint32_t mask) noexcept {
 			if constexpr (ThreadSafe) {
-				std::atomic_ref(isAliveData).fetch_or(mask, std::memory_order_relaxed);
+				// Release: orders the component construction in emplaceMember() before
+				// the alive-bit publication so lockless readers in IteratorAlive::operator*
+				// (which acquire-loads the same word) observe the fully-constructed bytes.
+				// Cost: x86 unchanged (LOCK OR is already seq-cst).
+				// ARM64: one-instruction release barrier -- only on the mutation path.
+				std::atomic_ref(isAliveData).fetch_or(mask, std::memory_order_release);
 			} else {
 				isAliveData |= mask;
 			}
