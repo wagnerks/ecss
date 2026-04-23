@@ -30,6 +30,13 @@
 #include <utility>
 #include <vector>
 
+// CPU pause intrinsic for seqlock spin loops.
+// - MSVC: _mm_pause() via <intrin.h>
+// - GCC/Clang: __builtin_ia32_pause() / yield (compiler builtins, no header needed)
+#if defined(_MSC_VER)
+#  include <intrin.h>
+#endif
+
 #include <ecss/Ranges.h>
 #include <ecss/threads/PinCounters.h>
 #include <ecss/memory/ChunksAllocator.h>
@@ -254,10 +261,18 @@ namespace detail {
 			for (;;) {
 				uint64_t s1 = seq_.load(std::memory_order_acquire);
 				if (s1 & 1ull) { // odd = writer in progress, spin
-#if defined(__x86_64__) || defined(_M_X64) || defined(__i386__) || defined(_M_IX86)
+#if defined(_MSC_VER)
+#  if defined(_M_X64) || defined(_M_IX86)
+					_mm_pause();
+#  elif defined(_M_ARM64)
+					__yield();
+#  endif
+#else
+#  if defined(__x86_64__) || defined(__i386__)
 					__builtin_ia32_pause();
-#elif defined(__aarch64__) || defined(_M_ARM64)
+#  elif defined(__aarch64__)
 					__asm__ __volatile__("yield" ::: "memory");
+#  endif
 #endif
 					continue;
 				}
