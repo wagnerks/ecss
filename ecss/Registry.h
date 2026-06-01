@@ -313,6 +313,20 @@ namespace ecss {
 		}
 
 		/**
+		 * @brief Append-only bulk insert of component T for a sorted batch of (entity, value) pairs.
+		 * @tparam T Component type.
+		 * @tparam It Iterator over pair-like {EntityId, T}.
+		 * @param first,last Range of pairs. Ids MUST be strictly ascending and greater than any id
+		 *        already present in T's array (pure append; no overwrite, no middle insert).
+		 * @note Amortizes per-element overhead (existence check, insert-position search, view
+		 *       publish) and, in the TS build, the write lock and pin wait across the whole range.
+		 */
+		template <class T, class It>
+		void insertBulk(It first, It last) {
+			getComponentContainer<T>()->template insertBulk<T>(first, last);
+		}
+
+		/**
 		 * @brief Destroy component T for a single entity (does nothing if not present).
 		 * @tparam T Component type.
 		 * @param entity Entity id.
@@ -330,7 +344,7 @@ namespace ecss {
 						auto& isAlive = container->template getIsAliveRef<false>(idx);
 						auto before = isAlive;
 						Memory::Sector::destroyMember<ThreadSafe>(container->mAllocator.at(idx), isAlive, container->template getLayoutData<T>());
-						if (before != isAlive) {
+						if (before != isAlive && !Memory::Sector::isSectorAlive(isAlive)) {
 							container->incDefragmentSize();
 						}
 					}
@@ -341,7 +355,7 @@ namespace ecss {
 						auto& isAlive = container->template getIsAliveRef<false>(idx);
 						auto before = isAlive;
 						Memory::Sector::destroyMember<ThreadSafe>(container->mAllocator.at(idx), isAlive, container->template getLayoutData<T>());
-						if (before != isAlive) {
+						if (before != isAlive && !Memory::Sector::isSectorAlive(isAlive)) {
 							container->incDefragmentSize();
 						}
 					}
@@ -378,7 +392,7 @@ namespace ecss {
 							auto& isAlive = container->template getIsAliveRef<false>(slotInfo.linearIdx);
 							auto before = isAlive;
 							Memory::Sector::destroyMember<ThreadSafe>(slotInfo.data, isAlive, layout);
-							if (before != isAlive) {
+							if (before != isAlive && !Memory::Sector::isSectorAlive(isAlive)) {
 								container->incDefragmentSize();
 							}
 						}
@@ -394,7 +408,7 @@ namespace ecss {
 							auto& isAlive = container->template getIsAliveRef<false>(slotInfo.linearIdx);
 							auto before = isAlive;
 							Memory::Sector::destroyMember<ThreadSafe>(slotInfo.data, isAlive, layout);
-							if (before != isAlive) {
+							if (before != isAlive && !Memory::Sector::isSectorAlive(isAlive)) {
 								container->incDefragmentSize();
 							}
 						}
@@ -797,27 +811,6 @@ namespace ecss {
 		}
 
 		/**
-		 * @brief Internal helper: pin a sector from one of several arrays (thread-safe build).
-		 * @tparam T Component type stored in the pinned sector.
-		 * @tparam ArraysArr Array-like container of SectorsArray*.
-		 * @param pinId Sector id to pin.
-		 * @param arrays Container of sectors arrays to search.
-		 * @param lockedArr If not null, this array is already write-locked (skip locking).
-		 * @param index Index in arrays to pin from.
-		 * @return PinnedSector handle (may be empty if sector not found).
-		 */
-		template<typename T, class ArraysArr>
-		static Memory::PinnedSector pinSector(SectorId pinId, const ArraysArr& arrays, Memory::SectorsArray<ThreadSafe, Allocator>* lockedArr, size_t index) requires(ThreadSafe) {
-			auto container = arrays[index];
-			if (lockedArr == container) {
-				return Memory::PinnedSector(container->mPinsCounter, nullptr, pinId);
-			}
-
-			auto lock = container->readLock();
-			return Memory::PinnedSector(container->mPinsCounter, nullptr, pinId);
-		}
-
-		/**
 		 * @brief Internal helper: ensure entities vector is sorted & clamped to valid capacity.
 		 * @param entities [in/out] Vector of entity ids.
 		 * @param sparseCapacity Max valid sector index (exclusive).
@@ -947,10 +940,10 @@ namespace ecss {
 				         reinterpret_cast<T*>(slot.data + mMainOffset), 
 				         getComponent<CompTypes>(slot)... }; 
 			}
-			FORCE_INLINE Iterator& operator++() noexcept { 
+			FORCE_INLINE Iterator& operator++() noexcept {
 				++mIterator;
 				skipOutOfRange();
-				return *this; 
+				return *this;
 			}
 
 			FORCE_INLINE bool operator!=(const Iterator& other) const noexcept { return mIterator != other.mIterator; }
@@ -1027,9 +1020,9 @@ namespace ecss {
 				uint8_t arrayIndexes[TypesCount];
 				std::fill_n(arrayIndexes, TypesCount, TypeInfo::kMainIteratorIdx);
 
-				for (const auto& [arr, it] : secondary) {
+				for (const auto& entry : secondary) {
+					auto* arr = entry.first;
 					mSecondaryArrays[mSecondaryCount] = arr;
-					mSecondaryIterators[mSecondaryCount] = it;  // Use iterators for both TS and non-TS
 					for (size_t a = 0; a < TypesCount; ++a) {
 						if (arrays[a] == arr) {
 							arrayIndexes[a] = mSecondaryCount;
@@ -1066,7 +1059,6 @@ namespace ecss {
 
 			TypeAccessTuple mTypeAccessInfo;
 			Sectors*		mSecondaryArrays[CTCount ? CTCount : 1] = {};
-			mutable SectorsRangeIt mSecondaryIterators[CTCount ? CTCount : 1];
 			SectorsIt		mIterator;
 			const Ranges<EntityId>* mRangeFilter = nullptr;
 			uint16_t		mMainOffset = 0;
@@ -1127,7 +1119,7 @@ namespace ecss {
 				auto* base = static_cast<std::byte*>(chunks[chunkIdx]);
 				const size_t chunkEnd = std::min(idx + chunkCapacity, size);
 				for (size_t localIdx = 0; idx < chunkEnd; ++idx, ++localIdx) {
-					if ((isAliveData[idx] & aliveMask) == aliveMask) {
+					if ((Sectors::loadAliveRelaxed(isAliveData, idx) & aliveMask) == aliveMask) {
 						callback(base + localIdx * stride, ctx);
 					}
 				}
@@ -1304,13 +1296,14 @@ namespace ecss {
 				auto arr = arrays[i];
 				if (arr == main || std::find_if(secondary.begin(), secondary.end(), [arr](const auto& p){ return p.first == arr; }) != secondary.end()) { continue; }
 				if constexpr (ThreadSafe) {
-					// Acquire read lock to protect iterator creation from concurrent modifications
+					// Acquire read lock and pin the back sector so the iteration upper
+					// bound stays valid. The secondary RangedIterator is never read
+					// (component lookups go through findSlot), so we don't build it.
 					auto lock = arr->readLock();
-					secondary.emplace_back(arr, SectorsRangeIt(arr, initRange(arr, ranges, i)));
-				} else {
-					// Non-ThreadSafe uses direct lookup, no iterator needed
-					secondary.emplace_back(arr, SectorsRangeIt{});
+					initRange(arr, ranges, i);
 				}
+				// Non-ThreadSafe uses direct lookup; iterator is unused either way.
+				secondary.emplace_back(arr, SectorsRangeIt{});
 			}
 			return secondary;
 		}
