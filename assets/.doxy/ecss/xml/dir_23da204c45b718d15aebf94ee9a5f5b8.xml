@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_23da204c45b718d15aebf94ee9a5f5b8" kind="dir">
+    <compoundname>html</compoundname>
+    <innerfile refid="pyexample_2html_2annotated_8html">pyexample/html/annotated.html</innerfile>
+    <innerfile refid="pyexample_2html_2classes_8html">pyexample/html/classes.html</innerfile>
+    <innerfile refid="classpyexample__1__1__py__class-members_8html">classpyexample_1_1_py_class-members.html</innerfile>
+    <innerfile refid="classpyexample__1__1__py__class_8html">classpyexample_1_1_py_class.html</innerfile>
+    <innerfile refid="examples_2pyexample_2html_2doxygen__crawl_8html">examples/pyexample/html/doxygen_crawl.html</innerfile>
+    <innerfile refid="pyexample_2html_2functions_8html">pyexample/html/functions.html</innerfile>
+    <innerfile refid="pyexample_2html_2functions__func_8html">pyexample/html/functions_func.html</innerfile>
+    <innerfile refid="pyexample_2html_2functions__vars_8html">pyexample/html/functions_vars.html</innerfile>
+    <innerfile refid="examples_2pyexample_2html_2index_8html">examples/pyexample/html/index.html</innerfile>
+    <innerfile refid="pyexample_2html_2namespacemembers_8html">pyexample/html/namespacemembers.html</innerfile>
+    <innerfile refid="pyexample_2html_2namespacemembers__func_8html">pyexample/html/namespacemembers_func.html</innerfile>
+    <innerfile refid="namespacepyexample_8html">namespacepyexample.html</innerfile>
+    <innerfile refid="pyexample_2html_2namespaces_8html">pyexample/html/namespaces.html</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/pyexample/html/"/>
+  </compounddef>
+</doxygen>

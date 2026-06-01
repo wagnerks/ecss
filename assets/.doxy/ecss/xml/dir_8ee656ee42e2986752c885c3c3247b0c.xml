@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_8ee656ee42e2986752c885c3c3247b0c" kind="dir">
+    <compoundname>javadoc-banner</compoundname>
+    <innerdir refid="dir_105673838bf0960c95e87a8959f85bb9">html</innerdir>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/javadoc-banner/"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,76 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="define_8h" kind="file" language="C++">
+    <compoundname>define.h</compoundname>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="define_8h_1a996f7be338ccb40d1a2a5abc1ad61759" prot="public" static="no">
+        <name>ABS</name>
+        <param><defname>x</defname></param>
+        <initializer>(((x)&gt;0)?(x):-(x))</initializer>
+        <briefdescription>
+<para>Computes the absolute value of its argument <emphasis>x</emphasis>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>x</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>input value. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>absolute value of <emphasis>x</emphasis>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="doxygen-1.14.0/examples/define.h" line="17" column="9" bodyfile="doxygen-1.14.0/examples/define.h" bodystart="17" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="define_8h_1aacc3ee1a7f283f8ef65cea31f4436a95" prot="public" static="no">
+        <name>MAX</name>
+        <param><defname>x</defname></param>
+        <param><defname>y</defname></param>
+        <initializer>((x)&gt;(y)?(x):(y))</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Computes the maximum of <emphasis>x</emphasis> and <emphasis>y</emphasis>. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="doxygen-1.14.0/examples/define.h" line="18" column="9" bodyfile="doxygen-1.14.0/examples/define.h" bodystart="18" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="define" id="define_8h_1a74e75242132eaabbc1c512488a135926" prot="public" static="no">
+        <name>MIN</name>
+        <param><defname>x</defname></param>
+        <param><defname>y</defname></param>
+        <initializer>((x)&gt;(y)?(y):(x))</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Computes the minimum of <emphasis>x</emphasis> and <emphasis>y</emphasis>. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="doxygen-1.14.0/examples/define.h" line="19" column="9" bodyfile="doxygen-1.14.0/examples/define.h" bodystart="19" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>testing defines </para>
+    </briefdescription>
+    <detaileddescription>
+<para>This is to test the documentation of defines. </para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="normal"></highlight></codeline>
+<codeline lineno="6"><highlight class="normal"></highlight></codeline>
+<codeline lineno="11"><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>ABS(x)<sp/>(((x)&gt;0)?(x):-(x))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MAX(x,y)<sp/>((x)&gt;(y)?(x):(y))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight><highlight class="preprocessor">#define<sp/>MIN(x,y)<sp/>((x)&gt;(y)?(y):(x))<sp/></highlight><highlight class="preprocessor"></highlight></codeline>
+    </programlisting>
+    <location file="doxygen-1.14.0/examples/define.h"/>
+  </compounddef>
+</doxygen>

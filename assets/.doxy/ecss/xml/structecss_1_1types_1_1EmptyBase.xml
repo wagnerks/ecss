@@ -1,0 +1,15 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1types_1_1EmptyBase" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::types::EmptyBase</compoundname>
+    <includes refid="Types_8h" local="no">Types.h</includes>
+    <briefdescription>
+<para>Empty base for offset calculation when sector has no header. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/Types.h" line="26" column="1" bodyfile="ecss/Types.h" bodystart="26" bodyend="26"/>
+    <listofallmembers>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

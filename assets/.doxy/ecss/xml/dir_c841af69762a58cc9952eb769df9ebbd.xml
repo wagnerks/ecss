@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_c841af69762a58cc9952eb769df9ebbd" kind="dir">
+    <compoundname>html</compoundname>
+    <innerfile refid="manual_2html_2annotated_8html">manual/html/annotated.html</innerfile>
+    <innerfile refid="manual_2html_2classes_8html">manual/html/classes.html</innerfile>
+    <innerfile refid="examples_2manual_2html_2doxygen__crawl_8html">examples/manual/html/doxygen_crawl.html</innerfile>
+    <innerfile refid="manual_2html_2files_8html">manual/html/files.html</innerfile>
+    <innerfile refid="manual_2html_2functions_8html">manual/html/functions.html</innerfile>
+    <innerfile refid="manual_2html_2functions__func_8html">manual/html/functions_func.html</innerfile>
+    <innerfile refid="manual_2html_2functions__vars_8html">manual/html/functions_vars.html</innerfile>
+    <innerfile refid="manual_2html_2globals_8html">manual/html/globals.html</innerfile>
+    <innerfile refid="manual_2html_2globals__func_8html">manual/html/globals_func.html</innerfile>
+    <innerfile refid="manual_2html_2hierarchy_8html">manual/html/hierarchy.html</innerfile>
+    <innerfile refid="examples_2manual_2html_2index_8html">examples/manual/html/index.html</innerfile>
+    <innerfile refid="manual__8c_8html">manual_8c.html</innerfile>
+    <innerfile refid="struct__car-members_8html">struct_car-members.html</innerfile>
+    <innerfile refid="struct__car_8html">struct_car.html</innerfile>
+    <innerfile refid="struct__object-members_8html">struct_object-members.html</innerfile>
+    <innerfile refid="struct__object_8html">struct_object.html</innerfile>
+    <innerfile refid="struct__truck-members_8html">struct_truck-members.html</innerfile>
+    <innerfile refid="struct__truck_8html">struct_truck.html</innerfile>
+    <innerfile refid="struct__vehicle-members_8html">struct_vehicle-members.html</innerfile>
+    <innerfile refid="struct__vehicle_8html">struct_vehicle.html</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/manual/html/"/>
+  </compounddef>
+</doxygen>

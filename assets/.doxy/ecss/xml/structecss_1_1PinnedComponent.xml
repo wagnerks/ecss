@@ -1,0 +1,315 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1PinnedComponent" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::PinnedComponent</compoundname>
+    <includes refid="Registry_8h" local="no">Registry.h</includes>
+    <templateparamlist>
+      <param>
+        <type>class T</type>
+      </param>
+    </templateparamlist>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="structecss_1_1PinnedComponent_1a2673b548bed6f3f9602af22a01759f29" prot="private" static="no" mutable="no">
+        <type>T *</type>
+        <definition>T* ecss::PinnedComponent&lt; T &gt;::ptr</definition>
+        <argsstring></argsstring>
+        <name>ptr</name>
+        <qualifiedname>ecss::PinnedComponent::ptr</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+<para>Pointer to pinned component (or nullptr). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="93" column="3" bodyfile="ecss/Registry.h" bodystart="93" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1PinnedComponent_1a572c339671a2193ab2a25de2de26f983" prot="private" static="no" mutable="no">
+        <type><ref refid="structecss_1_1Memory_1_1PinnedSector" kindref="compound">Memory::PinnedSector</ref></type>
+        <definition>Memory::PinnedSector ecss::PinnedComponent&lt; T &gt;::sec</definition>
+        <argsstring></argsstring>
+        <name>sec</name>
+        <qualifiedname>ecss::PinnedComponent::sec</qualifiedname>
+        <briefdescription>
+<para>RAII handle for sector pin. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="92" column="22" bodyfile="ecss/Registry.h" bodystart="92" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1PinnedComponent_1a3c63124e19f9546089f8bd4affb78185" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>T *</type>
+        <definition>T * ecss::PinnedComponent&lt; T &gt;::get</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>get</name>
+        <qualifiedname>ecss::PinnedComponent::get</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>The raw component pointer or nullptr if invalid. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="77" column="3" bodyfile="ecss/Registry.h" bodystart="77" bodyend="77"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1PinnedComponent_1ae66419f55a0bbaa9cdbc4679c0d5dfb7" prot="public" static="no" const="yes" explicit="yes" inline="yes" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::PinnedComponent&lt; T &gt;::operator bool</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>operator bool</name>
+        <qualifiedname>ecss::PinnedComponent::operator bool</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>True if a valid component pointer is held. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="86" column="10" bodyfile="ecss/Registry.h" bodystart="86" bodyend="86"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1PinnedComponent_1a7362e006437ada2662a7e495a756f0ef" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>T &amp;</type>
+        <definition>T &amp; ecss::PinnedComponent&lt; T &gt;::operator*</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>operator*</name>
+        <qualifiedname>ecss::PinnedComponent::operator*</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Dereferenced component reference (UB if ptr is null � guard with bool()). </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="83" column="3" bodyfile="ecss/Registry.h" bodystart="83" bodyend="83"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1PinnedComponent_1afd16390f2708006a9ff876d11523f28b" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>T *</type>
+        <definition>T * ecss::PinnedComponent&lt; T &gt;::operator-&gt;</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>operator-&gt;</name>
+        <qualifiedname>ecss::PinnedComponent::operator-&gt;</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Operator access forwarding to underlying component pointer. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="80" column="3" bodyfile="ecss/Registry.h" bodystart="80" bodyend="80"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1PinnedComponent_1aa1d5e608d7f28c6076618cbda2463c30" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structecss_1_1PinnedComponent" kindref="compound">PinnedComponent</ref> &amp;</type>
+        <definition>PinnedComponent &amp; ecss::PinnedComponent&lt; T &gt;::operator=</definition>
+        <argsstring>(const PinnedComponent &amp;other)=delete</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::PinnedComponent::operator=</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1PinnedComponent" kindref="compound">PinnedComponent</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="62" column="17"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1PinnedComponent_1a8bd28e63e98870a4b050836cd191e411" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="structecss_1_1PinnedComponent" kindref="compound">PinnedComponent</ref> &amp;</type>
+        <definition>PinnedComponent &amp; ecss::PinnedComponent&lt; T &gt;::operator=</definition>
+        <argsstring>(PinnedComponent &amp;&amp;other) noexcept=default</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::PinnedComponent::operator=</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1PinnedComponent" kindref="compound">PinnedComponent</ref> &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="63" column="17"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1PinnedComponent_1a00f7703e2c267ae2d3b130cd328daef5" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::PinnedComponent&lt; T &gt;::PinnedComponent</definition>
+        <argsstring>()=default</argsstring>
+        <name>PinnedComponent</name>
+        <qualifiedname>ecss::PinnedComponent::PinnedComponent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="64" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1PinnedComponent_1a60456f062c7596e4be1450cc5773f3c2" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::PinnedComponent&lt; T &gt;::PinnedComponent</definition>
+        <argsstring>(const PinnedComponent &amp;other)=delete</argsstring>
+        <name>PinnedComponent</name>
+        <qualifiedname>ecss::PinnedComponent::PinnedComponent</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1PinnedComponent" kindref="compound">PinnedComponent</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="60" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1PinnedComponent_1a872165fd23c2e1229b941bdc416203ac" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::PinnedComponent&lt; T &gt;::PinnedComponent</definition>
+        <argsstring>(Memory::PinnedSector &amp;&amp;pinnedSector, T *ptr)</argsstring>
+        <name>PinnedComponent</name>
+        <qualifiedname>ecss::PinnedComponent::PinnedComponent</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1Memory_1_1PinnedSector" kindref="compound">Memory::PinnedSector</ref> &amp;&amp;</type>
+          <declname>pinnedSector</declname>
+        </param>
+        <param>
+          <type>T *</type>
+          <declname>ptr</declname>
+        </param>
+        <briefdescription>
+<para>Construct from a pinned sector and component pointer. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>pinnedSector</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sector pin handle (ownership transferred). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>ptr</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Pointer to component T in that sector (may be nullptr). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="71" column="1" bodyfile="ecss/Registry.h" bodystart="71" bodyend="71"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1PinnedComponent_1a5ff3dce2f2da5fc86d74165948061965" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::PinnedComponent&lt; T &gt;::PinnedComponent</definition>
+        <argsstring>(PinnedComponent &amp;&amp;other) noexcept=default</argsstring>
+        <name>PinnedComponent</name>
+        <qualifiedname>ecss::PinnedComponent::PinnedComponent</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1PinnedComponent" kindref="compound">PinnedComponent</ref> &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="61" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1PinnedComponent_1a0a07abd3ad871f15672e933949a93a59" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::PinnedComponent&lt; T &gt;::release</definition>
+        <argsstring>()</argsstring>
+        <name>release</name>
+        <qualifiedname>ecss::PinnedComponent::release</qualifiedname>
+        <briefdescription>
+<para>Release the pin early. After this call <ref refid="structecss_1_1PinnedComponent_1a3c63124e19f9546089f8bd4affb78185" kindref="member">get()</ref> returns nullptr. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="89" column="6" bodyfile="ecss/Registry.h" bodystart="89" bodyend="89"/>
+        <referencedby refid="structecss_1_1PinnedComponent_1a403ea3f9ac952195c223e8228589ea4a" compoundref="Registry_8h" startline="74" endline="74">ecss::PinnedComponent&lt; T &gt;::~PinnedComponent</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1PinnedComponent_1a403ea3f9ac952195c223e8228589ea4a" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::PinnedComponent&lt; T &gt;::~PinnedComponent</definition>
+        <argsstring>()</argsstring>
+        <name>~PinnedComponent</name>
+        <qualifiedname>ecss::PinnedComponent::~PinnedComponent</qualifiedname>
+        <briefdescription>
+<para>Destructor automatically releases the pin and nulls pointer. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="74" column="1" bodyfile="ecss/Registry.h" bodystart="74" bodyend="74"/>
+        <references refid="structecss_1_1PinnedComponent_1a0a07abd3ad871f15672e933949a93a59" compoundref="Registry_8h" startline="89" endline="89">ecss::PinnedComponent&lt; T &gt;::release</references>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>RAII wrapper that pins the sector holding component T and exposes a typed pointer. </para>
+    </briefdescription>
+    <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type stored in the pinned sector.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+Pin semantics (thread-safe build):<itemizedlist>
+<listitem><para>Pin increments a pin counter preventing concurrent structural erase of the sector.</para>
+</listitem><listitem><para>Releasing (explicitly via <ref refid="structecss_1_1PinnedComponent_1a0a07abd3ad871f15672e933949a93a59" kindref="member">release()</ref> or implicitly in destructor) decrements the pin counter.</para>
+</listitem></itemizedlist>
+</para>
+<para><simplesect kind="warning"><para>Never store the raw pointer <computeroutput><ref refid="structecss_1_1PinnedComponent_1a3c63124e19f9546089f8bd4affb78185" kindref="member">get()</ref></computeroutput> beyond the lifetime of this wrapper. </para>
+</simplesect>
+<simplesect kind="note"><para>In non-thread-safe builds pinning still exists conceptually but can be a no-op. </para>
+</simplesect>
+</para>
+    </detaileddescription>
+    <location file="ecss/Registry.h" line="59" column="1" bodyfile="ecss/Registry.h" bodystart="59" bodyend="94"/>
+    <listofallmembers>
+      <member refid="structecss_1_1PinnedComponent_1a3c63124e19f9546089f8bd4affb78185" prot="public" virt="non-virtual"><scope>ecss::PinnedComponent</scope><name>get</name></member>
+      <member refid="structecss_1_1PinnedComponent_1ae66419f55a0bbaa9cdbc4679c0d5dfb7" prot="public" virt="non-virtual"><scope>ecss::PinnedComponent</scope><name>operator bool</name></member>
+      <member refid="structecss_1_1PinnedComponent_1a7362e006437ada2662a7e495a756f0ef" prot="public" virt="non-virtual"><scope>ecss::PinnedComponent</scope><name>operator*</name></member>
+      <member refid="structecss_1_1PinnedComponent_1afd16390f2708006a9ff876d11523f28b" prot="public" virt="non-virtual"><scope>ecss::PinnedComponent</scope><name>operator-&gt;</name></member>
+      <member refid="structecss_1_1PinnedComponent_1aa1d5e608d7f28c6076618cbda2463c30" prot="public" virt="non-virtual"><scope>ecss::PinnedComponent</scope><name>operator=</name></member>
+      <member refid="structecss_1_1PinnedComponent_1a8bd28e63e98870a4b050836cd191e411" prot="public" virt="non-virtual"><scope>ecss::PinnedComponent</scope><name>operator=</name></member>
+      <member refid="structecss_1_1PinnedComponent_1a60456f062c7596e4be1450cc5773f3c2" prot="public" virt="non-virtual"><scope>ecss::PinnedComponent</scope><name>PinnedComponent</name></member>
+      <member refid="structecss_1_1PinnedComponent_1a5ff3dce2f2da5fc86d74165948061965" prot="public" virt="non-virtual"><scope>ecss::PinnedComponent</scope><name>PinnedComponent</name></member>
+      <member refid="structecss_1_1PinnedComponent_1a00f7703e2c267ae2d3b130cd328daef5" prot="public" virt="non-virtual"><scope>ecss::PinnedComponent</scope><name>PinnedComponent</name></member>
+      <member refid="structecss_1_1PinnedComponent_1a872165fd23c2e1229b941bdc416203ac" prot="public" virt="non-virtual"><scope>ecss::PinnedComponent</scope><name>PinnedComponent</name></member>
+      <member refid="structecss_1_1PinnedComponent_1a2673b548bed6f3f9602af22a01759f29" prot="private" virt="non-virtual"><scope>ecss::PinnedComponent</scope><name>ptr</name></member>
+      <member refid="structecss_1_1PinnedComponent_1a0a07abd3ad871f15672e933949a93a59" prot="public" virt="non-virtual"><scope>ecss::PinnedComponent</scope><name>release</name></member>
+      <member refid="structecss_1_1PinnedComponent_1a572c339671a2193ab2a25de2de26f983" prot="private" virt="non-virtual"><scope>ecss::PinnedComponent</scope><name>sec</name></member>
+      <member refid="structecss_1_1PinnedComponent_1a403ea3f9ac952195c223e8228589ea4a" prot="public" virt="non-virtual"><scope>ecss::PinnedComponent</scope><name>~PinnedComponent</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

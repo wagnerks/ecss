@@ -1,0 +1,45 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1RetireBin_1_1RetiredBlock" kind="struct" language="C++" prot="private">
+    <compoundname>ecss::Memory::RetireBin::RetiredBlock</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1RetireBin_1_1RetiredBlock_1acaabb3fcfb7c2bf2eb16a933c210c104" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t ecss::Memory::RetireBin::RetiredBlock::countdown</definition>
+        <argsstring></argsstring>
+        <name>countdown</name>
+        <qualifiedname>ecss::Memory::RetireBin::RetiredBlock::countdown</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/RetireAllocator.h" line="113" column="10" bodyfile="ecss/memory/RetireAllocator.h" bodystart="113" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1RetireBin_1_1RetiredBlock_1aace83d6848cc7dd5a412c276e8b7e331" prot="public" static="no" mutable="no">
+        <type>void *</type>
+        <definition>void* ecss::Memory::RetireBin::RetiredBlock::ptr</definition>
+        <argsstring></argsstring>
+        <name>ptr</name>
+        <qualifiedname>ecss::Memory::RetireBin::RetiredBlock::ptr</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/RetireAllocator.h" line="112" column="6" bodyfile="ecss/memory/RetireAllocator.h" bodystart="112" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/RetireAllocator.h" line="111" column="1" bodyfile="ecss/memory/RetireAllocator.h" bodystart="111" bodyend="114"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Memory_1_1RetireBin_1_1RetiredBlock_1acaabb3fcfb7c2bf2eb16a933c210c104" prot="public" virt="non-virtual"><scope>ecss::Memory::RetireBin::RetiredBlock</scope><name>countdown</name></member>
+      <member refid="structecss_1_1Memory_1_1RetireBin_1_1RetiredBlock_1aace83d6848cc7dd5a412c276e8b7e331" prot="public" virt="non-virtual"><scope>ecss::Memory::RetireBin::RetiredBlock</scope><name>ptr</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

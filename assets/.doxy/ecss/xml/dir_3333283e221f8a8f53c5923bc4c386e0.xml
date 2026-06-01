@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_3333283e221f8a8f53c5923bc4c386e0" kind="dir">
+    <compoundname>memory</compoundname>
+    <innerfile refid="ChunksAllocator_8h">ChunksAllocator.h</innerfile>
+    <innerfile refid="Reflection_8h">Reflection.h</innerfile>
+    <innerfile refid="RetireAllocator_8h">RetireAllocator.h</innerfile>
+    <innerfile refid="Sector_8h">Sector.h</innerfile>
+    <innerfile refid="SectorLayoutMeta_8h">SectorLayoutMeta.h</innerfile>
+    <innerfile refid="SectorsArray_8h">SectorsArray.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,225 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1types_1_1OffsetArray" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::types::OffsetArray</compoundname>
+    <templateparamlist>
+      <param>
+        <type>typename Base</type>
+      </param>
+      <param>
+        <type>typename...</type>
+        <declname>Types</declname>
+        <defname>Types</defname>
+      </param>
+    </templateparamlist>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="structecss_1_1types_1_1OffsetArray_1af393aafe84444edba5a23ab2107584f3" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::types::OffsetArray&lt; Base, Types &gt;::baseSize</definition>
+        <argsstring></argsstring>
+        <name>baseSize</name>
+        <qualifiedname>ecss::types::OffsetArray::baseSize</qualifiedname>
+        <initializer>= std::is_empty_v&lt;Base&gt; ? 0 : align_up&lt;sizeof(Base), alignof(Base)&gt;()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="42" column="25" bodyfile="ecss/Types.h" bodystart="42" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1types_1_1OffsetArray_1a8dd1b5af2edab24e258de2bfa3cd66ef" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::types::OffsetArray&lt; Base, Types &gt;::count</definition>
+        <argsstring></argsstring>
+        <name>count</name>
+        <qualifiedname>ecss::types::OffsetArray::count</qualifiedname>
+        <initializer>= sizeof...(Types)</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="39" column="25" bodyfile="ecss/Types.h" bodystart="39" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1types_1_1OffsetArray_1ae021ee2208456295a095768b4438f631" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t ecss::types::OffsetArray&lt; Base, Types &gt;::max_align</definition>
+        <argsstring></argsstring>
+        <name>max_align</name>
+        <qualifiedname>ecss::types::OffsetArray::max_align</qualifiedname>
+        <initializer>= []{
+				uint32_t m = std::is_empty_v&lt;Base&gt; ? 1 : alignof(Base);
+				((m = m &lt; alignof(Types) ? alignof(Types) : m), ...);
+				return m;
+			}()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="68" column="27" bodyfile="ecss/Types.h" bodystart="68" bodyend="72"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1types_1_1OffsetArray_1a131fcecccb5d1a3e07f54d31a3b9f498" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>std::array&lt; size_t, count &gt;</type>
+        <definition>std::array&lt;size_t, count&gt; ecss::types::OffsetArray&lt; Base, Types &gt;::offsets</definition>
+        <argsstring></argsstring>
+        <name>offsets</name>
+        <qualifiedname>ecss::types::OffsetArray::offsets</qualifiedname>
+        <initializer>= make(std::make_index_sequence&lt;count&gt;{})</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="74" column="29" bodyfile="ecss/Types.h" bodystart="74" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1types_1_1OffsetArray_1a35937361cf140af137c67028568b59ef" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::types::OffsetArray&lt; Base, Types &gt;::totalSize</definition>
+        <argsstring></argsstring>
+        <name>totalSize</name>
+        <qualifiedname>ecss::types::OffsetArray::totalSize</qualifiedname>
+        <initializer>= align_up&lt;offsets.back() + sizeof(std::tuple_element_t&lt;count - 1, std::tuple&lt;Types...&gt;&gt;), max_align&gt;()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="75" column="25" bodyfile="ecss/Types.h" bodystart="75" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="structecss_1_1types_1_1OffsetArray_1a42ed908403f8e663b8a67fe1104facd1" prot="public" static="yes" consteval="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>size_t</type>
+            <declname>N</declname>
+            <defname>N</defname>
+          </param>
+          <param>
+            <type>size_t</type>
+            <declname>A</declname>
+            <defname>A</defname>
+          </param>
+        </templateparamlist>
+        <type>size_t</type>
+        <definition>static consteval size_t ecss::types::OffsetArray&lt; Base, Types &gt;::align_up</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>align_up</name>
+        <qualifiedname>ecss::types::OffsetArray::align_up</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="31" column="25" bodyfile="ecss/Types.h" bodystart="31" bodyend="37"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1types_1_1OffsetArray_1ae01ed2afecccb0015c8fa7fd3477cb15" prot="public" static="yes" consteval="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+          <param>
+            <type>std::size_t</type>
+            <declname>Off</declname>
+            <defname>Off</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>static consteval void ecss::types::OffsetArray&lt; Base, Types &gt;::check_one</definition>
+        <argsstring>()</argsstring>
+        <name>check_one</name>
+        <qualifiedname>ecss::types::OffsetArray::check_one</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="78" column="23" bodyfile="ecss/Types.h" bodystart="78" bodyend="80"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1types_1_1OffsetArray_1a026848da485fa144b9d8cdfe8b61876a" prot="public" static="yes" consteval="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>size_t</type>
+            <declname>I</declname>
+            <defname>I</defname>
+          </param>
+        </templateparamlist>
+        <type>size_t</type>
+        <definition>static consteval size_t ecss::types::OffsetArray&lt; Base, Types &gt;::get</definition>
+        <argsstring>()</argsstring>
+        <name>get</name>
+        <qualifiedname>ecss::types::OffsetArray::get</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="45" column="25" bodyfile="ecss/Types.h" bodystart="45" bodyend="61"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1types_1_1OffsetArray_1af0578573ace17d2b5958bf7a284b1dad" prot="public" static="yes" consteval="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>size_t...</type>
+            <declname>Is</declname>
+            <defname>Is</defname>
+          </param>
+        </templateparamlist>
+        <type>std::array&lt; size_t, count &gt;</type>
+        <definition>static consteval std::array&lt; size_t, count &gt; ecss::types::OffsetArray&lt; Base, Types &gt;::make</definition>
+        <argsstring>(std::index_sequence&lt; Is... &gt;)</argsstring>
+        <name>make</name>
+        <qualifiedname>ecss::types::OffsetArray::make</qualifiedname>
+        <param>
+          <type>std::index_sequence&lt; Is... &gt;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="64" column="29" bodyfile="ecss/Types.h" bodystart="64" bodyend="66"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1types_1_1OffsetArray_1a0cd00eadeecc486f0689db6ae36a2e58" prot="public" static="yes" consteval="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static consteval void ecss::types::OffsetArray&lt; Base, Types &gt;::static_checks</definition>
+        <argsstring>()</argsstring>
+        <name>static_checks</name>
+        <qualifiedname>ecss::types::OffsetArray::static_checks</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="82" column="23" bodyfile="ecss/Types.h" bodystart="82" bodyend="87"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/Types.h" line="29" column="1" bodyfile="ecss/Types.h" bodystart="29" bodyend="88"/>
+    <listofallmembers>
+      <member refid="structecss_1_1types_1_1OffsetArray_1a42ed908403f8e663b8a67fe1104facd1" prot="public" virt="non-virtual"><scope>ecss::types::OffsetArray</scope><name>align_up</name></member>
+      <member refid="structecss_1_1types_1_1OffsetArray_1af393aafe84444edba5a23ab2107584f3" prot="public" virt="non-virtual"><scope>ecss::types::OffsetArray</scope><name>baseSize</name></member>
+      <member refid="structecss_1_1types_1_1OffsetArray_1ae01ed2afecccb0015c8fa7fd3477cb15" prot="public" virt="non-virtual"><scope>ecss::types::OffsetArray</scope><name>check_one</name></member>
+      <member refid="structecss_1_1types_1_1OffsetArray_1a8dd1b5af2edab24e258de2bfa3cd66ef" prot="public" virt="non-virtual"><scope>ecss::types::OffsetArray</scope><name>count</name></member>
+      <member refid="structecss_1_1types_1_1OffsetArray_1a026848da485fa144b9d8cdfe8b61876a" prot="public" virt="non-virtual"><scope>ecss::types::OffsetArray</scope><name>get</name></member>
+      <member refid="structecss_1_1types_1_1OffsetArray_1af0578573ace17d2b5958bf7a284b1dad" prot="public" virt="non-virtual"><scope>ecss::types::OffsetArray</scope><name>make</name></member>
+      <member refid="structecss_1_1types_1_1OffsetArray_1ae021ee2208456295a095768b4438f631" prot="public" virt="non-virtual"><scope>ecss::types::OffsetArray</scope><name>max_align</name></member>
+      <member refid="structecss_1_1types_1_1OffsetArray_1a131fcecccb5d1a3e07f54d31a3b9f498" prot="public" virt="non-virtual"><scope>ecss::types::OffsetArray</scope><name>offsets</name></member>
+      <member refid="structecss_1_1types_1_1OffsetArray_1a0cd00eadeecc486f0689db6ae36a2e58" prot="public" virt="non-virtual"><scope>ecss::types::OffsetArray</scope><name>static_checks</name></member>
+      <member refid="structecss_1_1types_1_1OffsetArray_1a35937361cf140af137c67028568b59ef" prot="public" virt="non-virtual"><scope>ecss::types::OffsetArray</scope><name>totalSize</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

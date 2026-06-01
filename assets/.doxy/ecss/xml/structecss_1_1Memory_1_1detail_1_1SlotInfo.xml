@@ -1,0 +1,85 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1detail_1_1SlotInfo" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Memory::detail::SlotInfo</compoundname>
+    <includes refid="SectorsArray_8h" local="no">SectorsArray.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1SlotInfo_1a554194f80841621ef2f8ffecd995f657" prot="public" static="no" mutable="no">
+        <type>std::byte *</type>
+        <definition>std::byte* ecss::Memory::detail::SlotInfo::data</definition>
+        <argsstring></argsstring>
+        <name>data</name>
+        <qualifiedname>ecss::Memory::detail::SlotInfo::data</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+<para>Direct pointer (nullptr = not present), atomically accessed. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="62" column="11" bodyfile="ecss/memory/SectorsArray.h" bodystart="62" bodyend="-1"/>
+        <referencedby refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1af3cede6fe728076c730389c1608f99a7" compoundref="SectorsArray_8h" startline="144" endline="148">ecss::Memory::detail::SparseMap&lt; true &gt;::set</referencedby>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1SlotInfo_1a0e980a9d8a95590e7e73bb55b7483b46" prot="public" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t ecss::Memory::detail::SlotInfo::linearIdx</definition>
+        <argsstring></argsstring>
+        <name>linearIdx</name>
+        <qualifiedname>ecss::Memory::detail::SlotInfo::linearIdx</qualifiedname>
+        <initializer>= INVALID_IDX</initializer>
+        <briefdescription>
+<para>Linear index for isAlive access. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="63" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="63" bodyend="-1"/>
+        <referencedby refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1af3cede6fe728076c730389c1608f99a7" compoundref="SectorsArray_8h" startline="144" endline="148">ecss::Memory::detail::SparseMap&lt; true &gt;::set</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1SlotInfo_1a12365b47c840e359a668cb12f1f483df" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Memory::detail::SlotInfo::isValid</definition>
+        <argsstring>() const</argsstring>
+        <name>isValid</name>
+        <qualifiedname>ecss::Memory::detail::SlotInfo::isValid</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="65" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="65" bodyend="65"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1SlotInfo_1aea168da7eef027db1b1a4d5de477304c" prot="public" static="no" const="yes" explicit="yes" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE</type>
+        <definition>FORCE_INLINE ecss::Memory::detail::SlotInfo::operator bool</definition>
+        <argsstring>() const</argsstring>
+        <name>operator bool</name>
+        <qualifiedname>ecss::Memory::detail::SlotInfo::operator bool</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="66" column="23" bodyfile="ecss/memory/SectorsArray.h" bodystart="66" bodyend="66"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Slot info for fast sparse lookup - stores data pointer and linear index data pointer (8 bytes) is read/written atomically for thread-safety linearIdx is written BEFORE data on insert, so it&apos;s valid when data != nullptr Memory ordering: release on write, acquire on read - ensures linearIdx visible when data is. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/SectorsArray.h" line="61" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="61" bodyend="67"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SlotInfo_1a554194f80841621ef2f8ffecd995f657" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::SlotInfo</scope><name>data</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SlotInfo_1a12365b47c840e359a668cb12f1f483df" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::SlotInfo</scope><name>isValid</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SlotInfo_1a0e980a9d8a95590e7e73bb55b7483b46" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::SlotInfo</scope><name>linearIdx</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1SlotInfo_1aea168da7eef027db1b1a4d5de477304c" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::SlotInfo</scope><name>operator bool</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,39 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_aa52e73a32d193037813a53dcfe817b6" kind="dir">
+    <compoundname>examples</compoundname>
+    <innerdir refid="dir_8c6c3a566274dcdfeacdc8eeca1d16a6">afterdoc</innerdir>
+    <innerdir refid="dir_8881d0749f46f5230eaf1f24e35837cd">author</innerdir>
+    <innerdir refid="dir_71fc0cb11636697d381669c7153571f0">autolink</innerdir>
+    <innerdir refid="dir_27a5de23c38941ff965c28676c9bfe34">class</innerdir>
+    <innerdir refid="dir_5a5e8cab2ae55343569aa20f5a2be39f">define</innerdir>
+    <innerdir refid="dir_1d8108902fe9fce2c57b5dd3e7275f0e">diagrams</innerdir>
+    <innerdir refid="dir_f54b3f89d2a276b23290ebd19e4625d6">docstring</innerdir>
+    <innerdir refid="dir_6c61bf8a34dfaaf51d0c3cb8a0f00473">enum</innerdir>
+    <innerdir refid="dir_f967122ff4a9e60bb66f9132d49c42b1">example</innerdir>
+    <innerdir refid="dir_3e420aa6405b0b97b56b5f8b310ef472">file</innerdir>
+    <innerdir refid="dir_b8a13f2b7ae4a8f5191b4862c1171d55">func</innerdir>
+    <innerdir refid="dir_cc033eba885248d60cb68aca9a04323a">group</innerdir>
+    <innerdir refid="dir_306ee8fe59c0660bd49562c2700a8634">include</innerdir>
+    <innerdir refid="dir_8ee656ee42e2986752c885c3c3247b0c">javadoc-banner</innerdir>
+    <innerdir refid="dir_9e51e81487284a2b66603cb7991333dd">jdstyle</innerdir>
+    <innerdir refid="dir_cffcf8ecdc9e4351f3d375d77f7d7b79">manual</innerdir>
+    <innerdir refid="dir_f6db993c6f6d029eac2a6e626a01b73a">memgrp</innerdir>
+    <innerdir refid="dir_4326963d12fa1d64c0e99b1caca435ed">mux</innerdir>
+    <innerdir refid="dir_1a39e7c76bd6ede20f2278ff59012e1a">overload</innerdir>
+    <innerdir refid="dir_dd8a5d96caa8a433101f0b1a3eadf010">page</innerdir>
+    <innerdir refid="dir_c8b798a43187d84976dc806f569b1db6">par</innerdir>
+    <innerdir refid="dir_a2a8ba002db70f2f1f5a4403c068e8c8">pyexample</innerdir>
+    <innerdir refid="dir_420e11ec66ef370914b2011871dfdbfb">qtstyle</innerdir>
+    <innerdir refid="dir_9b4d4c02ebee69a68b6f164e8fb77c57">relates</innerdir>
+    <innerdir refid="dir_fcfab5f546f51b8558772ebb3ba5c4ab">restypedef</innerdir>
+    <innerdir refid="dir_f138beb9fc579a951d60d52791a7afcb">structcmd</innerdir>
+    <innerdir refid="dir_352c8a7d51e958b4df13321d0a6254dd">tag</innerdir>
+    <innerdir refid="dir_a962d82ba20a6bdb2db40fe5433057e5">templ</innerdir>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/"/>
+  </compounddef>
+</doxygen>

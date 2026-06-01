@@ -1,0 +1,16 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_194708e763cf312315c6b23555bce86f" kind="dir">
+    <compoundname>ecss</compoundname>
+    <innerdir refid="dir_3333283e221f8a8f53c5923bc4c386e0">memory</innerdir>
+    <innerdir refid="dir_a9a674ced088cdcac6c51605566c5246">threads</innerdir>
+    <innerfile refid="Ranges_8h">Ranges.h</innerfile>
+    <innerfile refid="Registry_8h">Registry.h</innerfile>
+    <innerfile refid="Types_8h">Types.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/"/>
+  </compounddef>
+</doxygen>
