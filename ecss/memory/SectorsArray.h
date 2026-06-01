@@ -109,7 +109,7 @@ namespace detail {
 			return find(id).linearIdx;
 		}
 
-		FORCE_INLINE size_t capacity() const { 
+		FORCE_INLINE size_t capacity() const {
 			return sparseView.load(std::memory_order_acquire).size;
 		}
 		
@@ -1180,6 +1180,17 @@ public:
 		}
 	}
 
+	/// @brief Append-only bulk insert. Each *it yields a pair-like {SectorId, C}.
+	/// Preconditions: ids are strictly ascending AND greater than every id already stored
+	/// (pure append -- no overwrite, no middle insert). Reserves once and publishes the dense
+	/// view once, skipping the per-element existence check / insert-position search / view
+	/// publish that addComponent() pays. In the TS build it also batches the write lock, the
+	/// pin wait and the dense-view publish across the whole range.
+	template<typename C, typename It, bool TS = ThreadSafe>
+	void insertBulk(It first, It last) {
+		TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable();, insertBulkImpl<C>(first, last););
+	}
+
 	template<bool Lock = true>
 	void processPendingErases(bool withDefragment = true) requires(ThreadSafe) {
 		if constexpr(Lock) {
@@ -1289,8 +1300,12 @@ private:
 					Sector::destroySectorData<ThreadSafe>(mAllocator.at(i), mDenseArrays.isAliveAt(i), getLayout());
 				}
 			}
-			// Clear sparse map
-			std::fill(mSparseMap.sparse.begin(), mSparseMap.sparse.end(), detail::INVALID_SLOT);
+			// Clear sparse map -- reset only the live slots (== the dense id set).
+			// The remaining slots are already INVALID, so an O(sparseCapacity) fill
+			// is wasteful when ids are sparse. Must run before mDenseArrays.clear().
+			for (size_t i = 0; i < sz; ++i) {
+				mSparseMap.set(mDenseArrays.idAt(i), detail::INVALID_SLOT);
+			}
 			mDenseArrays.clear(0);
 			mPendingErase.clear();
 			mSize.store(0, std::memory_order_relaxed);
@@ -1462,6 +1477,36 @@ private:
 		return Sector::emplaceMember<T, ThreadSafe>(slotData, mDenseArrays.isAliveAt(pos), getLayoutData<T>(), std::forward<Args>(args)...);
 	}
 
+	template<typename C, typename It>
+	void insertBulkImpl(It first, It last) {
+		if (first == last) return;
+
+		const auto& layout = getLayoutData<C>();
+
+		// ids are ascending -> the last one is the max; one pass to size the reservation.
+		size_t count = 0;
+		SectorId maxId = 0;
+		for (auto it = first; it != last; ++it) { maxId = it->first; ++count; }
+
+		const size_t base = sizeImpl();
+		mAllocator.allocate(base + count);          // reserve chunks once
+		mDenseArrays.reserve(base + count);         // reserve dense arrays once
+		if (static_cast<size_t>(maxId) >= mSparseMap.capacity()) {
+			mSparseMap.resize(static_cast<size_t>(maxId) + 1);
+		}
+
+		size_t pos = base;
+		for (auto it = first; it != last; ++it, ++pos) {
+			const SectorId id = it->first;
+			mDenseArrays.pushBack(id, 0);
+			std::byte* slot = mAllocator.at(pos);
+			Sector::emplaceMember<C, ThreadSafe>(slot, mDenseArrays.isAliveAt(pos), layout, it->second);
+			mSparseMap.set(id, detail::SlotInfo{ slot, static_cast<uint32_t>(pos) });
+		}
+		mSize.store(base + count, std::memory_order_relaxed);
+		mDenseArrays.storeView(base + count);       // publish the whole batch at once
+	}
+
 	void eraseRangeImpl(size_t beginIdx, size_t count, bool defragment) {
 		count = std::min(count, sizeImpl() - beginIdx);
 		for (size_t i = beginIdx; i < beginIdx + count; ++i) {
@@ -1597,7 +1642,10 @@ private:
 		mDefragmentSize.store(curDefrag - std::min(curDefrag, static_cast<uint32_t>(deleted)), std::memory_order_relaxed);
 		mDenseArrays.resize(newSz, newSz);
 		mDenseArrays.storeView(newSz);
-		shrinkToFitImpl();
+		// Note: do NOT shrinkToFit() here. Compaction reclaims dead slots, but
+		// keeping capacity avoids realloc churn on add/remove workloads that
+		// defragment every frame. Callers that want memory returned to the OS
+		// call shrinkToFit() explicitly.
 	}
 
 	template<bool T, typename Alloc>
