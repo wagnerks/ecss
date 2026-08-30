@@ -1,6 +1,10 @@
 #pragma once
 
-#include <vector>
+#include <algorithm>
+#include <atomic>
+#include <bit>
+#include <cassert>
+#include <cstdlib>
 #include <cstring>
 
 #include <ecss/Types.h>
@@ -365,7 +369,10 @@ namespace ecss::Memory {
 
 		void allocate(size_t newCapacity) {
 			const auto oldCapacity = capacity();
-			const auto need = newCapacity > oldCapacity ? (newCapacity - oldCapacity) : 0;
+			if (newCapacity <= oldCapacity) [[likely]] {
+				return; // hot: every insert calls this, and almost every call is a no-op
+			}
+			const auto need = newCapacity - oldCapacity;
 			const auto count = (need + mChunkCapacity - 1) >> mChunkShift;
 
 			mChunks.reserve(mChunks.size() + count);
@@ -421,6 +428,10 @@ namespace ecss::Memory {
 
 		template<uint32_t OC>
 		void copy(const ChunksAllocator<OC>& other)  {
+			// Release what this allocator already owns first, otherwise allocate() below is a
+			// no-op when the destination is the larger of the two and the copy loops then run
+			// past the end of the source.
+			deallocate(0, capacity());
 			copyCommonData(other);
 			allocate(other.mChunks.size() * mChunkCapacity);
 			if (mIsSectorTrivial) {
@@ -455,11 +466,13 @@ namespace ecss::Memory {
 				}
 			}
 			else {
-				// Note: for non-trivial copy, caller must handle isAlive arrays separately
+				// Note: raw byte copy. Only valid for callers that fix up non-trivial members
+				// afterwards -- SectorsArray::copyImpl bypasses this path entirely and
+				// copy-constructs each member through the layout function table instead.
+				const size_t total = std::min(capacity(), other.capacity());
 				auto from = other.getCursor();
 				auto to = getCursor();
-				for (auto i = 0u; i < capacity(); i++) {
-					// Copy raw bytes only - isAlive handling is external
+				for (size_t i = 0; i < total; i++) {
 					std::memcpy(*to, *from, mSectorSize);
 					++from;
 					++to;
@@ -469,6 +482,9 @@ namespace ecss::Memory {
 
 		template<uint32_t OC>
 		void move(ChunksAllocator<OC>&& other)  {
+			// Hand our own chunks to the retire bin before taking over the source ones.
+			// Clearing mChunks on its own would drop the pointers without ever freeing them.
+			deallocate(0, capacity());
 			copyCommonData(other);
 			if constexpr (OC == ChunkCapacity) {
 				// Can't just std::move the vector - allocator points to other.mBin!
@@ -482,6 +498,7 @@ namespace ecss::Memory {
 			}
 			else {
 				allocate(other.mChunks.size() * mChunkCapacity);
+				const size_t total = std::min(capacity(), other.capacity());
 				auto from = other.getCursor();
 				auto to = getCursor();
 				for (auto i = 0u; i < capacity(); i++) {
