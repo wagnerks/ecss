@@ -1308,21 +1308,42 @@ public:
 	}
 
 	template<typename T, bool TS = ThreadSafe>
-	std::remove_cvref_t<T>* insert(SectorId sectorId, T&& data) {
-		TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable(sectorId);, 
+	std::remove_cvref_t<T>* insert(SectorId sectorId, T&& data) noexcept {
+		using U = std::remove_cvref_t<T>;
+		if constexpr (TS && ThreadSafe) {
+			if constexpr (std::is_trivially_copyable_v<U>) {
+				// Copy, never move: on a miss `data` must still be intact for the fallback.
+				if (auto* fast = tryOverwriteShared<U>(sectorId, [&](U* dst) { *dst = data; })) {
+					return fast;
+				}
+			}
+			return exclusiveForInsert(sectorId, [&](size_t pos) {
+				return writeMemberImpl<T>(pos, std::forward<T>(data));
+			});
+		} else {
 			return insertImpl(sectorId, std::forward<T>(data));
-		);
+		}
 	}
 
 	template<typename T, bool TS = ThreadSafe, class... Args>
-	T* emplace(SectorId sectorId, Args&&... args) {
-		TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable(sectorId);, 
+	T* emplace(SectorId sectorId, Args&&... args) noexcept {
+		if constexpr (TS && ThreadSafe) {
+			// Args are bound as lvalues here so a miss leaves them forwardable below.
+			if constexpr (std::is_trivially_copyable_v<T> && std::is_constructible_v<T, Args&...>) {
+				if (auto* fast = tryOverwriteShared<T>(sectorId, [&](T* dst) { *dst = T(args...); })) {
+					return fast;
+				}
+			}
+			return exclusiveForInsert(sectorId, [&](size_t pos) {
+				return emplaceMemberImpl<T>(pos, std::forward<Args>(args)...);
+			});
+		} else {
 			return emplaceImpl<T>(sectorId, std::forward<Args>(args)...);
-		);
+		}
 	}
 
 	template<typename T, bool TS = ThreadSafe, class... Args>
-	T* push(SectorId sectorId, Args&&... args) {
+	T* push(SectorId sectorId, Args&&... args) noexcept {
 		if constexpr (sizeof...(Args) == 1 && (std::is_same_v<std::remove_cvref_t<Args>, T> && ...)) {
 			return insert<Args..., TS>(sectorId, std::forward<Args>(args)...);
 		} else {
@@ -1337,8 +1358,9 @@ public:
 	/// publish that addComponent() pays. In the TS build it also batches the write lock, the
 	/// pin wait and the dense-view publish across the whole range.
 	template<typename C, typename It, bool TS = ThreadSafe>
-	void insertBulk(It first, It last) {
-		TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable();, insertBulkImpl<C>(first, last););
+	void insertBulk(It first, It last) noexcept {
+		if constexpr (TS && ThreadSafe) { exclusiveWhenQuiescent([&] { insertBulkImpl<C>(first, last); }); }
+		else { insertBulkImpl<C>(first, last); }
 	}
 
 	template<bool Lock = true>
