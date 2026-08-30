@@ -1030,6 +1030,7 @@ namespace ecss {
 				for (const auto& entry : secondary) {
 					auto* arr = entry.first;
 					mSecondaryArrays[mSecondaryCount] = arr;
+					mSecondaryChunks[mSecondaryCount] = arr->loadChunks();
 					for (size_t a = 0; a < TypesCount; ++a) {
 						if (arrays[a] == arr) {
 							arrayIndexes[a] = mSecondaryCount;
@@ -1071,6 +1072,9 @@ namespace ecss {
 
 			TypeAccessTuple mTypeAccessInfo;
 			Sectors*		mSecondaryArrays[CTCount ? CTCount : 1] = {};
+			/// Chunk snapshot per secondary array, taken once so the per-element lookup does
+			/// not re-read the seqlock.
+			typename Allocator::ChunksView mSecondaryChunks[CTCount ? CTCount : 1] = {};
 			SectorsIt		mIterator;
 			const Ranges<EntityId>* mRangeFilter = nullptr;
 			uint16_t		mMainOffset = 0;
@@ -1211,8 +1215,9 @@ namespace ecss {
 				mMainArray = mainArr;
 				auto lock = mainArr->readLock();
 				mSize = mainArr->template size<false>();
-				mChunksSnapshot = mainArr->mAllocator.mChunks.data();
-				mChunksCount = mainArr->mAllocator.mChunks.size();
+				const auto chunks = mainArr->mAllocator.loadChunks();
+				mChunksSnapshot = chunks.chunks;
+				mChunksCount = chunks.count;
 				auto effectiveRanges = initRange(mainArr, ranges, getIndex<T>());
 				
 				// Determine iteration bounds

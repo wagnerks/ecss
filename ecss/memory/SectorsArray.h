@@ -178,7 +178,7 @@ namespace detail {
 		FORCE_INLINE SlotInfo& operator[](SectorId id) { return sparse[id]; }
 		FORCE_INLINE const SlotInfo& operator[](SectorId id) const { return sparse[id]; }
 
-		std::vector<SlotInfo> sparse;
+		std::vector<uint32_t> sparse;
 	};
 
 	/// @brief Atomic view for dense arrays (ids + isAlive) for thread-safe iteration
@@ -512,8 +512,14 @@ public:
 	/// Sector::markAlive<true>/markNotAlive<true>.
 	/// Declared static so nested iterator classes can call it without an enclosing instance.
 	static FORCE_INLINE uint32_t loadAliveRelaxed(const uint32_t* p, size_t i) noexcept {
-		return std::atomic_ref<uint32_t>(const_cast<uint32_t&>(p[i]))
-			.load(std::memory_order_relaxed);
+		if constexpr (ThreadSafe) {
+			return std::atomic_ref<uint32_t>(const_cast<uint32_t&>(p[i]))
+				.load(std::memory_order_relaxed);
+		} else {
+			// No concurrent writer can exist, and an atomic load -- even relaxed -- stops the
+			// vectoriser from touching the surrounding scan.
+			return p[i];
+		}
 	}
 
 	/// @brief Acquire load of an alive-bit word. Pairs with the release fetch_or in
@@ -521,8 +527,12 @@ public:
 	/// the fully-constructed component bytes written before the bit was set.
 	/// x86-64: plain MOV (all loads are acquire). ARM64: LDAR instead of LDR.
 	static FORCE_INLINE uint32_t loadAliveAcquire(const uint32_t* p, size_t i) noexcept {
-		return std::atomic_ref<uint32_t>(const_cast<uint32_t&>(p[i]))
-			.load(std::memory_order_acquire);
+		if constexpr (ThreadSafe) {
+			return std::atomic_ref<uint32_t>(const_cast<uint32_t&>(p[i]))
+				.load(std::memory_order_acquire);
+		} else {
+			return p[i];
+		}
 	}
 
 #define ITERATOR_COMMON_USING(IteratorName)                                         \
@@ -545,11 +555,14 @@ public:
 	public:
 		ITERATOR_COMMON_USING(Iterator)
 
-		Iterator(const SectorsArray* array, size_t idx) 
-			: mChunks(array->mAllocator.mChunks.data())
-			, mChunksCount(array->mAllocator.mChunks.size())
-			, mStride(array->mAllocator.mSectorSize) {
-			// Load atomic view snapshot for thread-safe access
+		Iterator(const SectorsArray* array, size_t idx) {
+			// Both snapshots are lock-free; the chunk table is published by a seqlock so it
+			// can be read without the array shared lock (see ChunksAllocator::loadChunks).
+			const auto chunks = array->mAllocator.loadChunks();
+			mChunks = chunks.chunks;
+			mChunksCount = chunks.count;
+			mStride = chunks.sectorSize;
+
 			auto view = array->mDenseArrays.loadView();
 			mIds = view.ids;
 			mIsAlive = view.isAlive;
@@ -649,7 +662,11 @@ public:
 			: mIdx(idx)
 			, mAliveMask(aliveMask)
 			, mIsPacked(isPacked) {
-			// Load atomic view snapshot for thread-safe access
+			const auto chunks = array->mAllocator.loadChunks();
+			mChunks = chunks.chunks;
+			mChunksCount = chunks.count;
+			mStride = chunks.sectorSize;
+
 			auto view = array->mDenseArrays.loadView();
 			mIds = view.ids;
 			mIsAlive = view.isAlive;
@@ -815,11 +832,12 @@ public:
 	public:
 		ITERATOR_COMMON_USING(RangedIterator)
 
-		RangedIterator(const SectorsArray* array, const Ranges<SectorId>& ranges)
-			: mChunks(array->mAllocator.mChunks.data())
-			, mChunksCount(array->mAllocator.mChunks.size())
-			, mStride(array->mAllocator.mSectorSize) {
-			// Load atomic view snapshot for thread-safe access
+		RangedIterator(const SectorsArray* array, const Ranges<SectorId>& ranges) {
+			const auto chunks = array->mAllocator.loadChunks();
+			mChunks = chunks.chunks;
+			mChunksCount = chunks.count;
+			mStride = chunks.sectorSize;
+
 			auto view = array->mDenseArrays.loadView();
 			mIds = view.ids;
 			mIsAlive = view.isAlive;
@@ -1389,6 +1407,19 @@ private:
 	}
 
 	FORCE_INLINE size_t sizeImpl() const { return mSize.load(std::memory_order_relaxed); }
+
+public:
+	/// @brief Sector data address for a linear index, read through the chunk snapshot.
+	/// Loops should hoist loadChunks() and use the two-argument form instead.
+	FORCE_INLINE std::byte* dataAt(uint32_t linearIdx) const {
+		return Allocator::atView(mAllocator.loadChunks(), linearIdx);
+	}
+	FORCE_INLINE std::byte* dataAt(const typename Allocator::ChunksView& chunks, uint32_t linearIdx) const {
+		return Allocator::atView(chunks, linearIdx);
+	}
+	FORCE_INLINE auto loadChunks() const { return mAllocator.loadChunks(); }
+
+private:
 
 	/// @brief Find slot info by sector id (returns data pointer + linearIdx)
 	FORCE_INLINE detail::SlotInfo findSlotImpl(SectorId id) const {
