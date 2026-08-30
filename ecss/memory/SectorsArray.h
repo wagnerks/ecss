@@ -1365,6 +1365,19 @@ public:
 
 	template<bool Lock = true>
 	void processPendingErases(bool withDefragment = true) requires(ThreadSafe) {
+		// Registry::update() calls this for every array every frame. Both conditions below
+		// are lock-free, so an array with nothing queued and nothing to compact costs a
+		// couple of atomic loads instead of a write-lock acquisition.
+		if constexpr (Lock) {
+			if (!mHasPendingErase.load(std::memory_order_acquire) && !needDefragment<false>()) [[likely]] {
+				return;
+			}
+		}
+
+		// Two phases on purpose: the deferred erases themselves only destroy sectors in
+		// place and never block, while compaction relocates sectors and therefore needs
+		// the array quiescent -- which must be awaited *outside* the write lock.
+		bool wantsDefragment = false;
 		if constexpr(Lock) {
 			auto lock = std::unique_lock(mtx);
 			wantsDefragment = processPendingErasesImpl();
@@ -1565,6 +1578,7 @@ private:
 			}
 			mDenseArrays.clear(0);
 			mPendingErase.clear();
+			mHasPendingErase.store(false, std::memory_order_release);
 			mSize.store(0, std::memory_order_relaxed);
 			mDefragmentSize.store(0, std::memory_order_relaxed);
 			// Note: retired memory is drained on destruction, not here
@@ -1852,36 +1866,37 @@ private:
 				incDefragmentSize();
 			} else {
 				mPendingErase.push_back(id);
+				mHasPendingErase.store(true, std::memory_order_release);
 			}
 		} else {
 			UNIQUE_LOCK();
 			mPendingErase.push_back(id);
+			mHasPendingErase.store(true, std::memory_order_release);
 		}
 	}
 
-	void processPendingErasesImpl(bool withDefragment) requires(ThreadSafe) {
-		if (mPendingErase.empty()) {
-			if (needDefragment<false>() && withDefragment) {
-				mPinsCounter.waitUntilChangeable();
-				defragmentImpl();
-			}
-			return;
-		}
+	/// @brief Drain the deferred-erase queue (in place, never blocks).
+	/// @return true if the array now wants compaction; the caller runs it once quiescent.
+	bool processPendingErasesImpl() requires(ThreadSafe) {
+		if (!mPendingErase.empty()) {
+			auto tmp = std::move(mPendingErase);
+			mPendingErase.clear(); // moved-from vectors are only "valid but unspecified"
+			mHasPendingErase.store(false, std::memory_order_release);
+			std::ranges::sort(tmp);
+			tmp.erase(std::ranges::unique(tmp).begin(), tmp.end());
 
-		auto tmp = std::move(mPendingErase);
-		std::ranges::sort(tmp);
-		tmp.erase(std::ranges::unique(tmp).begin(), tmp.end());
+			for (auto id : tmp) {
+				auto idx = findLinearIdxImpl(id);
+				if (idx == INVALID_IDX) continue;
 
-		for (auto id : tmp) {
-			auto idx = findLinearIdxImpl(id);
-			if (idx == INVALID_IDX) continue;
-
-			if (mPinsCounter.canMoveSector(id)) {
-				mSparseMap.set(id, detail::INVALID_SLOT);
-				Sector::destroySectorData<ThreadSafe>(mAllocator.at(idx), mDenseArrays.isAliveAt(idx), getLayout());
-				incDefragmentSize();
-			} else {
-				mPendingErase.push_back(id);
+				if (mPinsCounter.canMoveSector(id)) {
+					mSparseMap.set(id, INVALID_IDX);
+					Sector::destroySectorData<ThreadSafe>(mAllocator.at(idx), mDenseArrays.isAliveAt(idx), getLayout());
+					incDefragmentSize();
+				} else {
+					mPendingErase.push_back(id);
+					mHasPendingErase.store(true, std::memory_order_release);
+				}
 			}
 		}
 
@@ -2091,6 +2106,9 @@ private:
 		}
 		other.mSize.store(0, std::memory_order_relaxed);
 		other.mDenseArrays.clear(0);
+		other.mPendingErase.clear();
+		other.mHasPendingErase.store(false, std::memory_order_release);
+		other.mDefragmentSize.store(0, std::memory_order_relaxed);
 		other.shrinkToFitImpl();
 	}
 
@@ -2126,10 +2144,13 @@ private:
 	alignas(kHotAlign) mutable std::conditional_t<ThreadSafe, Threads::PinCounters, Dummy> mPinsCounter;
 
 	std::vector<SectorId> mPendingErase;
+	/// Lock-free mirror of "mPendingErase is non-empty", so the per-frame maintenance pass
+	/// can skip the write lock for arrays with no deferred erases.
+	std::atomic<bool> mHasPendingErase{ false };
 
-	std::atomic<size_t> mSize{0};
-	float mDefragThreshold = 0.2f;
+	alignas(kSizeAlign) std::atomic<size_t> mSize{0};
 	std::atomic<uint32_t> mDefragmentSize{0};
+	float mDefragThreshold = 0.2f;
 };
 
 #undef SHARED_LOCK
