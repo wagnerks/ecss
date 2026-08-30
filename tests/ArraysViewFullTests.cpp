@@ -487,6 +487,19 @@ TEST(ViewFull, RangedViewTS) {
 	EXPECT_EQ(n, 10u);
 }
 
+TEST(ViewFull, RangedView_Holes) {
+	Registry<false> reg;
+	for (int i = 0; i < 200; ++i) {
+		EntityId e = reg.takeEntity();
+		reg.addComponent<VA>(e)->x = i;
+	}
+	Ranges<EntityId> rg(std::vector<Ranges<EntityId>::Range>{{0, 3}, {50, 52}, {190, 200}});
+	std::vector<int> seen;
+	reg.view<VA>(rg).each([&](VA& a) { seen.push_back(a.x); });
+	const std::vector<int> expected{0, 1, 2, 50, 51, 190, 191, 192, 193, 194, 195, 196, 197, 198, 199};
+	EXPECT_EQ(seen, expected);
+}
+
 TEST(ViewFull, ViewAfterClear) {
 	Registry<false> reg;
 	for (int i = 0; i < 10; ++i) {

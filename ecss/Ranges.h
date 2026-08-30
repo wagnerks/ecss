@@ -191,6 +191,28 @@ namespace ecss {
 		FORCE_INLINE bool empty() const { return !size(); }
 		FORCE_INLINE bool contains(Type value) const { return binarySearchInRanges(ranges, value) != -1; }
 
+		/// @brief Start of the first range with first > @p id, if any.
+		FORCE_INLINE bool nextStartAfter(Type id, Type& out) const {
+			int left = 0;
+			int right = static_cast<int>(ranges.size()) - 1;
+			int ans = -1;
+			while (left <= right) {
+				const int mid = (left + right) / 2;
+				if (ranges[mid].first > id) {
+					ans = mid;
+					right = mid - 1;
+				}
+				else {
+					left = mid + 1;
+				}
+			}
+			if (ans < 0) {
+				return false;
+			}
+			out = ranges[ans].first;
+			return true;
+		}
+
 		std::vector<Type> getAll() const {
 			size_t total = 0;
 			for (const auto& r : ranges) { total += static_cast<size_t>(r.second - r.first); }

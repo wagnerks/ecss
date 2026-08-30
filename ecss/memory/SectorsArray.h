@@ -687,6 +687,33 @@ public:
 		FORCE_INLINE std::byte* rawPtr() const noexcept { return mDataPtr; }
 		FORCE_INLINE explicit operator bool() const noexcept { return mIdx < mSize; }
 
+		FORCE_INLINE void becomeEnd() noexcept {
+			mIdx = mSize;
+			mDataPtr = nullptr;
+		}
+
+		/// @brief Jump to the first alive sector whose id is >= @p minId (or end).
+		FORCE_INLINE void advanceToId(SectorId minId) {
+			size_t lo = mIdx;
+			size_t hi = mSize;
+			while (lo < hi) {
+				const size_t mid = lo + (hi - lo) / 2;
+				if (mIds[mid] < minId) {
+					lo = mid + 1;
+				}
+				else {
+					hi = mid;
+				}
+			}
+			mIdx = lo;
+			if (mIsPacked) {
+				syncDataPtr();
+			}
+			else {
+				skipDeadFast();
+			}
+		}
+
 	private:
 		FORCE_INLINE void syncDataPtr() {
 			if (mIdx < mSize && mChunksCount > 0) {

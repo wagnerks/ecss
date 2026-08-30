@@ -1053,7 +1053,12 @@ namespace ecss {
 				while (mIterator) {
 					auto slot = *mIterator;
 					if (mRangeFilter->contains(slot.id)) return;
-					++mIterator;
+					EntityId next{};
+					if (!mRangeFilter->nextStartAfter(slot.id, next)) {
+						mIterator.becomeEnd();
+						return;
+					}
+					mIterator.advanceToId(next);
 				}
 			}
 

@@ -164,3 +164,26 @@ TEST(RangesFull, MergeAdjacent) {
 		EXPECT_TRUE(r.contains(i));
 	}
 }
+
+TEST(RangesFull, NextStartAfter) {
+	Ranges<EntityId> r(std::vector<Ranges<EntityId>::Range>{{0, 3}, {10, 12}, {100, 110}});
+	EntityId next{};
+	EXPECT_TRUE(r.nextStartAfter(0, next));
+	EXPECT_EQ(next, 10u);
+	EXPECT_TRUE(r.nextStartAfter(2, next));
+	EXPECT_EQ(next, 10u);
+	EXPECT_TRUE(r.nextStartAfter(3, next));
+	EXPECT_EQ(next, 10u);
+	EXPECT_TRUE(r.nextStartAfter(9, next));
+	EXPECT_EQ(next, 10u);
+	EXPECT_TRUE(r.nextStartAfter(10, next));
+	EXPECT_EQ(next, 100u);
+	EXPECT_TRUE(r.nextStartAfter(50, next));
+	EXPECT_EQ(next, 100u);
+	EXPECT_FALSE(r.nextStartAfter(100, next));
+	EXPECT_FALSE(r.nextStartAfter(109, next));
+	EXPECT_FALSE(r.nextStartAfter(200, next));
+
+	Ranges<EntityId> empty;
+	EXPECT_FALSE(empty.nextStartAfter(0, next));
+}
