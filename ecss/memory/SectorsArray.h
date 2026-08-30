@@ -1247,6 +1247,65 @@ public:
 	void setGracePeriod(uint32_t ticks) requires(ThreadSafe) { setRetireGracePeriod(ticks); }
 
 	// ==================== Insert / Emplace ====================
+	//
+	// These are noexcept on purpose, matching Registry::addComponent: a component
+	// constructor that throws terminates the process rather than propagating.
+	//
+	// The alternative is worse here, not better. emplaceMember() destroys the previous value
+	// before constructing the new one and only marks the slot alive afterwards, so an escaping
+	// exception would leave the liveness bit set over destroyed storage -- and the next read,
+	// erase or defragment would run the destructor a second time. Verified: a throwing
+	// constructor reached through these entry points took the live-object count to -1, i.e. a
+	// double destruction, which is a double free for any component that owns heap memory.
+	//
+	// Terminating keeps that state unobservable at no runtime cost. Making the mutation path
+	// roll back instead would mean clearing the liveness bit before destroying the old value,
+	// which is pure overhead on the hot path in the normal case.
+
+	/// @brief Fast path for overwriting a component that is already present and alive.
+	///
+	/// Such a write changes no structure at all: no slot acquisition, no shift, no liveness
+	/// transition, no view publication -- it is a plain assignment over existing bytes. Every
+	/// structural mutation in this class runs under the unique lock, so holding the *shared*
+	/// lock is enough to keep the sector from being relocated or destroyed underneath the
+	/// write. That lets N threads overwrite N different entities concurrently instead of
+	/// serialising them all on one writer lock.
+	///
+	/// Deliberately restricted to trivially copyable components: for a non-trivial type an
+	/// overwrite is destroy-then-construct, and two threads doing that at once would
+	/// double-destroy. Those keep the structural path and its exclusive lock.
+	///
+	/// It also deliberately does not touch the alive bit. copyMember() clears it before
+	/// constructing and sets it after, which would make a live component blink out of
+	/// existence for concurrent readers; for an already-live trivial component there is no
+	/// liveness transition to publish.
+	///
+	/// @note Two threads overwriting the *same* component now race on its value rather than
+	///       being serialised. For a trivially copyable type that is the same race a caller
+	///       already has when writing through a pointer obtained from a view or a pin.
+	/// @return the written component, or nullptr when the fast path does not apply and the
+	///         caller must fall back to the structural path.
+	template<typename U, typename Write>
+	U* tryOverwriteShared(SectorId sectorId, Write&& write) requires(ThreadSafe) {
+		static_assert(std::is_trivially_copyable_v<U>, "fast path is only sound for trivial components");
+
+		const auto& layout = getLayoutData<U>();
+		auto lock = readLock();
+
+		const auto idx = mSparseMap.findIdx(sectorId);
+		if (idx == INVALID_IDX) {
+			return nullptr;
+		}
+		// Must already be alive: publishing a *new* component flips a liveness bit and moves
+		// the fragmentation bookkeeping, both of which belong to the structural path.
+		if (!Sector::isAlive(loadAliveWord<ThreadSafe>(idx), layout.isAliveMask)) {
+			return nullptr;
+		}
+
+		auto* dst = reinterpret_cast<U*>(dataAt(idx) + layout.offset);
+		write(dst);
+		return dst;
+	}
 
 	template<typename T, bool TS = ThreadSafe>
 	std::remove_cvref_t<T>* insert(SectorId sectorId, T&& data) {
