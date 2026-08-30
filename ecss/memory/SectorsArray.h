@@ -850,6 +850,15 @@ public:
 		}
 
 		FORCE_INLINE RangedIterator& operator++() noexcept {
+			// Exhausted: mRangeIdx indexes one past the last range (or mLinearRanges is
+			// empty, as for a default-constructed / end iterator). Indexing it here was an
+			// out-of-bounds read on every increment past the end.
+			if (mRangeIdx >= mLinearRanges.size()) [[unlikely]] {
+				mIdx = mSize;
+				mDataPtr = nullptr;
+				return *this;
+			}
+
 			++mIdx;
 			++mInChunkIdx;
 			mDataPtr += mStride;
