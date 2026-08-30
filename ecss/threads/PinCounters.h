@@ -1,381 +1,260 @@
 #pragma once
 
-#include <shared_mutex>
-#include <bit>
+#include <algorithm>
 #include <atomic>
-
+#include <cassert>
 #include <cstddef>
-#include <vector>
+#include <cstdint>
 #include <mutex>
-#include <memory>
-#include <type_traits>
+#include <vector>
+
+#include <ecss/Types.h>
 
 namespace ecss::Threads {
-	using PinIndex = int_fast64_t;
-
-	/**
-	 * @brief Hierarchical bit mask indexing pinned sector ids.
-	 *
-	 * Purpose:
-	 *   - O(1) set / clear of a sector "present" bit.
-	 *   - O(log N) query of highest pinned sector id (highestSet()).
-	 *
-	 * Layout:
-	 *   - Level 0 stores bits for sectors (fan-out = machine word bit width).
-	 *   - Higher levels store aggregated occupancy of lower level word indices.
-	 *
-	 * Concurrency:
-	 *   - Structural growth (vector resize) guarded by unique_lock in ensurePath().
-	 *   - Bit mutations use atomic_ref fetch_{or,and} with acquire-release semantics.
-	 *   - Readers (test/highestSet) take shared locks plus atomic loads (acquire).
-	 *
-	 * Guarantees:
-	 *   - After set(i,true) completes, highestSet() will eventually (after propagation) return
-	 *     >= i unless cleared again.
-	 *   - Clearing a bit propagates upward until a still-used sibling bit is found.
-	 *
-	 * Used by PinCounters to recompute maxPinnedSector after a sector's last unpin.
-	 */
-	struct PinnedIndexesBitMask {
-	private:
-		using BITS_TYPE = uint64_t;
-		static_assert(std::is_unsigned_v<BITS_TYPE>, "BITS_TYPE must be unsigned");
-		static_assert((std::numeric_limits<BITS_TYPE>::digits& (std::numeric_limits<BITS_TYPE>::digits - 1)) == 0, "digits must be power of two (8/16/32/64)");
-
-		static constexpr auto kFanout = std::numeric_limits<BITS_TYPE>::digits;
-		static constexpr auto kBitsCount = kFanout - 1;
-		static constexpr auto shift = std::countr_zero(static_cast<unsigned>(kFanout));
-		static constexpr auto maxlvl = 1 + (std::numeric_limits<size_t>::digits + shift - 1) / shift;
-
-		static constexpr size_t		wordIndexOf(size_t idx)  { return idx >> shift; }
-		static constexpr size_t		bitOffsetOf(size_t idx)  { return idx & kBitsCount; }
-		static constexpr BITS_TYPE	bitMask(size_t off)		 { return static_cast<BITS_TYPE>(1) << off; }
-
-		static constexpr size_t levelsFor(size_t idx)  {
-			auto w0 = wordIndexOf(idx);
-			return w0 ? 2 + (std::bit_width(w0) - 1) / shift : 1;
-		}
-
-		size_t ensurePath(size_t idx, std::array<size_t, maxlvl>& path)  {
-			auto lock = std::unique_lock(mtx);
-
-			auto w = idx;
-			size_t level = 0;
-			do {
-				w = wordIndexOf(w);
-				if (bits[level].size() <= w) { bits[level].resize(w + 1, 0); }
-				path[level++] = w;
-
-			} while (w != 0);
-
-			auto curTop = mTopLevel.load(std::memory_order_relaxed);
-			if (static_cast<int>(level) - 1 > curTop) {
-				mTopLevel.store(static_cast<int>(level) - 1, std::memory_order_relaxed);
-			}
-
-			return level;
-		}
-
-	public:
-		PinnedIndexesBitMask()  { bits[0].resize(1); }
-
-		/**
-		 * @brief Set or clear presence bit for sector id.
-		 * @param index Sector id.
-		 * @param state true to set, false to clear.
-		 * @note Setting propagates upward until an already-marked ancestor is found.
-		 *       Clearing propagates until an ancestor still has other children set.
-		 * @thread_safety Concurrent calls allowed; internal locking + atomic ops.
-		 */
-		void set(SectorId index, bool state)  {
-			thread_local std::array<size_t, maxlvl> path;
-			auto size = ensurePath(index, path);
-
-			const auto m0 = bitMask(bitOffsetOf(index));
-
-			auto lock = std::shared_lock(mtx);
-
-			if (state) {
-				auto before = std::atomic_ref{ bits[0][path[0]] }.fetch_or(m0, std::memory_order_acq_rel);
-				if (before & m0) { return; }
-
-				for (size_t lvl = 1; lvl < size; ++lvl) {
-					const auto childWord = path[lvl - 1];
-					const auto parentWord = path[lvl];
-					const auto bm = bitMask(bitOffsetOf(childWord));
-					auto old = std::atomic_ref{ bits[lvl][parentWord] }.fetch_or(bm, std::memory_order_acq_rel);
-					if (old & bm) { break; }
-				}
-			}
-			else {
-				auto before = std::atomic_ref{ bits[0][path[0]] }.fetch_and(~m0, std::memory_order_acq_rel);
-				if (before & ~m0) {
-					return; // other bits still set in this word -> ancestors stay
-				}
-
-				for (size_t lvl = 1; lvl < size; ++lvl) {
-					const auto childWord = path[lvl - 1];
-					const auto parentWord = path[lvl];
-					const auto bm = bitMask(bitOffsetOf(childWord));
-					auto old = std::atomic_ref{ bits[lvl][parentWord] }.fetch_and(~bm, std::memory_order_acq_rel);
-
-					// Re-check: concurrent set() may have added bits to child after our clear
-					auto childVal = std::atomic_ref{ bits[lvl - 1][childWord] }.load(std::memory_order_acquire);
-					if (childVal != 0) {
-						std::atomic_ref{ bits[lvl][parentWord] }.fetch_or(bm, std::memory_order_acq_rel);
-						break;
-					}
-
-					if (old & ~bm) {
-						break; // sibling still present
-					}
-				}
-			}
-		}
-
-		/**
-		 * @brief Test if sector id bit set.
-		 * @param index Sector id.
-		 * @return true if set.
-		 * @thread_safety Safe concurrent with set/clear.
-		 */
-		bool test(SectorId index) const  {
-			auto lock = std::shared_lock(mtx);
-
-			const auto w = wordIndexOf(index);
-			if (w >= bits[0].size()) {
-				return false;
-			}
-
-			const auto m = bitMask(bitOffsetOf(index));
-			auto v = std::atomic_ref{ bits[0][w] }.load(std::memory_order_acquire);
-
-			return (v & m) != 0;
-		}
-
-		/**
-		 * @brief Get highest set sector id or -1 if none.
-		 * @return Highest id or -1.
-		 * @thread_safety Safe concurrent with mutation; may return stale but monotonic snapshot.
-		 */
-		PinIndex highestSet() const  {
-			auto lock = std::shared_lock(mtx);
-
-			int top = mTopLevel.load(std::memory_order_relaxed);
-			while (top >= 0 && (bits[top].empty() || std::atomic_ref{ bits[top][0] }.load(std::memory_order_acquire) == 0)) {
-				--top;
-			}
-
-			if (top < 0) {
-				return -1;
-			}
-
-			PinIndex wordIdx = kBitsCount - std::countl_zero(std::atomic_ref(bits[top][0]).load(std::memory_order_acquire));
-			if (wordIdx == -1) {
-				return wordIdx;
-			}
-			for (int lvl = top - 1; lvl >= 0; --lvl) {
-				auto w = std::atomic_ref(bits[lvl][wordIdx]).load(std::memory_order_acquire);
-				if (w == 0) { return -1; } // defensive
-				auto b = w != 0 ? kBitsCount - std::countl_zero(w) : w;
-				wordIdx = static_cast<PinIndex>((wordIdx << shift) | b);
-			}
-
-			return wordIdx;
-		}
-
-	private:
-		mutable std::shared_mutex mtx;
-		mutable std::array<std::vector<BITS_TYPE>, maxlvl> bits;
-		std::atomic<int> mTopLevel{0};
-	};
-
 	/**
 	 * @brief Per-sector pin tracking & synchronization for safe structural mutations.
 	 *
-	 * Features:
-	 *   - Per-sector ref-counted pins (uint16_t counters, on-demand block allocation).
-	 *   - Global aggregated distinct pinned sector count: totalPinnedSectors.
-	 *   - Highest pinned sector id (maxPinnedSector) for fast range checks (e.g. canMoveSector).
-	 *   - Hierarchical bit mask to recompute highest pinned id after unpin.
-	 *   - Wait primitive (waitUntilChangeable) that blocks until target sector id and its counter are movable (no active pins <= id).
+	 * Two predicates, both exact -- neither can ever report "safe" while a pin is live:
+	 *   - isPinned(id) / waitUntilChangeable(id): that one sector is not in use.
+	 *     Sufficient before destroying or overwriting that sector *in place*.
+	 *   - hasAnyPins() / waitUntilQuiescent(): no sector is in use at all.
+	 *     Required before *relocating* sectors (middle-insert shift, defragment,
+	 *     clear, copy, move), because relocation moves sectors the caller never named.
+	 *
+	 * Why there is no longer a "highest pinned id":
+	 *   The previous design kept maxPinnedSector, recomputed from a hierarchical bit mask
+	 *   over pinned ids, and let a writer proceed when its target id was above it.
+	 *   That value could be under-reported: the bitmask clears a parent bit before
+	 *   re-checking the child word, so a concurrent highestSet() could miss a whole
+	 *   subtree and return a lower id -- or -1 -- while sectors were still pinned, and
+	 *   the writer then relocated or destroyed pinned data. Both predicates below are
+	 *   single atomic loads over counters that were already maintained exactly, so the
+	 *   correct version is also the cheaper one: pin/unpin no longer touch the bitmask
+	 *   (whose ensurePath() took a global unique_lock on every first pin) and no longer
+	 *   walk it to recompute a maximum.
 	 *
 	 * Invariants:
-	 *   - Sector considered "pinned" while its counter > 0.
-	 *   - totalPinnedSectors equals number of sectors whose counter > 0 (distinct, not sum of counts).
-	 *   - When totalPinnedSectors == 0: all per-sector counters are 0 and structural compaction is safe.
-	 *   - maxPinnedSector == -1 implies (eventually) totalPinnedSectors == 0, but writer logic now prefers totalPinnedSectors for reliability.
+	 *   - A sector is "pinned" while its counter > 0.
+	 *   - mTotalPinned == number of distinct sectors whose counter > 0.
+	 *   - mTotalPinned == 0  <=>  every per-sector counter is 0.
 	 *
-	 * Memory order:
-	 *   - Pin/unpin use release on increments/decrements; readers use acquire loads to observe a consistent state.
-	 *   - CAS on maxPinnedSector uses release when publishing a higher id, acquire when reading for canMoveSector.
+	 * Locking: pin()/unpin() take no locks at all. The counter block table grows under a
+	 * mutex and is published as an immutable snapshot, so lookup is lock-free.
 	 *
-	 * Typical usage pattern:
-	 *   1. Reader pins sector (pin), accesses data, then unpins (unpin).
-	 *   2. Writer wanting to destroy/compact sectors calls waitUntilChangeable(id) or (for full defrag) waitUntilChangeable(0) after verifying hasAnyPins()==false for opportunistic defrag.
-	 *   3. Destruction/move executes only when relevant sectors are unpinned.
+	 * Ordering: pins are always taken while holding at least the owning array shared
+	 * lock, and writers test these predicates under its unique lock, so the array mutex
+	 * supplies the happens-before between "reader pinned" and "writer looked"; the
+	 * atomics here only need to be individually coherent. unpin() runs without any lock,
+	 * which is why the wait primitives use atomic wait/notify.
 	 */
 	struct PinCounters {
-		/**
-		 * @brief Increment pin counter for sector id (first pin sets bit & updates aggregates).
-		 * @param id Sector id (!= INVALID_ID).
-		 * @note May raise maxPinnedSector via CAS if id is the largest active pin.
-		 */
-		void pin(SectorId id)  {
-			assert(id != INVALID_ID);
+		PinCounters() = default;
+		PinCounters(const PinCounters&) = delete;
+		PinCounters& operator=(const PinCounters&) = delete;
 
-			auto prev = get(id).fetch_add(1, std::memory_order_release);
-			if (prev == 0) {
-				pinsBitMask.set(id, true);
-				totalPinnedSectors.fetch_add(1, std::memory_order_acq_rel);
-			}
-
-			auto want = static_cast<PinIndex>(id);
-			auto cur = maxPinnedSector.load(std::memory_order_relaxed);
-			while (want > cur && !maxPinnedSector.compare_exchange_weak(cur, want, std::memory_order_release, std::memory_order_relaxed)) {}
+		~PinCounters() {
+			for (auto* table : mTables) { delete[] table->blocks; delete table; }
+			for (auto* block : mBlocks) { delete[] block; }
 		}
 
 		/**
-		 * @brief Decrement pin counter; if last pin clears bit, updates aggregates.
-		 * @param id Sector id.
-		 * @note On last unpin triggers updateMaxPinned() and notifies waiters.
+		 * @brief Increment the pin counter for sector id.
+		 * @param id Sector id (!= INVALID_ID).
 		 */
-		void unpin(SectorId id)  {
+		void pin(SectorId id) {
+			assert(id != INVALID_ID);
+
+			// Claim the aggregate *before* publishing the per-sector count, and hand it back
+			// if we turn out not to be the first pinner. Incrementing the aggregate second
+			// leaves a window where a sector reads as pinned while hasAnyPins() still reads
+			// false: a second pinner of the same sector observes a non-zero counter, skips
+			// the aggregate bump and returns, all before the first pinner has bumped it.
+			// hasAnyPins() is the gate that lets a writer relocate sectors, so it must only
+			// ever err by over-reporting.
+			//
+			// Cost is unchanged in the common case (distinct sectors): one aggregate RMW plus
+			// one counter RMW either way. The give-back only runs when two threads pin the
+			// same sector at the same time.
+			mTotalPinned.fetch_add(1, std::memory_order_acq_rel);
+			if (get(id).fetch_add(1, std::memory_order_acq_rel) != 0) {
+				mTotalPinned.fetch_sub(1, std::memory_order_acq_rel);
+			}
+		}
+
+		/**
+		 * @brief Decrement the pin counter for sector id; wakes writers on the last unpin.
+		 * @param id Sector id.
+		 */
+		void unpin(SectorId id) {
 			assert(id != INVALID_ID);
 
 			auto& var = get(id);
-			auto prev = var.fetch_sub(1, std::memory_order_release);
-
-			if (prev == 1) {
-				pinsBitMask.set(id, false);
-				totalPinnedSectors.fetch_sub(1, std::memory_order_acq_rel);
-
-				updateMaxPinned();
-				var.notify_all();
-			}
-		}
-
-		/**
-		 * @brief Fast test whether a sector can be moved (id greater than highest pinned and not itself pinned).
-		 * @param sectorId Sector id.
-		 * @return true if movable now.
-		 */
-		bool canMoveSector(SectorId sectorId) const  {
-			assert(sectorId != INVALID_ID);
-
-			const auto max = maxPinnedSector.load(std::memory_order_acquire);
-			return static_cast<PinIndex>(sectorId) > max && get(sectorId).load(std::memory_order_acquire) == 0;
-		}
-
-		/**
-		 * @brief Block until sector id (and any lower pinned sector) is safe to mutate.
-		 * @param sid Sector id (default 0 for full barrier).
-		 * @details Two-phase wait:
-		 *          1. Wait while id <= maxPinnedSector (meaning some pin <= id active).
-		 *          2. Wait while per-sector counter for sid > 0.
-		 * @warning Use with id=0 for full-array structural changes (defragment).
-		 */
-		void waitUntilChangeable(SectorId sid = 0) const {
-			assert(sid != INVALID_ID);
-			const auto id = static_cast<PinIndex>(sid);
-			for (;;) {
-				auto max = maxPinnedSector.load(std::memory_order_acquire);
-				if (id <= max) {
-					maxPinnedSector.wait(max, std::memory_order_acquire);
-					continue;
-				}
-				auto& var = get(sid);
-				auto c = var.load(std::memory_order_acquire);
-				if (c != 0) {
-					var.wait(c, std::memory_order_acquire);
-					continue;
-				}
+			// seq_cst, not acq_rel: this decrement and the mWaiters load below form a
+			// store-load pair with the waiter (announce -> sample). Every operation on the
+			// chain must sit in the single seq_cst total order, otherwise the standard
+			// permits this load to miss a waiter that has already committed to blocking,
+			// and the wake-up is lost forever. On x86 LOCK XADD is a full barrier anyway,
+			// so this costs nothing there.
+			if (var.fetch_sub(1, std::memory_order_seq_cst) != 1) {
 				return;
 			}
+			const auto remaining = mTotalPinned.fetch_sub(1, std::memory_order_seq_cst) - 1;
+
+			// Skip the wake syscalls when provably nobody is blocked: a waiter announces
+			// itself in mWaiters before sampling the counter it is about to wait on, and
+			// every step of that handshake is seq_cst, so a waiter that observed a non-zero
+			// value is necessarily visible here.
+			if (mWaiters.load(std::memory_order_seq_cst) == 0) {
+				return;
+			}
+			var.notify_all();
+			if (remaining == 0) {
+				mTotalPinned.notify_all();
+			}
 		}
 
 		/**
-		 * @brief Test if a sector presently has a non-zero pin counter.
-		 * @param id Sector id.
+		 * @brief Exact test: may sector @p sectorId be destroyed / overwritten in place?
+		 * @note Says nothing about *other* sectors. Anything that relocates sectors must
+		 *       use hasAnyPins() / waitUntilQuiescent() instead.
 		 */
+		bool canMoveSector(SectorId sectorId) const {
+			assert(sectorId != INVALID_ID);
+			return get(sectorId).load(std::memory_order_acquire) == 0;
+		}
+
+		/**
+		 * @brief Block until sector @p sid carries no pins.
+		 * @warning Covers only @p sid. Use waitUntilQuiescent() before relocating sectors.
+		 */
+		void waitUntilChangeable(SectorId sid) const {
+			assert(sid != INVALID_ID);
+			auto& var = get(sid);
+			for (;;) {
+				if (var.load(std::memory_order_acquire) == 0) {
+					return;
+				}
+				WaiterScope scope(mWaiters);
+				// Re-sample once announced (seq_cst: same total order as unpin's decrement).
+				// The pin may have been dropped between the load above and the announcement,
+				// which would otherwise lose the wake-up.
+				const auto c = var.load(std::memory_order_seq_cst);
+				if (c == 0) {
+					return;
+				}
+				var.wait(c, std::memory_order_acquire);
+			}
+		}
+
+		/**
+		 * @brief Block until no sector at all is pinned.
+		 * @note Required before any operation that moves sectors between linear indices.
+		 */
+		void waitUntilQuiescent() const {
+			for (;;) {
+				if (mTotalPinned.load(std::memory_order_acquire) == 0) {
+					return;
+				}
+				WaiterScope scope(mWaiters);
+				const auto n = mTotalPinned.load(std::memory_order_seq_cst);
+				if (n == 0) {
+					return;
+				}
+				mTotalPinned.wait(n, std::memory_order_acquire);
+			}
+		}
+
+		/// @brief Test whether a sector presently has a non-zero pin counter.
 		FORCE_INLINE bool isPinned(SectorId id) const {
 			return get(id).load(std::memory_order_acquire) != 0;
 		}
 
-		/**
-		 * @brief True if any sector is currently pinned.
-		 * @note Preferred over checking maxPinnedSector >= 0 (more precise & immediate).
-		 */
+		/// @brief True if any sector is currently pinned (exact).
+		FORCE_INLINE bool hasAnyPins() const noexcept {
+			return mTotalPinned.load(std::memory_order_acquire) != 0;
+		}
+
+		/// @brief Alias of hasAnyPins(): no sector may be relocated while this is true.
 		FORCE_INLINE bool isArrayLocked() const {
 			return hasAnyPins();
 		}
 
-		/**
-		 * @brief Distinct pinned sector presence check.
-		 * @return true if one or more sectors pinned.
-		 */
-		FORCE_INLINE bool hasAnyPins() const noexcept {
-			return totalPinnedSectors.load(std::memory_order_acquire) != 0;
-		}
-
-		void reserve(SectorId maxId) {
-			const size_t bi = maxId / BLOCK;
-			std::unique_lock w(mtx);
-			if (bi >= blocks.size()) blocks.resize(bi + 1);
-			for (size_t i = 0; i <= bi; ++i) {
-				if (!blocks[i]) {
-					blocks[i] = std::make_unique<std::atomic<uint16_t>[]>(BLOCK);
-					for (size_t j = 0; j < BLOCK; ++j) blocks[i][j].store(0, std::memory_order_relaxed);
-				}
-			}
-		}
-
-	private:
-		/// @brief Get (lazy allocate) atomic pin counter for sector id.
-		std::atomic<uint16_t>& get(SectorId id) const {
-			const size_t bi = id / BLOCK, off = id % BLOCK;
-
-			{   // fast-path
-				std::shared_lock r(mtx);
-				if (bi < blocks.size() && blocks[bi]) return blocks[bi][off];
-			}
-
-			{   // slow-path
-				std::unique_lock w(mtx);
-				if (bi >= blocks.size()) blocks.resize(bi + 1);
-				if (!blocks[bi]) {
-					blocks[bi] = std::make_unique<std::atomic<uint16_t>[]>(BLOCK);
-					for (size_t j = 0; j < BLOCK; ++j) blocks[bi][j].store(0, std::memory_order_relaxed);
-				}
-				return blocks[bi][off];
-			}
-		}
-
-		/**
-		 * @brief Recompute highest pinned id (maxPinnedSector) after a last unpin.
-		 * @details Retry CAS until successful to prevent stale maxPinnedSector.
-		 *          Always notify_all -- spurious wakes are safe (waitUntilChangeable re-checks).
-		 */
-		void updateMaxPinned()  {
-			auto cur = maxPinnedSector.load(std::memory_order_relaxed);
-			while (cur != -1) {
-				auto newMax = pinsBitMask.highestSet();
-				if (maxPinnedSector.compare_exchange_weak(cur, newMax, std::memory_order_release, std::memory_order_relaxed))
-					break;
-			}
-			maxPinnedSector.notify_all();
-		}
+		/// @brief Pre-allocate counter blocks covering ids up to and including @p maxId.
+		void reserve(SectorId maxId) { (void)get(maxId); }
 
 	private:
 		static constexpr size_t BLOCK = 4096;
+		using Counter = std::atomic<uint16_t>;
 
-		PinnedIndexesBitMask pinsBitMask;                    ///< Hierarchical presence tracking of pinned sectors.
+		/// @brief Immutable published snapshot of the block pointer array.
+		struct Table {
+			size_t    count;
+			Counter** blocks;
+		};
 
-		mutable std::shared_mutex mtx;                       ///< Protects block vector allocation.
-		mutable std::vector<std::unique_ptr<std::atomic<uint16_t>[]>> blocks; ///< Lazy pin counter blocks.
+		/// @brief RAII announce/retract of a blocked waiter; gates the notify syscalls.
+		struct WaiterScope {
+			explicit WaiterScope(std::atomic<uint32_t>& w) : waiters(w) { waiters.fetch_add(1, std::memory_order_seq_cst); }
+			~WaiterScope() { waiters.fetch_sub(1, std::memory_order_seq_cst); }
+			WaiterScope(const WaiterScope&) = delete;
+			WaiterScope& operator=(const WaiterScope&) = delete;
+			std::atomic<uint32_t>& waiters;
+		};
 
-		std::atomic<PinIndex>  maxPinnedSector{ -1 };         ///< Highest currently pinned sector id or -1.
-		std::atomic<uint32_t>  totalPinnedSectors{ 0 };       ///< Distinct sectors with counter > 0.
+		/// @brief Lock-free counter lookup; falls back to the growth path for new blocks.
+		FORCE_INLINE Counter& get(SectorId id) const {
+			const size_t bi = id / BLOCK;
+			if (const auto* table = mTable.load(std::memory_order_acquire); table && bi < table->count) [[likely]] {
+				return table->blocks[bi][id % BLOCK];
+			}
+			return grow(bi)[id % BLOCK];
+		}
+
+		/// @brief Allocate the missing blocks and publish a fresh (immutable) table.
+		Counter* grow(size_t blockIndex) const {
+			auto guard = std::lock_guard(mGrowMtx);
+
+			const auto* cur = mTable.load(std::memory_order_relaxed);
+			if (cur && blockIndex < cur->count) {
+				return cur->blocks[blockIndex];
+			}
+
+			const size_t oldCount = cur ? cur->count : 0;
+			// Grow geometrically so the number of superseded tables stays logarithmic.
+			const size_t newCount = std::max(blockIndex + 1, oldCount * 2);
+
+			auto** blocks = new Counter*[newCount];
+			for (size_t i = 0; i < oldCount; ++i) { blocks[i] = cur->blocks[i]; }
+			for (size_t i = oldCount; i < newCount; ++i) {
+				auto* block = new Counter[BLOCK];
+				for (size_t j = 0; j < BLOCK; ++j) { block[j].store(0, std::memory_order_relaxed); }
+				blocks[i] = block;
+				mBlocks.push_back(block);
+			}
+
+			auto* table = new Table{ newCount, blocks };
+			// Superseded tables stay alive until destruction: a lock-free reader may still
+			// hold a pointer to one, and they are only O(log maxId) small pointer arrays.
+			mTables.push_back(table);
+			mTable.store(table, std::memory_order_release);
+
+			return blocks[blockIndex];
+		}
+
+	private:
+		static_assert(types::isLockFreeAtomic<uint16_t>, "per-sector pin counters must be lock-free");
+		static_assert(types::isLockFreeAtomic<uint32_t>, "pin aggregates must be lock-free");
+		static_assert(types::isLockFreeAtomic<Table*>,   "the block table snapshot must be lock-free");
+
+		// Read-mostly: every pin/unpin/isPinned loads this, nobody writes it except growth.
+		alignas(64) mutable std::atomic<Table*> mTable{ nullptr }; ///< Published block table snapshot.
+		mutable std::mutex            mGrowMtx;          ///< Serializes table growth only.
+		mutable std::vector<Table*>   mTables;           ///< Every table ever published (freed in dtor).
+		mutable std::vector<Counter*> mBlocks;           ///< Every counter block (freed in dtor).
+
+		// Written by every first-pin / last-unpin: keep off the read-mostly line above.
+		alignas(64) std::atomic<uint32_t> mTotalPinned{ 0 }; ///< Distinct sectors with counter > 0.
+		mutable std::atomic<uint32_t> mWaiters{ 0 };         ///< Threads blocked in a wait primitive.
 	};
 
 }

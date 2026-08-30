@@ -98,7 +98,7 @@ TEST(SectorsArrayConcurrency, WatermarkBlocksAndLowersAfterUnpin) {
 
     t.join();
     EXPECT_FALSE(canChange.load(std::memory_order_relaxed))
-        << "watermark should prevent changes for ids <= max";
+        << "a pin on another sector should block erase until unpin";
 
     
     pHi = {}; 
@@ -207,32 +207,3 @@ TEST(SectorsArrayConcurrency, RandomStressNoDeadlockNoLostWakeups) {
     SUCCEED();
 }
 
-TEST(SectorArrayPinBitMask, highestSetTests) {
-    ecss::Threads::PinnedIndexesBitMask mask;
-    mask.set(0, true);
-    EXPECT_EQ(mask.test(0), true);
-    EXPECT_EQ(mask.test(5), false);
-    EXPECT_EQ(mask.highestSet(), 0);
-    mask.set(5, true);
-    EXPECT_EQ(mask.highestSet(), 5);
-    mask.set(3, true);
-    EXPECT_EQ(mask.highestSet(), 5);
-    mask.set(5, false);
-    EXPECT_EQ(mask.highestSet(), 3);
-    mask.set(5, false);
-
-    EXPECT_EQ(mask.highestSet(), 3);
-    mask.set(3, false);
-    EXPECT_EQ(mask.highestSet(), 0);
-    mask.set(0, false);
-    EXPECT_EQ(mask.highestSet(), -1);
-
-    mask.set(300000000, true);
-    EXPECT_EQ(mask.highestSet(), 300000000);
-    mask.set(30000000, true);
-    EXPECT_EQ(mask.highestSet(), 300000000);
-    mask.set(300000000, false);
-    EXPECT_EQ(mask.highestSet(), 30000000);
-    mask.set(30000000, false);
-    EXPECT_EQ(mask.highestSet(), -1);
-}

@@ -212,12 +212,10 @@ TEST(BugRepro, EachSingle_ChunksDataRace) {
 }
 
 // ---------------------------------------------------------------------------
-// Bug #6: PinnedIndexesBitMask parent bit inconsistency
-//
-// Concurrent set(x, false) and set(y, true) in the same word can leave
-// the parent bit cleared while the child word is non-zero.
+// hasAnyPins() must stay true while a sentinel sector remains pinned,
+// even under concurrent pin/unpin of other sectors.
 // ---------------------------------------------------------------------------
-TEST(BugRepro, PinnedIndexesBitMask_ParentInconsistency) {
+TEST(BugRepro, HasAnyPins_SentinelWhileChurn) {
     const int kIters = scale(50000);
     const int T = std::min(4, static_cast<int>(std::max(2u, std::thread::hardware_concurrency())));
 
@@ -250,7 +248,7 @@ TEST(BugRepro, PinnedIndexesBitMask_ParentInconsistency) {
         << "hasAnyPins() returned false while sentinel sector 0 was pinned";
 }
 
-TEST(BugRepro, PinnedIndexesBitMask_HighestSetConsistency) {
+TEST(BugRepro, CanMoveSector_StaysFalseWhilePinned) {
     const int kIters = scale(20000);
     const int T = std::min(4, static_cast<int>(std::max(2u, std::thread::hardware_concurrency())));
 
@@ -281,12 +279,9 @@ TEST(BugRepro, PinnedIndexesBitMask_HighestSetConsistency) {
 }
 
 // ---------------------------------------------------------------------------
-// Bug #5: updateMaxPinned epoch CAS starvation
-//
-// Under TSAN waitUntilChangeable can hang, so we only check that
-// maxPinnedSector eventually reflects reality (no waitUntilChangeable call).
+// After unpin, canMoveSector must become true even while other sectors churn.
 // ---------------------------------------------------------------------------
-TEST(BugRepro, UpdateMaxPinned_EpochStarvation) {
+TEST(BugRepro, CanMoveSector_AfterUnpinWhileChurn) {
     const int T = std::min(4, static_cast<int>(std::max(2u, std::thread::hardware_concurrency())));
     const int kIters = scale(10000);
 
@@ -315,9 +310,8 @@ TEST(BugRepro, UpdateMaxPinned_EpochStarvation) {
         counters.pin(10000);
         counters.unpin(10000);
 
-        // After unpin(10000), if no other sector > 10000 is pinned,
-        // canMoveSector(10000) should eventually return true.
-        // With the epoch bug, maxPinnedSector may stay stale.
+        // After unpin(10000), canMoveSector(10000) should eventually return true
+        // even while other sectors keep pinning/unpinning.
         bool became_movable = false;
         for (int spin = 0; spin < 1000; ++spin) {
             if (counters.canMoveSector(10000)) {
@@ -334,22 +328,16 @@ TEST(BugRepro, UpdateMaxPinned_EpochStarvation) {
     stop.store(true, std::memory_order_release);
     for (auto& th : churn) th.join();
 
-    if (stale_count.load() > 0) {
-        std::cerr << "[BugRepro] updateMaxPinned stale " << stale_count.load() << " times\n";
+        if (stale_count.load() > 0) {
+        std::cerr << "[BugRepro] canMoveSector stale " << stale_count.load() << " times\n";
     }
     EXPECT_LE(stale_count.load(), 10)
-        << "maxPinnedSector stayed stale too often -- epoch CAS starvation";
+        << "canMoveSector stayed false after unpin while other sectors churned";
 }
 
 // ---------------------------------------------------------------------------
-// Bug #5b: waitUntilChangeable HANG under pin/unpin churn
-//
-// This directly tests the livelock scenario: pin a high sector, unpin it,
-// then call waitUntilChangeable while background threads churn pin/unpin.
-// If updateMaxPinned epoch CAS keeps failing, maxPinnedSector stays stale
-// and waitUntilChangeable never returns (atomic wait never gets notified).
-//
-// We use std::async with a timeout to detect the hang.
+// waitUntilChangeable must return after unpin even while other sectors churn.
+// A missed notify_all would hang the waiter until timeout.
 // ---------------------------------------------------------------------------
 TEST(BugRepro, WaitUntilChangeable_Hang) {
     const int T = std::max(4, static_cast<int>(std::thread::hardware_concurrency()));
@@ -393,7 +381,7 @@ TEST(BugRepro, WaitUntilChangeable_Hang) {
         if (status == std::future_status::timeout) {
             hangs++;
             std::cerr << "[BugRepro] waitUntilChangeable(10000) HUNG on trial "
-                      << trial << " (epoch CAS starvation -> missed notify_all)\n";
+                      << trial << " (missed notify_all)\n";
             break;
         }
     }
@@ -402,7 +390,7 @@ TEST(BugRepro, WaitUntilChangeable_Hang) {
     for (auto& th : churn) th.join();
 
     EXPECT_EQ(hangs, 0)
-        << "waitUntilChangeable hung due to updateMaxPinned epoch CAS starvation";
+        << "waitUntilChangeable hung (missed notify while other sectors churned)";
 }
 
 // ---------------------------------------------------------------------------
