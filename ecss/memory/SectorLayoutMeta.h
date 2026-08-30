@@ -1,6 +1,11 @@
 #pragma once
 
+#include <cassert>
 #include <cstdint>
+#include <memory>
+#include <tuple>
+#include <type_traits>
+#include <utility>
 
 #include <ecss/Types.h>
 

@@ -1,6 +1,9 @@
 #pragma once
 
 #include <atomic>
+#include <cassert>
+#include <cstddef>
+
 #include <ecss/memory/SectorLayoutMeta.h>
 
 namespace ecss::Memory {

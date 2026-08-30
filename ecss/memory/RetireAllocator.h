@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <cstddef>
+#include <cstdlib>
 #include <vector>
 #include <mutex>
 #include <type_traits>
