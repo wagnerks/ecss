@@ -303,13 +303,17 @@ namespace ecss {
 		template <class T, typename Func>
 		void addComponents(Func&& func) requires(ThreadSafe) {
 			auto container = getComponentContainer<T>();
-			auto lock = container->writeLock();
-			auto f = std::forward<Func>(func);
-			auto res = f();
-			while (res.first != INVALID_ID) {
-				container->template push<T, false>(res.first, res.second);
-				res = f();
-			}
+			// The generator may emit ids that land in the middle of the array, which shifts
+			// existing sectors, so the whole array must be quiescent for the batch. Waiting
+			// happens outside the write lock (see SectorsArray::exclusiveWhenQuiescent).
+			container->exclusiveWhenQuiescent([&] {
+				auto f = std::forward<Func>(func);
+				auto res = f();
+				while (res.first != INVALID_ID) {
+					container->template push<T, false>(res.first, res.second);
+					res = f();
+				}
+			});
 		}
 
 		/**
@@ -348,6 +352,18 @@ namespace ecss {
 							container->incDefragmentSize();
 						}
 					}
+					// Destroys one member in place -- only that sector must be unpinned.
+					container->exclusiveWhenUnpinned(entity, [&] {
+						auto idx = container->template findLinearIdx<false>(entity);
+						if (idx != INVALID_IDX) {
+							auto& isAlive = container->template getIsAliveRef<false>(idx);
+							auto before = isAlive;
+							Memory::Sector::destroyMember<ThreadSafe>(container->mAllocator.at(idx), isAlive, container->template getLayoutData<T>());
+							if (before != isAlive && !Memory::Sector::isSectorAlive(isAlive)) {
+								container->incDefragmentSize();
+							}
+						}
+					});
 				}
 				else {
 					auto idx = container->template findLinearIdx<false>(entity);
@@ -377,23 +393,24 @@ namespace ecss {
 			if (auto container = getComponentContainer<T>()) {
 				const auto& layout = container->template getLayoutData<T>();
 				if constexpr (ThreadSafe) {
-					auto lock = container->writeLock();
+					// A whole batch of sectors is touched, so require quiescence rather than
+					// testing them one by one; the wait happens outside the write lock.
+					container->exclusiveWhenQuiescent([&] {
+						prepareEntities(entities, container->template sparseCapacity<false>());
+						if (entities.empty()) {
+							return;
+						}
 
-					prepareEntities(entities, container->template sparseCapacity<false>());
-					if (entities.empty()) {
-						return;
-					}
-
-					container->mPinsCounter.waitUntilChangeable(entities.front());
-					for (const auto sectorId : entities) {
-						// Use findSlot for single lookup
-						auto slotInfo = container->template findSlot<false>(sectorId);
-						if (slotInfo) {
-							auto& isAlive = container->template getIsAliveRef<false>(slotInfo.linearIdx);
-							auto before = isAlive;
-							Memory::Sector::destroyMember<ThreadSafe>(slotInfo.data, isAlive, layout);
-							if (before != isAlive && !Memory::Sector::isSectorAlive(isAlive)) {
-								container->incDefragmentSize();
+						for (const auto sectorId : entities) {
+							// Use findSlot for single lookup
+							auto slotInfo = container->template findSlot<false>(sectorId);
+							if (slotInfo) {
+								auto& isAlive = container->template getIsAliveRef<false>(slotInfo.linearIdx);
+								auto before = isAlive;
+								Memory::Sector::destroyMember<ThreadSafe>(slotInfo.data, isAlive, layout);
+								if (before != isAlive && !Memory::Sector::isSectorAlive(isAlive)) {
+									container->incDefragmentSize();
+								}
 							}
 						}
 					}
@@ -712,10 +729,6 @@ namespace ecss {
 				const EntityId* trimmedEnd = it;
 				const EntityId* trimmedBegin = begin;
 
-				if constexpr (ThreadSafe) {
-					array->mPinsCounter.waitUntilChangeable(*trimmedBegin);
-				}
-
 				for (auto p = trimmedBegin; p != trimmedEnd; ++p) {
 					auto slotInfo = array->template findSlot<false>(*p);
 					if (slotInfo) {
@@ -726,15 +739,12 @@ namespace ecss {
 			};
 
 			if constexpr (ThreadSafe) {
-				decltype(mComponentsArrays) compArrays;
-				{
-					auto lock = std::shared_lock(componentsArrayMapMutex);
-					compArrays = mComponentsArrays;
-				}
-
-				for (auto* array : compArrays) {
-					auto arrLock = array->writeLock();
-					destroyInArray(array, entities.data(), entities.data() + entities.size());
+				const auto [begin, end] = registeredArrays();
+				for (auto it = begin; it != end; ++it) {
+					auto* array = *it;
+					array->exclusiveWhenQuiescent([&] {
+						destroyInArray(array, entities.data(), entities.data() + entities.size());
+					});
 				}
 			}
 			else {
@@ -786,6 +796,16 @@ namespace ecss {
 						Memory::Sector::destroySectorData<ThreadSafe>(array->mAllocator.at(idx), array->template getIsAliveRef<false>(idx), array->getLayout());
 						array->incDefragmentSize();
 					}
+					// In-place destroy of one sector: only that sector must be unpinned, and
+					// the wait must not happen under the write lock (it would deadlock any
+					// pin holder that still needs the shared lock).
+					array->exclusiveWhenUnpinned(entityId, [&] {
+						auto idx = array->template findLinearIdx<false>(entityId);
+						if (idx != INVALID_IDX) {
+							Memory::Sector::destroySectorData<ThreadSafe>(array->mAllocator.at(idx), array->template getIsAliveRef<false>(idx), array->getLayout());
+							array->incDefragmentSize();
+						}
+					});
 				}
 			}
 			else {

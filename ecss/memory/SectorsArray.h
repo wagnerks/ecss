@@ -1029,10 +1029,10 @@ public:
 	template<bool TS = ThreadSafe>
 	void erase(size_t beginIdx, size_t count = 1, bool defragment = false) {
 		if constexpr(TS && ThreadSafe) {
-			UNIQUE_LOCK();
-			if (beginIdx >= sizeImpl()) return;
-			mPinsCounter.waitUntilChangeable(mDenseArrays.idAt(beginIdx));
-			eraseRangeImpl(beginIdx, count, defragment);
+			exclusiveWhenQuiescent([&] {
+				if (beginIdx >= sizeImpl()) return;
+				eraseRangeImpl(beginIdx, count, defragment);
+			});
 		} else {
 			if (beginIdx >= sizeImpl()) return;
 			eraseRangeImpl(beginIdx, count, defragment);
@@ -1042,8 +1042,14 @@ public:
 	template<bool TS = ThreadSafe>
 	Iterator erase(Iterator it, bool defragment = false) noexcept {
 		auto idx = it.linearIndex();
-		if (idx >= sizeImpl()) return it;
-		TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable(mDenseArrays.idAt(idx));, 
+		if constexpr (TS && ThreadSafe) {
+			return exclusiveWhenQuiescent([&] {
+				if (idx >= sizeImpl()) return it;
+				eraseRangeImpl(idx, 1, defragment);
+				return Iterator(this, idx);
+			});
+		} else {
+			if (idx >= sizeImpl()) return it;
 			eraseRangeImpl(idx, 1, defragment);
 			return Iterator(this, idx);
 		);
@@ -1126,12 +1132,18 @@ public:
 	template<bool TS = ThreadSafe> void shrinkToFit() { TS_GUARD(TS && ThreadSafe, UNIQUE, shrinkToFitImpl()); }
 
 	template<bool TS = ThreadSafe> void reserve(uint32_t newCapacity) { TS_GUARD(TS && ThreadSafe, UNIQUE, reserveImpl(newCapacity)); }
-	template<bool TS = ThreadSafe> void clear() { TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable();, clearImpl();); }
+	template<bool TS = ThreadSafe> void clear() {
+		if constexpr (TS && ThreadSafe) { exclusiveWhenQuiescent([&] { clearImpl(); }); }
+		else { clearImpl(); }
+	}
 
 	// ==================== Defragmentation ====================
 
 	template<bool TS = ThreadSafe>
-	void defragment() { TS_GUARD_S(TS && ThreadSafe, UNIQUE, mPinsCounter.waitUntilChangeable();, defragmentImpl();); }
+	void defragment() {
+		if constexpr (TS && ThreadSafe) { exclusiveWhenQuiescent([&] { defragmentImpl(); }); }
+		else { defragmentImpl(); }
+	}
 
 	template<bool TS = ThreadSafe>
 	void tryDefragment() { TS_GUARD_S(TS && ThreadSafe, UNIQUE, if (mPinsCounter.isArrayLocked()) return;, defragmentImpl();); }
@@ -1223,15 +1235,84 @@ public:
 	void processPendingErases(bool withDefragment = true) requires(ThreadSafe) {
 		if constexpr(Lock) {
 			auto lock = std::unique_lock(mtx);
-			processPendingErasesImpl(withDefragment);
+			wantsDefragment = processPendingErasesImpl();
 		} else {
-			processPendingErasesImpl(withDefragment);
+			wantsDefragment = processPendingErasesImpl();
+		}
+
+		if (withDefragment && wantsDefragment) {
+			if constexpr(Lock) {
+				exclusiveWhenQuiescent([&] { defragmentImpl(); });
+			} else {
+				defragmentImpl(); // caller owns the lock and the quiescence precondition
+			}
 		}
 	}
 
 	// ==================== Lock access (for Registry) ====================
 	auto readLock() const requires(ThreadSafe) { return std::shared_lock(mtx); }
 	auto writeLock() const requires(ThreadSafe) { return std::unique_lock(mtx); }
+
+	// ==================== Write-lock acquisition helpers ====================
+	//
+	// Invariant for every helper below: never block on pins while holding the write lock.
+	// Pins are only ever taken under the shared lock, so a thread that already holds a pin
+	// and then needs the shared lock again (a second view, pinComponent, hasComponent)
+	// would deadlock against a writer parked on waitUntil* inside the unique lock.
+	// The pattern is therefore always: wait outside -> lock -> re-verify -> retry.
+	//
+	// Once the write lock is held and the predicate re-checked, it cannot be invalidated:
+	// acquiring a new pin requires at least the shared lock, which the writer excludes.
+
+	/// @brief Run @p fn under the write lock once sector @p sectorId carries no pins.
+	///        For operations confined to that one sector (in-place destroy / overwrite).
+	template<typename Fn>
+	auto exclusiveWhenUnpinned(SectorId sectorId, Fn&& fn) requires(ThreadSafe) {
+		for (;;) {
+			mPinsCounter.waitUntilChangeable(sectorId);
+			auto lock = writeLock();
+			if (mPinsCounter.canMoveSector(sectorId)) {
+				return std::forward<Fn>(fn)();
+			}
+		}
+	}
+
+	/// @brief Run @p fn under the write lock once no sector at all is pinned.
+	///        Required by anything that relocates sectors (shift, defragment, clear, copy).
+	template<typename Fn>
+	auto exclusiveWhenQuiescent(Fn&& fn) requires(ThreadSafe) {
+		for (;;) {
+			mPinsCounter.waitUntilQuiescent();
+			auto lock = writeLock();
+			if (!mPinsCounter.hasAnyPins()) {
+				return std::forward<Fn>(fn)();
+			}
+		}
+	}
+
+	/// @brief Acquire (or reuse) the slot for @p sectorId and run @p fn(linearIdx) on it.
+	///
+	/// Appends and overwrites only need the target sector unpinned. A middle insert also
+	/// shifts every following sector, so it additionally needs quiescence -- but that is
+	/// only discoverable under the lock, hence the two-tier retry: tryAcquireSlotImpl
+	/// declines with INVALID_IDX and the wait happens after the lock is released.
+	template<typename Fn>
+	auto exclusiveForInsert(SectorId sectorId, Fn&& fn) requires(ThreadSafe) {
+		for (;;) {
+			mPinsCounter.waitUntilChangeable(sectorId);
+			{
+				auto lock = writeLock();
+				if (!mPinsCounter.canMoveSector(sectorId)) {
+					continue; // re-pinned between the wait and the lock
+				}
+				const auto pos = tryAcquireSlotImpl(sectorId);
+				if (pos != kNoSlot) {
+					return fn(pos);
+				}
+			}
+			mPinsCounter.waitUntilQuiescent();
+		}
+	}
 
 private:
 	struct Dummy{};
@@ -1374,6 +1455,17 @@ private:
 	}
 
 	size_t acquireSlotImpl(SectorId sectorId) {
+		const auto pos = tryAcquireSlotImpl(sectorId);
+		// tryAcquireSlotImpl only declines when a middle insert would shift sectors while
+		// pins are live. Reaching that here means the caller took the write lock without
+		// establishing quiescence first -- see exclusiveForInsert / exclusiveWhenQuiescent.
+		assert(pos != kNoSlot && "insert would relocate pinned sectors; caller must establish quiescence");
+		return pos;
+	}
+
+	/// @brief Acquire the linear slot for @p sectorId, or kNoSlot if the insert would have
+	///        to relocate sectors while some are pinned (caller waits and retries).
+	size_t tryAcquireSlotImpl(SectorId sectorId) {
 		// Expand sparse map if needed
 		if (sectorId >= mSparseMap.capacity()) [[unlikely]] {
 			mSparseMap.resize(static_cast<size_t>(sectorId) + 1);
@@ -1399,18 +1491,39 @@ private:
 			mDenseArrays.storeView(sz + 1);
 			return pos;
 		}
-		
+
+		const size_t insertPos = findInsertPositionImpl(sectorId, pos);
+
+		// A deferred erase (erase(..., defragment=false) / eraseAsync) clears the sparse
+		// slot but leaves the dense entry in place. Without this check the id would be
+		// inserted a second time: the dense array would hold a duplicate (breaking the
+		// sorted-ids invariant every binary search relies on) and the next defragmentImpl
+		// would clear the sparse entry on behalf of the *dead* twin, orphaning the live
+		// sector -- present when iterating, absent from every lookup.
+		if (insertPos < pos && mDenseArrays.idAt(insertPos) == sectorId) [[unlikely]] {
+			if (!Sector::isSectorAlive(mDenseArrays.isAliveAt(insertPos))) {
+				// The slot was counted as fragmentation when it died; it is live again.
+				auto dead = mDefragmentSize.load(std::memory_order_relaxed);
+				if (dead) { mDefragmentSize.store(dead - 1, std::memory_order_relaxed); }
+			}
+			mSparseMap.set(sectorId, static_cast<uint32_t>(insertPos));
+			return insertPos;
+		}
+
+		// Genuine middle insert: shiftRightImpl relocates every sector from insertPos on,
+		// so nothing at all may be pinned. Decline instead of waiting here -- we hold the
+		// write lock, and blocking on pins under it deadlocks any pin holder that needs
+		// the shared lock again.
+		if constexpr (ThreadSafe) {
+			if (mPinsCounter.hasAnyPins()) {
+				return kNoSlot;
+			}
+		}
+
 		mDenseArrays.resize(sz + 1, sz);
 		mSize.store(sz + 1, std::memory_order_relaxed);
-		
-		size_t insertPos = findInsertPositionImpl(sectorId, pos);
+
 		if (insertPos != sz) {
-			// Shift moves all sectors from insertPos onwards - wait for pins if any exist
-			if constexpr (ThreadSafe) {
-				if (mPinsCounter.isArrayLocked()) {
-					mPinsCounter.waitUntilChangeable();
-				}
-			}
 			shiftRightImpl(insertPos, 1);
 		}
 
@@ -1608,10 +1721,7 @@ private:
 			}
 		}
 
-		if (needDefragment<false>() && withDefragment) {
-			mPinsCounter.waitUntilChangeable();
-			defragmentImpl();
-		}
+		return needDefragment<false>();
 	}
 
 	void defragmentImpl() {
@@ -1678,12 +1788,14 @@ private:
 
 	template<bool T, typename Alloc>
 	void copy(const SectorsArray<T, Alloc>& other) {
-		if constexpr (ThreadSafe || T) {
+		if constexpr (ThreadSafe) {
+			exclusiveWhenQuiescent([&] {
+				auto otherLock = other.readLock();
+				copyImpl(other);
+			});
+		} else if constexpr (T) {
 			auto lock = writeLock();
 			auto otherLock = other.readLock();
-			if constexpr (ThreadSafe) {
-				mPinsCounter.waitUntilChangeable();
-			}
 			copyImpl(other);
 		} else {
 			copyImpl(other);
@@ -1740,14 +1852,40 @@ private:
 
 	template<bool T, typename Alloc>
 	void move(SectorsArray<T, Alloc>&& other) {
-		if constexpr (ThreadSafe || T) {
-			auto lock = writeLock();
-			auto otherLock = other.writeLock();
-			if constexpr (ThreadSafe) {
-				mPinsCounter.waitUntilChangeable();
+		// Same rule as everywhere else: wait for pins outside the locks, then take them and
+		// re-verify, so no thread ever blocks on a pin while holding a write lock.
+		if constexpr (ThreadSafe && T) {
+			// Both sides synchronized: std::lock orders the two mutexes, so a concurrent
+			// move in the opposite direction cannot deadlock against this one.
+			for (;;) {
+				mPinsCounter.waitUntilQuiescent();
+				other.mPinsCounter.waitUntilQuiescent();
+
+				auto lock = std::unique_lock(mtx, std::defer_lock);
+				auto otherLock = std::unique_lock(other.mtx, std::defer_lock);
+				std::lock(lock, otherLock);
+
+				if (mPinsCounter.hasAnyPins() || other.mPinsCounter.hasAnyPins()) {
+					continue;
+				}
+				moveImpl(std::move(other));
+				return;
 			}
-			if constexpr (T) {
-				other.mPinsCounter.waitUntilChangeable();
+		} else if constexpr (ThreadSafe || T) {
+			// Exactly one side is synchronized, so only one real mutex is involved and
+			// writeLock() on the other side is the no-op Dummy.
+			for (;;) {
+				if constexpr (ThreadSafe) { mPinsCounter.waitUntilQuiescent(); }
+				if constexpr (T)          { other.mPinsCounter.waitUntilQuiescent(); }
+
+				auto lock = writeLock();
+				auto otherLock = other.writeLock();
+
+				if constexpr (ThreadSafe) { if (mPinsCounter.hasAnyPins()) continue; }
+				if constexpr (T)          { if (other.mPinsCounter.hasAnyPins()) continue; }
+
+				moveImpl(std::move(other));
+				return;
 			}
 			moveImpl(std::move(other));
 		} else {
