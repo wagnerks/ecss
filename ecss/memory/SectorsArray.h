@@ -628,8 +628,12 @@ public:
 		uint16_t mStride = 0;
 	};
 
-	template<bool TS = ThreadSafe> Iterator begin() const { TS_GUARD(TS, SHARED, return Iterator(this, 0);); }
-	template<bool TS = ThreadSafe> Iterator end()   const { TS_GUARD(TS, SHARED, return Iterator(this, sizeImpl());); }
+	// No lock: an iterator is built entirely from lock-free snapshots (the dense arrays
+	// seqlock and the chunk table seqlock), and old buffers stay readable because both are
+	// retire-allocated. Taking the shared lock here only serialised readers against each
+	// other on one mutex word.
+	template<bool TS = ThreadSafe> Iterator begin() const { enforceTSMode<TS>(); return Iterator(this, 0); }
+	template<bool TS = ThreadSafe> Iterator end()   const { enforceTSMode<TS>(); return Iterator(this, sizeImpl()); }
 
 	/**
 	 * @brief Forward iterator skipping slots where component is not alive.
@@ -642,10 +646,7 @@ public:
 		ITERATOR_COMMON_USING(IteratorAlive)
 
 		IteratorAlive(const SectorsArray* array, size_t idx, size_t sz, uint32_t aliveMask, bool isPacked = false)
-			: mChunks(array->mAllocator.mChunks.data())
-			, mChunksCount(array->mAllocator.mChunks.size())
-			, mIdx(idx)
-			, mStride(array->mAllocator.mSectorSize)
+			: mIdx(idx)
 			, mAliveMask(aliveMask)
 			, mIsPacked(isPacked) {
 			// Load atomic view snapshot for thread-safe access
@@ -788,18 +789,20 @@ public:
 
 	/// @brief Check if array has no dead slots (defragmentSize == 0)
 	template<bool TS = ThreadSafe>
-	bool isPacked() const { TS_GUARD(TS, SHARED, return mDefragmentSize.load(std::memory_order_relaxed) == 0;); }
+	bool isPacked() const { enforceTSMode<TS>(); return mDefragmentSize.load(std::memory_order_relaxed) == 0; }
 
 	template<class T, bool TS = ThreadSafe>
-	IteratorAlive beginAlive() const { 
+	IteratorAlive beginAlive() const {
 		// Note: isPacked=false because we're filtering by a specific component's alive mask,
 		// not just checking if any component is alive. mDefragmentSize==0 only means no dead
 		// sectors, not that all sectors have this specific component.
-		TS_GUARD(TS, SHARED, return IteratorAlive(this, 0, sizeImpl(), getLayoutData<T>().isAliveMask, false);); 
+		enforceTSMode<TS>();
+		return IteratorAlive(this, 0, sizeImpl(), getLayoutData<T>().isAliveMask, false);
 	}
-	template<bool TS = ThreadSafe> 
-	IteratorAlive endAlive() const { 
-		TS_GUARD(TS, SHARED, return IteratorAlive(this, sizeImpl(), sizeImpl(), 0, true);); 
+	template<bool TS = ThreadSafe>
+	IteratorAlive endAlive() const {
+		enforceTSMode<TS>();
+		return IteratorAlive(this, sizeImpl(), sizeImpl(), 0, true);
 	}
 
 	/**
@@ -865,9 +868,7 @@ public:
 			if (mInChunkIdx >= Allocator::mChunkCapacity) [[unlikely]] {
 				mInChunkIdx = 0;
 				++mChunkIdx;
-				if (mChunkIdx < mChunksCount) {
-					mDataPtr = static_cast<std::byte*>(mChunks[mChunkIdx]);
-				}
+				mDataPtr = mChunkIdx < mChunksCount ? static_cast<std::byte*>(mChunks[mChunkIdx]) : nullptr;
 			}
 			// Check range boundary (now using linear index ranges)
 			if (mIdx >= mLinearRanges[mRangeIdx].second) [[unlikely]] {
@@ -956,13 +957,15 @@ public:
 		uint16_t mStride = 0;
 	};
 
-	template<bool TS = ThreadSafe> 
-	RangedIterator beginRanged(const Ranges<SectorId>& ranges) const { 
-		TS_GUARD(TS, SHARED, return RangedIterator(this, ranges);); 
+	template<bool TS = ThreadSafe>
+	RangedIterator beginRanged(const Ranges<SectorId>& ranges) const {
+		enforceTSMode<TS>();
+		return RangedIterator(this, ranges);
 	}
-	template<bool TS = ThreadSafe> 
-	RangedIterator endRanged() const { 
-		TS_GUARD(TS, SHARED, return RangedIterator(this, Ranges<SectorId>{});); 
+	template<bool TS = ThreadSafe>
+	RangedIterator endRanged() const {
+		enforceTSMode<TS>();
+		return RangedIterator(this, Ranges<SectorId>{});
 	}
 
 	// ==================== Copy / Move ====================
@@ -1061,7 +1064,7 @@ public:
 			if (idx >= sizeImpl()) return it;
 			eraseRangeImpl(idx, 1, defragment);
 			return Iterator(this, idx);
-		);
+		}
 	}
 
 	void eraseAsync(SectorId id, size_t count = 1) requires(ThreadSafe) {
@@ -1073,27 +1076,42 @@ public:
 	}
 
 	// ==================== Lookup ====================
+	//
+	// These take no lock. Every one of them resolves through the SparseMap seqlock and the
+	// DenseArrays seqlock, both of which are lock-free and tolerate a concurrent writer by
+	// construction (old buffers are held by RetireAllocator until the grace period expires).
+	// Taking the array shared_mutex here bought nothing but a contended cache line: it made
+	// every reader serialise on one SRWLOCK word (measured ~320x per-op latency at 32
+	// threads). ArraysView::getComponent has always used exactly this unlocked path.
+	//
+	// Note this is a point-in-time sample either way -- the answer could be stale the moment
+	// the lock was released, so holding it never made the result more authoritative.
+	// Operations that must *keep* a result valid pin the sector instead (see pinSector).
 
-	template<bool TS = ThreadSafe> 
-	size_t findLinearIdx(SectorId sectorId) const { 
-		TS_GUARD(TS && ThreadSafe, SHARED, return findLinearIdxImpl(sectorId)); 
+	template<bool TS = ThreadSafe>
+	size_t findLinearIdx(SectorId sectorId) const {
+		enforceTSMode<TS>();
+		return findLinearIdxImpl(sectorId);
 	}
 
-	template<bool TS = ThreadSafe> 
-	bool containsSector(SectorId id) const { 
-		TS_GUARD(TS && ThreadSafe, SHARED, return containsSectorImpl(id)); 
+	template<bool TS = ThreadSafe>
+	bool containsSector(SectorId id) const {
+		enforceTSMode<TS>();
+		return containsSectorImpl(id);
 	}
 
-	template<bool TS = ThreadSafe> 
-	std::byte* findSectorData(SectorId id) const { 
-		TS_GUARD(TS && ThreadSafe, SHARED, return findSectorDataImpl(id)); 
+	template<bool TS = ThreadSafe>
+	std::byte* findSectorData(SectorId id) const {
+		enforceTSMode<TS>();
+		return findSectorDataImpl(id);
 	}
 
 	/// @brief Find slot info (data pointer + linearIdx) for fast sparse lookup
 	/// @return SlotInfo with data pointer and linear index, or INVALID_SLOT if not found
 	template<bool TS = ThreadSafe>
 	detail::SlotInfo findSlot(SectorId id) const {
-		TS_GUARD(TS && ThreadSafe, SHARED, return findSlotImpl(id));
+		enforceTSMode<TS>();
+		return findSlotImpl(id);
 	}
 
 	template<bool TS = ThreadSafe>
@@ -1134,10 +1152,13 @@ public:
 
 	// ==================== Capacity ====================
 
-	template<bool TS = ThreadSafe> size_t sparseCapacity() const { TS_GUARD(TS && ThreadSafe, SHARED, return mSparseMap.capacity()); }
+	// sparseCapacity/size/empty read a single atomic -- no lock needed (see Lookup note).
+	// capacity() keeps the shared lock: it reads the chunk vector, which a concurrent
+	// allocate() may be reallocating, and that vector is not published through a seqlock.
+	template<bool TS = ThreadSafe> size_t sparseCapacity() const { enforceTSMode<TS>(); return mSparseMap.capacity(); }
 	template<bool TS = ThreadSafe> size_t capacity() const { TS_GUARD(TS && ThreadSafe, SHARED, return mAllocator.capacity()); }
-	template<bool TS = ThreadSafe> size_t size() const { TS_GUARD(TS && ThreadSafe, SHARED, return sizeImpl()); }
-	template<bool TS = ThreadSafe> bool empty() const { TS_GUARD(TS && ThreadSafe, SHARED, return sizeImpl() == 0); }
+	template<bool TS = ThreadSafe> size_t size() const { enforceTSMode<TS>(); return sizeImpl(); }
+	template<bool TS = ThreadSafe> bool empty() const { enforceTSMode<TS>(); return sizeImpl() == 0; }
 	template<bool TS = ThreadSafe> void shrinkToFit() { TS_GUARD(TS && ThreadSafe, UNIQUE, shrinkToFitImpl()); }
 
 	template<bool TS = ThreadSafe> void reserve(uint32_t newCapacity) { TS_GUARD(TS && ThreadSafe, UNIQUE, reserveImpl(newCapacity)); }
@@ -1155,16 +1176,19 @@ public:
 	}
 
 	template<bool TS = ThreadSafe>
-	void tryDefragment() { TS_GUARD_S(TS && ThreadSafe, UNIQUE, if (mPinsCounter.isArrayLocked()) return;, defragmentImpl();); }
+	void tryDefragment() { TS_GUARD_S(TS && ThreadSafe, UNIQUE, if (mPinsCounter.hasAnyPins()) return;, defragmentImpl();); }
 
 	void incDefragmentSize(uint32_t count = 1) { mDefragmentSize.fetch_add(count, std::memory_order_relaxed); }
 
-	template<bool TS = ThreadSafe> auto getDefragmentationSize() const { TS_GUARD(TS && ThreadSafe, SHARED, return mDefragmentSize.load(std::memory_order_relaxed);); }
-	template<bool TS = ThreadSafe> auto getDefragmentationRatio() const { 
-		TS_GUARD(TS && ThreadSafe, SHARED, auto sz = sizeImpl(); return sz ? (static_cast<float>(mDefragmentSize.load(std::memory_order_relaxed)) / static_cast<float>(sz)) : 0.f;); 
+	template<bool TS = ThreadSafe> auto getDefragmentationSize() const { enforceTSMode<TS>(); return mDefragmentSize.load(std::memory_order_relaxed); }
+	template<bool TS = ThreadSafe> auto getDefragmentationRatio() const {
+		enforceTSMode<TS>();
+		const auto sz = sizeImpl();
+		return sz ? (static_cast<float>(mDefragmentSize.load(std::memory_order_relaxed)) / static_cast<float>(sz)) : 0.f;
 	}
-	template<bool TS = ThreadSafe> bool needDefragment() const { 
-		TS_GUARD(TS && ThreadSafe, SHARED, return getDefragmentationRatio<false>() > mDefragThreshold;); 
+	template<bool TS = ThreadSafe> bool needDefragment() const {
+		enforceTSMode<TS>();
+		return getDefragmentationRatio<false>() > mDefragThreshold;
 	}
 	template<bool TS = ThreadSafe> void setDefragmentThreshold(float threshold) { 
 		TS_GUARD(TS && ThreadSafe, UNIQUE, mDefragThreshold = std::max(0.f, std::min(threshold, 1.f));); 
@@ -1959,8 +1983,20 @@ private:
 	// Sparse map: [sectorId] -> linearIdx
 	detail::SparseMap<ThreadSafe> mSparseMap;
 
-	mutable std::conditional_t<ThreadSafe, std::shared_mutex, Dummy> mtx;
-	mutable std::conditional_t<ThreadSafe, Threads::PinCounters, Dummy> mPinsCounter;
+	static_assert(types::isLockFreeAtomic<size_t>,   "mSize must be lock-free");
+	static_assert(types::isLockFreeAtomic<uint32_t>, "mDefragmentSize must be lock-free");
+
+	// Own cache lines: the mutex word and the pin aggregates are hammered by every reader,
+	// while mSize is written by every structural mutation. Sharing a line between them
+	// turns unrelated operations into false-sharing traffic.
+	//
+	// Only in the thread-safe build. With no threads there is nothing to false-share, and
+	// unconditional padding cost 168 bytes per array for nothing.
+	static constexpr size_t kHotAlign = ThreadSafe ? 64 : 1;
+	static constexpr size_t kSizeAlign = ThreadSafe ? 64 : alignof(std::atomic<size_t>);
+
+	alignas(kHotAlign) mutable std::conditional_t<ThreadSafe, std::shared_mutex, Dummy> mtx;
+	alignas(kHotAlign) mutable std::conditional_t<ThreadSafe, Threads::PinCounters, Dummy> mPinsCounter;
 
 	std::vector<SectorId> mPendingErase;
 
