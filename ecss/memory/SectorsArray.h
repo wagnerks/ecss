@@ -54,10 +54,9 @@ namespace ecss
 namespace ecss::Memory {
 
 namespace detail {
-	/// @brief Slot info for fast sparse lookup - stores data pointer and linear index
-	/// data pointer (8 bytes) is read/written atomically for thread-safety
-	/// linearIdx is written BEFORE data on insert, so it's valid when data != nullptr
-	/// Memory ordering: release on write, acquire on read - ensures linearIdx visible when data is
+	/// @brief Result of a sparse lookup: the sector data address plus its linear index.
+	/// This is composed on demand from the stored index and the chunk snapshot -- it is not
+	/// what the sparse table holds (that is a bare uint32_t; see SparseMap<true>).
 	struct SlotInfo {
 		std::byte* data = nullptr;        ///< Direct pointer (nullptr = not present), atomically accessed
 		uint32_t linearIdx = INVALID_IDX; ///< Linear index for isAlive access
@@ -69,6 +68,8 @@ namespace detail {
 
 	/// @brief Invalid slot info constant
 	inline constexpr SlotInfo INVALID_SLOT{ nullptr, INVALID_IDX };
+
+	using ecss::cpuRelax;
 
 	template<bool TS>
 	struct SparseMap;
