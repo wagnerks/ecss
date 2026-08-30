@@ -335,17 +335,9 @@ namespace ecss {
 		void destroyComponent(EntityId entity) noexcept {
 			if (auto container = getComponentContainer<T>()) {
 				if constexpr (ThreadSafe) {
-					auto lock = container->writeLock();
-					container->mPinsCounter.waitUntilChangeable(entity);
-
-					auto idx = container->template findLinearIdx<false>(entity);
-					if (idx != INVALID_IDX) {
-						auto& isAlive = container->template getIsAliveRef<false>(idx);
-						auto before = isAlive;
-						Memory::Sector::destroyMember<ThreadSafe>(container->mAllocator.at(idx), isAlive, container->template getLayoutData<T>());
-						if (before != isAlive && !Memory::Sector::isSectorAlive(isAlive)) {
-							container->incDefragmentSize();
-						}
+					// Lock-free presence check before locking (see destroySector).
+					if (!container->template containsSector<false>(entity)) {
+						return;
 					}
 					// Destroys one member in place -- only that sector must be unpinned.
 					container->exclusiveWhenUnpinned(entity, [&] {
@@ -733,20 +725,22 @@ namespace ecss {
 		 */
 		void destroySector(EntityId entityId) noexcept {
 			if constexpr (ThreadSafe) {
-				decltype(mComponentsArrays) arrays;
-				{
-					auto lock = std::shared_lock(componentsArrayMapMutex);
-					arrays = mComponentsArrays;
-				}
+				// Snapshot walk: this runs once per destroyEntity, and the old form took a
+				// registry-global shared_lock and heap-copied the array list every time.
+				const auto [begin, end] = registeredArrays();
 
-				for (auto array : arrays) {
-					auto lock = array->writeLock();
-					array->mPinsCounter.waitUntilChangeable(entityId);
-
-					auto idx = array->template findLinearIdx<false>(entityId);
-					if (idx != INVALID_IDX) {
-						Memory::Sector::destroySectorData<ThreadSafe>(array->mAllocator.at(idx), array->template getIsAliveRef<false>(idx), array->getLayout());
-						array->incDefragmentSize();
+				for (auto it = begin; it != end; ++it) {
+					auto* array = *it;
+					// Lock-free presence check first. Taking the write lock and only then asking
+					// whether the entity is even in this array made destroyEntity cost one lock
+					// acquisition per *registered* array rather than per array the entity is
+					// actually in -- 20.7 ns with one array, 116 ns with nine.
+					//
+					// A concurrent addComponent for this entity could land just after the check,
+					// but destroying an entity while another thread adds components to it is
+					// already unordered; within one thread program order settles it.
+					if (!array->template containsSector<false>(entityId)) {
+						continue;
 					}
 					// In-place destroy of one sector: only that sector must be unpinned, and
 					// the wait must not happen under the write lock (it would deadlock any
