@@ -1439,21 +1439,30 @@ private:
 		}
 	}
 
+	/// @return lower_bound: the first linear index whose id is >= @p sectorId.
 	size_t findInsertPositionImpl(SectorId sectorId, size_t validSize) const {
 		if (validSize == 0) return 0;
 		if (mDenseArrays.idAt(validSize - 1) < sectorId) return validSize;
-		if (mDenseArrays.idAt(0) > sectorId) return 0;
+		if (mDenseArrays.idAt(0) >= sectorId) return 0;
 
-		// Binary search
+		// Binary search. The previous form kept `right` as the answer and narrowed until
+		// right-left == 1, which never inspected index 0 and so returned 1 instead of 0
+		// when sectorId equalled idAt(0) -- landing a resurrected id *after* its own dead
+		// dense entry and producing a duplicate. This is a plain lower_bound.
 		size_t left = 0, right = validSize;
-		while (right - left > 1) {
+		while (left < right) {
 			size_t mid = left + (right - left) / 2;
-			if (mDenseArrays.idAt(mid) < sectorId) left = mid;
+			if (mDenseArrays.idAt(mid) < sectorId) left = mid + 1;
 			else right = mid;
 		}
-		return right;
+		return left;
 	}
 
+	/// @brief Sentinel returned by tryAcquireSlotImpl when the caller must retry.
+	static constexpr size_t kNoSlot = static_cast<size_t>(INVALID_IDX);
+
+	/// @brief Blocking slot acquisition for callers that already own the quiescence
+	///        precondition (non-thread-safe builds, and TS=false explicit-lock paths).
 	size_t acquireSlotImpl(SectorId sectorId) {
 		const auto pos = tryAcquireSlotImpl(sectorId);
 		// tryAcquireSlotImpl only declines when a middle insert would shift sectors while
@@ -1756,7 +1765,7 @@ private:
 				for (size_t i = 0; i < runLen; ++i) {
 						mDenseArrays.idAt(write + i) = mDenseArrays.idAt(runBeg + i);
 						mDenseArrays.isAliveAt(write + i) = mDenseArrays.isAliveAt(runBeg + i);
-						mSparseMap.set(mDenseArrays.idAt(write + i), detail::SlotInfo{ mAllocator.at(write + i), static_cast<uint32_t>(write + i) });
+						mSparseMap.set(mDenseArrays.idAt(write + i), static_cast<uint32_t>(write + i));
 					}
 				} else {
 					// Non-trivial types: proper move semantics for each sector
@@ -1767,7 +1776,7 @@ private:
 							mAllocator.at(write + i), mDenseArrays.isAliveAt(write + i),
 							getLayout());
 						mDenseArrays.idAt(write + i) = mDenseArrays.idAt(runBeg + i);
-						mSparseMap.set(mDenseArrays.idAt(write + i), detail::SlotInfo{ mAllocator.at(write + i), static_cast<uint32_t>(write + i) });
+						mSparseMap.set(mDenseArrays.idAt(write + i), static_cast<uint32_t>(write + i));
 					}
 				}
 			}
@@ -1776,8 +1785,11 @@ private:
 
 		auto newSz = n - deleted;
 		mSize.store(newSz, std::memory_order_relaxed);
-		auto curDefrag = mDefragmentSize.load(std::memory_order_relaxed);
-		mDefragmentSize.store(curDefrag - std::min(curDefrag, static_cast<uint32_t>(deleted)), std::memory_order_relaxed);
+		// Compaction drops every sector with no live component, so by construction there
+		// are now zero dead slots. Subtracting `deleted` instead would let the counter
+		// drift upward whenever a dead slot was resurrected (destroyComponent + re-add)
+		// and never compacted, leaving needDefragment() permanently true.
+		mDefragmentSize.store(0, std::memory_order_relaxed);
 		mDenseArrays.resize(newSz, newSz);
 		mDenseArrays.storeView(newSz);
 		// Note: do NOT shrinkToFit() here. Compaction reclaims dead slots, but
