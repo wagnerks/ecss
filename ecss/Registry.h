@@ -241,20 +241,16 @@ namespace ecss {
 		 */
 		template <class T>
 		FORCE_INLINE bool hasComponent(EntityId entity) noexcept {
-			if constexpr (ThreadSafe) {
-				if (auto container = getComponentContainer<T>()) {
-					if (auto pin = container->pinSector(entity)) {
-						return Memory::Sector::isAlive(pin.getIsAlive(), container->template getLayoutData<T>().isAliveMask);
-					}
-				}
-			}
-			else {
-				if (auto container = getComponentContainer<T>()) {
-					auto idx = container->template findLinearIdx<false>(entity);
-					if (idx != INVALID_IDX) {
-						return Memory::Sector::isAlive(container->template getIsAliveRef<false>(idx), container->template getLayoutData<T>().isAliveMask);
-					}
-				}
+			auto container = getComponentContainer<T>();
+			// No pin and no lock: this hands out no pointer, so there is nothing to keep
+			// alive. The slot lookup and the alive word both go through the lock-free
+			// snapshots (SparseMap seqlock + DenseArrays seqlock), which is exactly what
+			// ArraysView::getComponent already does. Pinning here cost two seq_cst RMWs
+			// plus a potential wake syscall, and the shared lock serialised every reader,
+			// for an answer that is inherently a point-in-time sample either way.
+			const auto slot = container->template findSlot<false>(entity);
+			if (!slot) {
+				return false;
 			}
 			return Memory::Sector::isAlive(container->template loadAliveWord<ThreadSafe>(slot.linearIdx),
 			                               container->template getLayoutData<T>().isAliveMask);
@@ -883,7 +879,7 @@ namespace ecss {
 	 * Semantics:
 	 *   - Iterates only sectors where main component T is alive.
 	 *   - For each entity id, returns pointers (T*, optional others may be nullptr if absent).
-	 *   - In ranged mode, entity ranges are translated to nearest sector indices (clamped).
+	 *   - In ranged mode, skips entities outside the filter by jumping to the next range start.
 	 *
 	 * Thread safety:
 	 *   - ThreadSafe=true: Back sector pinning ensures iteration upper bound stability.
@@ -1005,21 +1001,23 @@ namespace ecss {
 				if (info.iteratorIdx == TypeInfo::kMainIteratorIdx) [[likely]] {
 					return (slot.isAlive & info.typeAliveMask) ? reinterpret_cast<ComponentType*>(slot.data + info.typeOffsetInSector) : nullptr;
 				}
-			// Sparse lookup using optimized findSlot - single lookup returns data ptr + linearIdx
-			// O(1) sparse lookup + O(1) dense array access for isAlive
+			// Lock-free: one sparse load for the linear index, one alive-word load through the
+			// dense seqlock, then the address from the chunk snapshot cached at construction.
+			// Resolving through findSlot() instead would re-read the chunk seqlock per element.
 			auto* arr = mSecondaryArrays[info.iteratorIdx];
-			auto slotInfo = arr->template findSlot<false>(slot.id);
-			if (!slotInfo) [[unlikely]] {
+			const auto linearIdx = arr->template findLinearIdx<false>(slot.id);
+			if (linearIdx == INVALID_IDX) [[unlikely]] {
 				return nullptr;
 			}
-			// Route the alive-word read through the seqlock snapshot (loadView) so we
-			// don't race with concurrent push_back reallocating the isAlive vector.
-			// RetireAllocator keeps old buffers valid, so the snapshot is always safe.
-			auto isAlive = arr->loadAliveWord(slotInfo.linearIdx);
+			// The alive word goes through the seqlock snapshot (loadView) so we don't race
+			// with a concurrent push_back reallocating the isAlive vector; RetireAllocator
+			// keeps the old buffer valid, so the snapshot is always safe.
+			const auto isAlive = arr->loadAliveWord(linearIdx);
 			if (!(isAlive & info.typeAliveMask)) [[unlikely]] {
 				return nullptr;
 			}
-				return reinterpret_cast<ComponentType*>(slotInfo.data + info.typeOffsetInSector);
+			auto* data = arr->dataAt(mSecondaryChunks[info.iteratorIdx], linearIdx);
+			return data ? reinterpret_cast<ComponentType*>(data + info.typeOffsetInSector) : nullptr;
 			}
 
 			template<typename... Types>
