@@ -71,6 +71,46 @@ namespace ecss {
 			}
 		}
 
+		/// @brief Allocate @p count ids at once, appending them to @p out in ascending order.
+		///
+		/// One walk of the bitmap instead of one per id: each word is loaded once and every
+		/// free bit in it is taken before moving on, where a loop of take() re-reads the hint
+		/// and rescans from it every time.
+		void take(size_t count, std::vector<Type>& out) {
+			if (!count) { return; }
+			out.reserve(out.size() + count);
+
+			for (size_t word = mHint; count; ++word) {
+				if (word >= mWords.size()) { mWords.push_back(Word{ 0 }); }
+
+				Word& cell = mWords[word];
+
+				// A whole empty word in one step, when the batch is big enough to want it.
+				if (cell == 0 && count >= kWordBits) {
+					const size_t base = word * kWordBits;
+					assert(base + kWordBits - 1 < static_cast<size_t>(INVALID_ID) && "id space exhausted");
+					cell = kFull;
+					for (size_t b = 0; b < kWordBits; ++b) { out.push_back(static_cast<Type>(base + b)); }
+					count -= kWordBits;
+					mHint = word + 1;
+					continue;
+				}
+
+				Word free = ~cell;
+				while (free && count) {
+					const auto bit = static_cast<size_t>(std::countr_zero(free));
+					free &= free - 1;
+					cell |= (Word{ 1 } << bit);
+
+					const size_t id = word * kWordBits + bit;
+					assert(id < static_cast<size_t>(INVALID_ID) && "id space exhausted");
+					out.push_back(static_cast<Type>(id));
+					--count;
+				}
+				mHint = (cell == kFull) ? word + 1 : word;
+			}
+		}
+
 		/// @brief Mark @p id allocated. No-op if it already is.
 		void insert(Type id) {
 			const size_t word = wordOf(id);
@@ -202,6 +242,33 @@ namespace ecss {
 			}
 		}
 
+		/// @brief Allocate @p count ids at once, appending them to @p out.
+		///
+		/// A free word is claimed whole with a single compare-exchange, so a large batch costs
+		/// about one atomic per 64 ids rather than one per id -- and threads that collide on a
+		/// word simply move to the next one, which spreads them without needing the striping
+		/// the single-id path uses.
+		///
+		/// Ids come out ascending within each word but a batch taken while another thread is
+		/// also taking may interleave, so the result is not guaranteed globally sorted.
+		void take(size_t count, std::vector<Type>& out) {
+			if (!count) { return; }
+			out.reserve(out.size() + count);
+
+			while (count) {
+				const Table* table = mTable.load(std::memory_order_acquire);
+				const size_t words = table ? table->count * kWordsPerBlock : 0;
+				const size_t remaining = count;
+
+				for (size_t word = mHint.load(std::memory_order_relaxed); word < words && count; ++word) {
+					claimWord(table, word, count, out);
+				}
+
+				// Nothing anywhere: the set is full rather than busy, so add a block.
+				if (count == remaining) { grow(words); }
+			}
+		}
+
 		void insert(Type id) {
 			ensure(id);
 			const Table* table = mTable.load(std::memory_order_acquire);
@@ -323,6 +390,39 @@ namespace ecss {
 				}
 			}
 			return kNoId;
+		}
+
+		/// @brief Take up to @p count ids from one word, decrementing it by what was taken.
+		void claimWord(const Table* table, size_t word, size_t& count, std::vector<Type>& out) {
+			auto& cell = wordAt(table, word);
+			Word value = cell.load(std::memory_order_acquire);
+
+			// The whole point of the batch: 64 ids for one atomic, when there is room for them.
+			if (value == 0 && count >= kWordBits) {
+				if (cell.compare_exchange_strong(value, kFull, std::memory_order_acq_rel, std::memory_order_acquire)) {
+					const size_t base = word * kWordBits;
+					assert(base + kWordBits - 1 < static_cast<size_t>(INVALID_ID) && "id space exhausted");
+					for (size_t b = 0; b < kWordBits; ++b) { out.push_back(static_cast<Type>(base + b)); }
+					count -= kWordBits;
+					raiseHint(word + 1);
+					return;
+				}
+				// Lost it: another thread took the word. `value` now holds what they left.
+			}
+
+			while (value != kFull && count) {
+				const auto bit = static_cast<size_t>(std::countr_zero(~value));
+				const Word want = value | (Word{ 1 } << bit);
+				// A failed exchange refreshes `value`, so the retry picks the next free bit.
+				if (cell.compare_exchange_weak(value, want, std::memory_order_acq_rel, std::memory_order_acquire)) {
+					const size_t id = word * kWordBits + bit;
+					assert(id < static_cast<size_t>(INVALID_ID) && "id space exhausted");
+					out.push_back(static_cast<Type>(id));
+					--count;
+					value = want;
+					if (want == kFull) { raiseHint(word + 1); }
+				}
+			}
 		}
 
 		/// @brief Push the hint forward past a word that just became full.

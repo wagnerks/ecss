@@ -1137,3 +1137,85 @@ TEST(Regression_AppendFastPath, AppendingWriterIsNotStarvedByContinuousReaders) 
 	EXPECT_GT(appends.load(), 100)
 		<< "the appending writer made almost no progress against continuous readers";
 }
+
+// ===========================================================================
+// Batch id allocation. A loop of takeEntity() re-reads the hint and rescans
+// from it for every id; taking a run walks the bitmap once and, where a whole
+// word is free, claims 64 ids with a single step. 7.3 -> 1.2 ns per id in the
+// thread-safe build, which is where the loop cost the most.
+// ===========================================================================
+
+TEST(Regression_BatchIds, MatchesALoopOfTakeEntity) {
+	std::mt19937 rng(31337);
+	for (int round = 0; round < 100; ++round) {
+		IdSet<EntityId, true> loop, batch;
+
+		// identical starting state, including holes punched by erase()
+		std::vector<EntityId> taken;
+		for (int i = 0, n = int(rng() % 200); i < n; ++i) { taken.push_back(loop.take()); (void)batch.take(); }
+		for (int i = 0, n = int(rng() % 80); i < n && !taken.empty(); ++i) {
+			const auto victim = taken[rng() % taken.size()];
+			loop.erase(victim);
+			batch.erase(victim);
+		}
+
+		const size_t count = 1 + rng() % 300;
+		std::vector<EntityId> a, b;
+		for (size_t i = 0; i < count; ++i) { a.push_back(loop.take()); }
+		batch.take(count, b);
+
+		std::sort(a.begin(), a.end());
+		std::sort(b.begin(), b.end());
+		ASSERT_EQ(a.size(), b.size()) << "round " << round;
+		EXPECT_TRUE(a == b) << "batch handed out a different id set than the loop, round " << round;
+
+		const std::unordered_set<EntityId> distinct(b.begin(), b.end());
+		EXPECT_EQ(distinct.size(), b.size()) << "batch repeated an id, round " << round;
+		for (auto id : b) { EXPECT_TRUE(batch.contains(id)) << "id " << id << " not marked live"; }
+	}
+}
+
+TEST(Regression_BatchIds, ConcurrentBatchesNeverOverlap) {
+	IdSet<EntityId, true> set;
+	constexpr int T = 6;
+	std::vector<std::vector<EntityId>> got(T);
+	std::atomic<bool> go{ false };
+
+	std::vector<std::thread> pool;
+	for (int t = 0; t < T; ++t) {
+		pool.emplace_back([&, t] {
+			while (!go.load(std::memory_order_acquire)) { std::this_thread::yield(); }
+			std::mt19937 rng(unsigned(t) * 91 + 3);
+			for (int round = 0; round < 120; ++round) { set.take(1 + rng() % 150, got[t]); }
+		});
+	}
+	go.store(true, std::memory_order_release);
+	for (auto& th : pool) { th.join(); }
+
+	std::unordered_set<EntityId> all;
+	size_t total = 0;
+	for (auto& v : got) { total += v.size(); all.insert(v.begin(), v.end()); }
+	EXPECT_EQ(all.size(), total)
+		<< "the same id was handed to two threads (" << total << " taken, " << all.size() << " distinct)";
+}
+
+TEST(Regression_BatchIds, RegistryEntityIdsStayUsable) {
+	Registry<true> reg;
+	std::vector<EntityId> ids;
+	reg.takeEntities(5000, ids);
+	ASSERT_EQ(ids.size(), 5000u);
+
+	for (auto e : ids) {
+		EXPECT_TRUE(reg.contains(e)) << "id " << e << " was handed out but the registry disowns it";
+		reg.addComponent<RInt>(e, RInt{ int(e) });
+	}
+	for (auto e : ids) { EXPECT_TRUE(reg.hasComponent<RInt>(e)) << "component lost for id " << e; }
+
+	// and the watermark stays tied to how many are live, not to how many were ever taken
+	for (auto e : ids) { reg.destroyEntity(e); }
+	std::vector<EntityId> again;
+	reg.takeEntities(5000, again);
+	EXPECT_EQ(*std::max_element(again.begin(), again.end()),
+	          *std::max_element(ids.begin(), ids.end()))
+		<< "recycled ids drifted upward";
+}

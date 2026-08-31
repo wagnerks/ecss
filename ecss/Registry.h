@@ -700,6 +700,15 @@ namespace ecss {
 		///       Serialising this on the registry mutex cost ~560x per-op latency at 32 threads.
 		FORCE_INLINE EntityId takeEntity() noexcept { return mEntities.take(); }
 
+		/// @brief Allocate @p count entity ids in one pass, appending them to @p out.
+		///
+		/// Prefer this to a loop of takeEntity() when streaming a region in: the bitmap is
+		/// walked once instead of once per id, and in the thread-safe build a free word of 64
+		/// ids is claimed with a single atomic.
+		FORCE_INLINE void takeEntities(size_t count, std::vector<EntityId>& out) noexcept {
+			mEntities.take(count, out);
+		}
+
 		/// @brief Snapshot all entity ids (copy).
 		FORCE_INLINE std::vector<EntityId> getAllEntities() const noexcept
 		{
