@@ -1294,17 +1294,19 @@ namespace ecss {
 				ranges.mergeIntersections();
 
 				if constexpr (ThreadSafe) {
-					auto sz = sectorsArray->template size<false>();
-					mPins[i] = ranges.empty() || sz == 0 
-						? Memory::PinnedSector{} 
-						: sectorsArray->template pinSectorAt<false>(sz - 1);
+					// A hold, not a pin: what iteration needs is that the array is not
+					// compacted, and a hold expresses exactly that without every thread
+					// piling onto one sector counter.
+					if (!ranges.empty() && sectorsArray->template size<false>() != 0) {
+						mHolds[i] = sectorsArray->holdStructure();
+					}
 				}
 			}
 			else {
 				size_t last;
 				if constexpr (ThreadSafe) {
-					mPins[i] = sectorsArray->template pinBackSector<false>();
-					last = mPins[i] ? sectorsArray->template size<false>() : 0;
+					mHolds[i] = sectorsArray->holdStructure();
+					last = sectorsArray->template size<false>();
 				}
 				else {
 					last = sectorsArray->size();
@@ -1356,7 +1358,9 @@ namespace ecss {
 
 	private:
 		struct Dummy{};
-		std::conditional_t<ThreadSafe, std::array<Memory::PinnedSector, TypesCount>, Dummy> mPins;  ///< Back-sector pinning for bound safety (thread-safe build).
+		/// One structural hold per distinct array, keeping the iteration bounds valid for the
+		/// lifetime of the view.
+		std::conditional_t<ThreadSafe, std::array<Memory::StructuralHold, TypesCount>, Dummy> mHolds;
 		Iterator mBeginIt;                                   ///< Cached begin iterator.
 
 		Sectors* mMainArray = nullptr;

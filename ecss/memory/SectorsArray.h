@@ -477,6 +477,48 @@ private:
 };
 
 /**
+ * @brief RAII structural hold: while one is alive, no sector in the array may be relocated.
+ *
+ * Weaker and cheaper than a pin. A pin says "leave this sector alone" and is counted per
+ * sector; a hold says "do not compact the array" and is counted per thread, so holders on
+ * different threads do not share a cache line. Iteration needs the second, not the first --
+ * which is why views used to pin the back sector and made every thread contend on it.
+ */
+struct StructuralHold {
+	StructuralHold() = default;
+
+	explicit StructuralHold(const Threads::PinCounters& counters)
+		: owner(&counters), shard(counters.acquireHold()) {}
+
+	StructuralHold(const StructuralHold&) = delete;
+	StructuralHold& operator=(const StructuralHold&) = delete;
+
+	StructuralHold(StructuralHold&& other) noexcept { *this = std::move(other); }
+	StructuralHold& operator=(StructuralHold&& other) noexcept {
+		if (this != &other) {
+			release();
+			owner = other.owner;
+			shard = other.shard;
+			other.owner = nullptr;
+		}
+		return *this;
+	}
+
+	~StructuralHold() { release(); }
+
+	void release() {
+		if (owner) { owner->releaseHold(shard); }
+		owner = nullptr;
+	}
+
+	explicit operator bool() const { return owner != nullptr; }
+
+private:
+	const Threads::PinCounters* owner = nullptr;
+	uint32_t shard = 0;
+};
+
+/**
  * @brief SoA-based container managing sector data with external id/isAlive arrays.
  *
  * @tparam ThreadSafe If true, operations are synchronized & relocation waits on pins.
@@ -1049,6 +1091,15 @@ public:
 	[[nodiscard]] PinnedSector pinBackSector() const requires(ThreadSafe) {
 		enforceTSMode<TS>();
 		return pinBackSectorImpl();
+	}
+
+	/// @brief Block compaction of this array for as long as the returned object lives.
+	/// Use this, not a pin, when the point is "do not move things", not "leave this sector".
+	[[nodiscard]] StructuralHold holdStructure() const requires(ThreadSafe) {
+		// Same courtesy the pin path pays: a few threads building views in a loop would
+		// otherwise keep the array permanently held and compaction would never run.
+		yieldToWriters();
+		return StructuralHold(mPinsCounter);
 	}
 
 	// ==================== Erase & maintenance ====================

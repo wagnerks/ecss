@@ -705,3 +705,74 @@ TEST(Regression_Pinning, ValidatedPinSurvivesConcurrentStructuralChange) {
 	// loop keep the array permanently non-quiescent and structural writes never run.
 	EXPECT_GT(writes.load(), 1000) << "structural writes were starved by pinning readers";
 }
+
+// ===========================================================================
+// Iteration needs "do not compact this array", not "leave this sector alone".
+// Views used to express that by pinning the back sector, so every view on every
+// thread contended on one sector counter; they take a thread-sharded structural
+// hold instead. The guarantee has to be exactly the same.
+// ===========================================================================
+
+TEST(Regression_StructuralHold, LiveViewBlocksCompactionAndReleasesIt) {
+	Registry<true> reg;
+	constexpr EntityId kTotal = 1000;
+	for (EntityId e = 0; e < kTotal; ++e) { reg.takeEntity(); reg.addComponent<RInt>(e, RInt{ int(e) }); }
+	for (EntityId e = 0; e < kTotal; e += 2) { reg.destroyEntity(e); }
+
+	auto* container = reg.getComponentContainer<RInt>();
+	ASSERT_EQ(container->size(), size_t(kTotal)) << "dead sectors are still present before compaction";
+
+	std::atomic<bool> compacted{ false };
+	std::thread writer;
+	{
+		auto view = reg.view<RInt>();
+		writer = std::thread([&] { container->defragment(); compacted.store(true, std::memory_order_release); });
+
+		std::this_thread::sleep_for(std::chrono::milliseconds(200));
+		EXPECT_FALSE(compacted.load()) << "compaction ran while a view was alive";
+		EXPECT_EQ(container->size(), size_t(kTotal)) << "the array was compacted under a live view";
+	}
+	const bool finished = waitFor([&] { return compacted.load(); });
+	writer.join();
+
+	EXPECT_TRUE(finished) << "compaction never completed after the view was released";
+	EXPECT_EQ(container->size(), size_t(kTotal / 2)) << "compaction did not reclaim the dead sectors";
+}
+
+TEST(Regression_StructuralHold, LongLivedViewsThrottleCompactionButDoNotBlockIt) {
+	// Compaction needs every holder gone, so threads whose views overlap in time squeeze it
+	// hard -- four continuous iterators leave very few zero-holder moments, and that was
+	// equally true when views pinned the back sector. What must hold is that it is throttled
+	// rather than blocked forever: the writer announces intent and holders yield to it, so it
+	// keeps getting through. Do not tighten this into a rate: the rate is a property of how
+	// long the views happen to live, not of the library.
+	Registry<true> reg;
+	for (EntityId e = 0; e < 4000; ++e) { reg.takeEntity(); reg.addComponent<RInt>(e, RInt{ int(e) }); }
+
+	std::atomic<bool> stop{ false };
+	std::atomic<long long> writes{ 0 }, iterations{ 0 };
+	std::vector<std::thread> pool;
+	for (int t = 0; t < 4; ++t) {
+		pool.emplace_back([&] {
+			while (!stop.load(std::memory_order_relaxed)) {
+				auto v = reg.view<RInt>();
+				for (auto tup : v) { (void)tup; }
+				iterations.fetch_add(1, std::memory_order_relaxed);
+			}
+		});
+	}
+	pool.emplace_back([&] {
+		while (!stop.load(std::memory_order_relaxed)) {
+			reg.getComponentContainer<RInt>()->defragment();
+			writes.fetch_add(1, std::memory_order_relaxed);
+		}
+	});
+
+	std::this_thread::sleep_for(std::chrono::seconds(1));
+	stop.store(true, std::memory_order_release);
+	for (auto& th : pool) { th.join(); }
+
+	EXPECT_GT(iterations.load(), 0) << "the readers never ran";
+	EXPECT_GT(writes.load(), 0)
+		<< "compaction never completed once in a second of continuous iteration";
+}
