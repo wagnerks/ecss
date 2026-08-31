@@ -842,34 +842,51 @@ TEST(Regression_BulkInsert, ArbitraryOrderMatchesOneAtATime) {
 }
 
 TEST(Regression_BulkInsert, StaysLinearInBatchSize) {
-	// Per-element cost must not grow with the array. Quadratic showed as the time
-	// quadrupling when N doubled; linear roughly doubles.
-	const auto timeBulk = [](int N) {
+	// Per-element cost must not grow with the array size. The batch has to land *inside*
+	// what is already stored, or the merge degenerates to "sort, then append" and the path
+	// that used to be quadratic -- relocating the tail and rewriting its sparse entries --
+	// is never taken.
+	const auto timeMergeIntoPopulated = [](int half) {
+		// even ids first, ascending, so they take the append path and just populate the array
+		std::vector<std::pair<EntityId, RInt>> evens;
+		evens.reserve(half);
+		for (int i = 0; i < half; ++i) { evens.emplace_back(EntityId(2 * i), RInt{ i }); }
+
+		// odd ids second, shuffled: every one of them belongs between two existing sectors
+		std::vector<std::pair<EntityId, RInt>> odds;
+		odds.reserve(half);
+		for (int i = 0; i < half; ++i) { odds.emplace_back(EntityId(2 * i + 1), RInt{ i }); }
+		std::shuffle(odds.begin(), odds.end(), std::mt19937(7));
+
 		Registry<false> reg;
-		reg.reserve<RInt>(N);
-		std::vector<EntityId> targets;
-		for (int i = 0; i < N; ++i) {
-			const auto e = reg.takeEntity();
-			if (i % 4 == 0) { targets.push_back(e); }
-		}
-		std::shuffle(targets.begin(), targets.end(), std::mt19937(7));
-		std::vector<std::pair<EntityId, RInt>> batch;
-		batch.reserve(targets.size());
-		for (auto e : targets) { batch.emplace_back(e, RInt{ 1 }); }
+		reg.reserve<RInt>(2 * half);
+		reg.insertBulk<RInt>(evens.begin(), evens.end());
 
 		const auto t0 = std::chrono::steady_clock::now();
-		reg.insertBulk<RInt>(batch.begin(), batch.end());
-		return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+		reg.insertBulk<RInt>(odds.begin(), odds.end());
+		const auto ms = std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+
+		// the merge is what is being timed, so make sure it actually happened
+		EXPECT_EQ(reg.getComponentContainer<RInt>()->size(), size_t(2 * half));
+		return ms;
 	};
 
-	const double small = timeBulk(50000);
-	const double large = timeBulk(200000);
+	// Best of several: a single sample of a few milliseconds is dominated by scheduling
+	// noise, which is how an earlier version of this test managed to report 11x.
+	const auto best = [&](int half) {
+		double ms = 1e18;
+		for (int rep = 0; rep < 5; ++rep) { ms = std::min(ms, timeMergeIntoPopulated(half)); }
+		return ms;
+	};
+
+	const double small = best(100000);
+	const double large = best(400000);
 	const double ratio = large / (small > 0.0 ? small : 1.0);
 
 	// four times the work; quadratic would be about sixteen
 	EXPECT_LT(ratio, 8.0)
-		<< "bulk insert of 4x the ids took " << ratio << "x as long (" << large << " ms vs "
-		<< small << " ms) -- the merge has gone quadratic again";
+		<< "merging 4x the ids into a 4x array took " << ratio << "x as long (" << large
+		<< " ms vs " << small << " ms) -- the merge has gone quadratic again";
 }
 
 TEST(Regression_BulkInsert, GeneratorBatchAcceptsUnorderedIds) {
