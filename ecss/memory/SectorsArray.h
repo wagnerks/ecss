@@ -345,6 +345,20 @@ namespace detail {
 		FORCE_INLINE const SectorId& idAt(size_t idx) const { return ids[idx]; }
 		FORCE_INLINE const uint32_t& isAliveAt(size_t idx) const { return isAlive[idx]; }
 
+		/// @brief Publish an id or a liveness word to lock-free readers.
+		///
+		/// Readers walk these two arrays without any lock, so a writer that assigns to them
+		/// plainly races even while holding the write lock -- the lock excludes other writers,
+		/// not readers. Release stores here pair with the acquire and relaxed loads on the
+		/// read side. On x86-64 both are a plain MOV; the atomic_ref only constrains the
+		/// compiler, not the hardware.
+		FORCE_INLINE void setIdAt(size_t idx, SectorId value) {
+			std::atomic_ref<SectorId>(ids[idx]).store(value, std::memory_order_release);
+		}
+		FORCE_INLINE void setAliveAt(size_t idx, uint32_t value) {
+			std::atomic_ref<uint32_t>(isAlive[idx]).store(value, std::memory_order_release);
+		}
+
 		mutable Memory::RetireBin bin;
 		std::vector<SectorId, Memory::RetireAllocator<SectorId>> ids{ Memory::RetireAllocator<SectorId>{&bin} };
 		std::vector<uint32_t, Memory::RetireAllocator<uint32_t>> isAlive{ Memory::RetireAllocator<uint32_t>{&bin} };
@@ -414,6 +428,10 @@ namespace detail {
 		FORCE_INLINE uint32_t& isAliveAt(size_t idx) { return isAlive[idx]; }
 		FORCE_INLINE const SectorId& idAt(size_t idx) const { return ids[idx]; }
 		FORCE_INLINE const uint32_t& isAliveAt(size_t idx) const { return isAlive[idx]; }
+
+		/// @copydoc DenseArrays<true>::setIdAt  No readers to publish to here.
+		FORCE_INLINE void setIdAt(size_t idx, SectorId value) { ids[idx] = value; }
+		FORCE_INLINE void setAliveAt(size_t idx, uint32_t value) { isAlive[idx] = value; }
 
 		std::vector<SectorId> ids;
 		std::vector<uint32_t> isAlive;
@@ -581,6 +599,18 @@ public:
 	/// satisfy the C++ memory model when the word may be concurrently written by
 	/// Sector::markAlive<true>/markNotAlive<true>.
 	/// Declared static so nested iterator classes can call it without an enclosing instance.
+	/// @brief Relaxed load of a sector id. The id array is written by a writer holding only
+	/// the array's write lock, which excludes other writers but not the lock-free readers, so
+	/// both sides go through atomic_ref. Same codegen as a raw read on x86-64 and ARM64.
+	static FORCE_INLINE SectorId loadId(const SectorId* p, size_t i) noexcept {
+		if constexpr (ThreadSafe) {
+			return std::atomic_ref<SectorId>(const_cast<SectorId&>(p[i]))
+				.load(std::memory_order_relaxed);
+		} else {
+			return p[i];
+		}
+	}
+
 	static FORCE_INLINE uint32_t loadAliveRelaxed(const uint32_t* p, size_t i) noexcept {
 		if constexpr (ThreadSafe) {
 			return std::atomic_ref<uint32_t>(const_cast<uint32_t&>(p[i]))
@@ -645,7 +675,7 @@ public:
 			// Acquire-load the alive word so a set bit synchronizes-with the
 			// release in Sector::markAlive<true>, making the component bytes visible.
 			return SlotInfo{
-				mIds[mIdx],
+				loadId(mIds, mIdx),
 				loadAliveAcquire(mIsAlive, mIdx),
 				mDataPtr,
 				mIdx
@@ -752,7 +782,7 @@ public:
 			// Acquire-load the alive word so a set bit synchronizes-with the
 			// release in Sector::markAlive<true>, making the component bytes visible.
 			return SlotInfo{
-				mIds[mIdx],
+				loadId(mIds, mIdx),
 				loadAliveAcquire(mIsAlive, mIdx),
 				mDataPtr,
 				mIdx
@@ -787,7 +817,7 @@ public:
 			size_t hi = mSize;
 			while (lo < hi) {
 				const size_t mid = lo + (hi - lo) / 2;
-				if (mIds[mid] < minId) {
+				if (loadId(mIds, mid) < minId) {
 					lo = mid + 1;
 				}
 				else {
@@ -933,7 +963,7 @@ public:
 			// Acquire-load the alive word so a set bit synchronizes-with the
 			// release in Sector::markAlive<true>, making the component bytes visible.
 			return SlotInfo{
-				mIds[mIdx],
+				loadId(mIds, mIdx),
 				loadAliveAcquire(mIsAlive, mIdx),
 				mDataPtr,
 				mIdx
@@ -982,7 +1012,7 @@ public:
 			size_t left = 0, right = mSize;
 			while (left < right) {
 				size_t mid = left + (right - left) / 2;
-				if (mIds[mid] < sectorId) {
+				if (loadId(mIds, mid) < sectorId) {
 					left = mid + 1;
 				} else {
 					right = mid;
@@ -1670,7 +1700,7 @@ private:
 			const auto view = mDenseArrays.loadView();
 			if (idx >= view.size) { return PinnedSector{}; }
 
-			PinnedSector pin(mPinsCounter, view.ids[idx], dataAt(static_cast<uint32_t>(idx)),
+			PinnedSector pin(mPinsCounter, loadId(view.ids, idx), dataAt(static_cast<uint32_t>(idx)),
 			                 loadAliveAcquire(view.isAlive, idx));
 			if (mStructEpoch.load(std::memory_order_seq_cst) == epoch) { return pin; }
 		}
@@ -1686,7 +1716,7 @@ private:
 			if (view.size == 0) { return PinnedSector{}; }
 			const size_t idx = view.size - 1;
 
-			PinnedSector pin(mPinsCounter, view.ids[idx], dataAt(static_cast<uint32_t>(idx)),
+			PinnedSector pin(mPinsCounter, loadId(view.ids, idx), dataAt(static_cast<uint32_t>(idx)),
 			                 loadAliveAcquire(view.isAlive, idx));
 			if (mStructEpoch.load(std::memory_order_seq_cst) == epoch) { return pin; }
 		}
@@ -1859,8 +1889,8 @@ private:
 			shiftRightImpl(insertPos, 1);
 		}
 
-		mDenseArrays.idAt(insertPos) = sectorId;
-		mDenseArrays.isAliveAt(insertPos) = 0;
+		mDenseArrays.setIdAt(insertPos, sectorId);
+		mDenseArrays.setAliveAt(insertPos, 0);
 		// Store data pointer + linear index (linearIdx written first, then data atomically)
 		mSparseMap.set(sectorId, static_cast<uint32_t>(insertPos));
 
@@ -1890,9 +1920,9 @@ private:
 
 		// Shift metadata and update sparse map with new pointers
 		for (size_t i = oldSize + count - 1; i >= from + count; --i) {
-			mDenseArrays.idAt(i) = mDenseArrays.idAt(i - count);
+			mDenseArrays.setIdAt(i, mDenseArrays.idAt(i - count));
 			if (getLayout()->isTrivial()) {
-				mDenseArrays.isAliveAt(i) = mDenseArrays.isAliveAt(i - count);
+				mDenseArrays.setAliveAt(i, mDenseArrays.isAliveAt(i - count));
 			}
 			mSparseMap.set(mDenseArrays.idAt(i), static_cast<uint32_t>(i));
 		}
@@ -1920,9 +1950,9 @@ private:
 
 		// Shift metadata and update sparse map with new pointers
 		for (size_t i = from - count; i < from - count + tail; ++i) {
-			mDenseArrays.idAt(i) = mDenseArrays.idAt(i + count);
+			mDenseArrays.setIdAt(i, mDenseArrays.idAt(i + count));
 			if (getLayout()->isTrivial()) {
-				mDenseArrays.isAliveAt(i) = mDenseArrays.isAliveAt(i + count);
+				mDenseArrays.setAliveAt(i, mDenseArrays.isAliveAt(i + count));
 			}
 			mSparseMap.set(mDenseArrays.idAt(i), static_cast<uint32_t>(i));
 		}
@@ -2061,8 +2091,8 @@ private:
 			}
 
 			--w;
-			mDenseArrays.idAt(w) = id;
-			mDenseArrays.isAliveAt(w) = 0;
+			mDenseArrays.setIdAt(w, id);
+			mDenseArrays.setAliveAt(w, 0);
 			Sector::emplaceMember<C, ThreadSafe>(
 				mAllocator.at(w), mDenseArrays.isAliveAt(w), layout, entry.second->second);
 			mSparseMap.set(id, static_cast<uint32_t>(w));
@@ -2096,7 +2126,7 @@ private:
 	void relocateSector(size_t from, size_t to) {
 		if (getLayout()->isTrivial()) {
 			mAllocator.moveSectorsDataTrivial(to, from, 1);
-			mDenseArrays.isAliveAt(to) = mDenseArrays.isAliveAt(from);
+			mDenseArrays.setAliveAt(to, mDenseArrays.isAliveAt(from));
 		}
 		else {
 			Sector::moveSectorData(
@@ -2104,7 +2134,7 @@ private:
 				mAllocator.at(to), mDenseArrays.isAliveAt(to),
 				getLayout());
 		}
-		mDenseArrays.idAt(to) = mDenseArrays.idAt(from);
+		mDenseArrays.setIdAt(to, mDenseArrays.idAt(from));
 		mSparseMap.set(mDenseArrays.idAt(to), static_cast<uint32_t>(to));
 	}
 
@@ -2216,8 +2246,8 @@ private:
 					// Trivial types: fast memmove
 				mAllocator.moveSectorsDataTrivial(write, runBeg, runLen);
 				for (size_t i = 0; i < runLen; ++i) {
-						mDenseArrays.idAt(write + i) = mDenseArrays.idAt(runBeg + i);
-						mDenseArrays.isAliveAt(write + i) = mDenseArrays.isAliveAt(runBeg + i);
+						mDenseArrays.setIdAt(write + i, mDenseArrays.idAt(runBeg + i));
+						mDenseArrays.setAliveAt(write + i, mDenseArrays.isAliveAt(runBeg + i));
 						mSparseMap.set(mDenseArrays.idAt(write + i), static_cast<uint32_t>(write + i));
 					}
 				} else {
@@ -2228,7 +2258,7 @@ private:
 							mAllocator.at(runBeg + i), mDenseArrays.isAliveAt(runBeg + i),
 							mAllocator.at(write + i), mDenseArrays.isAliveAt(write + i),
 							getLayout());
-						mDenseArrays.idAt(write + i) = mDenseArrays.idAt(runBeg + i);
+						mDenseArrays.setIdAt(write + i, mDenseArrays.idAt(runBeg + i));
 						mSparseMap.set(mDenseArrays.idAt(write + i), static_cast<uint32_t>(write + i));
 					}
 				}
@@ -2293,8 +2323,8 @@ private:
 		
 		mDenseArrays.resize(otherSz, otherSz);
 		for (size_t i = 0; i < otherSz; ++i) {
-			mDenseArrays.idAt(i) = other.mDenseArrays.idAt(i);
-			mDenseArrays.isAliveAt(i) = other.mDenseArrays.isAliveAt(i);
+			mDenseArrays.setIdAt(i, other.mDenseArrays.idAt(i));
+			mDenseArrays.setAliveAt(i, other.mDenseArrays.isAliveAt(i));
 		}
 		mDenseArrays.storeView(otherSz);
 		
@@ -2306,7 +2336,7 @@ private:
 					other.mAllocator.at(i), srcIsAlive,
 					mAllocator.at(i), dstIsAlive,
 					getLayout());
-				mDenseArrays.isAliveAt(i) = dstIsAlive;
+				mDenseArrays.setAliveAt(i, dstIsAlive);
 			}
 			mDenseArrays.storeView(otherSz);
 		}
@@ -2375,8 +2405,8 @@ private:
 		
 		mDenseArrays.resize(otherSz, otherSz);
 		for (size_t i = 0; i < otherSz; ++i) {
-			mDenseArrays.idAt(i) = other.mDenseArrays.idAt(i);
-			mDenseArrays.isAliveAt(i) = other.mDenseArrays.isAliveAt(i);
+			mDenseArrays.setIdAt(i, other.mDenseArrays.idAt(i));
+			mDenseArrays.setAliveAt(i, other.mDenseArrays.isAliveAt(i));
 		}
 		mDenseArrays.storeView(otherSz);
 		
