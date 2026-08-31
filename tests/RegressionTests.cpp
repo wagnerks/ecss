@@ -18,6 +18,7 @@
 #include <unordered_set>
 #include <vector>
 
+#include <ecss/CommandBuffer.h>
 #include <ecss/IdSet.h>
 #include <ecss/Registry.h>
 #include <ecss/memory/ChunksAllocator.h>
@@ -1218,4 +1219,96 @@ TEST(Regression_BatchIds, RegistryEntityIdsStayUsable) {
 	EXPECT_EQ(*std::max_element(again.begin(), again.end()),
 	          *std::max_element(ids.begin(), ids.end()))
 		<< "recycled ids drifted upward";
+}
+
+// ===========================================================================
+// CommandBuffer: structural changes recorded now and applied at a chosen
+// point. Two things it has to get right -- the same end state as the
+// immediate calls, and never applying anything while a view is open.
+// ===========================================================================
+
+namespace {
+struct CbA { int v{}; };
+struct CbB { double d{}; };
+} // namespace
+
+TEST(Regression_CommandBuffer, EndsWhereImmediateCallsWould) {
+	std::mt19937 rng(9001);
+	for (int iter = 0; iter < 120; ++iter) {
+		Registry<true> immediate, buffered;
+		CommandBuffer<true> cb;
+
+		const uint32_t space = 40 + rng() % 120;
+		for (uint32_t i = 0; i < space; ++i) { immediate.takeEntity(); buffered.takeEntity(); }
+		for (uint32_t i = 0; i < space; i += 3) {
+			immediate.addComponent<CbA>(i, CbA{ int(i) });
+			buffered.addComponent<CbA>(i, CbA{ int(i) });
+		}
+
+		// Recording against an entity destroyed earlier in the same buffer is a caller error
+		// by contract, so the script does not do it.
+		std::vector<bool> gone(space, false);
+		for (int o = 0, n = 1 + int(rng() % 80); o < n; ++o) {
+			const EntityId e = EntityId(rng() % space);
+			if (gone[e]) { continue; }
+			switch (rng() % 4) {
+				case 0: immediate.addComponent<CbA>(e, CbA{ o }); cb.addComponent<CbA>(e, CbA{ o }); break;
+				case 1: immediate.addComponent<CbB>(e, CbB{ double(o) }); cb.addComponent<CbB>(e, CbB{ double(o) }); break;
+				case 2: immediate.destroyComponent<CbA>(e); cb.destroyComponent<CbA>(e); break;
+				default: immediate.destroyEntity(e); cb.destroyEntity(e); gone[e] = true; break;
+			}
+		}
+		cb.apply(buffered);
+		EXPECT_TRUE(cb.empty()) << "buffer still holds work after apply, iteration " << iter;
+
+		for (uint32_t i = 0; i < space; ++i) {
+			ASSERT_EQ(immediate.contains(i), buffered.contains(i)) << "entity " << i << ", iter " << iter;
+			ASSERT_EQ(immediate.hasComponent<CbA>(i), buffered.hasComponent<CbA>(i)) << "A on " << i << ", iter " << iter;
+			ASSERT_EQ(immediate.hasComponent<CbB>(i), buffered.hasComponent<CbB>(i)) << "B on " << i << ", iter " << iter;
+		}
+	}
+}
+
+TEST(Regression_CommandBuffer, LastRecordedOperationWins) {
+	Registry<true> reg;
+	for (EntityId e = 0; e < 4; ++e) { reg.takeEntity(); reg.addComponent<CbA>(e, CbA{ int(e) }); }
+
+	CommandBuffer<true> cb;
+	cb.destroyComponent<CbA>(1);            // remove then add back: ends present
+	cb.addComponent<CbA>(1, CbA{ 111 });
+	cb.addComponent<CbA>(2, CbA{ 222 });    // add then remove: ends absent
+	cb.destroyComponent<CbA>(2);
+	cb.apply(reg);
+
+	EXPECT_TRUE(reg.hasComponent<CbA>(1)) << "a component removed and re-added went missing";
+	EXPECT_EQ(reg.pinComponent<CbA>(1).get()->v, 111);
+	EXPECT_FALSE(reg.hasComponent<CbA>(2)) << "a component added and removed survived";
+}
+
+TEST(Regression_CommandBuffer, RecordingDuringIterationDoesNotHang) {
+	// The immediate equivalent -- a middle insert into an array this thread is iterating --
+	// waits for a hold only this thread could release, and never returns.
+	Registry<true> reg;
+	for (EntityId e = 100; e < 400; ++e) { reg.addComponent<CbA>(e, CbA{ int(e) }); }
+
+	std::atomic<bool> done{ false };
+	std::thread worker([&] {
+		CommandBuffer<true> cb;
+		{
+			auto view = reg.view<CbA>();
+			for (auto [e, a] : view) {
+				if (a && a->v % 7 == 0) { cb.addComponent<CbB>(e, CbB{ 1.0 }); }
+			}
+		}
+		cb.apply(reg);
+		done.store(true, std::memory_order_release);
+	});
+
+	const bool finished = waitFor([&] { return done.load(std::memory_order_acquire); });
+	ASSERT_TRUE(finished) << "recording during iteration hung; the buffer must defer, not apply";
+	worker.join();
+
+	size_t gained = 0;
+	for (EntityId e = 100; e < 400; ++e) { gained += reg.hasComponent<CbB>(e); }
+	EXPECT_GT(gained, 0u) << "the recorded work was never applied";
 }
