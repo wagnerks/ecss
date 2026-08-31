@@ -149,12 +149,19 @@ namespace ecss {
 
 	public:
 		/// @brief Default construct an empty registry (no arrays allocated until first use).
-		Registry() noexcept = default;
+		Registry() noexcept {
+			if constexpr (!ThreadSafe) {
+				// No lock-free readers here, so a superseded snapshot has nothing to outlive.
+				mNodeBin.setGracePeriod(0);
+			}
+		}
 
 		/// @brief Destroys all component arrays (each SectorsArray is deleted).
 		~Registry() noexcept {
 			for (auto array : mComponentsArrays) delete array;
-			for (auto* node : mRegisteredNodes) { delete[] node->map; delete[] node->layout; delete[] node->meta; delete[] node->list; delete node; }
+			// Superseded snapshots are in the bin, which frees them on destruction; the one
+			// still published is not, so it is freed here.
+			std::free(mRegistered.load(std::memory_order_relaxed));
 		}
 
 		/**
@@ -174,6 +181,7 @@ namespace ecss {
 		 * @thread_safety Internally synchronized.
 		 */
 		void update(bool withDefragment = true) noexcept requires(ThreadSafe) {
+			mNodeBin.tick();    // superseded snapshots past their grace period
 			const auto [begin, end] = registeredArrays();
 			for (auto it = begin; it != end; ++it) {
 				(*it)->tick();  // Free retired memory older than grace period
@@ -211,7 +219,7 @@ namespace ecss {
 		 * @return Total number of memory blocks freed across all arrays
 		 */
 		size_t tick() noexcept {
-			size_t freed = 0;
+			size_t freed = mNodeBin.tick();
 			const auto [begin, end] = registeredArrays();
 			for (auto it = begin; it != end; ++it) {
 				freed += (*it)->tick();
@@ -1016,6 +1024,12 @@ namespace ecss {
 
 		void maintainArray(Memory::SectorsArray<ThreadSafe, Allocator>* array) noexcept {
 			if constexpr (ThreadSafe) {
+				// Deliberately not ticking the snapshot bin here. This runs per array per view,
+				// and the snapshot grace period measures how long a reader might still be
+				// walking a list it loaded, not how many views have opened since. Draining it
+				// at that rate would collapse the window. update() ticks it instead, and a
+				// program that never calls update() only holds snapshots it stopped publishing
+				// once registration settled.
 				array->tick();
 				array->processPendingErases(true);
 			}
@@ -1029,25 +1043,57 @@ namespace ecss {
 		}
 
 		/// @brief Publish a fresh snapshot. Caller holds componentsArrayMapMutex (TS build).
-		/// Superseded nodes stay alive until destruction: a lock-free reader may still hold
-		/// one, and there is at most one node per registerArray() call.
+		///
+		/// The node and its four arrays are one allocation, so retiring a superseded snapshot
+		/// is a single free and the arrays a reader walks sit next to the node it loaded.
+		///
+		/// Superseded nodes go to a retire bin rather than being kept until the registry dies.
+		/// A lock-free reader may still be inside one, which is exactly what the grace period
+		/// is for -- the same mechanism the arrays already use for their own buffers. Keeping
+		/// every node instead made a registry's snapshot memory quadratic in the number of
+		/// component types registered: one node per registerArray(), each sized by the type
+		/// count, which reached 4.4 MB at 400 types.
 		void publishRegistered() {
-			auto* node = new Registered{};
-			node->mapCount = mComponentsArraysMap.size();
-			node->map = new Memory::SectorsArray<ThreadSafe, Allocator>*[node->mapCount ? node->mapCount : 1];
-			for (size_t i = 0; i < node->mapCount; ++i) { node->map[i] = mComponentsArraysMap[i]; }
-			node->layout = new const Memory::LayoutData*[node->mapCount ? node->mapCount : 1];
-			node->meta = new const Memory::SectorLayoutMeta*[node->mapCount ? node->mapCount : 1];
-			for (size_t i = 0; i < node->mapCount; ++i) {
+			using ArrayPtr = Memory::SectorsArray<ThreadSafe, Allocator>*;
+
+			const size_t mapCount = mComponentsArraysMap.size();
+			const size_t listCount = mComponentsArrays.size();
+
+			// Every member is pointer-sized, and sizeof(Registered) is a multiple of that, so
+			// laying the arrays out back to back keeps each of them aligned.
+			static_assert(sizeof(Registered) % alignof(void*) == 0, "array suffix would be misaligned");
+			const size_t bytes = sizeof(Registered)
+				+ mapCount * sizeof(ArrayPtr)
+				+ mapCount * sizeof(const Memory::LayoutData*)
+				+ mapCount * sizeof(const Memory::SectorLayoutMeta*)
+				+ listCount * sizeof(ArrayPtr);
+
+			auto* raw = static_cast<std::byte*>(std::malloc(bytes));
+			if (!raw) { return; }                     // out of memory: keep serving the old one
+			auto* node = new (raw) Registered{};
+
+			std::byte* cursor = raw + sizeof(Registered);
+			const auto carve = [&cursor](size_t count, size_t size) {
+				std::byte* p = cursor;
+				cursor += count * size;
+				return p;
+			};
+			node->mapCount = mapCount;
+			node->map = reinterpret_cast<ArrayPtr*>(carve(mapCount, sizeof(ArrayPtr)));
+			node->layout = reinterpret_cast<const Memory::LayoutData**>(carve(mapCount, sizeof(const Memory::LayoutData*)));
+			node->meta = reinterpret_cast<const Memory::SectorLayoutMeta**>(carve(mapCount, sizeof(const Memory::SectorLayoutMeta*)));
+			node->listCount = listCount;
+			node->list = reinterpret_cast<ArrayPtr*>(carve(listCount, sizeof(ArrayPtr)));
+
+			for (size_t i = 0; i < mapCount; ++i) {
+				node->map[i] = mComponentsArraysMap[i];
 				node->layout[i] = i < mComponentsLayoutsMap.size() ? mComponentsLayoutsMap[i] : nullptr;
 				node->meta[i] = i < mComponentsMetaMap.size() ? mComponentsMetaMap[i] : nullptr;
 			}
-			node->listCount = mComponentsArrays.size();
-			node->list = new Memory::SectorsArray<ThreadSafe, Allocator>*[node->listCount ? node->listCount : 1];
-			for (size_t i = 0; i < node->listCount; ++i) { node->list[i] = mComponentsArrays[i]; }
+			for (size_t i = 0; i < listCount; ++i) { node->list[i] = mComponentsArrays[i]; }
 
-			mRegisteredNodes.push_back(node);
-			mRegistered.store(node, std::memory_order_release);
+			auto* superseded = mRegistered.exchange(node, std::memory_order_release);
+			if (superseded) { mNodeBin.retire(superseded); }
 		}
 
 		/// @brief Lock-free view over the registered arrays, for maintenance walks.
@@ -1075,7 +1121,8 @@ namespace ecss {
 		mutable std::atomic<size_t> mMaintainCursor{ 0 };
 
 		std::atomic<Registered*> mRegistered{ nullptr }; ///< Published snapshot (lock-free reads).
-		std::vector<Registered*> mRegisteredNodes;       ///< Every node ever published (freed in dtor).
+		/// Superseded snapshots, freed once no reader can still be inside one. @see tick()
+		mutable Memory::RetireBin mNodeBin;
 
 
 		/// @brief Live entity ids, one bit each.

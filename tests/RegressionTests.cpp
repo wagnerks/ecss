@@ -32,6 +32,7 @@ namespace {
 struct RPos { float x{}, y{}, z{}; };
 struct RVel { float dx{}, dy{}, dz{}; };
 struct RInt { int v{}; };
+template <int I> struct TypeN { int v{}; };
 
 /// @brief Spin until @p done or the deadline passes. Returns false on timeout.
 template <class Pred>
@@ -1446,4 +1447,49 @@ TEST(Regression_AutoMaintenance, ReachesArraysNobodyIterates) {
 	for (EntityId e = 1; e < 8000; e += 2) {
 		ASSERT_TRUE(reg.hasComponent<LookedUpOnly>(e)) << "live component " << e << " lost";
 	}
+}
+
+// ===========================================================================
+// Every registerArray publishes a new snapshot of the registered arrays, and
+// superseded ones used to be kept until the registry died, because a lock-free
+// reader might still be inside one. That made a registry's snapshot memory
+// quadratic in the number of component types: 400 types held about 4.9 MB.
+// They go through a retire bin now, like every other buffer readers can hold.
+// ===========================================================================
+
+TEST(Regression_Snapshots, SupersededOnesAreFreedRatherThanKept) {
+	Registry<true> reg;
+
+	// each registration publishes one, superseding the last
+	constexpr int kTypes = 64;
+	[&]<int... I>(std::integer_sequence<int, I...>) {
+		((reg.registerArray<TypeN<I>>(0)), ...);
+	}(std::make_integer_sequence<int, kTypes>{});
+
+	// The grace period has to pass first: a reader that loaded a snapshot before it was
+	// superseded may still be walking it.
+	size_t freed = 0;
+	for (int t = 0; t < 6; ++t) { freed += reg.tick(); }
+
+	EXPECT_GE(freed, size_t(kTypes - 1))
+		<< "superseded snapshots were not reclaimed (" << freed << " blocks freed, expected at "
+		   "least " << (kTypes - 1) << ")";
+
+	// and the registry still works through the one that is still published
+	for (EntityId e = 0; e < 100; ++e) { reg.addComponent<TypeN<0>>(e, TypeN<0>{ int(e) }); }
+	for (EntityId e = 0; e < 100; ++e) { ASSERT_TRUE(reg.hasComponent<TypeN<0>>(e)); }
+}
+
+TEST(Regression_Snapshots, PlainBuildFreesThemImmediately) {
+	// No lock-free readers there, so a superseded snapshot has nothing to outlive.
+	Registry<false> reg;
+	[&]<int... I>(std::integer_sequence<int, I...>) {
+		((reg.registerArray<TypeN<100 + I>>(0)), ...);
+	}(std::make_integer_sequence<int, 32>{});
+
+	EXPECT_EQ(reg.tick(), 0u)
+		<< "the plain build queued snapshots for later instead of freeing them on release";
+
+	for (EntityId e = 0; e < 50; ++e) { reg.addComponent<TypeN<100>>(e, TypeN<100>{ int(e) }); }
+	for (EntityId e = 0; e < 50; ++e) { ASSERT_TRUE(reg.hasComponent<TypeN<100>>(e)); }
 }
