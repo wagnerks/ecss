@@ -1312,3 +1312,38 @@ TEST(Regression_CommandBuffer, RecordingDuringIterationDoesNotHang) {
 	for (EntityId e = 100; e < 400; ++e) { gained += reg.hasComponent<CbB>(e); }
 	EXPECT_GT(gained, 0u) << "the recorded work was never applied";
 }
+
+// ===========================================================================
+// update() used to wait for the array to go quiet before compacting it, which
+// meant a caller iterating that same array waited for something only it could
+// release. That is what forced the call to be placed carefully in a frame.
+// Compaction is attempted now, and skipped when the array is busy.
+// ===========================================================================
+
+TEST(Regression_Maintenance, UpdateFromInsideIterationDoesNotHang) {
+	Registry<true> reg;
+	for (EntityId e = 0; e < 2000; ++e) { reg.addComponent<RInt>(e, RInt{ int(e) }); }
+	for (EntityId e = 0; e < 2000; e += 2) { reg.destroyComponent<RInt>(e); }   // queue work
+
+	std::atomic<bool> done{ false };
+	std::thread worker([&] {
+		auto view = reg.view<RInt>();
+		auto it = view.begin();
+		(void)it;
+		reg.update();          // the array this thread is holding open
+		done.store(true, std::memory_order_release);
+	});
+
+	const bool finished = waitFor([&] { return done.load(std::memory_order_acquire); });
+	ASSERT_TRUE(finished) << "update() blocked on a view held by the calling thread";
+	worker.join();
+
+	// and the deferred work is not lost -- a later call, with nothing in the way, does it
+	for (int i = 0; i < 4; ++i) { reg.update(); }
+	for (EntityId e = 1; e < 2000; e += 2) {
+		ASSERT_TRUE(reg.hasComponent<RInt>(e)) << "surviving component " << e << " lost during compaction";
+	}
+	for (EntityId e = 0; e < 2000; e += 2) {
+		ASSERT_FALSE(reg.hasComponent<RInt>(e)) << "destroyed component " << e << " came back";
+	}
+}

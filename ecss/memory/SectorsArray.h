@@ -1477,11 +1477,38 @@ public:
 
 		if (withDefragment && wantsDefragment) {
 			if constexpr(Lock) {
-				exclusiveWhenQuiescent([&] { defragmentImpl(); });
+				// Attempted, not awaited. Waiting here is what made this call care where it
+				// was made from: compaction needs the array quiescent, and a caller that is
+				// itself iterating holds the very thing being waited for, so update() from
+				// inside a loop hung. The work is deferred by nature -- needDefragment stays
+				// true and the next call picks it up -- so a busy array is skipped instead.
+				tryDefragmentImpl();
 			} else {
 				defragmentImpl(); // caller owns the lock and the quiescence precondition
 			}
 		}
+	}
+
+	/// @brief Compact if the array is free right now; leave it for the next call if not.
+	/// @return true if compaction ran.
+	bool tryDefragmentImpl() requires(ThreadSafe) {
+		// Announce the attempt even though we will not block on it: readers back off for a
+		// bounded spin when a writer is waiting (see yieldToWriters), so an array that is
+		// busy this time is usually free the next.
+		Threads::PinCounters::WriterIntent intent(mPinsCounter);
+		if (mPinsCounter.hasAnyPins()) {
+			return false;
+		}
+
+		auto lock = writeLock();
+		StructuralEdit edit(*this);
+		// Re-checked after the epoch is published, as everywhere else: a pin taken in between
+		// observes the odd epoch and retries, so it cannot be live across the relocation.
+		if (mPinsCounter.hasAnyPins()) {
+			return false;
+		}
+		defragmentImpl();
+		return true;
 	}
 
 	// ==================== Lock access (for Registry) ====================

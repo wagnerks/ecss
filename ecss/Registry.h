@@ -159,6 +159,15 @@ namespace ecss {
 
 		/**
 		 * @brief Maintenance pass (thread-safe build): process deferred erases, free retired memory, and optionally defragment.
+		 *
+		 * Safe to call from anywhere, including from inside a loop over a view: nothing here
+		 * waits. Deferred erases only destroy components in place, and compaction is attempted
+		 * rather than awaited -- an array that something is iterating right now is left for the
+		 * next call. Calling it more than once a frame is harmless; calling it at a quiet point
+		 * simply means more of the work lands on the first try.
+		 *
+		 * To compact regardless of who is iterating, and to wait for them, call
+		 * SectorsArray::defragment() on the array directly.
 		 * @param withDefragment If true, arrays that exceed thresholds may compact themselves.
 		 * @note Recommended to call once per frame at a stable synchronization point.
 		 * @note Automatically frees retired memory that has passed the grace period (default 3 ticks).
