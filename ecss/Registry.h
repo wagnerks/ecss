@@ -706,6 +706,19 @@ namespace ecss {
 		 */
 		template <class T>
 		[[nodiscard]] FORCE_INLINE ComponentAccess getComponentAccess() noexcept {
+			if (const auto access = lookupComponentAccess<T>()) [[likely]] {
+				return access;
+			}
+			// First use of T: register it, then look again. Written as a second lookup rather
+			// than a recursive call because GCC rejects always_inline on a function that calls
+			// itself, even down a branch taken once per component type.
+			registerArray<T>();
+			return lookupComponentAccess<T>();
+		}
+
+		/// @brief One snapshot load; empty if T has no array yet. @see getComponentAccess
+		template <class T>
+		[[nodiscard]] FORCE_INLINE ComponentAccess lookupComponentAccess() noexcept {
 			const auto componentType = componentTypeId<T>();
 			if (const auto* node = mRegistered.load(std::memory_order_acquire)) [[likely]] {
 				if (componentType < node->mapCount) {
@@ -719,9 +732,7 @@ namespace ecss {
 					}
 				}
 			}
-
-			registerArray<T>();
-			return getComponentAccess<T>();
+			return {};
 		}
 
 	public:
