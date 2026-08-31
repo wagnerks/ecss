@@ -776,3 +776,149 @@ TEST(Regression_StructuralHold, LongLivedViewsThrottleCompactionButDoNotBlockIt)
 	EXPECT_GT(writes.load(), 0)
 		<< "compaction never completed once in a second of continuous iteration";
 }
+
+// ===========================================================================
+// insertBulk() used to require ids that were strictly ascending and above
+// everything stored -- a comment, not a check. Anything else had to go through
+// a loop of addComponent(), which shifts the tail and rewrites the sparse entry
+// of every sector it passes, so M inserts cost O(M*N).
+// ===========================================================================
+
+TEST(Regression_BulkInsert, ArbitraryOrderMatchesOneAtATime) {
+	std::mt19937 rng(4242);
+	for (int round = 0; round < 200; ++round) {
+		const uint32_t idSpace = 1 + rng() % 80;
+		Registry<true> loop, bulk;
+
+		std::vector<EntityId> pre;
+		for (int i = 0, n = int(rng() % 40); i < n; ++i) { pre.push_back(rng() % idSpace); }
+		std::sort(pre.begin(), pre.end());
+		pre.erase(std::unique(pre.begin(), pre.end()), pre.end());
+		for (auto e : pre) {
+			loop.addComponent<RInt>(e, RInt{ int(e) });
+			bulk.addComponent<RInt>(e, RInt{ int(e) });
+		}
+		// deferred erases leave dead dense entries whose sparse slot is cleared
+		if (!pre.empty()) {
+			for (int i = 0, n = int(rng() % 3); i < n; ++i) {
+				const auto victim = pre[rng() % pre.size()];
+				loop.destroyComponent<RInt>(victim);
+				bulk.destroyComponent<RInt>(victim);
+			}
+		}
+
+		std::vector<std::pair<EntityId, RInt>> batch;
+		for (int i = 0, n = int(rng() % 40) + 1; i < n; ++i) {
+			batch.emplace_back(rng() % idSpace, RInt{ int(rng() % 1000) });
+		}
+
+		for (auto& entry : batch) {
+			RInt value = entry.second;
+			loop.addComponent<RInt>(entry.first, value);
+		}
+		bulk.insertBulk<RInt>(batch.begin(), batch.end());
+
+		auto* la = loop.getComponentContainer<RInt>();
+		auto* ba = bulk.getComponentContainer<RInt>();
+		ASSERT_EQ(la->size(), ba->size()) << "round " << round;
+
+		for (uint32_t id = 0; id < idSpace; ++id) {
+			ASSERT_EQ(loop.hasComponent<RInt>(id), bulk.hasComponent<RInt>(id))
+				<< "presence differs for id " << id << " in round " << round;
+			if (loop.hasComponent<RInt>(id)) {
+				auto* lv = loop.pinComponent<RInt>(id).get();
+				auto* bv = bulk.pinComponent<RInt>(id).get();
+				ASSERT_TRUE(lv && bv);
+				EXPECT_EQ(lv->v, bv->v) << "value differs for id " << id << " in round " << round;
+			}
+		}
+
+		// the invariant every binary search depends on
+		for (size_t i = 1; i < ba->size(); ++i) {
+			ASSERT_LT(ba->getId(i - 1), ba->getId(i))
+				<< "dense ids not strictly ascending at " << i << " in round " << round;
+		}
+	}
+}
+
+TEST(Regression_BulkInsert, StaysLinearInBatchSize) {
+	// Per-element cost must not grow with the array. Quadratic showed as the time
+	// quadrupling when N doubled; linear roughly doubles.
+	const auto timeBulk = [](int N) {
+		Registry<false> reg;
+		reg.reserve<RInt>(N);
+		std::vector<EntityId> targets;
+		for (int i = 0; i < N; ++i) {
+			const auto e = reg.takeEntity();
+			if (i % 4 == 0) { targets.push_back(e); }
+		}
+		std::shuffle(targets.begin(), targets.end(), std::mt19937(7));
+		std::vector<std::pair<EntityId, RInt>> batch;
+		batch.reserve(targets.size());
+		for (auto e : targets) { batch.emplace_back(e, RInt{ 1 }); }
+
+		const auto t0 = std::chrono::steady_clock::now();
+		reg.insertBulk<RInt>(batch.begin(), batch.end());
+		return std::chrono::duration<double, std::milli>(std::chrono::steady_clock::now() - t0).count();
+	};
+
+	const double small = timeBulk(50000);
+	const double large = timeBulk(200000);
+	const double ratio = large / (small > 0.0 ? small : 1.0);
+
+	// four times the work; quadratic would be about sixteen
+	EXPECT_LT(ratio, 8.0)
+		<< "bulk insert of 4x the ids took " << ratio << "x as long (" << large << " ms vs "
+		<< small << " ms) -- the merge has gone quadratic again";
+}
+
+TEST(Regression_BulkInsert, GeneratorBatchAcceptsUnorderedIds) {
+	constexpr int N = 2000;
+	Registry<true> reg;
+	std::vector<EntityId> ids;
+	for (int i = 0; i < N; ++i) { ids.push_back(EntityId(i)); }
+	std::shuffle(ids.begin(), ids.end(), std::mt19937(11));
+
+	size_t k = 0;
+	reg.addComponents<RInt>([&]() -> std::pair<EntityId, RInt> {
+		if (k >= ids.size()) { return { INVALID_ID, RInt{} }; }
+		const auto id = ids[k++];
+		return { id, RInt{ int(id) * 3 } };
+	});
+
+	auto* arr = reg.getComponentContainer<RInt>();
+	ASSERT_EQ(arr->size(), size_t(N));
+	for (int i = 0; i < N; ++i) {
+		ASSERT_TRUE(reg.hasComponent<RInt>(EntityId(i))) << "id " << i << " missing";
+		EXPECT_EQ(reg.pinComponent<RInt>(EntityId(i)).get()->v, i * 3);
+	}
+	for (size_t i = 1; i < arr->size(); ++i) {
+		ASSERT_LT(arr->getId(i - 1), arr->getId(i)) << "dense ids not sorted at " << i;
+	}
+}
+
+// ===========================================================================
+// reserve() moves the dense id and liveness buffers and retires the old ones,
+// but published nothing -- so the seqlock view kept naming buffers that were
+// correct only until the next write, and freed once the grace period expired.
+// ===========================================================================
+
+TEST(Regression_Reclamation, ReserveRepublishesTheDenseView) {
+	Registry<true> reg;
+	for (EntityId e = 0; e < 4; ++e) { reg.addComponent<RInt>(e, RInt{ int(e) }); }
+
+	reg.getComponentContainer<RInt>()->reserve(100000);   // forces the buffers to move
+
+	// destroyComponent writes liveness through the live vector; hasComponent and iteration
+	// read it through the published view. Asserting that they agree catches the stale
+	// pointer directly, rather than waiting for the retired buffer to be freed and reused --
+	// which happens eventually but reads as intact data often enough to hide the defect.
+	reg.destroyComponent<RInt>(2);
+
+	EXPECT_FALSE(reg.hasComponent<RInt>(2))
+		<< "a destroyed component still reads as present -- the published dense view still "
+		   "names the buffers reserve() moved away from";
+	size_t seen = 0;
+	for (auto it : reg.view<RInt>()) { (void)it; ++seen; }
+	EXPECT_EQ(seen, 3u) << "iteration walked a stale dense view";
+}
