@@ -45,10 +45,16 @@ hide:
  destroyEntity(id):
    mark bits dead (deferred)
  update():
+   free retired buffers past their grace period
    process deferred erasures (reclaim holes)
-   maybe trigger defragmentation (heuristic)
+   attempt defragmentation (heuristic; skips arrays being iterated)
 ```
 Dead members remain until maintenance to keep fast inner loops (simple mask test) and amortize compaction.
+
+Batch forms exist for every step and are markedly cheaper than the per-entity ones:
+`takeEntities`, `insertBulk` / `addComponents`, `destroyEntities`, and `CommandBuffer` for
+recording changes during iteration and applying them after. See
+[Batching & Deferral](batching.md).
 
 ---
 
@@ -65,12 +71,21 @@ Cost characteristics aim for branch‑lean loops: liveness mask test + (optional
 ## 5. Threading & Concurrency (when `Registry<true>`) 
 | Aspect | Mechanism |
 |--------|-----------|
-| Reads (iteration / lookup) | Shared lock on array + pin (when necessary) |
-| Structural change (insert / erase / defrag) | Unique lock + wait on relevant pin counters |
-| Lookup fast path | Atomic snapshot of pointer map (id→sector*) |
-| Reclamation | Retire old maps after last reader epoch |
+| Reads (iteration / lookup) | No lock. Seqlock-published snapshots of the sparse map, the dense arrays and the chunk table |
+| Iteration | A *structural hold* on the array — "do not compact this", counted per thread rather than per sector |
+| Pointer retention | A *pin* on one sector — "do not move this one" — validated against a structural epoch |
+| Append | Unique lock only. Relocates nothing and names a sector that cannot be pinned yet, so no epoch and no wait |
+| Relocating change (middle insert / defrag / clear / copy) | Unique lock + wait for pins and holds to drain, always outside the lock |
+| In-place change (destroy / overwrite a member) | Unique lock + that one sector unpinned |
+| Reclamation | Retire old buffers, freed only after a grace period no reader can still be inside |
 
-Pins provide precise blocking: only sectors actually in motion (or destroy) cause a wait; unrelated arrays continue.
+Pins and holds provide precise blocking: only the arrays actually being restructured wait, and
+only for readers of that array.
+
+!!! warning "The waiting is per array, and it includes you"
+    A thread that holds a view or a pin on an array and then makes a relocating change to *that
+    array* waits for something only it could release. Debug builds assert and name the rule;
+    release builds block. See [Batching & Deferral](batching.md).
 
 ---
 
@@ -164,7 +179,11 @@ The system automatically detects component triviality at compile time via `Secto
 - `ThreadSafe` template parameter on `Registry`.
 - Per grouped set defrag threshold setter.
 - Optional explicit grouping via `registerArray<A,B,...>()`.
-- Manual `update()` cadence (e.g. once per frame) to amortize maintenance.
+- `update()` cadence (e.g. once per frame) to amortize maintenance. Placement is free: nothing
+  in it waits, so it may be called from anywhere and more than once.
+- `setAutoMaintenance(bool)` to let view creation do that work instead, removing the call.
+- Retire grace period per array (`setGracePeriod`), fixed at zero in the non-thread-safe build
+  where there are no lock-free readers to outlive.
 
 ---
 

@@ -38,6 +38,7 @@ nav:
   - Getting Started: getting_started.md
   - Architecture Overview: architecture.md
   - Examples: examples.md
+  - Batching & Deferral: batching.md
   - Benchmarks: benchmarks.md
   - FAQ: faq.md
   - API Reference: ecss/

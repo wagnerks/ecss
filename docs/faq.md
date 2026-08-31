@@ -26,12 +26,34 @@ A: Larger sectors increase memory touched per iteration and slow moves/defrag. K
 ---
 
 ### Q: Is it thread‑safe?
-A: Yes when using `Registry<true>`. Reads take shared locks; structural writes take a unique lock and wait on pin counters for only the impacted sectors.
+A: Yes when using `Registry<true>`. Reads take **no lock**: lookups and iteration go through
+seqlock-published snapshots, so `hasComponent` and `each` cost the same as in the plain build
+and scale with threads (6.8x on eight). Structural writes take a unique lock; only the ones
+that relocate sectors wait on pin counters, and appends do not wait at all.
 
 ---
 
 ### Q: Do I need to pin manually?
 A: Typical high‑level iteration APIs handle safety implicitly. Manual pinning is only needed for custom low‑level pointer retention across potential defrag / erase windows.
+
+---
+
+### Q: What does thread safety actually cost me?
+A: Reading, essentially nothing — 1.0x to 1.3x. Batched structural changes, 1.0x to 1.4x.
+The one expensive case is structural changes made one call at a time: `addComponent` is 4.8x
+and `destroyEntity` 4.0x. Use the batch entry points or a `CommandBuffer` and the gap closes
+to about 1.1x. See [Batching & Deferral](batching.md).
+
+---
+
+### Q: Can I add or remove components while iterating?
+A: Not on the array you are iterating, on the same thread. Relocating a sector would invalidate
+the iterator reading it, so the writer waits for the iteration to end — and it is waiting for
+you. Debug builds assert; release builds block.
+
+Appending an id above every id stored, destroying a component in place, and anything on a
+different array are all fine. So is any of it from another thread. To change the array you are
+walking, record into a `CommandBuffer` and apply it after the loop.
 
 ---
 
@@ -46,17 +68,34 @@ A: A lightweight reflection helper assigns a dense `ECSType` per component type 
 ---
 
 ### Q: What about random (non‑tail) insert performance?
-A: Local to the affected `SectorsArray`. If all grouped component types are trivial, shifts / defrag become raw `memmove`. Keep grouped components trivially movable for best random insert and compaction speed.
+A: Local to the affected `SectorsArray`, and cheap per insert only if the ids arrive ascending.
+A middle insert shifts the tail and rewrites the sparse entry of every sector it passes, so
+adding M components at scattered ids one at a time costs `O(M·N)` — 892 ms for 50k adds into a
+200k array.
+
+Hand the batch to `insertBulk` instead and it is sorted once and merged in a single pass: 2.6 ms
+for the same work, scaling linearly. Keeping grouped components trivially movable helps on top
+of that, since shifts and compaction become raw `memmove`.
 
 ---
 
 ### Q: How do I remove entities?
-A: Call `destroyEntity(id)` (marks dead) then `update()` later to reclaim and maybe defragment. The delay amortizes structural costs.
+A: `destroyEntity(id)` marks it dead; `update()` later reclaims and may defragment. For more
+than a handful, `destroyEntities(ids)` takes one lock and makes one pass per array instead of
+per entity — 17 ns against 58 in the thread-safe build. Ascending ids are about 4x cheaper than
+shuffled ones, and ids collected from a view already are ascending.
 
 ---
 
-### Q: How often should I call `update()`?
-A: Typically once per frame or simulation tick. It processes deferred erases and may trigger opportunistic compaction based on per‑array thresholds.
+### Q: How often should I call `update()`, and where?
+A: Once per frame is typical, but placement no longer matters: nothing in `update()` waits.
+Deferred erases destroy components in place, and compaction is attempted rather than awaited —
+an array something is iterating is skipped and picked up next call. So it is safe from anywhere,
+including inside a loop over a view, and calling it more than once is harmless: with nothing to
+do it costs about 3.5 ns for the whole registry.
+
+To drop the call entirely, `setAutoMaintenance(true)` once at startup makes opening a view do
+the same work for the arrays it touches.
 
 ---
 
@@ -117,7 +156,7 @@ A: Actively evolving; core layout & iteration model are stable, APIs intentional
 ---
 
 ### Q: How well tested is it?
-A: Comprehensive test suite with 200+ tests covering:
+A: Comprehensive test suite with 550+ tests covering:
 
 - Basic CRUD operations and iteration
 - Thread safety and concurrent access patterns

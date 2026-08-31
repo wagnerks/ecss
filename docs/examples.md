@@ -290,11 +290,55 @@ if (reg.hasComponent<Velocity>(someEntity)) {
 ## 20. Adding Many Entities (Bulk)
 ```cpp
 reg.reserve<Position>(100'000);
-for (int i = 0; i < 100'000; ++i) {
-    auto e = reg.takeEntity();
-    reg.addComponent<Position>(e, {float(i), 0});
-}
+
+std::vector<ecss::EntityId> ids;
+reg.takeEntities(100'000, ids);            // one pass over the id bitmap
+
+std::vector<std::pair<ecss::EntityId, Position>> batch;
+batch.reserve(ids.size());
+for (size_t i = 0; i < ids.size(); ++i) { batch.emplace_back(ids[i], Position{float(i), 0}); }
+
+reg.insertBulk<Position>(batch.begin(), batch.end());   // one lock, one merge
 ```
+The ids may be in any order. A loop of `addComponent` with non‑ascending ids is `O(M·N)`,
+because each middle insert shifts the tail; the batch is sorted once and merged in one pass.
+See [Batching & Deferral](batching.md).
+
+---
+
+## 20b. Changing Composition While Iterating
+```cpp
+#include <ecss/CommandBuffer.h>
+
+ecss::CommandBuffer<true> cmd;
+
+for (auto [id, h] : reg.view<Health>()) {
+    if (h && h->hp <= 0) {
+        cmd.addComponent<Dying>(id, Dying{});   // recorded
+        cmd.destroyComponent<Health>(id);
+    }
+}                                                // view ends here
+
+cmd.apply(reg);                                  // applied in one pass per type
+```
+Doing this immediately inside the loop would restructure the array being iterated, which is not
+allowed — the writer would wait for the view this thread is holding open. Recording sidesteps
+that and batches the work at the same time.
+
+---
+
+## 20c. Unloading a Region
+```cpp
+std::vector<ecss::EntityId> doomed;
+for (auto [id, p] : reg.view<Position>()) {
+    if (p && outOfRange(*p)) doomed.push_back(id);   // comes out ascending
+}
+reg.destroyEntities(doomed);                          // one lock, one pass per array
+```
+`destroyEntities` needs the ids ordered and checks before sorting, so a list gathered from a
+view costs nothing extra. One at a time this is 58 ns per entity in the thread‑safe build;
+batched, 17.
+
 ---
 
 ## 21. Simple Debug Print of Alive Positions
@@ -309,5 +353,9 @@ for (auto [id, p] : reg.view<Position>()) {
 These patterns can be combined. Favor:
 - Trivial component types for fastest structural edits.
 - Group only high‑coherence sets.
-- Call `update()` once per frame (or per simulation tick) to amortize cleanup.
+- Batch structural changes: `takeEntities`, `insertBulk`, `destroyEntities`, or a
+  `CommandBuffer` when the change is decided during iteration.
+- Never restructure an array you are iterating on the same thread — record it instead.
+- Call `update()` once per frame; placement is free, since nothing in it waits. Or set
+  `setAutoMaintenance(true)` once and drop the call.
 - Study tests + StelForge for deeper, real integration scenarios.
