@@ -1411,12 +1411,18 @@ public:
 		}
 	}
 
-	/// @brief Append-only bulk insert. Each *it yields a pair-like {SectorId, C}.
-	/// Preconditions: ids are strictly ascending AND greater than every id already stored
-	/// (pure append -- no overwrite, no middle insert). Reserves once and publishes the dense
-	/// view once, skipping the per-element existence check / insert-position search / view
-	/// publish that addComponent() pays. In the TS build it also batches the write lock, the
-	/// pin wait and the dense-view publish across the whole range.
+	/// @brief Bulk insert. Each *it yields a pair-like {SectorId, C}.
+	///
+	/// Ids may arrive in any order and may fall anywhere in the range already stored; an id
+	/// that is already present is overwritten. Reserves once and publishes the dense view
+	/// once, skipping the per-element existence check / insert-position search / view publish
+	/// that addComponent() pays. In the TS build it also batches the write lock, the pin wait
+	/// and the dense-view publish across the whole range.
+	///
+	/// Prefer this over a loop of addComponent() whenever the ids are not ascending. Adding M
+	/// components one at a time costs O(M*N): each middle insert shifts the tail and rewrites
+	/// the sparse entry of every sector it shifted past. This sorts the batch once and merges
+	/// it in a single pass, so each sector moves at most once.
 	template<typename C, typename It, bool TS = ThreadSafe>
 	void insertBulk(It first, It last) noexcept {
 		if constexpr (TS && ThreadSafe) { exclusiveWhenQuiescent([&] { insertBulkImpl<C>(first, last); }); }
@@ -1942,10 +1948,15 @@ private:
 
 		const auto& layout = getLayoutData<C>();
 
-		// ids are ascending -> the last one is the max; one pass to size the reservation.
+		// One pass to size the reservation and to find out whether the cheap path applies.
 		size_t count = 0;
 		SectorId maxId = 0;
-		for (auto it = first; it != last; ++it) { maxId = it->first; ++count; }
+		bool ascending = true;
+		for (auto it = first; it != last; ++it) {
+			if (count && it->first <= maxId) { ascending = false; }
+			if (it->first > maxId) { maxId = it->first; }
+			++count;
+		}
 
 		const size_t base = sizeImpl();
 		mAllocator.allocate(base + count);          // reserve chunks once
@@ -1954,16 +1965,131 @@ private:
 			mSparseMap.resize(static_cast<size_t>(maxId) + 1);
 		}
 
-		size_t pos = base;
-		for (auto it = first; it != last; ++it, ++pos) {
-			const SectorId id = it->first;
-			mDenseArrays.pushBack(id, 0);
-			std::byte* slot = mAllocator.at(pos);
-			Sector::emplaceMember<C, ThreadSafe>(slot, mDenseArrays.isAliveAt(pos), layout, it->second);
-			mSparseMap.set(id, static_cast<uint32_t>(pos));
+		// Pure append: strictly ascending and entirely above what is already stored. Nothing
+		// moves, so it stays a single forward pass with no sort and no merge.
+		if (ascending && (base == 0 || mDenseArrays.idAt(base - 1) < first->first)) [[likely]] {
+			size_t pos = base;
+			for (auto it = first; it != last; ++it, ++pos) {
+				const SectorId id = it->first;
+				mDenseArrays.pushBack(id, 0);
+				std::byte* slot = mAllocator.at(pos);
+				Sector::emplaceMember<C, ThreadSafe>(slot, mDenseArrays.isAliveAt(pos), layout, it->second);
+				mSparseMap.set(id, static_cast<uint32_t>(pos));
+			}
+			mSize.store(base + count, std::memory_order_relaxed);
+			mDenseArrays.storeView(base + count);   // publish the whole batch at once
+			return;
 		}
-		mSize.store(base + count, std::memory_order_relaxed);
-		mDenseArrays.storeView(base + count);       // publish the whole batch at once
+
+		mergeBulkImpl<C>(first, last, count, base, layout);
+	}
+
+	/// @brief Bulk insert for ids that are not a pure append: order the batch, then merge it
+	///        into the dense array back to front so every sector moves at most once.
+	template<typename C, typename It, typename Layout>
+	void mergeBulkImpl(It first, It last, size_t count, size_t base, const Layout& layout) {
+		// (id, source) so the batch can be ordered without disturbing the caller's sequence.
+		// Forward iterators suffice, which is all the append path needed either.
+		std::vector<std::pair<SectorId, It>> batch;
+		batch.reserve(count);
+		for (auto it = first; it != last; ++it) { batch.emplace_back(it->first, it); }
+
+		// Stable, so that when the caller names an id twice the last value wins -- the same
+		// answer a loop of addComponent() would have given. Keeping the last of each run
+		// rather than the first is what makes that true.
+		std::stable_sort(batch.begin(), batch.end(),
+			[](const auto& a, const auto& b) { return a.first < b.first; });
+		{
+			size_t out = 0;
+			for (size_t i = 0; i < batch.size(); ++i) {
+				if (i + 1 < batch.size() && batch[i + 1].first == batch[i].first) { continue; }
+				batch[out++] = batch[i];
+			}
+			batch.resize(out);
+		}
+
+		// Anything that already has a live slot, or a dead dense entry to resurrect, is
+		// written in place and drops out of the merge: it does not change the array's shape.
+		size_t toInsert = 0;
+		for (auto& entry : batch) {
+			const size_t slot = resolveExistingSlot(entry.first, base);
+			if (slot != kNoSlot) {
+				emplaceMemberImpl<C>(slot, entry.second->second);
+				mSparseMap.set(entry.first, static_cast<uint32_t>(slot));
+				entry.second = last;                  // mark as handled
+			}
+			else {
+				++toInsert;
+			}
+		}
+		if (toInsert == 0) { return; }
+
+		const size_t newSize = base + toInsert;
+		mDenseArrays.resize(newSize, base);            // keep readers on the old size meanwhile
+		mSize.store(newSize, std::memory_order_relaxed);
+
+		// Merge back to front. The write cursor leads the read cursor by exactly the number of
+		// batch entries still to be placed, so a sector is never overwritten before it has
+		// been read and no scratch copy of the array is needed.
+		size_t w = newSize;
+		size_t r = base;
+		for (size_t bi = batch.size(); bi > 0; --bi) {
+			auto& entry = batch[bi - 1];
+			if (entry.second == last) { continue; }    // written in place above
+			const SectorId id = entry.first;
+
+			while (r > 0 && mDenseArrays.idAt(r - 1) > id) {
+				--r;
+				--w;
+				relocateSector(r, w);
+			}
+
+			--w;
+			mDenseArrays.idAt(w) = id;
+			mDenseArrays.isAliveAt(w) = 0;
+			Sector::emplaceMember<C, ThreadSafe>(
+				mAllocator.at(w), mDenseArrays.isAliveAt(w), layout, entry.second->second);
+			mSparseMap.set(id, static_cast<uint32_t>(w));
+		}
+
+		mDenseArrays.storeView(newSize);               // publish the whole batch at once
+	}
+
+	/// @brief Find a slot @p id can be written into without changing the array's shape.
+	/// @return the linear index of a live slot or of a dead entry to resurrect, else kNoSlot.
+	size_t resolveExistingSlot(SectorId id, size_t validSize) {
+		if (const auto live = mSparseMap.findIdx(id); live != INVALID_IDX) { return live; }
+
+		// A deferred erase clears the sparse slot but leaves the dense entry behind. Inserting
+		// the id again would append a second entry carrying the same id, breaking the sorted
+		// invariant every binary search depends on; reuse the dead one instead.
+		const size_t pos = findInsertPositionImpl(id, validSize);
+		if (pos < validSize && mDenseArrays.idAt(pos) == id) {
+			if (!Sector::isSectorAlive(mDenseArrays.isAliveAt(pos))) {
+				auto dead = mDefragmentSize.load(std::memory_order_relaxed);
+				if (dead) { mDefragmentSize.store(dead - 1, std::memory_order_relaxed); }
+			}
+			return pos;
+		}
+		return kNoSlot;
+	}
+
+	/// @brief Move one sector, its id and its liveness from @p from to @p to, repointing the
+	/// sparse entry. Mirrors shiftRightImpl: for a non-trivial layout moveSectorData carries
+	/// the alive flags itself, for a trivial one they are copied alongside the bytes.
+	void relocateSector(size_t from, size_t to) {
+		if (getLayout()->isTrivial()) {
+			mAllocator.moveSectorsDataTrivial(to, from, 1);
+			mDenseArrays.isAliveAt(to) = mDenseArrays.isAliveAt(from);
+		}
+		else {
+			Sector::moveSectorData(
+				mAllocator.at(from), mDenseArrays.isAliveAt(from),
+				mAllocator.at(to), mDenseArrays.isAliveAt(to),
+				getLayout());
+		}
+		mDenseArrays.idAt(to) = mDenseArrays.idAt(from);
+		mSparseMap.set(mDenseArrays.idAt(to), static_cast<uint32_t>(to));
 	}
 
 	void eraseRangeImpl(size_t beginIdx, size_t count, bool defragment) {
