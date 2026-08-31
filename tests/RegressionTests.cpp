@@ -1047,3 +1047,93 @@ TEST(Regression_LayoutCache, EveryTypeInAGroupResolvesToItsOwnRecord) {
 		EXPECT_EQ(reg.hasComponent<RInt>(e), e % 4 == 0) << "RInt wrong at " << e;
 	}
 }
+
+// ===========================================================================
+// A thread-safe insert used to wait on pins and publish a structural epoch
+// before it knew what kind of insert it was. An append past the end relocates
+// nothing and names a sector that does not exist yet, so neither is needed --
+// the sector is published with isAlive == 0 and the component's liveness bit
+// goes out with a release store once it is built. Removing them took the
+// per-call cost from 50.5 ns to 34.5.
+// ===========================================================================
+
+TEST(Regression_AppendFastPath, ReadersNeverSeeAHalfBuiltAppendedComponent) {
+	struct Chk {
+		uint64_t a{}, b{};
+		static Chk of(uint64_t id) { return { id, ~id }; }
+		bool valid(uint64_t id) const { return a == id && b == ~id; }
+	};
+
+	Registry<true> reg;
+	reg.registerArray<Chk>(1 << 16);
+
+	std::atomic<bool> stop{ false };
+	std::atomic<uint64_t> frontier{ 0 };
+	std::atomic<long long> whole{ 0 }, torn{ 0 };
+
+	std::thread writer([&] {
+		for (uint64_t id = 0; id < 60000 && !stop.load(std::memory_order_relaxed); ++id) {
+			reg.addComponent<Chk>(EntityId(id), Chk::of(id));
+			frontier.store(id, std::memory_order_release);
+		}
+		stop.store(true, std::memory_order_release);
+	});
+
+	std::vector<std::thread> readers;
+	for (int t = 0; t < 3; ++t) {
+		readers.emplace_back([&] {
+			while (!stop.load(std::memory_order_relaxed)) {
+				const uint64_t f = frontier.load(std::memory_order_acquire);
+				for (uint64_t id = (f > 4 ? f - 4 : 0); id <= f + 4; ++id) {
+					auto pin = reg.pinComponent<Chk>(EntityId(id));
+					if (!pin) { continue; }              // not appended yet: fine
+					if (pin.get()->valid(id)) { whole.fetch_add(1, std::memory_order_relaxed); }
+					else { torn.fetch_add(1, std::memory_order_relaxed); }
+				}
+			}
+		});
+	}
+
+	writer.join();
+	stop.store(true, std::memory_order_release);
+	for (auto& r : readers) { r.join(); }
+
+	EXPECT_EQ(torn.load(), 0)
+		<< "a component was observed between becoming visible and being constructed";
+	EXPECT_GT(whole.load(), 0) << "the readers never caught up with the writer";
+}
+
+TEST(Regression_AppendFastPath, AppendingWriterIsNotStarvedByContinuousReaders) {
+	// The fast path no longer announces writer intent, which is what made readers yield.
+	// It does not have to: it never blocks on a pin. Guard against that changing.
+	Registry<true> reg;
+	reg.registerArray<RInt>(1 << 16);
+	for (EntityId e = 0; e < 20000; ++e) { reg.addComponent<RInt>(e, RInt{ int(e) }); }
+
+	std::atomic<bool> stop{ false };
+	std::atomic<long long> appends{ 0 };
+	std::vector<std::thread> readers;
+	for (int t = 0; t < 4; ++t) {
+		readers.emplace_back([&] {
+			while (!stop.load(std::memory_order_relaxed)) {
+				size_t n = 0;
+				for (auto it : reg.view<RInt>()) { (void)it; if (++n > 2000) { break; } }
+			}
+		});
+	}
+	std::thread writer([&] {
+		EntityId id = 100000;
+		while (!stop.load(std::memory_order_relaxed)) {
+			reg.addComponent<RInt>(id++, RInt{ 1 });
+			appends.fetch_add(1, std::memory_order_relaxed);
+		}
+	});
+
+	std::this_thread::sleep_for(std::chrono::milliseconds(700));
+	stop.store(true, std::memory_order_release);
+	writer.join();
+	for (auto& r : readers) { r.join(); }
+
+	EXPECT_GT(appends.load(), 100)
+		<< "the appending writer made almost no progress against continuous readers";
+}
