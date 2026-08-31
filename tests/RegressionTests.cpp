@@ -987,3 +987,54 @@ TEST(Regression_SelfWait, AnotherArrayIsUnaffectedByAView) {
 	reg.addComponent<RVel>(5, RVel{ 5.f, 0.f, 0.f });
 	EXPECT_TRUE(reg.hasComponent<RVel>(5));
 }
+
+// ===========================================================================
+// Each component's LayoutData is resolved once at registration and carried in
+// the published snapshot, so a query no longer rescans the layout's type
+// tokens. Registry::insert can still repoint an array at a different layout,
+// which would leave that record describing the wrong sector shape, so the
+// record is checked against the layout the array reports rather than trusted.
+// ===========================================================================
+
+namespace {
+struct LA { int v{}; };
+struct LB { double d{}; };
+} // namespace
+
+TEST(Regression_LayoutCache, StaleRecordIsDetectedAfterInsertRepointsTheLayout) {
+	Registry<true> dst, src;
+	dst.registerArray<LA>();          // LA alone: index 0, first liveness bit
+	src.registerArray<LB, LA>();      // LA second: different offset and different bit
+
+	for (EntityId e = 0; e < 8; ++e) { src.addComponent<LA>(e, LA{ int(e) }); }
+	dst.addComponent<LA>(100, LA{ 99 });
+
+	dst.insert<LA>(*src.getComponentContainer<LA>());
+
+	// dst's array now reports the [LB, LA] layout while the record was built from [LA].
+	// Reading through the stale record answered "absent" for seven of these eight.
+	for (EntityId e = 0; e < 8; ++e) {
+		EXPECT_TRUE(dst.hasComponent<LA>(e))
+			<< "id " << e << " reads as absent -- the cached layout record went stale and "
+			   "was used anyway";
+	}
+}
+
+TEST(Regression_LayoutCache, EveryTypeInAGroupResolvesToItsOwnRecord) {
+	// recordLayouts() fills one entry per pack member; a fold that wrote only the first or
+	// the last would leave the others pointing at the wrong component's mask.
+	Registry<false> reg;
+	reg.registerArray<RPos, RVel, RInt>();
+
+	for (EntityId e = 0; e < 32; ++e) {
+		reg.addComponent<RPos>(e, RPos{ float(e), 0.f, 0.f });
+		if (e % 2 == 0) { reg.addComponent<RVel>(e, RVel{ 1.f, 0.f, 0.f }); }
+		if (e % 4 == 0) { reg.addComponent<RInt>(e, RInt{ int(e) }); }
+	}
+
+	for (EntityId e = 0; e < 32; ++e) {
+		EXPECT_TRUE(reg.hasComponent<RPos>(e)) << "RPos missing at " << e;
+		EXPECT_EQ(reg.hasComponent<RVel>(e), e % 2 == 0) << "RVel wrong at " << e;
+		EXPECT_EQ(reg.hasComponent<RInt>(e), e % 4 == 0) << "RInt wrong at " << e;
+	}
+}
