@@ -8,9 +8,65 @@
 #include <mutex>
 #include <vector>
 
+#ifndef NDEBUG
+#include <map>
+#include <utility>
+#endif
+
 #include <ecss/Types.h>
 
 namespace ecss::Threads {
+
+#ifndef NDEBUG
+	/**
+	 * @brief Debug-only record of what the calling thread is holding, per array.
+	 *
+	 * Structural changes are not allowed while a view or pin on the same array is alive --
+	 * relocating sectors would invalidate the iterator that is reading them. Writers enforce
+	 * that by waiting for the pins and holds to drain, which is correct against other
+	 * threads and unsatisfiable against yourself: the thread blocks on a condition only it
+	 * could clear, and hangs forever with no diagnosis.
+	 *
+	 * These maps let the wait primitives recognise that case and abort with the reason
+	 * attached. They exist only in debug builds; release keeps the original code exactly,
+	 * because maintaining them would tax the view hot path (hold acquire/release runs at
+	 * ~199M pairs per second and is what makes iteration cheap).
+	 */
+	struct SelfWaitDebug {
+		std::map<const void*, size_t>                       holds;  ///< array -> holds taken here
+		std::map<std::pair<const void*, SectorId>, size_t>  pins;   ///< (array, sector) -> pins
+
+		static SelfWaitDebug& current() {
+			static thread_local SelfWaitDebug state;
+			return state;
+		}
+
+		static void addHold(const void* owner) { ++current().holds[owner]; }
+		static void dropHold(const void* owner) {
+			auto& m = current().holds;
+			const auto it = m.find(owner);
+			if (it != m.end() && --it->second == 0) { m.erase(it); }
+		}
+		static void addPin(const void* owner, SectorId id) { ++current().pins[{ owner, id }]; }
+		static void dropPin(const void* owner, SectorId id) {
+			auto& m = current().pins;
+			const auto it = m.find({ owner, id });
+			if (it != m.end() && --it->second == 0) { m.erase(it); }
+		}
+
+		/// @return true if this thread holds anything at all on @p owner.
+		static bool holdsAnythingOn(const void* owner) {
+			const auto& state = current();
+			if (state.holds.count(owner)) { return true; }
+			const auto lo = state.pins.lower_bound({ owner, SectorId{ 0 } });
+			return lo != state.pins.end() && lo->first.first == owner;
+		}
+
+		static bool holdsPinOn(const void* owner, SectorId id) {
+			return current().pins.count({ owner, id }) != 0;
+		}
+	};
+#endif
 	/**
 	 * @brief Per-sector pin tracking & synchronization for safe structural mutations.
 	 *
@@ -83,6 +139,9 @@ namespace ecss::Threads {
 			if (get(id).fetch_add(1, std::memory_order_seq_cst) != 0) {
 				mTotalPinned.fetch_sub(1, std::memory_order_seq_cst);
 			}
+#ifndef NDEBUG
+			SelfWaitDebug::addPin(this, id);
+#endif
 		}
 
 		/**
@@ -92,6 +151,9 @@ namespace ecss::Threads {
 		void unpin(SectorId id) {
 			assert(id != INVALID_ID);
 
+#ifndef NDEBUG
+			SelfWaitDebug::dropPin(this, id);
+#endif
 			auto& var = get(id);
 			// seq_cst, not acq_rel: this decrement and the mWaiters load below form a
 			// store-load pair with the waiter (announce -> sample). Every operation on the
@@ -134,6 +196,12 @@ namespace ecss::Threads {
 		 */
 		void waitUntilChangeable(SectorId sid) const {
 			assert(sid != INVALID_ID);
+			// Only this thread could release its own pin on sid, and it is here instead of
+			// there, so the wait below would never end. Destroying or overwriting a component
+			// you are holding a pin to is the usual way in.
+			assert(!SelfWaitDebug::holdsPinOn(this, sid)
+				&& "this thread already pins the sector it is trying to change in place -- "
+				   "release the pin (or the component pointer that owns it) first");
 			WriterIntent intent(*this);
 			auto& var = get(sid);
 			for (;;) {
@@ -157,6 +225,15 @@ namespace ecss::Threads {
 		 * @note Required before any operation that moves sectors between linear indices.
 		 */
 		void waitUntilQuiescent() const {
+			// Same self-deadlock, wider: relocating sectors needs *every* pin and hold on the
+			// array to be gone, and a live view on it is one of them. Adding a component that
+			// lands in the middle, defragmenting, clearing, copying -- all of them come
+			// through here, and all of them are illegal while iterating the same array,
+			// because the relocation would invalidate the iterator doing the reading.
+			assert(!SelfWaitDebug::holdsAnythingOn(this)
+				&& "structural change to an array this thread is already iterating or pinning "
+				   "-- end the view (or release the pin) before inserting, defragmenting, "
+				   "clearing or copying it");
 			WriterIntent intent(*this);
 			for (;;) {
 				if (!hasAnyPins()) {
@@ -193,12 +270,18 @@ namespace ecss::Threads {
 		[[nodiscard]] uint32_t acquireHold() const noexcept {
 			const auto shard = static_cast<uint32_t>(holdShard());
 			mHolds[shard].count.fetch_add(1, std::memory_order_seq_cst);
+#ifndef NDEBUG
+			SelfWaitDebug::addHold(this);
+#endif
 			return shard;
 		}
 
 		/// @param shard the value returned by acquireHold(); a hold may be released by a
 		///        different thread than took it, so the shard travels with the holder.
 		void releaseHold(uint32_t shard) const noexcept {
+#ifndef NDEBUG
+			SelfWaitDebug::dropHold(this);
+#endif
 			mHolds[shard].count.fetch_sub(1, std::memory_order_seq_cst);
 			mHoldGeneration.fetch_add(1, std::memory_order_seq_cst);
 			if (mWaiters.load(std::memory_order_seq_cst) != 0) {

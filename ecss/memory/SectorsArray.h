@@ -528,6 +528,27 @@ private:
 /**
  * @brief SoA-based container managing sector data with external id/isAlive arrays.
  *
+ * @warning Structural changes to an array are not allowed while the calling thread holds a
+ * view or a pin on that same array. Relocating sectors would invalidate the iterator that is
+ * reading them, so writers wait for every pin and hold to drain -- correct against other
+ * threads, and unsatisfiable against yourself: the thread blocks on a condition only it could
+ * clear. In a release build that is a hang with no diagnosis; debug builds assert instead.
+ *
+ * Illegal while a view or pin on the same array is alive -- anything that relocates sectors:
+ *   - insert / emplace / push of an id that lands anywhere but past the end
+ *   - insertBulk, and Registry::addComponents
+ *   - defragment, clear, shrinkToFit, copy and move assignment
+ *   - erase with defragmentation, and Registry::update() (which defragments)
+ * Also illegal: destroying or overwriting in place the one sector you are holding a pin to.
+ *
+ * Legal, because nothing moves:
+ *   - appending an id above every id already stored
+ *   - destroying or overwriting a sector in place, other than one you pin yourself
+ *   - anything at all on a *different* array
+ *
+ * A different thread doing any of this is fine and is what the waiting is for; it blocks
+ * until your view ends.
+ *
  * @tparam ThreadSafe If true, operations are synchronized & relocation waits on pins.
  * @tparam Allocator  Allocation policy (e.g. ChunksAllocator).
  */

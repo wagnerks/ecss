@@ -922,3 +922,51 @@ TEST(Regression_Reclamation, ReserveRepublishesTheDenseView) {
 	for (auto it : reg.view<RInt>()) { (void)it; ++seen; }
 	EXPECT_EQ(seen, 3u) << "iteration walked a stale dense view";
 }
+
+// ===========================================================================
+// Structural changes are illegal while the calling thread holds a view or pin
+// on the same array: the writer waits for holds and pins to drain, and its own
+// are ones only it could release, so it hangs. Debug builds assert instead --
+// which the stub harness cannot catch, so what is guarded here is the other
+// direction: the operations that are legal must not start asserting.
+// ===========================================================================
+
+TEST(Regression_SelfWait, OperationsThatMoveNothingStayLegalUnderAView) {
+	Registry<true> reg;
+	for (EntityId e = 100; e < 200; ++e) { reg.addComponent<RInt>(e, RInt{ int(e) }); }
+
+	{
+		auto view = reg.view<RInt>();
+		auto it = view.begin();
+		(void)it;
+
+		// appending above every stored id relocates nothing
+		reg.addComponent<RInt>(500, RInt{ 500 });
+		// destroying in place touches one sector and moves none
+		reg.destroyComponent<RInt>(150);
+	}
+	EXPECT_TRUE(reg.hasComponent<RInt>(500));
+	EXPECT_FALSE(reg.hasComponent<RInt>(150));
+
+	// a pin blocks only the sector it names
+	{
+		auto pin = reg.pinComponent<RInt>(151);
+		reg.destroyComponent<RInt>(152);
+	}
+	EXPECT_TRUE(reg.hasComponent<RInt>(151));
+	EXPECT_FALSE(reg.hasComponent<RInt>(152));
+}
+
+TEST(Regression_SelfWait, AnotherArrayIsUnaffectedByAView) {
+	Registry<true> reg;
+	for (EntityId e = 0; e < 200; ++e) { reg.addComponent<RInt>(e, RInt{ int(e) }); }
+	for (EntityId e = 100; e < 200; ++e) { reg.addComponent<RVel>(e, RVel{ float(e), 0.f, 0.f }); }
+
+	auto view = reg.view<RInt>();
+	auto it = view.begin();
+	(void)it;
+
+	// a middle insert into a different array shares nothing with this view
+	reg.addComponent<RVel>(5, RVel{ 5.f, 0.f, 0.f });
+	EXPECT_TRUE(reg.hasComponent<RVel>(5));
+}

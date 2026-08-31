@@ -282,6 +282,15 @@ namespace ecss {
 		 * @return Pointer to the stored component.
 		 * @note Overwrites existing component instance (destructive assign semantics inside sector).
 		 */
+		/**
+		 * @brief Add or overwrite component T on an entity.
+		 * @warning Illegal while this thread holds a view or a pin on T's array, unless the id
+		 *          is above every id already stored: any other position shifts existing
+		 *          sectors, which would invalidate the live iterator. Debug builds assert;
+		 *          release builds hang. See the SectorsArray class documentation.
+		 * @note Adding M components with ids that are not ascending costs O(M*N) this way.
+		 *       Use insertBulk() or addComponents() for a batch -- they merge in one pass.
+		 */
 		template <class T, class ...Args>
 		FORCE_INLINE T* addComponent(EntityId entity, Args&&... args) noexcept {
 			return getComponentContainer<T>()->template push<T>(entity, std::forward<Args>(args)...);
