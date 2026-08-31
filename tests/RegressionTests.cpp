@@ -642,3 +642,66 @@ TEST(Regression_Maintenance, IdleUpdateStillReclaimsDeferredErases) {
 	for (int frame = 0; frame < 50; ++frame) { reg.update(); }
 	EXPECT_EQ(container->size(), settled) << "idle update() must not change anything";
 }
+
+// ===========================================================================
+// Pins are taken without any lock and validated against a structural epoch.
+// The invariant: once a pin validates, the sector it points at is not relocated
+// or destroyed until the pin is released. Writers hammer the array with middle
+// inserts, defragments and destroys while readers hold pins and keep reading.
+// ===========================================================================
+
+TEST(Regression_Pinning, ValidatedPinSurvivesConcurrentStructuralChange) {
+	struct Tag { uint64_t magic; uint64_t id; };
+	constexpr uint64_t kMagic = 0x5ec70bad5ec70badull;
+	constexpr EntityId kPinned = 2048, kChurn = 8000;
+
+	Registry<true> reg;
+	reg.reserve<Tag>(kChurn * 2);
+	for (EntityId e = 0; e < kPinned; ++e) { reg.takeEntity(); reg.addComponent<Tag>(e, Tag{ kMagic ^ e, e }); }
+	for (EntityId e = kPinned; e < kChurn; e += 2) { reg.addComponent<Tag>(e, Tag{ kMagic ^ e, e }); }
+
+	std::atomic<bool> stop{ false };
+	std::atomic<long long> corrupt{ 0 }, writes{ 0 };
+	std::vector<std::thread> pool;
+
+	for (int t = 0; t < 4; ++t) {
+		pool.emplace_back([&, t] {
+			std::mt19937 rng(1234u + unsigned(t));
+			while (!stop.load(std::memory_order_relaxed)) {
+				const EntityId id = rng() % kPinned;
+				auto pin = reg.pinComponent<Tag>(id);
+				if (!pin) { continue; }
+				for (int k = 0; k < 32; ++k) {
+					if (pin->magic != (kMagic ^ id) || pin->id != id) {
+						corrupt.fetch_add(1, std::memory_order_relaxed);
+						break;
+					}
+				}
+			}
+		});
+	}
+	for (int t = 0; t < 2; ++t) {
+		pool.emplace_back([&, t] {
+			std::mt19937 rng(999u + unsigned(t));
+			while (!stop.load(std::memory_order_relaxed)) {
+				const EntityId id = kPinned + 1 + (rng() % (kChurn - kPinned - 1));
+				switch (rng() % 4) {
+					case 0: reg.addComponent<Tag>(id, Tag{ kMagic ^ id, id }); break;
+					case 1: reg.destroyComponent<Tag>(id); break;
+					case 2: reg.getComponentContainer<Tag>()->defragment(); break;
+					default: reg.destroyEntity(id); reg.takeEntity(); break;
+				}
+				writes.fetch_add(1, std::memory_order_relaxed);
+			}
+		});
+	}
+
+	std::this_thread::sleep_for(std::chrono::seconds(2));
+	stop.store(true, std::memory_order_release);
+	for (auto& th : pool) { th.join(); }
+
+	EXPECT_EQ(corrupt.load(), 0) << "a validated pin observed relocated or destroyed storage";
+	// Readers yield to waiting writers on purpose: without that, a few threads pinning in a
+	// loop keep the array permanently non-quiescent and structural writes never run.
+	EXPECT_GT(writes.load(), 1000) << "structural writes were starved by pinning readers";
+}

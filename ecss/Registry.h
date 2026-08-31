@@ -1223,7 +1223,9 @@ namespace ecss {
 			{
 				auto mainArr = arrays[getIndex<T>()];
 				mMainArray = mainArr;
-				auto lock = mainArr->readLock();
+				// No lock: the size, the chunk table and the dense view all come from
+				// lock-free snapshots, and pinning validates itself against the structural
+				// epoch rather than relying on the shared lock.
 				mSize = mainArr->template size<false>();
 				const auto chunks = mainArr->mAllocator.loadChunks();
 				mChunksSnapshot = chunks.chunks;
@@ -1323,10 +1325,9 @@ namespace ecss {
 				auto arr = arrays[i];
 				if (arr == main || std::find_if(secondary.begin(), secondary.end(), [arr](const auto& p){ return p.first == arr; }) != secondary.end()) { continue; }
 				if constexpr (ThreadSafe) {
-					// Acquire read lock and pin the back sector so the iteration upper
-					// bound stays valid. The secondary RangedIterator is never read
-					// (component lookups go through findSlot), so we don't build it.
-					auto lock = arr->readLock();
+					// Pin the back sector so the iteration upper bound stays valid. The
+					// secondary RangedIterator is never read (component lookups go through
+					// findSlot), so we do not build it.
 					initRange(arr, ranges, i);
 				}
 				// Non-ThreadSafe uses direct lookup; iterator is unused either way.

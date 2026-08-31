@@ -27,6 +27,7 @@
 #include <algorithm>
 #include <cassert>
 #include <shared_mutex>
+#include <thread>
 #include <utility>
 #include <vector>
 
@@ -1028,29 +1029,26 @@ public:
 
 	// ==================== Pin API (ThreadSafe builds) ====================
 
+	// No lock: pinning validates itself against the structural epoch (see pinSectorImpl).
+	// The shared lock used to be what made "writer holds the unique lock => no new pins"
+	// true; the epoch handshake replaces it, and every reader stops serialising on one word.
+
 	template<bool TS = true>
 	[[nodiscard]] PinnedSector pinSector(SectorId id) const requires(ThreadSafe) {
-		TS_GUARD(TS, SHARED, return pinSectorImpl(id););
+		enforceTSMode<TS>();
+		return pinSectorImpl(id);
 	}
 
 	template<bool TS = true>
 	[[nodiscard]] PinnedSector pinSectorAt(size_t idx) const requires(ThreadSafe) {
-		if constexpr (TS) {
-			SHARED_LOCK();
-			return pinSectorAtImpl(idx);
-		} else {
-			return pinSectorAtImpl(idx);
-		}
+		enforceTSMode<TS>();
+		return pinSectorAtImpl(idx);
 	}
 
 	template<bool TS = true>
 	[[nodiscard]] PinnedSector pinBackSector() const requires(ThreadSafe) {
-		if constexpr (TS) {
-			SHARED_LOCK();
-			return pinBackSectorImpl();
-		} else {
-			return pinBackSectorImpl();
-		}
+		enforceTSMode<TS>();
+		return pinBackSectorImpl();
 	}
 
 	// ==================== Erase & maintenance ====================
@@ -1380,6 +1378,7 @@ public:
 		bool wantsDefragment = false;
 		if constexpr(Lock) {
 			auto lock = std::unique_lock(mtx);
+			StructuralEdit edit(*this);
 			wantsDefragment = processPendingErasesImpl();
 		} else {
 			wantsDefragment = processPendingErasesImpl();
@@ -1397,6 +1396,25 @@ public:
 	// ==================== Lock access (for Registry) ====================
 	auto readLock() const requires(ThreadSafe) { return std::shared_lock(mtx); }
 	auto writeLock() const requires(ThreadSafe) { return std::unique_lock(mtx); }
+
+	/// @brief RAII publication of "sector storage is changing" around a writer body.
+	///
+	/// Pins are taken with no lock at all, so a pin can be published just after a writer has
+	/// checked that nothing is pinned. Both sides therefore publish before they check: the
+	/// reader pins and then re-reads the epoch, the writer bumps the epoch and then re-reads
+	/// the pin state. Whichever went second sees the other, so a validated pin can never be
+	/// live across a structural change, and a writer never relocates or destroys a sector
+	/// that a reader has already committed to.
+	struct StructuralEdit {
+		explicit StructuralEdit(const SectorsArray& owner) noexcept : arr(owner) {
+			arr.mStructEpoch.fetch_add(1, std::memory_order_seq_cst); // odd: edit in progress
+		}
+		~StructuralEdit() { arr.mStructEpoch.fetch_add(1, std::memory_order_release); }
+		StructuralEdit(const StructuralEdit&) = delete;
+		StructuralEdit& operator=(const StructuralEdit&) = delete;
+
+		const SectorsArray& arr;
+	};
 
 	// ==================== Write-lock acquisition helpers ====================
 	//
@@ -1416,6 +1434,9 @@ public:
 		for (;;) {
 			mPinsCounter.waitUntilChangeable(sectorId);
 			auto lock = writeLock();
+			StructuralEdit edit(*this);
+			// Re-checked after publishing the epoch, never before: a pin taken in between is
+			// then guaranteed to observe the odd epoch and retry.
 			if (mPinsCounter.canMoveSector(sectorId)) {
 				return std::forward<Fn>(fn)();
 			}
@@ -1429,6 +1450,7 @@ public:
 		for (;;) {
 			mPinsCounter.waitUntilQuiescent();
 			auto lock = writeLock();
+			StructuralEdit edit(*this);
 			if (!mPinsCounter.hasAnyPins()) {
 				return std::forward<Fn>(fn)();
 			}
@@ -1447,6 +1469,7 @@ public:
 			mPinsCounter.waitUntilChangeable(sectorId);
 			{
 				auto lock = writeLock();
+				StructuralEdit edit(*this);
 				if (!mPinsCounter.canMoveSector(sectorId)) {
 					continue; // re-pinned between the wait and the lock
 				}
@@ -1535,26 +1558,66 @@ private:
 		return idx == INVALID_IDX ? nullptr : dataAt(idx);
 	}
 
+	/// @brief Take a pin with no lock, then confirm the structure did not move under it.
+	///
+	/// The pin is published first and the epoch re-read after, so either the writer sees the
+	/// pin and backs off, or we see its odd/changed epoch and retry. Everything read here
+	/// comes from a lock-free snapshot, so a concurrent reallocation cannot be observed torn.
+	/// @brief Give a waiting writer a bounded window to acquire before pinning again.
+	/// Bounded on purpose: the caller may already hold a pin the writer is waiting for, so
+	/// blocking here would deadlock. See PinCounters::writersWaiting.
+	FORCE_INLINE void yieldToWriters() const {
+		for (int spins = 0; spins < kWriterYields && mPinsCounter.writersWaiting(); ++spins) {
+			std::this_thread::yield();
+		}
+	}
+
 	[[nodiscard]] PinnedSector pinSectorImpl(SectorId id) const requires(ThreadSafe) {
-		const auto idx = mSparseMap.findIdx(id);
-		if (idx == INVALID_IDX) return PinnedSector{};
-		// Use loadAliveWord (seqlock + bounds-checked) instead of mDenseArrays.isAliveAt:
-		// slot.linearIdx can be stale relative to the live dense arrays if a shrink
-		// or reshuffle is in flight, which would turn a direct isAliveAt() into an
-		// out-of-bounds read. loadAliveWord returns 0 ("not alive") for out-of-range
-		// indices, which is the correct conservative answer at the pin point.
-		return PinnedSector(mPinsCounter, id, dataAt(idx), loadAliveWord<ThreadSafe>(idx));
+		yieldToWriters();
+		for (;;) {
+			const auto epoch = mStructEpoch.load(std::memory_order_seq_cst);
+			if (epoch & 1ull) { cpuRelax(); continue; } // a writer is mid-edit
+
+			const auto idx = mSparseMap.findIdx(id);
+			if (idx == INVALID_IDX) { return PinnedSector{}; }
+
+			// loadAliveWord rather than isAliveAt: idx can be stale relative to the live dense
+			// arrays, and the snapshot is bounds-checked, returning "not alive" out of range.
+			PinnedSector pin(mPinsCounter, id, dataAt(idx), loadAliveWord<ThreadSafe>(idx));
+			if (mStructEpoch.load(std::memory_order_seq_cst) == epoch) { return pin; }
+			// otherwise the pin is dropped by its destructor and we start over
+		}
 	}
 
 	[[nodiscard]] PinnedSector pinSectorAtImpl(size_t idx) const requires(ThreadSafe) {
-		if (idx >= sizeImpl()) return PinnedSector{};
-		return PinnedSector(mPinsCounter, mDenseArrays.idAt(idx), mAllocator.at(idx), mDenseArrays.isAliveAt(idx));
+		yieldToWriters();
+		for (;;) {
+			const auto epoch = mStructEpoch.load(std::memory_order_seq_cst);
+			if (epoch & 1ull) { cpuRelax(); continue; }
+
+			const auto view = mDenseArrays.loadView();
+			if (idx >= view.size) { return PinnedSector{}; }
+
+			PinnedSector pin(mPinsCounter, view.ids[idx], dataAt(static_cast<uint32_t>(idx)),
+			                 loadAliveAcquire(view.isAlive, idx));
+			if (mStructEpoch.load(std::memory_order_seq_cst) == epoch) { return pin; }
+		}
 	}
 
 	[[nodiscard]] PinnedSector pinBackSectorImpl() const requires(ThreadSafe) {
-		auto sz = sizeImpl();
-		if (sz == 0) return PinnedSector{};
-		return PinnedSector(mPinsCounter, mDenseArrays.idAt(sz-1), mAllocator.at(sz-1), mDenseArrays.isAliveAt(sz-1));
+		yieldToWriters();
+		for (;;) {
+			const auto epoch = mStructEpoch.load(std::memory_order_seq_cst);
+			if (epoch & 1ull) { cpuRelax(); continue; }
+
+			const auto view = mDenseArrays.loadView();
+			if (view.size == 0) { return PinnedSector{}; }
+			const size_t idx = view.size - 1;
+
+			PinnedSector pin(mPinsCounter, view.ids[idx], dataAt(static_cast<uint32_t>(idx)),
+			                 loadAliveAcquire(view.isAlive, idx));
+			if (mStructEpoch.load(std::memory_order_seq_cst) == epoch) { return pin; }
+		}
 	}
 
 	void shrinkToFitImpl() {
@@ -1856,6 +1919,7 @@ private:
 
 		if (!mPinsCounter.isPinned(id)) {
 			UNIQUE_LOCK();
+			StructuralEdit edit(*this);
 			// Re-read under unique lock to ensure consistency
 			auto idx = findLinearIdxImpl(id);
 			if (idx == INVALID_IDX) return;
@@ -2147,6 +2211,14 @@ private:
 	/// Lock-free mirror of "mPendingErase is non-empty", so the per-frame maintenance pass
 	/// can skip the write lock for arrays with no deferred erases.
 	std::atomic<bool> mHasPendingErase{ false };
+
+	/// @brief Structural epoch: odd while sector storage is being relocated or destroyed.
+	/// Read on every pin, written only by structural mutations, so it gets its own line.
+	/// How many times a reader yields to a waiting writer before pinning anyway.
+	static constexpr int kWriterYields = 64;
+	static constexpr size_t kEpochAlign = ThreadSafe ? 64 : alignof(std::atomic<uint64_t>);
+	alignas(kEpochAlign) mutable std::atomic<uint64_t> mStructEpoch{ 0 };
+	static_assert(types::isLockFreeAtomic<uint64_t>, "the structural epoch must be lock-free");
 
 	alignas(kSizeAlign) std::atomic<size_t> mSize{0};
 	std::atomic<uint32_t> mDefragmentSize{0};

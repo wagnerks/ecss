@@ -75,9 +75,13 @@ namespace ecss::Threads {
 			// Cost is unchanged in the common case (distinct sectors): one aggregate RMW plus
 			// one counter RMW either way. The give-back only runs when two threads pin the
 			// same sector at the same time.
-			mTotalPinned.fetch_add(1, std::memory_order_acq_rel);
-			if (get(id).fetch_add(1, std::memory_order_acq_rel) != 0) {
-				mTotalPinned.fetch_sub(1, std::memory_order_acq_rel);
+			// seq_cst, not acq_rel: pins are taken without any array lock, so this forms a
+			// store-load handshake with a writer that publishes a structural epoch and then
+			// re-reads the pin count. Both sides must sit in the single total order or each
+			// can miss the other, which acquire/release cannot arrange across two variables.
+			mTotalPinned.fetch_add(1, std::memory_order_seq_cst);
+			if (get(id).fetch_add(1, std::memory_order_seq_cst) != 0) {
+				mTotalPinned.fetch_sub(1, std::memory_order_seq_cst);
 			}
 		}
 
@@ -120,7 +124,8 @@ namespace ecss::Threads {
 		 */
 		bool canMoveSector(SectorId sectorId) const {
 			assert(sectorId != INVALID_ID);
-			return get(sectorId).load(std::memory_order_acquire) == 0;
+			// seq_cst: read by a writer after it has published its structural epoch.
+			return get(sectorId).load(std::memory_order_seq_cst) == 0;
 		}
 
 		/**
@@ -129,6 +134,7 @@ namespace ecss::Threads {
 		 */
 		void waitUntilChangeable(SectorId sid) const {
 			assert(sid != INVALID_ID);
+			WriterIntent intent(*this);
 			auto& var = get(sid);
 			for (;;) {
 				if (var.load(std::memory_order_acquire) == 0) {
@@ -151,6 +157,7 @@ namespace ecss::Threads {
 		 * @note Required before any operation that moves sectors between linear indices.
 		 */
 		void waitUntilQuiescent() const {
+			WriterIntent intent(*this);
 			for (;;) {
 				if (mTotalPinned.load(std::memory_order_acquire) == 0) {
 					return;
@@ -164,14 +171,36 @@ namespace ecss::Threads {
 			}
 		}
 
+		/// @brief True while a writer is waiting for pins to drain.
+		///
+		/// Readers consult this and yield a bounded number of times before pinning again.
+		/// Without it a handful of threads that pin in a loop keep the array permanently
+		/// non-quiescent and structural writes never run -- deferred erases pile up and
+		/// compaction never happens. The yield is bounded on purpose: a reader may already
+		/// hold a pin the writer is waiting for, and blocking here would deadlock.
+		FORCE_INLINE bool writersWaiting() const noexcept {
+			return mWritersWaiting.load(std::memory_order_relaxed) != 0;
+		}
+
+		/// @brief RAII announcement that a writer wants the array to go quiet.
+		struct WriterIntent {
+			explicit WriterIntent(const PinCounters& p) noexcept : pins(p) {
+				pins.mWritersWaiting.fetch_add(1, std::memory_order_relaxed);
+			}
+			~WriterIntent() { pins.mWritersWaiting.fetch_sub(1, std::memory_order_relaxed); }
+			WriterIntent(const WriterIntent&) = delete;
+			const PinCounters& pins;
+		};
+
 		/// @brief Test whether a sector presently has a non-zero pin counter.
 		FORCE_INLINE bool isPinned(SectorId id) const {
-			return get(id).load(std::memory_order_acquire) != 0;
+			return get(id).load(std::memory_order_seq_cst) != 0;
 		}
 
 		/// @brief True if any sector is currently pinned (exact).
 		FORCE_INLINE bool hasAnyPins() const noexcept {
-			return mTotalPinned.load(std::memory_order_acquire) != 0;
+			// seq_cst: see the note in pin(). This is the writer half of the handshake.
+			return mTotalPinned.load(std::memory_order_seq_cst) != 0;
 		}
 
 		/// @brief Alias of hasAnyPins(): no sector may be relocated while this is true.
@@ -255,6 +284,7 @@ namespace ecss::Threads {
 		// Written by every first-pin / last-unpin: keep off the read-mostly line above.
 		alignas(64) std::atomic<uint32_t> mTotalPinned{ 0 }; ///< Distinct sectors with counter > 0.
 		mutable std::atomic<uint32_t> mWaiters{ 0 };         ///< Threads blocked in a wait primitive.
+		mutable std::atomic<uint32_t> mWritersWaiting{ 0 };  ///< Writers waiting for pins to drain.
 	};
 
 }
