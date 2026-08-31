@@ -1568,3 +1568,92 @@ TEST(Regression_AccessTracking, OffByDefault) {
 	writer.join();
 	SUCCEED() << "reached the end without the tracker firing";
 }
+
+// ===========================================================================
+// access<> puts the value-level guarantee at the granularity systems work at:
+// a reader-writer lock per component type, taken once per system rather than
+// per element. Claims go in one call so every caller locks in the same order.
+// ===========================================================================
+
+namespace {
+struct AccA { int v{}; };
+struct AccB { int v{}; };
+} // namespace
+
+TEST(Regression_Access, KeepsAReaderAndAWriterOffOneType) {
+	Registry<true> reg;
+	reg.setAccessTracking(true);   // aborts the moment the two ever overlap
+	for (EntityId e = 0; e < 400; ++e) { reg.addComponent<AccA>(e, AccA{ int(e) }); }
+
+	std::atomic<bool> stop{ false };
+	std::atomic<long long> reads{ 0 }, writes{ 0 };
+	std::thread reader([&] {
+		while (!stop.load(std::memory_order_relaxed)) {
+			auto guard = reg.access<Read<AccA>>();
+			for (auto [e, a] : reg.view<AccA>()) { (void)e; (void)a; }
+			reads.fetch_add(1, std::memory_order_relaxed);
+		}
+	});
+	std::thread writer([&] {
+		EntityId e = 0;
+		while (!stop.load(std::memory_order_relaxed)) {
+			auto guard = reg.access<Write<AccA>>();
+			reg.addComponent<AccA>(e++ % 400, AccA{ 7 });
+			writes.fetch_add(1, std::memory_order_relaxed);
+		}
+	});
+	std::this_thread::sleep_for(std::chrono::milliseconds(400));
+	stop.store(true, std::memory_order_release);
+	reader.join();
+	writer.join();
+
+	EXPECT_GT(reads.load(), 0) << "the reader never ran";
+	EXPECT_GT(writes.load(), 0) << "the writer never ran";
+	reg.setAccessTracking(false);
+}
+
+TEST(Regression_Access, OppositeClaimOrdersDoNotDeadlock) {
+	// Taken one at a time these would be a textbook lock-order inversion. Asked for together,
+	// the guard sorts them by type id, so both threads lock in the same sequence.
+	Registry<true> reg;
+	for (EntityId e = 0; e < 50; ++e) { reg.addComponent<AccA>(e, AccA{ 1 }); reg.addComponent<AccB>(e, AccB{ 1 }); }
+
+	std::atomic<int> finished{ 0 };
+	std::thread t1([&] {
+		for (int i = 0; i < 20000; ++i) { auto g = reg.access<Read<AccA>, Write<AccB>>(); }
+		finished.fetch_add(1, std::memory_order_release);
+	});
+	std::thread t2([&] {
+		for (int i = 0; i < 20000; ++i) { auto g = reg.access<Write<AccB>, Read<AccA>>(); }
+		finished.fetch_add(1, std::memory_order_release);
+	});
+
+	const bool done = waitFor([&] { return finished.load(std::memory_order_acquire) == 2; });
+	ASSERT_TRUE(done) << "two systems claiming the same pair in opposite orders deadlocked";
+	t1.join();
+	t2.join();
+}
+
+TEST(Regression_Access, NestingOnOneThreadIsAllowed) {
+	// std::shared_mutex is not recursive, and a second acquire deadlocks against a waiting
+	// writer. A system calling a helper that claims the same type must not stop.
+	Registry<true> reg;
+	for (EntityId e = 0; e < 20; ++e) { reg.addComponent<AccA>(e, AccA{ int(e) }); }
+
+	std::atomic<bool> done{ false };
+	std::thread worker([&] {
+		auto outer = reg.access<Write<AccA>>();
+		{
+			auto inner = reg.access<Write<AccA>>();
+			reg.addComponent<AccA>(99, AccA{ 3 });
+		}
+		reg.addComponent<AccA>(98, AccA{ 4 });   // outer must still hold it
+		done.store(true, std::memory_order_release);
+	});
+
+	ASSERT_TRUE(waitFor([&] { return done.load(std::memory_order_acquire); }))
+		<< "a nested claim on the same type blocked against itself";
+	worker.join();
+	EXPECT_TRUE(reg.hasComponent<AccA>(99));
+	EXPECT_TRUE(reg.hasComponent<AccA>(98));
+}
