@@ -466,13 +466,38 @@ namespace ecss {
 
 	public:
 		/**
+		 * @brief Let views carry out the maintenance update() does, for the arrays they touch.
+		 *
+		 * With this on there is no call to place in the frame: opening a view first gives its
+		 * arrays the pass update() would have given them -- retire the memory whose grace
+		 * period has run out, apply deferred erases, and compact if the array asked for it and
+		 * is free at that moment. A busy array is skipped, exactly as in update(), so this
+		 * never blocks and never changes what iteration sees.
+		 *
+		 * Compaction is done where it pays: right before the iteration that benefits from it.
+		 * The total work is the same either way -- an array wants compacting once, and once
+		 * done it stops asking -- so this moves the cost rather than adding it.
+		 *
+		 * Off by default: opening a view is a read, and doing structural work inside one should
+		 * be asked for rather than assumed. Set it once at startup, before other threads exist.
+		 * update() keeps working and stays the way to control when the work lands.
+		 */
+		void setAutoMaintenance(bool enabled) noexcept { mAutoMaintenance = enabled; }
+
+		/// @return Whether views maintain the arrays they open. @see setAutoMaintenance
+		[[nodiscard]] bool autoMaintenance() const noexcept { return mAutoMaintenance; }
+
+		/**
 		 * @brief Create an iterable view limited to given entity ranges.
 		 * @tparam Components Component types to fetch; first drives iteration order.
 		 * @param ranges Half-open entity ranges.
 		 * @return ArraysView instance (ranged iteration).
 		 */
 		template<typename... Components>
-		FORCE_INLINE auto view(const Ranges<EntityId>& ranges) noexcept { return ArraysView<ThreadSafe, Allocator, true, Components...>{ this, ranges }; }
+		FORCE_INLINE auto view(const Ranges<EntityId>& ranges) noexcept {
+			maintainFor<Components...>();
+			return ArraysView<ThreadSafe, Allocator, true, Components...>{ this, ranges };
+		}
 
 		/**
 		 * @brief Create a full-range iterable view over all entities with the main component.
@@ -480,7 +505,10 @@ namespace ecss {
 		 * @return ArraysView instance (full range).
 		 */
 		template<typename... Components>
-		FORCE_INLINE auto view() noexcept { return ArraysView<ThreadSafe, Allocator, false, Components...>{this}; }
+		FORCE_INLINE auto view() noexcept {
+			maintainFor<Components...>();
+			return ArraysView<ThreadSafe, Allocator, false, Components...>{this};
+		}
 
 		/**
 		 * @brief Apply a function to each entity in a list, pinning requested component types (thread-safe build).
@@ -936,6 +964,31 @@ namespace ecss {
 			((mComponentsMetaMap[componentTypeId<ComponentTypes>()] = array->getLayout()), ...);
 		}
 
+		/// @brief Give the arrays a view is about to open the pass update() would have given
+		/// them. Nothing here waits: an array someone is iterating is left alone.
+		template<typename... Components>
+		FORCE_INLINE void maintainFor() noexcept {
+			if (!mAutoMaintenance) [[likely]] { return; }
+			(maintainArrayFor<Components>(), ...);
+		}
+
+		template<typename T>
+		void maintainArrayFor() noexcept {
+			auto* array = getComponentContainer<T>();
+			if (!array) { return; }
+			if constexpr (ThreadSafe) {
+				array->tick();
+				array->processPendingErases(true);
+			}
+			else {
+				// No holds exist here to make compaction unsafe, but a view that is already
+				// open would still be reading the array this is about to move sectors in, and
+				// the plain build has no way to know. Callers who nest views this way should
+				// leave the switch off; the same rule as calling update() mid-iteration.
+				if (array->needDefragment()) { array->defragment(); }
+			}
+		}
+
 		/// @brief Publish a fresh snapshot. Caller holds componentsArrayMapMutex (TS build).
 		/// Superseded nodes stay alive until destruction: a lock-free reader may still hold
 		/// one, and there is at most one node per registerArray() call.
@@ -974,6 +1027,10 @@ namespace ecss {
 		/// while registering, then copied into each published snapshot.
 		std::vector<const Memory::LayoutData*>       mComponentsLayoutsMap;
 		std::vector<const Memory::SectorLayoutMeta*> mComponentsMetaMap;
+
+		/// Whether opening a view maintains its arrays. Read on every view; written once at
+		/// setup, so it is a plain load rather than anything ordered.
+		bool mAutoMaintenance = false;
 
 		std::atomic<Registered*> mRegistered{ nullptr }; ///< Published snapshot (lock-free reads).
 		std::vector<Registered*> mRegisteredNodes;       ///< Every node ever published (freed in dtor).

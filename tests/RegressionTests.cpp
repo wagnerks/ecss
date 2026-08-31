@@ -1347,3 +1347,67 @@ TEST(Regression_Maintenance, UpdateFromInsideIterationDoesNotHang) {
 		ASSERT_FALSE(reg.hasComponent<RInt>(e)) << "destroyed component " << e << " came back";
 	}
 }
+
+// ===========================================================================
+// setAutoMaintenance: opening a view gives its arrays the pass update() would
+// have. Only possible once update() stopped waiting -- before that, a view
+// doing maintenance on an array the caller was already holding would hang.
+// ===========================================================================
+
+TEST(Regression_AutoMaintenance, OffByDefaultAndOpeningAViewChangesNothing) {
+	Registry<true> reg;
+	for (EntityId e = 0; e < 2000; ++e) { reg.addComponent<RInt>(e, RInt{ int(e) }); }
+	for (EntityId e = 0; e < 2000; e += 2) { reg.destroyComponent<RInt>(e); }
+
+	auto* arr = reg.getComponentContainer<RInt>();
+	const size_t before = arr->size();
+	EXPECT_FALSE(reg.autoMaintenance()) << "auto maintenance must be opt-in";
+
+	for (auto it : reg.view<RInt>()) { (void)it; }
+	EXPECT_EQ(arr->size(), before) << "a view compacted the array without being asked to";
+}
+
+TEST(Regression_AutoMaintenance, AViewCompactsWhatUpdateWouldHave) {
+	Registry<true> reg;
+	for (EntityId e = 0; e < 4000; ++e) { reg.addComponent<RInt>(e, RInt{ int(e) }); }
+	for (EntityId e = 0; e < 4000; e += 2) { reg.destroyComponent<RInt>(e); }
+
+	auto* arr = reg.getComponentContainer<RInt>();
+	const size_t before = arr->size();
+	reg.setAutoMaintenance(true);
+
+	size_t seen = 0;
+	for (auto [e, v] : reg.view<RInt>()) { (void)e; if (v) { ++seen; } }
+
+	EXPECT_LT(arr->size(), before) << "the dead half was never compacted away";
+	EXPECT_EQ(seen, 2000u) << "compaction lost or duplicated live components";
+	for (EntityId e = 1; e < 4000; e += 2) {
+		ASSERT_TRUE(reg.hasComponent<RInt>(e)) << "live component " << e << " went missing";
+	}
+}
+
+TEST(Regression_AutoMaintenance, ANestedViewDoesNotHang) {
+	// The inner view attempts maintenance on an array the outer one is holding open. It has
+	// to skip rather than wait, or the thread blocks on its own hold.
+	Registry<true> reg;
+	for (EntityId e = 0; e < 2000; ++e) { reg.addComponent<RInt>(e, RInt{ int(e) }); }
+	for (EntityId e = 0; e < 2000; e += 2) { reg.destroyComponent<RInt>(e); }
+	reg.setAutoMaintenance(true);
+
+	std::atomic<bool> done{ false };
+	std::atomic<size_t> inner{ 0 };
+	std::thread worker([&] {
+		auto outer = reg.view<RInt>();
+		auto it = outer.begin();
+		(void)it;
+		size_t n = 0;
+		for (auto [e, v] : reg.view<RInt>()) { (void)e; if (v) { ++n; } }
+		inner.store(n, std::memory_order_release);
+		done.store(true, std::memory_order_release);
+	});
+
+	const bool finished = waitFor([&] { return done.load(std::memory_order_acquire); });
+	ASSERT_TRUE(finished) << "a nested view blocked maintaining an array the outer view holds";
+	worker.join();
+	EXPECT_EQ(inner.load(), 1000u) << "the inner view did not see the live half";
+}
