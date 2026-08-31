@@ -196,12 +196,12 @@ namespace ecss {
 		 * This is safe to call while iterators may be active in other threads -
 		 * only sufficiently old memory (older than grace period) will be freed.
 		 * 
-		 * @note Only available in thread-safe mode. In non-thread-safe mode,
-		 *       memory is freed immediately during reallocation (no deferred reclamation).
+		 * @note In non-thread-safe mode memory is freed as it is released, so this is a
+		 *       no-op returning zero. It stays callable in both modes.
 		 * 
 		 * @return Total number of memory blocks freed across all arrays
 		 */
-		size_t tick() noexcept requires(ThreadSafe) {
+		size_t tick() noexcept {
 			size_t freed = 0;
 			const auto [begin, end] = registeredArrays();
 			for (auto it = begin; it != end; ++it) {
@@ -219,12 +219,11 @@ namespace ecss {
 		 * Default is 3 ticks, which is safe for typical game loops where
 		 * iterators don't survive across frames.
 		 * 
-		 * @note Only available in thread-safe mode. In non-thread-safe mode,
-		 *       memory is freed immediately (no deferred reclamation).
+		 * @note The non-thread-safe build fixes this at zero and ignores the setter.
 		 * 
 		 * @param ticks Number of tick() calls before memory is freed
 		 */
-		void setRetireGracePeriod(uint32_t ticks) noexcept requires(ThreadSafe) {
+		void setRetireGracePeriod(uint32_t ticks) noexcept {
 			const auto [begin, end] = registeredArrays();
 			for (auto it = begin; it != end; ++it) {
 				(*it)->setGracePeriod(ticks);

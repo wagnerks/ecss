@@ -241,11 +241,12 @@ TEST(Cov_Retire, DrainAll) {
 }
 
 TEST(Cov_Retire, GracePeriodZero) {
+    // A zero grace period frees on release: there is no reader to outlive, so the block
+    // never enters the bin and no tick() is needed to get rid of it.
     RetireBin bin(0);
     bin.retire(std::malloc(16));
-    auto freed = bin.tick();
-    EXPECT_EQ(freed, 1u);
     EXPECT_EQ(bin.pendingCount(), 0u);
+    EXPECT_EQ(bin.tick(), 0u);
 }
 
 TEST(Cov_Retire, GracePeriodChange) {

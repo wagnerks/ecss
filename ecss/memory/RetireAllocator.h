@@ -45,9 +45,19 @@ namespace ecss::Memory {
 			return *this;
 		}
 
-		/// @brief Queue memory block for deferred freeing
+		/// @brief Queue memory block for deferred freeing, or free it now if the grace
+		/// period is zero.
+		///
+		/// A zero grace period means the owner has no lock-free readers to protect, so
+		/// there is nothing for the block to wait for. Queuing it anyway would need a
+		/// tick() the single-threaded build has no reason to call, and the block would
+		/// live until the bin was destroyed.
 		void retire(void* p) {
 			if (!p) return;
+			if (mGracePeriod.load(std::memory_order_relaxed) == 0) {
+				std::free(p);
+				return;
+			}
 			auto lock = std::lock_guard(mMtx);
 			mRetired.push_back({p, mGracePeriod.load(std::memory_order_relaxed)});
 			mPending.store(mRetired.size(), std::memory_order_release);

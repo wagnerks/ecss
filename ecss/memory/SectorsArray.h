@@ -1031,16 +1031,16 @@ public:
 	// ==================== Copy / Move ====================
 
 	template<bool T, typename Alloc>
-	SectorsArray(const SectorsArray<T, Alloc>& other) { *this = other; }
-	SectorsArray(const SectorsArray& other) { *this = other; }
+	SectorsArray(const SectorsArray<T, Alloc>& other) { configureReclamation(); *this = other; }
+	SectorsArray(const SectorsArray& other) { configureReclamation(); *this = other; }
 
 	template<bool T, typename Alloc>
 	SectorsArray& operator=(const SectorsArray<T, Alloc>& other) { if (!isSameAdr(this, &other)) { copy(other); } return *this; }
 	SectorsArray& operator=(const SectorsArray& other) { if (this != &other) { copy(other); } return *this; }
 
 	template<bool T, typename Alloc>
-	SectorsArray(SectorsArray<T, Alloc>&& other) noexcept { *this = std::move(other); }
-	SectorsArray(SectorsArray&& other) noexcept { *this = std::move(other); }
+	SectorsArray(SectorsArray<T, Alloc>&& other) noexcept { configureReclamation(); *this = std::move(other); }
+	SectorsArray(SectorsArray&& other) noexcept { configureReclamation(); *this = std::move(other); }
 
 	template<bool T, typename Alloc>
 	SectorsArray& operator=(SectorsArray<T, Alloc>&& other) noexcept { if (!isSameAdr(this, &other)) { move(std::move(other)); } return *this; }
@@ -1048,6 +1048,7 @@ public:
 
 private:
 	SectorsArray(SectorLayoutMeta* meta, Allocator&& allocator = {}) : mAllocator(std::move(allocator)) {
+		configureReclamation();
 		mAllocator.init(meta);
 		mSparseMap.storeView();
 	}
@@ -1272,12 +1273,13 @@ public:
 	 * This is safe to call while iterators may be active - only sufficiently
 	 * old memory (older than grace period) will be freed.
 	 * 
-	 * @note Only available in thread-safe mode. In non-thread-safe mode,
-	 *       memory is freed immediately during reallocation.
+	 * @note In non-thread-safe mode there is no grace period, so memory is already freed
+	 *       as it is released and this is a no-op returning zero. It stays callable so
+	 *       that a frame loop does not have to branch on the mode.
 	 * 
 	 * @return Number of memory blocks freed this tick
 	 */
-	size_t tick() requires(ThreadSafe) { return tickRetired(); }
+	size_t tick() { return tickRetired(); }
 
 	/**
 	 * @brief Set the grace period (in ticks) before retired memory is freed.
@@ -1288,12 +1290,14 @@ public:
 	 * Default is 3 ticks, which is safe for typical game loops where
 	 * iterators don't survive across frames.
 	 * 
-	 * @note Only available in thread-safe mode. In non-thread-safe mode,
-	 *       memory is freed immediately (no deferred reclamation).
+	 * @note The non-thread-safe build fixes this at zero and ignores the setter: with no
+	 *       lock-free readers there is nothing for retired memory to outlive.
 	 * 
-	 * @param ticks Number of tick() calls before memory is freed (0 = immediate)
+	 * @param ticks Number of tick() calls before memory is freed (0 = free on release)
 	 */
-	void setGracePeriod(uint32_t ticks) requires(ThreadSafe) { setRetireGracePeriod(ticks); }
+	void setGracePeriod(uint32_t ticks) {
+		if constexpr (ThreadSafe) { setRetireGracePeriod(ticks); }
+	}
 
 	// ==================== Insert / Emplace ====================
 	//
@@ -1539,6 +1543,21 @@ private:
 	auto writeLock() const requires(!ThreadSafe) { return Dummy{}; }
 
 	// ==================== Implementation ====================
+
+	/// @brief Set the reclamation policy for this array's bins. Every constructor calls it,
+	/// including the copy and move ones: RetireBin's copy constructor does not carry the
+	/// grace period across, so an array built from another would otherwise silently get the
+	/// thread-safe default back.
+	void configureReclamation() {
+		if constexpr (!ThreadSafe) {
+			// Deferred reclamation exists to keep memory alive under lock-free readers, and
+			// this build has none. The dense and sparse arrays already free on reallocation
+			// here -- they are plain vectors in the non-thread-safe specialisations -- but
+			// chunks went through the retire bin regardless, and nothing ever ticked it, so
+			// every chunk ever released stayed resident until the array died.
+			setRetireGracePeriod(0);
+		}
+	}
 
 	/// @brief Drain all retired memory from allocators (safe point - call under unique lock)
 	void drainAllRetired() {
