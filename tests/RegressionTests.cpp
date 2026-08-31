@@ -1411,3 +1411,39 @@ TEST(Regression_AutoMaintenance, ANestedViewDoesNotHang) {
 	worker.join();
 	EXPECT_EQ(inner.load(), 1000u) << "the inner view did not see the live half";
 }
+
+TEST(Regression_AutoMaintenance, ReachesArraysNobodyIterates) {
+	// Maintaining only the arrays a view names would leave a component type that is looked up
+	// but never iterated holding its dead sectors forever, and update() would still be needed.
+	// A rotation slot gives one other array a turn per few views.
+	struct Iterated { int v{}; };
+	struct LookedUpOnly { int v{}; };
+
+	Registry<true> reg;
+	reg.registerArray<Iterated>(8000);
+	reg.registerArray<LookedUpOnly>(8000);
+	reg.setAutoMaintenance(true);
+
+	for (EntityId e = 0; e < 8000; ++e) {
+		reg.addComponent<Iterated>(e, Iterated{ int(e) });
+		reg.addComponent<LookedUpOnly>(e, LookedUpOnly{ int(e) });
+	}
+	for (EntityId e = 0; e < 8000; e += 2) {
+		reg.destroyComponent<Iterated>(e);
+		reg.destroyComponent<LookedUpOnly>(e);
+	}
+
+	auto* quiet = reg.getComponentContainer<LookedUpOnly>();
+	const size_t before = quiet->size();
+
+	// frames that only ever open a view over the other type, and never call update()
+	for (int frame = 0; frame < 40; ++frame) {
+		for (auto it : reg.view<Iterated>()) { (void)it; }
+	}
+
+	EXPECT_LT(quiet->size(), before)
+		<< "an array nobody iterates was never compacted, so update() is still required";
+	for (EntityId e = 1; e < 8000; e += 2) {
+		ASSERT_TRUE(reg.hasComponent<LookedUpOnly>(e)) << "live component " << e << " lost";
+	}
+}

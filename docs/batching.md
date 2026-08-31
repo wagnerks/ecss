@@ -180,15 +180,18 @@ in the loop, including inside iteration, and more than once: with nothing to do 
 reg.update();   // wherever it suits the frame
 ```
 
-To stop thinking about it entirely, let views do it:
+To stop calling it entirely, let views do it:
 
 ```cpp
 reg.setAutoMaintenance(true);   // once, at startup
 ```
 
 Opening a view then gives its arrays the pass `update()` would have, right before the iteration
-that benefits from the compaction. A busy array is skipped exactly as in `update()`. Off by
-default: opening a view is a read, and structural work inside one should be asked for.
+that benefits from the compaction, plus one more array in rotation so that a type which is only
+ever looked up by id — never iterated — still gets its turn. A busy array is skipped exactly as
+in `update()`. Costs about 23 ns per view creation.
+
+Off by default: opening a view is a read, and structural work inside one should be asked for.
 
 !!! note
     In the non-thread-safe build there are no holds to tell that another view is open, so leave

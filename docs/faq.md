@@ -95,7 +95,8 @@ including inside a loop over a view, and calling it more than once is harmless: 
 do it costs about 3.5 ns for the whole registry.
 
 To drop the call entirely, `setAutoMaintenance(true)` once at startup makes opening a view do
-the same work for the arrays it touches.
+the same work — for the arrays it touches, plus one more in rotation, so a component type that
+is only ever looked up and never iterated is reached too.
 
 ---
 
