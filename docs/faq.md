@@ -63,7 +63,9 @@ A: Very low: liveness mask bit test + pointer arithmetic; foreign components fet
 ---
 
 ### Q: How are component type ids generated?
-A: A lightweight reflection helper assigns a dense `ECSType` per component type per registry instance (no RTTI / strings in hot loops).
+A: A lightweight reflection helper assigns a dense `ECSType` per component type, from one
+counter for the whole process (no RTTI / strings in hot loops). The same type therefore has the
+same id in every `Registry`, which is what makes a lookup a plain array index.
 
 ---
 
@@ -111,7 +113,15 @@ A: One sector header (id + liveness mask) plus tightly packed component payloads
 ---
 
 ### Q: Does ECSS support multiple worlds?
-A: Yes—each `Registry` instance is independent with its own type id mapping and component arrays.
+A: Yes. Each `Registry` owns its own component arrays and entity ids, and worlds never
+collide, because a type id names a type rather than a slot.
+
+The type id *space* is shared, though: ids come from one process-wide counter. The practical
+effect is that a registry's per-type table is sized by the highest global id it uses rather
+than by how many types it holds, so a small world in a process that defines many types indexes
+a sparse table. Two bytes per unused entry. Giving each registry its own dense index was
+measured and rejected: it adds about 0.3 ns to every lookup that names a component type, which
+is more than the memory is worth unless you run many small worlds at once.
 
 ---
 

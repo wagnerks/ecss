@@ -110,7 +110,22 @@ Manual overrides allow explicit `defragment()` per array or threshold adjustment
 `ReflectionHelper` assigns dense incremental `ECSType` values at registration time. Usage:
 - Map component types to their owning `SectorsArray`.
 - Avoid string hashing / `type_index` in hot paths.
-No global registry; each `Registry` instance owns its own mapping, enabling multiple worlds without collisions.
+Ids come from one process-wide counter, so a given component type has the same id in every
+`Registry`. That is deliberate: a lookup has to identify the type somehow, and a dense global
+id reads as a constant where hashing a type token would cost. It is also what lets an array
+built by one registry be handed to another.
+
+Multiple worlds work and never collide, since an id names a type rather than a slot. What they
+share is the id *space*: a registry's per-type table is sized by the highest global id it uses,
+not by how many types it holds, so a world using ten types in a process that defines four
+hundred still indexes a four-hundred-entry table. Two bytes per unused entry, and only in the
+tables the registry actually keeps.
+
+Making the index per registry was measured and rejected: it costs an extra dependent load on
+every lookup that names a component type, about 0.3 ns, which is roughly 6% of `hasComponent`
+and lands on `pinComponent`, `addComponent`, `destroyComponent`, `insertBulk` and every view
+construction (once per component type in the pack). The memory it saves is real only when a
+registry uses a small fraction of the process's types.
 
 ---
 
