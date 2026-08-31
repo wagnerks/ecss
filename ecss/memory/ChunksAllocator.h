@@ -363,6 +363,14 @@ namespace ecss::Memory {
 		void moveSectorsDataTrivial(size_t dst, size_t src, size_t n) const {
 			if (!n || dst == src) return;
 
+			// Single-sector fast path. Compaction of a badly interleaved array calls this
+			// once per surviving sector, and the general loop pays for the per-chunk room
+			// arithmetic and a variable-size memmove dispatch to move one sector.
+			if (n == 1) [[unlikely]] {
+				std::memcpy(at(dst), at(src), mSectorSize);
+				return;
+			}
+
 			if (dst < src) {
 				// forward
 				while (n) {
