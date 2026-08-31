@@ -317,9 +317,16 @@ namespace detail {
 			isAlive.push_back(alive);
 		}
 
+		/// @brief Grow the buffers, republishing because they may have moved.
+		///
+		/// reserve() changes no element and no size, so it looks like it cannot affect
+		/// readers -- but it reallocates, and the old buffers go to the retire bin while the
+		/// published view still names them. Readers then keep reading memory that is correct
+		/// only until the next write, and freed once the grace period expires.
 		FORCE_INLINE void reserve(size_t newCapacity) {
 			ids.reserve(newCapacity);
 			isAlive.reserve(newCapacity);
+			storeView(size_.load(std::memory_order_relaxed));
 		}
 
 		FORCE_INLINE void clear(size_t actualSize) {
