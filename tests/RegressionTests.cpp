@@ -481,10 +481,11 @@ TEST(Regression_Concurrency, RegistryChurnStaysLiveAndConsistent) {
 // ===========================================================================
 
 TEST(Regression_Allocator, MoveAssignRetiresTheChunksItOwned) {
-	auto* meta = SectorLayoutMeta::create<RInt>();
+	// SectorLayoutMeta::create hands over ownership, and the allocators below only borrow it.
+	const std::unique_ptr<SectorLayoutMeta> meta(SectorLayoutMeta::create<RInt>());
 
-	ChunksAllocator<8> dst; dst.init(meta); dst.allocate(64);
-	ChunksAllocator<8> src; src.init(meta); src.allocate(16);
+	ChunksAllocator<8> dst; dst.init(meta.get()); dst.allocate(64);
+	ChunksAllocator<8> src; src.init(meta.get()); src.allocate(16);
 	ASSERT_EQ(dst.mBin.pendingCount(), 0u);
 
 	dst = std::move(src);
