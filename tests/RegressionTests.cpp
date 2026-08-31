@@ -1494,3 +1494,77 @@ TEST(Regression_Snapshots, PlainBuildFreesThemImmediately) {
 	for (EntityId e = 0; e < 50; ++e) { reg.addComponent<TypeN<100>>(e, TypeN<100>{ int(e) }); }
 	for (EntityId e = 0; e < 50; ++e) { ASSERT_TRUE(reg.hasComponent<TypeN<100>>(e)); }
 }
+
+// ===========================================================================
+// The container keeps an array's shape safe, not a component's value: guarding
+// that would mean locking or pinning per element. setAccessTracking makes the
+// gap visible in debug builds instead of leaving it to a sanitizer.
+// The conflict itself aborts, which the harness cannot catch, so what is
+// checked here is the other half: that it stays quiet when it should.
+// ===========================================================================
+
+namespace {
+struct TrkA { int v{}; };
+struct TrkB { int v{}; };
+} // namespace
+
+TEST(Regression_AccessTracking, QuietWhenOneThreadReadsThenWritesTheSameType) {
+	Registry<true> reg;
+	reg.setAccessTracking(true);
+	for (EntityId e = 0; e < 100; ++e) { reg.addComponent<TrkA>(e, TrkA{ int(e) }); }
+
+	// A system routinely reads what it just wrote. Re-entering from the same thread must not
+	// be mistaken for two threads colliding.
+	size_t seen = 0;
+	for (auto [e, a] : reg.view<TrkA>()) { (void)e; if (a) { ++seen; } }
+	reg.addComponent<TrkA>(500, TrkA{ 1 });
+	EXPECT_EQ(seen, 100u);
+	EXPECT_TRUE(reg.hasComponent<TrkA>(500));
+
+	reg.setAccessTracking(false);
+}
+
+TEST(Regression_AccessTracking, QuietWhenThreadsUseDifferentTypes) {
+	Registry<true> reg;
+	reg.setAccessTracking(true);
+	for (EntityId e = 0; e < 200; ++e) { reg.addComponent<TrkA>(e, TrkA{ int(e) }); }
+
+	std::atomic<bool> stop{ false };
+	std::atomic<int> written{ 0 };
+	std::thread writer([&] {
+		EntityId e = 1000;
+		while (!stop.load(std::memory_order_relaxed)) {
+			reg.addComponent<TrkB>(e++, TrkB{ 1 });
+			written.fetch_add(1, std::memory_order_release);
+		}
+	});
+	// Keep reading until the writer has demonstrably been running alongside; the reader is
+	// fast enough to finish before the thread is even scheduled otherwise.
+	for (int i = 0; i < 50 || written.load(std::memory_order_acquire) < 100; ++i) {
+		for (auto [e, a] : reg.view<TrkA>()) { (void)e; (void)a; }
+	}
+	stop.store(true, std::memory_order_release);
+	writer.join();
+
+	EXPECT_GT(written.load(), 0) << "the writer never ran, so nothing was overlapped";
+	reg.setAccessTracking(false);
+}
+
+TEST(Regression_AccessTracking, OffByDefault) {
+	Registry<true> reg;
+	for (EntityId e = 0; e < 50; ++e) { reg.addComponent<TrkA>(e, TrkA{ int(e) }); }
+
+	// Two threads on one type, which the tracker would abort on. It must not be watching
+	// unless asked, or every existing program that does this would stop working in debug.
+	std::atomic<bool> stop{ false };
+	std::thread writer([&] {
+		EntityId e = 0;
+		while (!stop.load(std::memory_order_relaxed)) { reg.addComponent<TrkA>(e++ % 50, TrkA{ 2 }); }
+	});
+	for (int i = 0; i < 20; ++i) {
+		for (auto [e, a] : reg.view<TrkA>()) { (void)e; (void)a; }
+	}
+	stop.store(true, std::memory_order_release);
+	writer.join();
+	SUCCEED() << "reached the end without the tracker firing";
+}

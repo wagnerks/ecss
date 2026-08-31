@@ -36,6 +36,7 @@
 #include <tuple>
 #include <vector>
 
+#include <ecss/AccessTracker.h>
 #include <ecss/IdSet.h>
 #include <ecss/Ranges.h>
 #include <ecss/memory/Reflection.h>
@@ -311,6 +312,7 @@ namespace ecss {
 		 */
 		template <class T, class ...Args>
 		FORCE_INLINE T* addComponent(EntityId entity, Args&&... args) noexcept {
+			const auto guard = detail::writeScope<T>(componentTypeId<T>());
 			return getComponentContainer<T>()->template push<T>(entity, std::forward<Args>(args)...);
 		}
 
@@ -340,6 +342,7 @@ namespace ecss {
 				batch.emplace_back(res.first, std::move(res.second));
 			}
 			if (batch.empty()) { return; }
+			const auto guard = detail::writeScope<T>(componentTypeId<T>());
 			getComponentContainer<T>()->template insertBulk<T>(batch.begin(), batch.end());
 		}
 
@@ -356,6 +359,7 @@ namespace ecss {
 		 */
 		template <class T, class It>
 		void insertBulk(It first, It last) {
+			const auto guard = detail::writeScope<T>(componentTypeId<T>());
 			getComponentContainer<T>()->template insertBulk<T>(first, last);
 		}
 
@@ -367,6 +371,7 @@ namespace ecss {
 		 */
 		template <class T>
 		void destroyComponent(EntityId entity) noexcept {
+			const auto guard = detail::writeScope<T>(componentTypeId<T>());
 			if (auto container = getComponentContainer<T>()) {
 				if constexpr (ThreadSafe) {
 					// Lock-free presence check before locking (see destroySector).
@@ -410,6 +415,7 @@ namespace ecss {
 		template <class T>
 		void destroyComponent(std::vector<EntityId>& entities) noexcept {
 			if (entities.empty()) {return;}
+			const auto guard = detail::writeScope<T>(componentTypeId<T>());
 
 			if (auto container = getComponentContainer<T>()) {
 				const auto& layout = container->template getLayoutData<T>();
@@ -491,6 +497,31 @@ namespace ecss {
 		 * update() keeps working and stays the way to control when the work lands.
 		 */
 		void setAutoMaintenance(bool enabled) noexcept { mAutoMaintenance = enabled; }
+
+		/**
+		 * @brief Watch for two threads touching one component type at once (debug builds).
+		 *
+		 * The container keeps an array's *shape* safe on its own: it will not be relocated
+		 * under an iterator, and a pinned sector will not move or die. A component's *value*
+		 * is a different matter -- guarding that would mean locking or pinning per element,
+		 * which costs more than the lock-free read paths save. So a system reading Position
+		 * while another writes it is a race the container cannot see.
+		 *
+		 * With this on, it is seen: the first overlap aborts and names the type and the two
+		 * threads. A view counts as reading its component types for as long as it lives, and a
+		 * mutator as writing one for the duration of the call; re-entering from the same thread
+		 * is fine, since a system routinely reads what it just wrote.
+		 *
+		 * Worth leaving on for the whole of development. It compiles to nothing when NDEBUG is
+		 * set, so there is nothing to turn off before shipping.
+		 */
+		void setAccessTracking(bool enabled) noexcept {
+#ifndef NDEBUG
+			detail::AccessTracker::enabled() = enabled;
+#else
+			(void)enabled;
+#endif
+		}
 
 		/// @return Whether views maintain the arrays they open. @see setAutoMaintenance
 		[[nodiscard]] bool autoMaintenance() const noexcept { return mAutoMaintenance; }
@@ -1641,6 +1672,16 @@ namespace ecss {
 		/// One structural hold per distinct array, keeping the iteration bounds valid for the
 		/// lifetime of the view.
 		std::conditional_t<ThreadSafe, std::array<Memory::StructuralHold, TypesCount>, Dummy> mHolds;
+
+#ifndef NDEBUG
+		/// A view reads its component types for as long as it lives, which is what lets the
+		/// tracker notice another thread writing one of them meanwhile. Debug only, so the
+		/// released build's view carries nothing extra. @see Registry::setAccessTracking
+		std::array<detail::AccessScope, TypesCount> mReadScopes{
+			detail::readScope<T>(Registry<ThreadSafe, Allocator>::template componentTypeId<T>()),
+			detail::readScope<CompTypes>(Registry<ThreadSafe, Allocator>::template componentTypeId<CompTypes>())...
+		};
+#endif
 		Iterator mBeginIt;                                   ///< Cached begin iterator.
 
 		Sectors* mMainArray = nullptr;
