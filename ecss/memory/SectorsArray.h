@@ -1075,7 +1075,7 @@ public:
 	SectorsArray& operator=(SectorsArray&& other) noexcept { if (this != &other) { move(std::move(other)); } return *this; }
 
 private:
-	SectorsArray(SectorLayoutMeta* meta, Allocator&& allocator = {}) : mAllocator(std::move(allocator)) {
+	SectorsArray(const SectorLayoutMeta* meta, Allocator&& allocator = {}) : mAllocator(std::move(allocator)) {
 		configureReclamation();
 		mAllocator.init(meta);
 		mSparseMap.storeView();
@@ -1087,7 +1087,9 @@ public:
 	template <typename... Types>
 	static SectorsArray* create(Allocator&& allocator = {}) {
 		static_assert(types::areUnique<Types...>, "Duplicates detected in SectorsArray types!");
-		static SectorLayoutMeta* meta = SectorLayoutMeta::create<Types...>();
+		// One per distinct type pack, for the lifetime of the process: the layout an array
+		// reports never changes, and the LayoutData records keep fixed addresses.
+		static const SectorLayoutMeta* meta = SectorLayoutMeta::create<Types...>();
 		return new SectorsArray(meta, std::move(allocator));
 	}
 
@@ -1096,7 +1098,7 @@ public:
 	template<typename T>
 	FORCE_INLINE const LayoutData& getLayoutData() const { return getLayout()->template getLayoutData<T>(); }
 
-	FORCE_INLINE SectorLayoutMeta* getLayout() const { return mAllocator.getSectorLayout(); }
+	FORCE_INLINE const SectorLayoutMeta* getLayout() const { return mAllocator.getSectorLayout(); }
 
 	// ==================== Pin API (ThreadSafe builds) ====================
 

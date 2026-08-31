@@ -294,9 +294,9 @@ namespace ecss::Memory {
 			deallocate(0, capacity());
 		}
 
-		FORCE_INLINE SectorLayoutMeta* getSectorLayout() const { return mSectorLayout; }
+		FORCE_INLINE const SectorLayoutMeta* getSectorLayout() const { return mSectorLayout; }
 
-		FORCE_INLINE void init(SectorLayoutMeta* layoutMeta) { assert(layoutMeta);
+		FORCE_INLINE void init(const SectorLayoutMeta* layoutMeta) { assert(layoutMeta);
 			mSectorLayout = layoutMeta;
 
 			mSectorSize = mSectorLayout->getTotalSize();
@@ -588,7 +588,7 @@ namespace ecss::Memory {
 		static_assert(types::isLockFreeAtomic<uint64_t>, "chunk seqlock counter must be lock-free");
 		static_assert(types::isLockFreeAtomic<size_t>, "chunk count must be lock-free");
 
-		SectorLayoutMeta* mSectorLayout = nullptr;
+		const SectorLayoutMeta* mSectorLayout = nullptr;
 		uint16_t mSectorSize = 0;
 
 		bool mIsSectorTrivial = true;
