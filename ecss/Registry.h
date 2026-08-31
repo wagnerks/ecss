@@ -288,36 +288,44 @@ namespace ecss {
 		}
 
 		/**
-		 * @brief Bulk add components via generator functor under a single write lock (thread-safe build).
+		 * @brief Bulk add components from a generator, inserted as one batch.
 		 * @tparam T Component type.
 		 * @tparam Func Callable returning std::pair<EntityId,T>. Return {INVALID_ID, {}} to stop.
-		 * @param func Generator invoked repeatedly while lock is held.
-		 * @note Optimizes many insertions by avoiding enter/leave lock per element.
+		 * @param func Generator invoked repeatedly until it signals the end.
+		 * @note Ids may be emitted in any order. The batch is collected, then merged in a
+		 *       single pass under one write lock.
 		 */
 		template <class T, typename Func>
 		void addComponents(Func&& func) requires(ThreadSafe) {
-			auto container = getComponentContainer<T>();
-			// The generator may emit ids that land in the middle of the array, which shifts
-			// existing sectors, so the whole array must be quiescent for the batch. Waiting
-			// happens outside the write lock (see SectorsArray::exclusiveWhenQuiescent).
-			container->exclusiveWhenQuiescent([&] {
-				auto f = std::forward<Func>(func);
-				auto res = f();
-				while (res.first != INVALID_ID) {
-					container->template push<T, false>(res.first, res.second);
-					res = f();
-				}
-			});
+			// Drain the generator first. Holding the write lock across it saved the per-element
+			// lock traffic but still inserted one id at a time, so a generator that emitted ids
+			// out of order paid O(M*N): each middle insert shifts the tail and rewrites the
+			// sparse entry of every sector it passes. Sorting the batch once and merging it is
+			// linear instead -- see SectorsArray::insertBulk.
+			//
+			// The generator therefore runs outside the lock now. Its side effects are no longer
+			// serialised with the insertion, but the insertion itself is still one atomic batch,
+			// and a generator that touched this same container under the lock would have
+			// deadlocked before.
+			std::vector<std::pair<EntityId, T>> batch;
+			auto f = std::forward<Func>(func);
+			for (auto res = f(); res.first != INVALID_ID; res = f()) {
+				batch.emplace_back(res.first, std::move(res.second));
+			}
+			if (batch.empty()) { return; }
+			getComponentContainer<T>()->template insertBulk<T>(batch.begin(), batch.end());
 		}
 
 		/**
-		 * @brief Append-only bulk insert of component T for a sorted batch of (entity, value) pairs.
+		 * @brief Bulk insert of component T for a batch of (entity, value) pairs.
 		 * @tparam T Component type.
 		 * @tparam It Iterator over pair-like {EntityId, T}.
-		 * @param first,last Range of pairs. Ids MUST be strictly ascending and greater than any id
-		 *        already present in T's array (pure append; no overwrite, no middle insert).
+		 * @param first,last Range of pairs. Ids may be in any order and may fall anywhere in the
+		 *        range already stored; an id already present is overwritten.
 		 * @note Amortizes per-element overhead (existence check, insert-position search, view
 		 *       publish) and, in the TS build, the write lock and pin wait across the whole range.
+		 *       Prefer this to a loop of addComponent() whenever the ids are not ascending: the
+		 *       loop costs O(M*N), this sorts once and merges in a single pass.
 		 */
 		template <class T, class It>
 		void insertBulk(It first, It last) {
