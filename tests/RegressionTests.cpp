@@ -1001,7 +1001,11 @@ struct LA { int v{}; };
 struct LB { double d{}; };
 } // namespace
 
-TEST(Regression_LayoutCache, StaleRecordIsDetectedAfterInsertRepointsTheLayout) {
+// Release-only: the debug build asserts on the mismatch rather than returning, and the stub
+// harness has no death-test support to catch that. What is pinned here is the release
+// fallback -- refusing the assignment instead of repointing the array at a foreign layout.
+#ifdef NDEBUG
+TEST(Regression_LayoutInvariant, InsertFromAForeignLayoutIsRefused) {
 	Registry<true> dst, src;
 	dst.registerArray<LA>();          // LA alone: index 0, first liveness bit
 	src.registerArray<LB, LA>();      // LA second: different offset and different bit
@@ -1009,16 +1013,21 @@ TEST(Regression_LayoutCache, StaleRecordIsDetectedAfterInsertRepointsTheLayout) 
 	for (EntityId e = 0; e < 8; ++e) { src.addComponent<LA>(e, LA{ int(e) }); }
 	dst.addComponent<LA>(100, LA{ 99 });
 
+	// [LB, LA] is a different sector shape from [LA], so this cannot be honoured: it used to
+	// repoint the destination at the source's layout, leaving the sector size and the
+	// liveness bits describing bytes that were never laid out that way.
 	dst.insert<LA>(*src.getComponentContainer<LA>());
 
-	// dst's array now reports the [LB, LA] layout while the record was built from [LA].
-	// Reading through the stale record answered "absent" for seven of these eight.
+	EXPECT_TRUE(dst.hasComponent<LA>(100))
+		<< "the destination lost its own contents to an assignment that could not be honoured";
 	for (EntityId e = 0; e < 8; ++e) {
-		EXPECT_TRUE(dst.hasComponent<LA>(e))
-			<< "id " << e << " reads as absent -- the cached layout record went stale and "
-			   "was used anyway";
+		EXPECT_FALSE(dst.hasComponent<LA>(e))
+			<< "id " << e << " arrived from an array with an incompatible layout";
 	}
+	EXPECT_EQ(dst.getComponentContainer<LA>()->getLayout()->getTotalSize(), sizeof(LA))
+		<< "the destination was repointed at the foreign layout";
 }
+#endif
 
 TEST(Regression_LayoutCache, EveryTypeInAGroupResolvesToItsOwnRecord) {
 	// recordLayouts() fills one entry per pack member; a fold that wrote only the first or

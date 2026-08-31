@@ -197,6 +197,29 @@ namespace ecss::Memory {
 		}
 
 	public:
+		/**
+		 * @brief Do these two describe the same sector shape?
+		 *
+		 * Instances are per type pack *per template instantiation*, so the same components
+		 * laid out for SectorsArray<true> and for SectorsArray<false> are two distinct
+		 * objects with identical contents. Pointer equality would reject copying between
+		 * them, which is a supported operation, so the contents are compared.
+		 *
+		 * Order is part of the shape: [A, B] and [B, A] give each component a different
+		 * offset and a different liveness bit, so they are not compatible.
+		 */
+		bool isCompatibleWith(const SectorLayoutMeta& other) const noexcept {
+			if (count != other.count || totalSize != other.totalSize) {
+				return false;
+			}
+			for (uint8_t i = 0; i < count; ++i) {
+				if (typeIds[i] != other.typeIds[i]) { return false; }
+				if (layout[i].offset != other.layout[i].offset) { return false; }
+				if (layout[i].isAliveMask != other.layout[i].isAliveMask) { return false; }
+			}
+			return true;
+		}
+
 		/// @return Total bytes consumed by sector data (component payloads only, no header).
 		uint16_t getTotalSize() const {	return totalSize; }
 

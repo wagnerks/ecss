@@ -472,9 +472,39 @@ namespace ecss::Memory {
 
 	public:
 		// Exposed for SectorsArray to handle non-trivial copy separately
+		/// @brief Take on @p other's layout, or confirm it is the one already held.
+		///
+		/// An allocator adopts a layout once -- from init(), or here when it was built by
+		/// copying another rather than from a type pack -- and keeps it for good. Repointing
+		/// a live allocator at a different layout would change the sector size and the
+		/// liveness bits under everything already stored in it.
+		///
+		/// @return false if the layouts differ, in which case nothing is changed and the
+		///         caller must abandon the operation rather than proceed with a description
+		///         that does not match the bytes.
+		template<uint32_t OC>
+		[[nodiscard]] bool adoptOrMatchLayout(const ChunksAllocator<OC>& other) {
+			if (mSectorLayout == other.mSectorLayout) {
+				return true;
+			}
+			if (!mSectorLayout) {
+				// Built by copying rather than from a type pack: this is where it gets one.
+				init(other.mSectorLayout);
+				return true;
+			}
+			// Same shape described by a different instance -- the two sides are different
+			// template instantiations, each holding its own copy. Keep ours: it is what every
+			// LayoutData record already handed out points into.
+			if (mSectorLayout->isCompatibleWith(*other.mSectorLayout)) {
+				return true;
+			}
+			assert(false && "layout mismatch: an array can only be assigned from one built "
+			                "over the same component types, in the same order");
+			return false;
+		}
+
 		template<uint32_t OC>
 		void copyCommonData(const ChunksAllocator<OC>& other)  {
-			mSectorLayout = other.mSectorLayout;
 			mSectorSize = other.mSectorSize;
 			mIsSectorTrivial = other.mIsSectorTrivial;
 		}

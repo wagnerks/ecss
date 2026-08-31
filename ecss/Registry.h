@@ -438,7 +438,16 @@ namespace ecss {
 			}
 		}
 
-		/// @brief Copy-in an externally built sectors array for component T.
+		/**
+		 * @brief Copy-in an externally built sectors array for component T.
+		 *
+		 * @warning The source must have been built over the same component types in the same
+		 *          order as T's registered array. [A, B] and [B, A] are different layouts, and
+		 *          so are [A] and [A, B]. A mismatch leaves this registry unchanged (and
+		 *          asserts in debug) rather than repointing the array at a foreign layout:
+		 *          the sector size and the liveness bits would no longer describe the bytes,
+		 *          and the registry would still route B to a different array anyway.
+		 */
 		template<typename T, bool TS, typename Alloc>
 		FORCE_INLINE void insert(const Memory::SectorsArray<TS, Alloc>& array) noexcept { *getComponentContainer<T>() = array; }
 

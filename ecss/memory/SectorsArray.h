@@ -2276,6 +2276,11 @@ private:
 
 	template<bool T, typename Alloc>
 	void copyImpl(const SectorsArray<T, Alloc>& other) {
+		// Checked before anything is destroyed: on a mismatch the destination is left exactly
+		// as it was, which is the only safe outcome. Copying on would reinterpret the source
+		// bytes through a layout of a different sector size.
+		if (!mAllocator.adoptOrMatchLayout(other.mAllocator)) { return; }
+
 		clearImpl();
 		shrinkToFitImpl();
 
@@ -2366,6 +2371,8 @@ private:
 
 	template<bool T, typename Alloc>
 	void moveImpl(SectorsArray<T, Alloc>&& other) {
+		if (!mAllocator.adoptOrMatchLayout(other.mAllocator)) { return; }
+
 		clearImpl();
 		shrinkToFitImpl();
 
