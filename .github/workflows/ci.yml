@@ -254,6 +254,25 @@ jobs:
           if (Get-Command cl -ErrorAction SilentlyContinue) { cl /Bv }
           if (Get-Command clang-cl -ErrorAction SilentlyContinue) { clang-cl --version }
           if (Get-Command ninja -ErrorAction SilentlyContinue) { ninja --version }
+          cmake --version
+
+      - name: Pick the Visual Studio generator that is installed
+        if: contains(matrix.toolchain, 'msbuild')
+        id: vsgen
+        shell: pwsh
+        run: |
+          # windows-latest carried Visual Studio 2022 and now carries 18, so the generator
+          # name cannot be spelled out here: it goes stale with the image. Ask vswhere what
+          # is installed, then take the generator this cmake offers for that major version.
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $major = (& $vswhere -latest -products * -property installationVersion).Split('.')[0]
+          $gen = cmake --help |
+                 Select-String -Pattern "^\s*\*?\s*(Visual Studio $major \d{4})" |
+                 ForEach-Object { $_.Matches[0].Groups[1].Value } |
+                 Select-Object -First 1
+          if (-not $gen) { throw "cmake offers no generator for the installed Visual Studio $major" }
+          Write-Host "Visual Studio $major installed -> generator '$gen'"
+          "name=$gen" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
 
       # --- Configure ---
       - name: Configure (Ninja + MSVC)
@@ -272,7 +291,7 @@ jobs:
         shell: pwsh
         run: >
           cmake -S . -B build
-          -G "Visual Studio 17 2022" -A x64
+          -G "${{ steps.vsgen.outputs.name }}" -A x64
           -DECSS_BUILD_TESTS=ON
 
       - name: Configure (Ninja + clang-cl)
@@ -291,7 +310,7 @@ jobs:
         shell: pwsh
         run: >
           cmake -S . -B build
-          -G "Visual Studio 17 2022" -A x64 -T ClangCL
+          -G "${{ steps.vsgen.outputs.name }}" -A x64 -T ClangCL
           -DECSS_BUILD_TESTS=ON
 
       # --- Build ---
