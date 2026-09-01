@@ -1258,11 +1258,16 @@ namespace RegistryTests {
 				shuffledIds.resize(shuffledIds.size() - removeCount);
 				std::sort(shuffledIds.begin(), shuffledIds.end());
 
-				for (auto id : shuffledIds) {
-					target.addComponent<TransformMatComp>(id, source.pinComponent<TransformMatComp>(id)->mTransform);
+				{
+					// The other half of the claim: a reader holding Read<TransformMatComp> only
+					// keeps this thread out if this thread asks for it too.
+					auto access = target.access<ecss::Write<TransformMatComp>>();
+					for (auto id : shuffledIds) {
+						target.addComponent<TransformMatComp>(id, source.pinComponent<TransformMatComp>(id)->mTransform);
 
-					if (errorDetected) {
-						break;
+						if (errorDetected) {
+							break;
+						}
 					}
 				}
 				std::this_thread::sleep_for(std::chrono::milliseconds(10));
@@ -1273,6 +1278,10 @@ namespace RegistryTests {
 		
 		std::thread reader([&]() {
 			while (!stop) {
+				// This loop asserts the matrix is never half-written, which is a claim about a
+				// component's *value* -- the container only promises the array's shape. Claiming
+				// the type for reading is what makes the assertion true.
+				auto access = target.access<ecss::Read<TransformMatComp>>();
 				for (auto [ent, t] : target.view<const TransformMatComp>()) {
 					for (int i = 0; i < 4; ++i)
 						for (int j = 0; j < 4; ++j) {
