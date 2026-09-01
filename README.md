@@ -63,6 +63,11 @@ record them into a `CommandBuffer`.
 ⚠️ An array must not be restructured while this thread is iterating it: the writer would wait
 for the view you are holding. Debug builds assert; release builds block.
 
+⚠️ The array's *shape* is guaranteed, a component's *value* is not: two threads on one
+component type, one writing, is yours to arrange. `access<Read<T>, Write<U>>()` claims types a
+system at a time (29.5 ns for one), and `setAccessTracking(true)` finds the ones you missed and
+costs nothing in release.
+
 ## 🧹 Defragmentation
 1. Erase marks liveness bits dead and increments per‑array fragmentation counter
 2. Heuristic: `(dead / size) > threshold` → compaction candidate

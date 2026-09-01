@@ -82,6 +82,17 @@ Cost characteristics aim for branch‑lean loops: liveness mask test + (optional
 Pins and holds provide precise blocking: only the arrays actually being restructured wait, and
 only for readers of that array.
 
+### What the guarantee covers
+
+The machinery above protects an array's *shape*. A component's *value* is not covered: two
+threads on one component type, one of them writing, is a race the container does not prevent
+and cannot prevent cheaply — a lock or a pin per element costs 27 ns against 0.5 for an
+iteration step.
+
+`Registry::access<Read<T>, Write<U>>()` supplies the missing guarantee at the granularity
+systems work at, a reader-writer lock per component type taken once per system.
+`Registry::setAccessTracking(true)` finds the places that needed one, in debug builds only.
+
 !!! warning "The waiting is per array, and it includes you"
     A thread that holds a view or a pin on an array and then makes a relocating change to *that
     array* waits for something only it could release. Debug builds assert and name the rule;

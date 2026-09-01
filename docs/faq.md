@@ -38,6 +38,26 @@ A: Typical high‑level iteration APIs handle safety implicitly. Manual pinning 
 
 ---
 
+### Q: Is a component's *value* safe to read while another thread writes it?
+A: No, and that is deliberate. The container guarantees an array's *shape*: it will not be
+relocated under an iterator, and a pinned sector will not move or die. Guarding a value would
+mean a lock or a pin per element -- 27 ns against 0.5 for an iteration step.
+
+It is also a scheduling bug before it is a memory one: a system reading Position while another
+writes it sees a mix of old and new, so the frame's answer depends on which thread won.
+
+Three ways to deal with it, from cheapest to most explicit:
+
+- arrange systems not to overlap on a type, which is what a scheduler would do for you;
+- `reg.access<Read<Position>, Write<Velocity>>()` around a system: a reader-writer lock per
+  component type, 29.5 ns for one, taken once per system rather than per element;
+- `reg.pinComponent<T>(entity)` for a single value you need to hold still.
+
+And `reg.setAccessTracking(true)` in development finds the places you missed: the first overlap
+aborts and names the type and both threads. It compiles out when `NDEBUG` is set.
+
+---
+
 ### Q: What does thread safety actually cost me?
 A: Reading, essentially nothing — 1.0x to 1.3x. Batched structural changes, 1.0x to 1.4x.
 The one expensive case is structural changes made one call at a time: `addComponent` is 4.8x

@@ -53,6 +53,9 @@ hide:
   reclamation), so a snapshot stays readable across a resize.
 - Structural changes made one call at a time are the only ones that cost noticeably more than
   the plain build — see [Batching & Deferral](batching.md).
+- The shape of an array is guaranteed; a component's *value* is not, since holding it would
+  need a lock or a pin per element. `access<Read<T>, Write<U>>()` claims types a system at a
+  time, and `setAccessTracking(true)` finds the overlaps you missed, free in release.
 
 ---
 

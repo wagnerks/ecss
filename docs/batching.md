@@ -23,6 +23,67 @@ This page is about keeping that second kind cheap.
 
 ---
 
+## What is guaranteed, and what is yours
+
+| | who guarantees it |
+|---|---|
+| concurrent reads from any number of threads | the container |
+| concurrent structural changes | the container |
+| reading while another thread inserts, erases or defragments | the container |
+| reading component A while another thread writes B | the container |
+| reading entity X's component while another writes entity Y's | the container |
+| **reading a component's value while another thread writes that same component** | **you** |
+
+The last row is not an oversight. Holding it would mean a lock or a pin per element -- 27 ns
+against 0.5 for an iteration step, more than the lock-free read paths save. It is also a
+scheduling bug before it is a memory one: a system reading Position while another writes it
+gets a mix of old and new values, so the frame's answer depends on which thread won. Making
+the memory safe would not make the answer right.
+
+Two things are provided for it, and neither costs anything in a shipped build unless used.
+
+### `access<>`: claim the types a system touches
+
+```cpp
+{
+    auto access = reg.access<Read<Position>, Write<Velocity>>();
+    for (auto [e, p, v] : reg.view<Position, Velocity>()) {
+        v->dx += p->x;          // inside, iteration is lock-free and full speed as before
+    }
+}
+```
+
+A reader-writer lock per component type, taken once per system rather than once per element:
+29.5 ns for one type, 84.8 for three, so fifty systems naming three apiece cost 4.2 us in a
+frame. Nothing forces its use -- a system that knows it is the only one touching a type skips
+it and loses nothing.
+
+!!! warning "Name every type in one call"
+    Claiming them one at a time is a lock-order inversion waiting to happen: two systems taking
+    the same pair in opposite orders stop. Asked for together they are sorted by type id, so
+    every caller locks in the same sequence.
+
+    Nesting on one thread is fine and does nothing. Asking to write a type this thread already
+    reads is refused rather than upgraded, since there is no atomic upgrade and the two-step
+    version brings the deadlock back.
+
+### `setAccessTracking`: find the ones you missed
+
+```cpp
+reg.setAccessTracking(true);   // once, at startup
+```
+
+A view counts as reading its component types for as long as it lives, a mutator as writing one
+for the duration of its call, and the first overlap between two threads aborts and names the
+type and both threads. Re-entering from the same thread is fine -- a system routinely reads
+what it just wrote.
+
+Off by default, and compiled out entirely when `NDEBUG` is set, so there is nothing to turn off
+before shipping. Worth leaving on for the whole of development: without it, the only way to
+find one of these is a ThreadSanitizer run.
+
+---
+
 ## The one rule
 
 !!! warning "No structural change to an array you are iterating"
