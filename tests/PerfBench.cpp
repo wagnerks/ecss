@@ -191,7 +191,16 @@ TEST(PerfBench, MTReadWriteChurn) {
             while (!stop.load(std::memory_order_relaxed)) {
                 double s = 0;
                 for (auto [e, p] : reg.view<Pos>()) {
-                    if (p) s += p->x;
+                    // Walk the whole array -- ids, liveness, pointer maths, the appends and
+                    // erases the writers are making -- but only read the value of an entity
+                    // the writers never touch. The first MT_N ids are taken before the threads
+                    // start and are never destroyed, so their ids are never recycled, and an
+                    // open view keeps the container from relocating them mid-pass.
+                    //
+                    // Reading a value while another thread writes it is the caller's to
+                    // arrange, not the container's; the churn region is where the writers
+                    // live, so its values are not ours to read.
+                    if (p && e < static_cast<EntityId>(MT_N)) { s += p->x; }
                 }
                 (void)s;
                 ++ops;
