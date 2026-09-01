@@ -66,6 +66,18 @@ if(ECSS_BUILD_TESTS)
     set(BUILD_GMOCK  OFF CACHE BOOL "" FORCE)
     FetchContent_MakeAvailable(googletest)
 
+    # googletest builds itself with warnings as errors (-WX under the MSVC-style drivers),
+    # so every diagnostic a newer compiler learns turns into a build failure inside a
+    # dependency we do not maintain: 1.17.0 trips -Wcharacter-conversion on the clang that
+    # now ships with the Windows runner. Disabling that one warning by name would be worse,
+    # since a clang that does not know it rejects the flag and -WX makes that fatal too.
+    # Our own targets are untouched and still fail on their own warnings.
+    foreach(gtest_target gtest gtest_main)
+        if (TARGET ${gtest_target} AND NOT CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
+            target_compile_options(${gtest_target} PRIVATE -Wno-error)
+        endif()
+    endforeach()
+
     file(GLOB TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
     add_executable(ecss_tests ${TEST_SOURCES})
     target_link_libraries(ecss_tests PRIVATE ecss gtest gtest_main)

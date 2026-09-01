@@ -1345,12 +1345,16 @@ TEST(SectorsArray_Concurrent, CopyWhileModifying) {
 	
 	std::thread copier([&] {
 		while (!bothReady.load(std::memory_order_acquire)) { std::this_thread::yield(); }
-		while (running && copies < 10) {
+		// do/while, not while: the writer finishes its 500 inserts in tens of microseconds,
+		// so if this thread is scheduled even slightly late `running` is already false and the
+		// body never runs, which trips the copies > 0 expectation for purely scheduling
+		// reasons. One copy always happens; the loop then continues while the writer works.
+		do {
 			auto* copy = new SA_T(*arr);
 			EXPECT_GE(copy->size<false>(), 0u);
 			delete copy;
 			copies.fetch_add(1, std::memory_order_relaxed);
-		}
+		} while (running && copies < 10);
 	});
 	
 	bothReady.store(true, std::memory_order_release);

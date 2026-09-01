@@ -1,7 +1,12 @@
 #pragma once
 
-#include <vector>
+#include <algorithm>
+#include <atomic>
+#include <bit>
+#include <cassert>
+#include <cstdlib>
 #include <cstring>
+#include <vector>
 
 #include <ecss/Types.h>
 #include <ecss/Ranges.h>
@@ -289,16 +294,62 @@ namespace ecss::Memory {
 			deallocate(0, capacity());
 		}
 
-		FORCE_INLINE SectorLayoutMeta* getSectorLayout() const { return mSectorLayout; }
+		FORCE_INLINE const SectorLayoutMeta* getSectorLayout() const { return mSectorLayout; }
 
-		FORCE_INLINE void init(SectorLayoutMeta* layoutMeta) { assert(layoutMeta);
+		FORCE_INLINE void init(const SectorLayoutMeta* layoutMeta) { assert(layoutMeta);
 			mSectorLayout = layoutMeta;
 
 			mSectorSize = mSectorLayout->getTotalSize();
 			mIsSectorTrivial = mSectorLayout->isTrivial();
+			storeChunks(); // sector size is part of the published view
 		}
 
 	public:
+		/// @brief Consistent {chunk table, count} pair for lock-free readers.
+		struct ChunksView {
+			void* const* chunks = nullptr;
+			size_t       count = 0;
+			uint16_t     sectorSize = 0;
+		};
+
+		/// @brief Seqlock snapshot of the chunk table.
+		///
+		/// The table is a std::vector, so its buffer pointer and size cannot be read together
+		/// without tearing while allocate() is pushing to it. Readers used to be protected by
+		/// the array shared lock instead, which is precisely the lock that made view()
+		/// construction and every sparse lookup serialise. Old buffers stay readable because
+		/// mChunks is retire-allocated.
+		FORCE_INLINE ChunksView loadChunks() const noexcept {
+			for (;;) {
+				const uint64_t s1 = mSeq.load(std::memory_order_acquire);
+				if (s1 & 1ull) { cpuRelax(); continue; } // odd = writer publishing
+				ChunksView v{
+					mChunksPtr.load(std::memory_order_relaxed),
+					mChunksCount.load(std::memory_order_relaxed),
+					mSectorSize,
+				};
+				std::atomic_thread_fence(std::memory_order_acquire);
+				if (mSeq.load(std::memory_order_relaxed) == s1) [[likely]] { return v; }
+			}
+		}
+
+		/// @brief Publish the current table. Called after every mutation of mChunks.
+		FORCE_INLINE void storeChunks() {
+			const uint64_t s = mSeq.load(std::memory_order_relaxed);
+			mSeq.store(s + 1, std::memory_order_relaxed);
+			std::atomic_thread_fence(std::memory_order_release);
+			mChunksPtr.store(mChunks.data(), std::memory_order_relaxed);
+			mChunksCount.store(mChunks.size(), std::memory_order_relaxed);
+			mSeq.store(s + 2, std::memory_order_release);
+		}
+
+		/// @brief Sector data address inside a snapshot; nullptr when out of range.
+		static FORCE_INLINE std::byte* atView(const ChunksView& view, size_t index) {
+			const size_t chunk = calcChunkIndex(index);
+			if (chunk >= view.count) [[unlikely]] { return nullptr; }
+			return static_cast<std::byte*>(view.chunks[chunk]) + calcInChunkShift(index, view.sectorSize);
+		}
+
 		/// @return Raw pointer to sector data at given linear index
 		FORCE_INLINE std::byte* operator[](size_t index) const { 
 			return static_cast<std::byte*>(mChunks[calcChunkIndex(index)]) + calcInChunkShift(index, mSectorSize); 
@@ -311,6 +362,14 @@ namespace ecss::Memory {
 		/// @brief Simple memmove for trivial sector data (no alive array needed)
 		void moveSectorsDataTrivial(size_t dst, size_t src, size_t n) const {
 			if (!n || dst == src) return;
+
+			// Single-sector fast path. Compaction of a badly interleaved array calls this
+			// once per surviving sector, and the general loop pays for the per-chunk room
+			// arithmetic and a variable-size memmove dispatch to move one sector.
+			if (n == 1) [[unlikely]] {
+				std::memcpy(at(dst), at(src), mSectorSize);
+				return;
+			}
 
 			if (dst < src) {
 				// forward
@@ -355,6 +414,7 @@ namespace ecss::Memory {
 
 				mChunks.erase(mChunks.begin() + static_cast<int64_t>(from), mChunks.begin() + static_cast<int64_t>(to));
 				mChunks.shrink_to_fit();
+				storeChunks();
 				// Do NOT call mBin.drainAll() here: it would defeat the grace period
 				// for both the chunks we just retired and the old mChunks slot buffer
 				// that erase/shrink_to_fit routed through RetireAllocator. The owning
@@ -365,7 +425,10 @@ namespace ecss::Memory {
 
 		void allocate(size_t newCapacity) {
 			const auto oldCapacity = capacity();
-			const auto need = newCapacity > oldCapacity ? (newCapacity - oldCapacity) : 0;
+			if (newCapacity <= oldCapacity) [[likely]] {
+				return; // hot: every insert calls this, and almost every call is a no-op
+			}
+			const auto need = newCapacity - oldCapacity;
 			const auto count = (need + mChunkCapacity - 1) >> mChunkShift;
 
 			mChunks.reserve(mChunks.size() + count);
@@ -373,6 +436,7 @@ namespace ecss::Memory {
 				void* ptr = calloc(mChunkCapacity, mSectorSize); assert(ptr);
 				mChunks.emplace_back(ptr);
 			}
+			storeChunks();
 		}
 
 		FORCE_INLINE size_t capacity() const { return mChunks.size() << mChunkShift; }
@@ -408,9 +472,39 @@ namespace ecss::Memory {
 
 	public:
 		// Exposed for SectorsArray to handle non-trivial copy separately
+		/// @brief Take on @p other's layout, or confirm it is the one already held.
+		///
+		/// An allocator adopts a layout once -- from init(), or here when it was built by
+		/// copying another rather than from a type pack -- and keeps it for good. Repointing
+		/// a live allocator at a different layout would change the sector size and the
+		/// liveness bits under everything already stored in it.
+		///
+		/// @return false if the layouts differ, in which case nothing is changed and the
+		///         caller must abandon the operation rather than proceed with a description
+		///         that does not match the bytes.
+		template<uint32_t OC>
+		[[nodiscard]] bool adoptOrMatchLayout(const ChunksAllocator<OC>& other) {
+			if (mSectorLayout == other.mSectorLayout) {
+				return true;
+			}
+			if (!mSectorLayout) {
+				// Built by copying rather than from a type pack: this is where it gets one.
+				init(other.mSectorLayout);
+				return true;
+			}
+			// Same shape described by a different instance -- the two sides are different
+			// template instantiations, each holding its own copy. Keep ours: it is what every
+			// LayoutData record already handed out points into.
+			if (mSectorLayout->isCompatibleWith(*other.mSectorLayout)) {
+				return true;
+			}
+			assert(false && "layout mismatch: an array can only be assigned from one built "
+			                "over the same component types, in the same order");
+			return false;
+		}
+
 		template<uint32_t OC>
 		void copyCommonData(const ChunksAllocator<OC>& other)  {
-			mSectorLayout = other.mSectorLayout;
 			mSectorSize = other.mSectorSize;
 			mIsSectorTrivial = other.mIsSectorTrivial;
 		}
@@ -421,6 +515,10 @@ namespace ecss::Memory {
 
 		template<uint32_t OC>
 		void copy(const ChunksAllocator<OC>& other)  {
+			// Release what this allocator already owns first, otherwise allocate() below is a
+			// no-op when the destination is the larger of the two and the copy loops then run
+			// past the end of the source.
+			deallocate(0, capacity());
 			copyCommonData(other);
 			allocate(other.mChunks.size() * mChunkCapacity);
 			if (mIsSectorTrivial) {
@@ -455,11 +553,13 @@ namespace ecss::Memory {
 				}
 			}
 			else {
-				// Note: for non-trivial copy, caller must handle isAlive arrays separately
+				// Note: raw byte copy. Only valid for callers that fix up non-trivial members
+				// afterwards -- SectorsArray::copyImpl bypasses this path entirely and
+				// copy-constructs each member through the layout function table instead.
+				const size_t total = std::min(capacity(), other.capacity());
 				auto from = other.getCursor();
 				auto to = getCursor();
-				for (auto i = 0u; i < capacity(); i++) {
-					// Copy raw bytes only - isAlive handling is external
+				for (size_t i = 0; i < total; i++) {
 					std::memcpy(*to, *from, mSectorSize);
 					++from;
 					++to;
@@ -469,6 +569,9 @@ namespace ecss::Memory {
 
 		template<uint32_t OC>
 		void move(ChunksAllocator<OC>&& other)  {
+			// Hand our own chunks to the retire bin before taking over the source ones.
+			// Clearing mChunks on its own would drop the pointers without ever freeing them.
+			deallocate(0, capacity());
 			copyCommonData(other);
 			if constexpr (OC == ChunkCapacity) {
 				// Can't just std::move the vector - allocator points to other.mBin!
@@ -478,13 +581,16 @@ namespace ecss::Memory {
 				for (void* chunk : other.mChunks) {
 					mChunks.push_back(chunk);
 				}
+				storeChunks();
 				other.mChunks.clear();
+				other.storeChunks();
 			}
 			else {
 				allocate(other.mChunks.size() * mChunkCapacity);
+				const size_t total = std::min(capacity(), other.capacity());
 				auto from = other.getCursor();
 				auto to = getCursor();
-				for (auto i = 0u; i < capacity(); i++) {
+				for (size_t i = 0; i < total; i++) {
 					std::memcpy(*to, *from, mSectorSize);
 					++from;
 					++to;
@@ -501,7 +607,18 @@ namespace ecss::Memory {
 		mutable Memory::RetireBin mBin;
 		std::vector<void*, Memory::RetireAllocator<void*>> mChunks { Memory::RetireAllocator<void*>{ &mBin } };
 
-		SectorLayoutMeta* mSectorLayout = nullptr;
+		// Published snapshot of mChunks. Seqlock, same shape as DenseArrays/SparseMap.
+		// Deliberately not cache-line aligned: it is read once per iterator construction,
+		// not per element, and padding it pushed the hot mChunks/mSectorSize fields onto
+		// another line, which cost ~10%% on insert-heavy workloads.
+		mutable std::atomic<uint64_t> mSeq{ 0 };
+		std::atomic<void* const*>                 mChunksPtr{ nullptr };
+		std::atomic<size_t>                       mChunksCount{ 0 };
+
+		static_assert(types::isLockFreeAtomic<uint64_t>, "chunk seqlock counter must be lock-free");
+		static_assert(types::isLockFreeAtomic<size_t>, "chunk count must be lock-free");
+
+		const SectorLayoutMeta* mSectorLayout = nullptr;
 		uint16_t mSectorSize = 0;
 
 		bool mIsSectorTrivial = true;

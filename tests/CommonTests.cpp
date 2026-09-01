@@ -424,11 +424,14 @@ namespace CommonTests {
 						auto& isAlive = arr->getIsAliveRef(idx);
 						auto* data = arr->findSectorData<false>(id);  // No additional lock needed
 						if (data) {
+							// <true>: this array is thread-safe and readers walk it without a
+							// lock, so the liveness word has to be published atomically. The
+							// write lock held here excludes other writers, not readers.
 							if (Sector::isAlive(isAlive, arr->getLayoutData<Vel>().isAliveMask)) {
-								Sector::destroyMember(data, isAlive, arr->getLayoutData<Vel>());
+								Sector::destroyMember<true>(data, isAlive, arr->getLayoutData<Vel>());
 							}
 							else {
-								Sector::emplaceMember<Vel>(data, isAlive, arr->getLayoutData<Vel>(), float(id));
+								Sector::emplaceMember<Vel, true>(data, isAlive, arr->getLayoutData<Vel>(), float(id));
 							}
 						}
 					}

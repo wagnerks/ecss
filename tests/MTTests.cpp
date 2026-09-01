@@ -156,11 +156,14 @@ TEST(MT, ReadersWriters_Churn) {
 
             while (std::chrono::steady_clock::now() < t_end) {
                 
-                for (int i = 0; i < 256; ++i) {
-                    auto id = create(ecs);
-                    emplace<Position>(ecs, id, 0.f, 0.f, 0.f);
-                    if ((i & 1) == 0) emplace<Velocity>(ecs, id, 1.f, 1.f, 1.f);
-                    local.push_back(id);
+                {
+                    auto access = ecs.access<ecss::Write<Position>, ecss::Write<Velocity>>();
+                    for (int i = 0; i < 256; ++i) {
+                        auto id = create(ecs);
+                        emplace<Position>(ecs, id, 0.f, 0.f, 0.f);
+                        if ((i & 1) == 0) emplace<Velocity>(ecs, id, 1.f, 1.f, 1.f);
+                        local.push_back(id);
+                    }
                 }
                 
                 for (auto it = local.begin(); it != local.end();) {
@@ -183,6 +186,10 @@ TEST(MT, ReadersWriters_Churn) {
         pool.emplace_back([&] {
             size_t local = 0;
             while (!stop.load(std::memory_order_acquire)) {
+                // The container keeps the array's shape safe on its own; reading a component's
+                // value while another thread writes it is the caller's to arrange, and this is
+                // how. Without it the sum below reads bytes mid-write.
+                auto access = ecs.access<ecss::Read<Position>, ecss::Read<Velocity>>();
                 for (auto [e, p, v] : range<Position, Velocity>(ecs)) {
                     if (!p || !v) continue; 
                     local += size_t(p->x + v->dx);

@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <cstddef>
+#include <cstdlib>
 #include <vector>
 #include <mutex>
 #include <type_traits>
@@ -44,11 +45,22 @@ namespace ecss::Memory {
 			return *this;
 		}
 
-		/// @brief Queue memory block for deferred freeing
+		/// @brief Queue memory block for deferred freeing, or free it now if the grace
+		/// period is zero.
+		///
+		/// A zero grace period means the owner has no lock-free readers to protect, so
+		/// there is nothing for the block to wait for. Queuing it anyway would need a
+		/// tick() the single-threaded build has no reason to call, and the block would
+		/// live until the bin was destroyed.
 		void retire(void* p) {
 			if (!p) return;
+			if (mGracePeriod.load(std::memory_order_relaxed) == 0) {
+				std::free(p);
+				return;
+			}
 			auto lock = std::lock_guard(mMtx);
 			mRetired.push_back({p, mGracePeriod.load(std::memory_order_relaxed)});
+			mPending.store(mRetired.size(), std::memory_order_release);
 		}
 
 		/**
@@ -60,6 +72,13 @@ namespace ecss::Memory {
 		 * @return Number of blocks freed this tick
 		 */
 		size_t tick() {
+			// Lock-free early-out. tick() runs for every array every frame and is almost
+			// always a no-op, but taking the mutex to discover that cost ~58 ns per array
+			// per frame (three bins per array, plus the write lock in processPendingErases).
+			if (mPending.load(std::memory_order_acquire) == 0) [[likely]] {
+				return 0;
+			}
+
 			std::vector<void*> toFree;
 			{
 				auto lock = std::lock_guard(mMtx);
@@ -73,8 +92,9 @@ namespace ecss::Memory {
 						++it;
 					}
 				}
+				mPending.store(mRetired.size(), std::memory_order_release);
 			}
-			
+
 			for (auto p : toFree) {
 				std::free(p);
 			}
@@ -91,6 +111,7 @@ namespace ecss::Memory {
 					tmp.push_back(block.ptr);
 				}
 				mRetired.clear();
+				mPending.store(0, std::memory_order_release);
 			}
 
 			for (auto b : tmp) {
@@ -115,6 +136,8 @@ namespace ecss::Memory {
 
 		mutable std::mutex mMtx;
 		std::vector<RetiredBlock> mRetired;
+		/// Mirror of mRetired.size(), readable without the mutex so tick() can bail out.
+		std::atomic<size_t> mPending{ 0 };
 		std::atomic<uint32_t> mGracePeriod{DEFAULT_GRACE_PERIOD};
 	};
 

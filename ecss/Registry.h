@@ -4,7 +4,7 @@
  * @brief Core ECS registry and iterator/view implementation (SoA-based storage).
  *
  * The Registry manages:
- *   - Allocation and ownership of entity ids (dense id ranges via Ranges<>).
+ *   - Allocation and ownership of entity ids (bitmap of live ids via IdSet<>).
  *   - Lazily created or pre-registered component sector arrays (SectorsArray).
  *   - Thread-aware access and pinning (if ThreadSafe template parameter is true).
  *   - Views (ArraysView) that iterate a "main" component and project other components.
@@ -36,6 +36,9 @@
 #include <tuple>
 #include <vector>
 
+#include <ecss/Access.h>
+#include <ecss/AccessTracker.h>
+#include <ecss/IdSet.h>
 #include <ecss/Ranges.h>
 #include <ecss/memory/Reflection.h>
 #include <ecss/memory/SectorsArray.h>
@@ -148,28 +151,43 @@ namespace ecss {
 
 	public:
 		/// @brief Default construct an empty registry (no arrays allocated until first use).
-		Registry() noexcept = default;
+		Registry() noexcept {
+			if constexpr (!ThreadSafe) {
+				// No lock-free readers here, so a superseded snapshot has nothing to outlive.
+				mNodeBin.setGracePeriod(0);
+			}
+		}
 
 		/// @brief Destroys all component arrays (each SectorsArray is deleted).
-		~Registry() noexcept { for (auto array : mComponentsArrays) delete array; }
+		~Registry() noexcept {
+			for (auto array : mComponentsArrays) delete array;
+			// Superseded snapshots are in the bin, which frees them on destruction; the one
+			// still published is not, so it is freed here.
+			std::free(mRegistered.load(std::memory_order_relaxed));
+		}
 
 		/**
 		 * @brief Maintenance pass (thread-safe build): process deferred erases, free retired memory, and optionally defragment.
+		 *
+		 * Safe to call from anywhere, including from inside a loop over a view: nothing here
+		 * waits. Deferred erases only destroy components in place, and compaction is attempted
+		 * rather than awaited -- an array that something is iterating right now is left for the
+		 * next call. Calling it more than once a frame is harmless; calling it at a quiet point
+		 * simply means more of the work lands on the first try.
+		 *
+		 * To compact regardless of who is iterating, and to wait for them, call
+		 * SectorsArray::defragment() on the array directly.
 		 * @param withDefragment If true, arrays that exceed thresholds may compact themselves.
 		 * @note Recommended to call once per frame at a stable synchronization point.
 		 * @note Automatically frees retired memory that has passed the grace period (default 3 ticks).
 		 * @thread_safety Internally synchronized.
 		 */
 		void update(bool withDefragment = true) noexcept requires(ThreadSafe) {
-			decltype(mComponentsArrays) arrays;
-			{
-				std::shared_lock lock(componentsArrayMapMutex);
-				arrays = mComponentsArrays;
-			}
-
-			for (auto* array : arrays) {
-				array->tick();  // Free retired memory older than grace period
-				array->processPendingErases(withDefragment);
+			mNodeBin.tick();    // superseded snapshots past their grace period
+			const auto [begin, end] = registeredArrays();
+			for (auto it = begin; it != end; ++it) {
+				(*it)->tick();  // Free retired memory older than grace period
+				(*it)->processPendingErases(withDefragment);
 			}
 		}
 
@@ -197,16 +215,16 @@ namespace ecss {
 		 * This is safe to call while iterators may be active in other threads -
 		 * only sufficiently old memory (older than grace period) will be freed.
 		 * 
-		 * @note Only available in thread-safe mode. In non-thread-safe mode,
-		 *       memory is freed immediately during reallocation (no deferred reclamation).
+		 * @note In non-thread-safe mode memory is freed as it is released, so this is a
+		 *       no-op returning zero. It stays callable in both modes.
 		 * 
 		 * @return Total number of memory blocks freed across all arrays
 		 */
-		size_t tick() noexcept requires(ThreadSafe) {
-			size_t freed = 0;
-			std::shared_lock lock(componentsArrayMapMutex);
-			for (auto* array : mComponentsArrays) {
-				freed += array->tick();
+		size_t tick() noexcept {
+			size_t freed = mNodeBin.tick();
+			const auto [begin, end] = registeredArrays();
+			for (auto it = begin; it != end; ++it) {
+				freed += (*it)->tick();
 			}
 			return freed;
 		}
@@ -220,15 +238,14 @@ namespace ecss {
 		 * Default is 3 ticks, which is safe for typical game loops where
 		 * iterators don't survive across frames.
 		 * 
-		 * @note Only available in thread-safe mode. In non-thread-safe mode,
-		 *       memory is freed immediately (no deferred reclamation).
+		 * @note The non-thread-safe build fixes this at zero and ignores the setter.
 		 * 
 		 * @param ticks Number of tick() calls before memory is freed
 		 */
-		void setRetireGracePeriod(uint32_t ticks) noexcept requires(ThreadSafe) {
-			std::shared_lock lock(componentsArrayMapMutex);
-			for (auto* array : mComponentsArrays) {
-				array->setGracePeriod(ticks);
+		void setRetireGracePeriod(uint32_t ticks) noexcept {
+			const auto [begin, end] = registeredArrays();
+			for (auto it = begin; it != end; ++it) {
+				(*it)->setGracePeriod(ticks);
 			}
 		}
 
@@ -243,23 +260,20 @@ namespace ecss {
 		 */
 		template <class T>
 		FORCE_INLINE bool hasComponent(EntityId entity) noexcept {
-			if constexpr (ThreadSafe) {
-				if (auto container = getComponentContainer<T>()) {
-					if (auto pin = container->pinSector(entity)) {
-						return Memory::Sector::isAlive(pin.getIsAlive(), container->template getLayoutData<T>().isAliveMask);
-					}
-				}
+			const auto access = getComponentAccess<T>();
+			auto container = access.array;
+			// No pin and no lock: this hands out no pointer, so there is nothing to keep
+			// alive. The slot lookup and the alive word both go through the lock-free
+			// snapshots (SparseMap seqlock + DenseArrays seqlock), which is exactly what
+			// ArraysView::getComponent already does. Pinning here cost two seq_cst RMWs
+			// plus a potential wake syscall, and the shared lock serialised every reader,
+			// for an answer that is inherently a point-in-time sample either way.
+			const auto slot = container->template findSlot<false>(entity);
+			if (!slot) {
+				return false;
 			}
-			else {
-				if (auto container = getComponentContainer<T>()) {
-					auto idx = container->template findLinearIdx<false>(entity);
-					if (idx != INVALID_IDX) {
-						return Memory::Sector::isAlive(container->template getIsAliveRef<false>(idx), container->template getLayoutData<T>().isAliveMask);
-					}
-				}
-			}
-
-			return false;
+			return Memory::Sector::isAlive(container->template loadAliveWord<ThreadSafe>(slot.linearIdx),
+			                               access.layout->isAliveMask);
 		}
 
 		/**
@@ -288,41 +302,65 @@ namespace ecss {
 		 * @return Pointer to the stored component.
 		 * @note Overwrites existing component instance (destructive assign semantics inside sector).
 		 */
+		/**
+		 * @brief Add or overwrite component T on an entity.
+		 * @warning Illegal while this thread holds a view or a pin on T's array, unless the id
+		 *          is above every id already stored: any other position shifts existing
+		 *          sectors, which would invalidate the live iterator. Debug builds assert;
+		 *          release builds hang. See the SectorsArray class documentation.
+		 * @note Adding M components with ids that are not ascending costs O(M*N) this way.
+		 *       Use insertBulk() or addComponents() for a batch -- they merge in one pass.
+		 */
 		template <class T, class ...Args>
 		FORCE_INLINE T* addComponent(EntityId entity, Args&&... args) noexcept {
+			const auto guard = detail::writeScope<T>(componentTypeId<T>());
 			return getComponentContainer<T>()->template push<T>(entity, std::forward<Args>(args)...);
 		}
 
 		/**
-		 * @brief Bulk add components via generator functor under a single write lock (thread-safe build).
+		 * @brief Bulk add components from a generator, inserted as one batch.
 		 * @tparam T Component type.
 		 * @tparam Func Callable returning std::pair<EntityId,T>. Return {INVALID_ID, {}} to stop.
-		 * @param func Generator invoked repeatedly while lock is held.
-		 * @note Optimizes many insertions by avoiding enter/leave lock per element.
+		 * @param func Generator invoked repeatedly until it signals the end.
+		 * @note Ids may be emitted in any order. The batch is collected, then merged in a
+		 *       single pass under one write lock.
 		 */
 		template <class T, typename Func>
 		void addComponents(Func&& func) requires(ThreadSafe) {
-			auto container = getComponentContainer<T>();
-			auto lock = container->writeLock();
+			// Drain the generator first. Holding the write lock across it saved the per-element
+			// lock traffic but still inserted one id at a time, so a generator that emitted ids
+			// out of order paid O(M*N): each middle insert shifts the tail and rewrites the
+			// sparse entry of every sector it passes. Sorting the batch once and merging it is
+			// linear instead -- see SectorsArray::insertBulk.
+			//
+			// The generator therefore runs outside the lock now. Its side effects are no longer
+			// serialised with the insertion, but the insertion itself is still one atomic batch,
+			// and a generator that touched this same container under the lock would have
+			// deadlocked before.
+			std::vector<std::pair<EntityId, T>> batch;
 			auto f = std::forward<Func>(func);
-			auto res = f();
-			while (res.first != INVALID_ID) {
-				container->template push<T, false>(res.first, res.second);
-				res = f();
+			for (auto res = f(); res.first != INVALID_ID; res = f()) {
+				batch.emplace_back(res.first, std::move(res.second));
 			}
+			if (batch.empty()) { return; }
+			const auto guard = detail::writeScope<T>(componentTypeId<T>());
+			getComponentContainer<T>()->template insertBulk<T>(batch.begin(), batch.end());
 		}
 
 		/**
-		 * @brief Append-only bulk insert of component T for a sorted batch of (entity, value) pairs.
+		 * @brief Bulk insert of component T for a batch of (entity, value) pairs.
 		 * @tparam T Component type.
 		 * @tparam It Iterator over pair-like {EntityId, T}.
-		 * @param first,last Range of pairs. Ids MUST be strictly ascending and greater than any id
-		 *        already present in T's array (pure append; no overwrite, no middle insert).
+		 * @param first,last Range of pairs. Ids may be in any order and may fall anywhere in the
+		 *        range already stored; an id already present is overwritten.
 		 * @note Amortizes per-element overhead (existence check, insert-position search, view
 		 *       publish) and, in the TS build, the write lock and pin wait across the whole range.
+		 *       Prefer this to a loop of addComponent() whenever the ids are not ascending: the
+		 *       loop costs O(M*N), this sorts once and merges in a single pass.
 		 */
 		template <class T, class It>
 		void insertBulk(It first, It last) {
+			const auto guard = detail::writeScope<T>(componentTypeId<T>());
 			getComponentContainer<T>()->template insertBulk<T>(first, last);
 		}
 
@@ -334,20 +372,25 @@ namespace ecss {
 		 */
 		template <class T>
 		void destroyComponent(EntityId entity) noexcept {
+			const auto guard = detail::writeScope<T>(componentTypeId<T>());
 			if (auto container = getComponentContainer<T>()) {
 				if constexpr (ThreadSafe) {
-					auto lock = container->writeLock();
-					container->mPinsCounter.waitUntilChangeable(entity);
-
-					auto idx = container->template findLinearIdx<false>(entity);
-					if (idx != INVALID_IDX) {
-						auto& isAlive = container->template getIsAliveRef<false>(idx);
-						auto before = isAlive;
-						Memory::Sector::destroyMember<ThreadSafe>(container->mAllocator.at(idx), isAlive, container->template getLayoutData<T>());
-						if (before != isAlive && !Memory::Sector::isSectorAlive(isAlive)) {
-							container->incDefragmentSize();
-						}
+					// Lock-free presence check before locking (see destroySector).
+					if (!container->template containsSector<false>(entity)) {
+						return;
 					}
+					// Destroys one member in place -- only that sector must be unpinned.
+					container->exclusiveWhenUnpinned(entity, [&] {
+						auto idx = container->template findLinearIdx<false>(entity);
+						if (idx != INVALID_IDX) {
+							auto& isAlive = container->template getIsAliveRef<false>(idx);
+							auto before = isAlive;
+							Memory::Sector::destroyMember<ThreadSafe>(container->mAllocator.at(idx), isAlive, container->template getLayoutData<T>());
+							if (before != isAlive && !Memory::Sector::isSectorAlive(isAlive)) {
+								container->incDefragmentSize();
+							}
+						}
+					});
 				}
 				else {
 					auto idx = container->template findLinearIdx<false>(entity);
@@ -373,30 +416,32 @@ namespace ecss {
 		template <class T>
 		void destroyComponent(std::vector<EntityId>& entities) noexcept {
 			if (entities.empty()) {return;}
+			const auto guard = detail::writeScope<T>(componentTypeId<T>());
 
 			if (auto container = getComponentContainer<T>()) {
 				const auto& layout = container->template getLayoutData<T>();
 				if constexpr (ThreadSafe) {
-					auto lock = container->writeLock();
+					// A whole batch of sectors is touched, so require quiescence rather than
+					// testing them one by one; the wait happens outside the write lock.
+					container->exclusiveWhenQuiescent([&] {
+						prepareEntities(entities, container->template sparseCapacity<false>());
+						if (entities.empty()) {
+							return;
+						}
 
-					prepareEntities(entities, container->template sparseCapacity<false>());
-					if (entities.empty()) {
-						return;
-					}
-
-					container->mPinsCounter.waitUntilChangeable(entities.front());
-					for (const auto sectorId : entities) {
-						// Use findSlot for single lookup
-						auto slotInfo = container->template findSlot<false>(sectorId);
-						if (slotInfo) {
-							auto& isAlive = container->template getIsAliveRef<false>(slotInfo.linearIdx);
-							auto before = isAlive;
-							Memory::Sector::destroyMember<ThreadSafe>(slotInfo.data, isAlive, layout);
-							if (before != isAlive && !Memory::Sector::isSectorAlive(isAlive)) {
-								container->incDefragmentSize();
+						for (const auto sectorId : entities) {
+							// Use findSlot for single lookup
+							auto slotInfo = container->template findSlot<false>(sectorId);
+							if (slotInfo) {
+								auto& isAlive = container->template getIsAliveRef<false>(slotInfo.linearIdx);
+								auto before = isAlive;
+								Memory::Sector::destroyMember<ThreadSafe>(slotInfo.data, isAlive, layout);
+								if (before != isAlive && !Memory::Sector::isSectorAlive(isAlive)) {
+									container->incDefragmentSize();
+								}
 							}
 						}
-					}
+					});
 				}
 				else {
 					prepareEntities(entities, container->template sparseCapacity<false>());
@@ -417,7 +462,16 @@ namespace ecss {
 			}
 		}
 
-		/// @brief Copy-in an externally built sectors array for component T.
+		/**
+		 * @brief Copy-in an externally built sectors array for component T.
+		 *
+		 * @warning The source must have been built over the same component types in the same
+		 *          order as T's registered array. [A, B] and [B, A] are different layouts, and
+		 *          so are [A] and [A, B]. A mismatch leaves this registry unchanged (and
+		 *          asserts in debug) rather than repointing the array at a foreign layout:
+		 *          the sector size and the liveness bits would no longer describe the bytes,
+		 *          and the registry would still route B to a different array anyway.
+		 */
 		template<typename T, bool TS, typename Alloc>
 		FORCE_INLINE void insert(const Memory::SectorsArray<TS, Alloc>& array) noexcept { *getComponentContainer<T>() = array; }
 
@@ -427,13 +481,107 @@ namespace ecss {
 
 	public:
 		/**
+		 * @brief Let views carry out the maintenance update() does, for the arrays they touch.
+		 *
+		 * With this on there is no call to place in the frame: opening a view first gives its
+		 * arrays the pass update() would have given them -- retire the memory whose grace
+		 * period has run out, apply deferred erases, and compact if the array asked for it and
+		 * is free at that moment. A busy array is skipped, exactly as in update(), so this
+		 * never blocks and never changes what iteration sees.
+		 *
+		 * Compaction is done where it pays: right before the iteration that benefits from it.
+		 * The total work is the same either way -- an array wants compacting once, and once
+		 * done it stops asking -- so this moves the cost rather than adding it.
+		 *
+		 * Off by default: opening a view is a read, and doing structural work inside one should
+		 * be asked for rather than assumed. Set it once at startup, before other threads exist.
+		 * update() keeps working and stays the way to control when the work lands.
+		 */
+		void setAutoMaintenance(bool enabled) noexcept { mAutoMaintenance = enabled; }
+
+		/**
+		 * @brief Watch for two threads touching one component type at once (debug builds).
+		 *
+		 * The container keeps an array's *shape* safe on its own: it will not be relocated
+		 * under an iterator, and a pinned sector will not move or die. A component's *value*
+		 * is a different matter -- guarding that would mean locking or pinning per element,
+		 * which costs more than the lock-free read paths save. So a system reading Position
+		 * while another writes it is a race the container cannot see.
+		 *
+		 * With this on, it is seen: the first overlap aborts and names the type and the two
+		 * threads. A view counts as reading its component types for as long as it lives, and a
+		 * mutator as writing one for the duration of the call; re-entering from the same thread
+		 * is fine, since a system routinely reads what it just wrote.
+		 *
+		 * Worth leaving on for the whole of development. It compiles to nothing when NDEBUG is
+		 * set, so there is nothing to turn off before shipping.
+		 */
+		/**
+		 * @brief Claim component types for the length of a system, so two of them cannot
+		 *        touch the same type at once.
+		 *
+		 * @code
+		 * auto access = reg.access<Read<Position>, Write<Velocity>>();
+		 * for (auto [e, p, v] : reg.view<Position, Velocity>()) {
+		 *     v->dx += p->x;          // inside, everything runs at full speed as before
+		 * }
+		 * @endcode
+		 *
+		 * The container keeps an array's shape safe by itself; it does not keep a component's
+		 * value stable while another thread writes it, and guarding that per element would
+		 * cost more than the lock-free read paths save. This puts the guarantee at the
+		 * granularity systems actually work at -- a whole component type -- so it is paid once
+		 * per system rather than once per element. A reader-writer lock per type: 29.5 ns for
+		 * one, 84.8 for three, against 27 ns to pin a single component -- and pinning would have
+		 * to happen per element rather than per system.
+		 *
+		 * Name every type the system touches in one call. Taking them one at a time lets two
+		 * systems claim the same pair in opposite orders and stop; asked for together, they are
+		 * sorted by type id so every caller agrees on the order.
+		 *
+		 * Nesting from the same thread is fine and does nothing. Asking to write a type this
+		 * thread already reads is refused in debug rather than upgraded, since there is no
+		 * atomic upgrade and doing it in two steps brings the deadlock back.
+		 *
+		 * Nothing forces its use: a system that knows it is the only one touching a type can
+		 * skip it and lose nothing. setAccessTracking() is what finds the ones that were wrong
+		 * to skip.
+		 */
+		template <typename... Claims>
+		[[nodiscard]] detail::AccessGuard access() {
+			static_assert(sizeof...(Claims) > 0, "name at least one component type");
+			std::array<detail::AccessGuard::Entry, sizeof...(Claims)> claims{
+				detail::AccessGuard::Entry{
+					&typeMutex(componentTypeId<typename Claims::Component>()),
+					componentTypeId<typename Claims::Component>(),
+					Claims::kWrites,
+					false }...
+			};
+			return detail::AccessGuard(claims);
+		}
+
+		void setAccessTracking(bool enabled) noexcept {
+#ifndef NDEBUG
+			detail::AccessTracker::enabled() = enabled;
+#else
+			(void)enabled;
+#endif
+		}
+
+		/// @return Whether views maintain the arrays they open. @see setAutoMaintenance
+		[[nodiscard]] bool autoMaintenance() const noexcept { return mAutoMaintenance; }
+
+		/**
 		 * @brief Create an iterable view limited to given entity ranges.
 		 * @tparam Components Component types to fetch; first drives iteration order.
 		 * @param ranges Half-open entity ranges.
 		 * @return ArraysView instance (ranged iteration).
 		 */
 		template<typename... Components>
-		FORCE_INLINE auto view(const Ranges<EntityId>& ranges) noexcept { return ArraysView<ThreadSafe, Allocator, true, Components...>{ this, ranges }; }
+		FORCE_INLINE auto view(const Ranges<EntityId>& ranges) noexcept {
+			maintainFor<Components...>();
+			return ArraysView<ThreadSafe, Allocator, true, Components...>{ this, ranges };
+		}
 
 		/**
 		 * @brief Create a full-range iterable view over all entities with the main component.
@@ -441,7 +589,10 @@ namespace ecss {
 		 * @return ArraysView instance (full range).
 		 */
 		template<typename... Components>
-		FORCE_INLINE auto view() noexcept { return ArraysView<ThreadSafe, Allocator, false, Components...>{this}; }
+		FORCE_INLINE auto view() noexcept {
+			maintainFor<Components...>();
+			return ArraysView<ThreadSafe, Allocator, false, Components...>{this};
+		}
 
 		/**
 		 * @brief Apply a function to each entity in a list, pinning requested component types (thread-safe build).
@@ -478,14 +629,9 @@ namespace ecss {
 		void clear() noexcept {
 			if constexpr (ThreadSafe) {
 				{
-					decltype(mComponentsArrays) arrays;
-					{
-						std::shared_lock lock(componentsArrayMapMutex);
-						arrays = mComponentsArrays;
-					}
-
-					for (auto* array : arrays) {
-						array->clear();
+					const auto [begin, end] = registeredArrays();
+					for (auto it = begin; it != end; ++it) {
+						(*it)->clear();
 					}
 				}
 
@@ -507,14 +653,9 @@ namespace ecss {
 		 */
 		void defragment() noexcept {
 			if constexpr(ThreadSafe) {
-				decltype(mComponentsArrays) arrays;
-				{
-					auto lock = std::shared_lock(componentsArrayMapMutex);
-					arrays = mComponentsArrays;
-				}
-
-				for (auto* array : arrays) {
-					array->defragment();
+				const auto [begin, end] = registeredArrays();
+				for (auto it = begin; it != end; ++it) {
+					(*it)->defragment();
 				}
 			}
 			else {
@@ -561,6 +702,12 @@ namespace ecss {
 					sectorsArray = Memory::SectorsArray<ThreadSafe, Allocator>::template create<ComponentTypes...>(std::move(allocator));
 					mComponentsArrays.push_back(sectorsArray);
 					((mComponentsArraysMap[componentTypeId<ComponentTypes>()] = sectorsArray), ...);
+					// Resolve each component's LayoutData once, here, where the pack is still a
+					// compile-time thing. Every later lookup would otherwise re-derive it by
+					// scanning the layout's type tokens, which is what made a grouped array
+					// cost more per query the more types it held.
+					recordLayouts<ComponentTypes...>(sectorsArray);
+					publishRegistered();
 				}
 
 				sectorsArray->reserve(capacity);
@@ -589,6 +736,8 @@ namespace ecss {
 				sectorsArray = Memory::SectorsArray<ThreadSafe, Allocator>::template create<ComponentTypes...>(std::move(allocator));
 				mComponentsArrays.push_back(sectorsArray);
 				((mComponentsArraysMap[componentTypeId<ComponentTypes>()] = sectorsArray), ...);
+				recordLayouts<ComponentTypes...>(sectorsArray);
+				publishRegistered();
 
 				sectorsArray->reserve(capacity);
 			}
@@ -602,18 +751,15 @@ namespace ecss {
 		 */
 		template <class T>
 		[[nodiscard]] Memory::SectorsArray<ThreadSafe, Allocator>* getComponentContainer() noexcept {
+			// Lock-free: one acquire load of the published snapshot. This is on the entry of
+			// every single registry call, and taking a registry-global shared_lock here made
+			// all of them contend on one cache line (measured ~300x per-op latency at 32
+			// threads). The snapshot is safe because registration is append-only -- an entry,
+			// once set, is never cleared or repointed before destruction.
 			const auto componentType = componentTypeId<T>();
-			if constexpr (ThreadSafe) {
-				std::shared_lock readLock(componentsArrayMapMutex);
-				if (mComponentsArraysMap.size() > componentType) {
-					if (auto array = mComponentsArraysMap[componentType]) {
-						return array;
-					}
-				}
-			}
-			else {
-				if (mComponentsArraysMap.size() > componentType) {
-					if (auto array = mComponentsArraysMap[componentType]) {
+			if (const auto* node = mRegistered.load(std::memory_order_acquire)) [[likely]] {
+				if (componentType < node->mapCount) {
+					if (auto* array = node->map[componentType]) [[likely]] {
 						return array;
 					}
 				}
@@ -622,37 +768,86 @@ namespace ecss {
 			return registerArray<T>(), getComponentContainer<T>();
 		}
 
+		/// @brief The array holding T together with T's layout record, from one snapshot load.
+		struct ComponentAccess {
+			Memory::SectorsArray<ThreadSafe, Allocator>* array = nullptr;
+			const Memory::LayoutData* layout = nullptr;
+			explicit operator bool() const noexcept { return array != nullptr; }
+		};
+
+		/**
+		 * @brief Resolve T's array and layout in a single lookup.
+		 *
+		 * The layout was resolved when the array was registered, so the per-call scan over the
+		 * layout's type tokens disappears -- that scan is why a query against a grouped array
+		 * grew more expensive the more component types the group held.
+		 *
+		 * The cached record is checked, not assumed: Registry::insert can still repoint an
+		 * array at a different layout, and the recorded one would then describe the wrong
+		 * sector shape. Comparing the layout the array reports now against the one this entry
+		 * was built from costs a single load and compare -- measured at 0.2-0.35 ns against a
+		 * 2-6 ns saving -- and turns a stale entry into a slow path rather than a wrong answer.
+		 */
+		template <class T>
+		[[nodiscard]] FORCE_INLINE ComponentAccess getComponentAccess() noexcept {
+			if (const auto access = lookupComponentAccess<T>()) [[likely]] {
+				return access;
+			}
+			// First use of T: register it, then look again. Written as a second lookup rather
+			// than a recursive call because GCC rejects always_inline on a function that calls
+			// itself, even down a branch taken once per component type.
+			registerArray<T>();
+			return lookupComponentAccess<T>();
+		}
+
+		/// @brief One snapshot load; empty if T has no array yet. @see getComponentAccess
+		template <class T>
+		[[nodiscard]] FORCE_INLINE ComponentAccess lookupComponentAccess() noexcept {
+			const auto componentType = componentTypeId<T>();
+			if (const auto* node = mRegistered.load(std::memory_order_acquire)) [[likely]] {
+				if (componentType < node->mapCount) {
+					if (auto* array = node->map[componentType]) [[likely]] {
+						const auto* layout = node->layout[componentType];
+						if (layout && node->meta[componentType] == array->getLayout()) [[likely]] {
+							return { array, layout };
+						}
+						// Repointed since registration: fall back to asking the array itself.
+						return { array, &array->template getLayoutData<T>() };
+					}
+				}
+			}
+			return {};
+		}
+
 	public:
 		// ===== Entities API ===================================================
 
 		/// @return True if registry currently owns entityId.
-		FORCE_INLINE bool contains(EntityId entityId) const noexcept {
-			if constexpr (ThreadSafe) {
-				auto lock = std::shared_lock(mEntitiesMutex);
-				return mEntities.contains(entityId);
-			}
-			else {
-				return mEntities.contains(entityId);
-			}
-		}
+		/// @return True if the registry currently owns entityId. Lock-free: a single load.
+		FORCE_INLINE bool contains(EntityId entityId) const noexcept { return mEntities.contains(entityId); }
 
 		/// @brief Allocate (take) a new entity id.
-		FORCE_INLINE EntityId takeEntity() noexcept
-		{
-			if constexpr (ThreadSafe) {
-				auto lock = std::unique_lock(mEntitiesMutex);
-				return mEntities.take();
-			}
-			else {
-				return mEntities.take();
-			}
+		/// @brief Allocate (take) a new entity id.
+		/// @note Lock-free in the thread-safe build: the id bitmap claims a bit with a CAS.
+		///       Serialising this on the registry mutex cost ~560x per-op latency at 32 threads.
+		FORCE_INLINE EntityId takeEntity() noexcept { return mEntities.take(); }
+
+		/// @brief Allocate @p count entity ids in one pass, appending them to @p out.
+		///
+		/// Prefer this to a loop of takeEntity() when streaming a region in: the bitmap is
+		/// walked once instead of once per id, and in the thread-safe build a free word of 64
+		/// ids is claimed with a single atomic.
+		FORCE_INLINE void takeEntities(size_t count, std::vector<EntityId>& out) noexcept {
+			mEntities.take(count, out);
 		}
 
 		/// @brief Snapshot all entity ids (copy).
 		FORCE_INLINE std::vector<EntityId> getAllEntities() const noexcept
 		{
 			if constexpr (ThreadSafe) {
-				auto lock = std::unique_lock(mEntitiesMutex); return mEntities.getAll();
+				// Shared here only to exclude clear(), which is the one operation the id set
+				// cannot absorb concurrently. take/erase run lock-free alongside.
+				auto lock = std::shared_lock(mEntitiesMutex); return mEntities.getAll();
 			}
 			else {
 				return mEntities.getAll();
@@ -665,30 +860,17 @@ namespace ecss {
 		 * @complexity O(A) with A = number of component arrays.
 		 */
 		void destroyEntity(EntityId entityId) noexcept {
-			if constexpr (ThreadSafe) {
-				// Presence check: cheap early-out without acquiring the write lock.
-				{
-					auto lock = std::shared_lock(mEntitiesMutex);
-					if (!mEntities.contains(entityId)) return;
-				}
-				// Destroy components FIRST, under each array's write lock. If a
-				// concurrent destroyEntity(same id) races us, per-array destroy
-				// is idempotent and safe.
-				destroySector(entityId);
-				// Release the id back to the free pool only AFTER components are gone.
-				// This closes the window where a concurrent takeEntity() could recycle
-				// the id while destroySector was still walking component arrays and
-				// would subsequently destroy the newly-emplaced components.
-				{
-					auto lock = std::unique_lock(mEntitiesMutex);
-					mEntities.erase(entityId);
-				}
-			}
-			else {
-				if (!mEntities.contains(entityId)) return;
-				destroySector(entityId);
-				mEntities.erase(entityId);
-			}
+			// Presence check: cheap lock-free early-out.
+			if (!mEntities.contains(entityId)) return;
+			// Destroy components FIRST, under each array's write lock. If a concurrent
+			// destroyEntity(same id) races us, per-array destroy is idempotent and safe.
+			destroySector(entityId);
+			// Release the id only AFTER the components are gone. This ordering is what
+			// closes the window where a concurrent takeEntity() could recycle the id while
+			// destroySector was still walking the component arrays and would then destroy
+			// the freshly emplaced components. It is program order, not the mutex, that
+			// provided it -- so it survives the id set becoming lock-free.
+			mEntities.erase(entityId);
 		}
 
 		/**
@@ -697,12 +879,24 @@ namespace ecss {
 		 * @note Safe to call while other threads query (ThreadSafe=true).
 		 * @warning No parallelization here to avoid thread lifetime complexity.
 		 */
+		/// @brief Destroy a batch of entities across every registered array.
+		/// @param entities Ids to destroy. Sorted ascending is the cheap case; any other order
+		///        is sorted in place first, since destroyInArray binary-searches this range to
+		///        trim ids past each array's sparse map.
+		/// @note Far cheaper than a loop of destroyEntity(): one lock and one pass per array
+		///       rather than per entity -- 14.3 ns per entity against 74.4.
 		void destroyEntities(std::vector<EntityId>& entities) noexcept {
 			if (entities.empty()) {
 				return;
 			}
 
-			std::ranges::sort(entities);
+			// Checking costs 0.18 ns per entity, sorting 3.4 on an already-ordered list and 47
+			// on a shuffled one. Callers usually have order for free -- ids gathered by walking
+			// a view or getAllEntities() come out ascending -- and were paying for a pass that
+			// had nothing to do.
+			if (!std::ranges::is_sorted(entities)) {
+				std::ranges::sort(entities);
+			}
 
 			auto destroyInArray = [&](auto* array, const EntityId* begin, const EntityId* end) {
 				const auto layout = array->getLayout();
@@ -711,10 +905,6 @@ namespace ecss {
 				if (it == begin) return;
 				const EntityId* trimmedEnd = it;
 				const EntityId* trimmedBegin = begin;
-
-				if constexpr (ThreadSafe) {
-					array->mPinsCounter.waitUntilChangeable(*trimmedBegin);
-				}
 
 				for (auto p = trimmedBegin; p != trimmedEnd; ++p) {
 					auto slotInfo = array->template findSlot<false>(*p);
@@ -726,15 +916,12 @@ namespace ecss {
 			};
 
 			if constexpr (ThreadSafe) {
-				decltype(mComponentsArrays) compArrays;
-				{
-					auto lock = std::shared_lock(componentsArrayMapMutex);
-					compArrays = mComponentsArrays;
-				}
-
-				for (auto* array : compArrays) {
-					auto arrLock = array->writeLock();
-					destroyInArray(array, entities.data(), entities.data() + entities.size());
+				const auto [begin, end] = registeredArrays();
+				for (auto it = begin; it != end; ++it) {
+					auto* array = *it;
+					array->exclusiveWhenQuiescent([&] {
+						destroyInArray(array, entities.data(), entities.data() + entities.size());
+					});
 				}
 			}
 			else {
@@ -743,16 +930,8 @@ namespace ecss {
 				}
 			}
 
-			if constexpr(ThreadSafe) {
-				auto lock = std::unique_lock(mEntitiesMutex);
-				for (auto id : entities) {
-					mEntities.erase(id);
-				}
-			}
-			else {
-				for (auto id : entities) {
-					mEntities.erase(id);
-				}
+			for (auto id : entities) {
+				mEntities.erase(id);
 			}
 		}
 
@@ -771,21 +950,33 @@ namespace ecss {
 		 */
 		void destroySector(EntityId entityId) noexcept {
 			if constexpr (ThreadSafe) {
-				decltype(mComponentsArrays) arrays;
-				{
-					auto lock = std::shared_lock(componentsArrayMapMutex);
-					arrays = mComponentsArrays;
-				}
+				// Snapshot walk: this runs once per destroyEntity, and the old form took a
+				// registry-global shared_lock and heap-copied the array list every time.
+				const auto [begin, end] = registeredArrays();
 
-				for (auto array : arrays) {
-					auto lock = array->writeLock();
-					array->mPinsCounter.waitUntilChangeable(entityId);
-
-					auto idx = array->template findLinearIdx<false>(entityId);
-					if (idx != INVALID_IDX) {
-						Memory::Sector::destroySectorData<ThreadSafe>(array->mAllocator.at(idx), array->template getIsAliveRef<false>(idx), array->getLayout());
-						array->incDefragmentSize();
+				for (auto it = begin; it != end; ++it) {
+					auto* array = *it;
+					// Lock-free presence check first. Taking the write lock and only then asking
+					// whether the entity is even in this array made destroyEntity cost one lock
+					// acquisition per *registered* array rather than per array the entity is
+					// actually in -- 20.7 ns with one array, 116 ns with nine.
+					//
+					// A concurrent addComponent for this entity could land just after the check,
+					// but destroying an entity while another thread adds components to it is
+					// already unordered; within one thread program order settles it.
+					if (!array->template containsSector<false>(entityId)) {
+						continue;
 					}
+					// In-place destroy of one sector: only that sector must be unpinned, and
+					// the wait must not happen under the write lock (it would deadlock any
+					// pin holder that still needs the shared lock).
+					array->exclusiveWhenUnpinned(entityId, [&] {
+						auto idx = array->template findLinearIdx<false>(entityId);
+						if (idx != INVALID_IDX) {
+							Memory::Sector::destroySectorData<ThreadSafe>(array->mAllocator.at(idx), array->template getIsAliveRef<false>(idx), array->getLayout());
+							array->incDefragmentSize();
+						}
+					});
 				}
 			}
 			else {
@@ -838,7 +1029,207 @@ namespace ecss {
 		}
 
 	private:
-		Ranges<EntityId> mEntities; ///< Dense range-managed entity id storage.
+		/// @brief Immutable snapshot of the registered arrays, published on registration.
+		/// `map` is indexed by componentTypeId; `list` is the de-duplicated array list.
+		struct Registered {
+			size_t mapCount = 0;
+			Memory::SectorsArray<ThreadSafe, Allocator>** map = nullptr;
+			/// Per component type, the layout record and the layout it was resolved against.
+			/// Kept in this snapshot rather than a cache beside it so one acquire load still
+			/// answers everything, and so they cannot disagree about which registration they
+			/// belong to.
+			const Memory::LayoutData** layout = nullptr;
+			const Memory::SectorLayoutMeta** meta = nullptr;
+			size_t listCount = 0;
+			Memory::SectorsArray<ThreadSafe, Allocator>** list = nullptr;
+		};
+
+		/// @brief The reader-writer lock guarding one component type's values. @see access()
+		///
+		/// Allocated one at a time and never moved, so a guard can hold a pointer across the
+		/// growth another thread's first claim on a new type causes.
+		std::shared_mutex& typeMutex(ECSType type) {
+			{
+				auto shared = std::shared_lock(mTypeMutexesGrowth);
+				if (type < mTypeMutexes.size() && mTypeMutexes[type]) { return *mTypeMutexes[type]; }
+			}
+			auto unique = std::unique_lock(mTypeMutexesGrowth);
+			if (type >= mTypeMutexes.size()) { mTypeMutexes.resize(static_cast<size_t>(type) + 1); }
+			if (!mTypeMutexes[type]) { mTypeMutexes[type] = std::make_unique<std::shared_mutex>(); }
+			return *mTypeMutexes[type];
+		}
+
+		/// @brief Note where each component's layout record lives, while the pack is still a
+		/// compile-time list. Caller holds componentsArrayMapMutex (TS build).
+		template <class... ComponentTypes>
+		void recordLayouts(Memory::SectorsArray<ThreadSafe, Allocator>* array) {
+			ECSType maxId = 0;
+			((maxId = std::max(maxId, componentTypeId<ComponentTypes>())), ...);
+			if (maxId >= mComponentsLayoutsMap.size()) {
+				mComponentsLayoutsMap.resize(maxId + 1, nullptr);
+				mComponentsMetaMap.resize(maxId + 1, nullptr);
+			}
+			((mComponentsLayoutsMap[componentTypeId<ComponentTypes>()] =
+				&array->template getLayoutData<ComponentTypes>()), ...);
+			((mComponentsMetaMap[componentTypeId<ComponentTypes>()] = array->getLayout()), ...);
+		}
+
+		/// @brief Give the arrays a view is about to open the pass update() would have given
+		/// them. Nothing here waits: an array someone is iterating is left alone.
+		template<typename... Components>
+		FORCE_INLINE void maintainFor() noexcept {
+			if (!mAutoMaintenance) [[likely]] { return; }
+			(maintainArrayFor<Components>(), ...);
+			maintainOneInRotation();
+		}
+
+		template<typename T>
+		void maintainArrayFor() noexcept {
+			if (auto* array = getComponentContainer<T>()) { maintainArray(array); }
+		}
+
+		/// @brief Also give one array nobody is looking at its turn.
+		///
+		/// Without this, auto maintenance would only ever reach arrays that get iterated: a
+		/// component type that is only ever looked up by id would keep its dead sectors and its
+		/// retired buffers forever. One extra array per view creation is enough -- an idle one
+		/// costs two lock-free loads to skip -- and it is what lets update() be dropped rather
+		/// than merely moved.
+		void maintainOneInRotation() noexcept {
+			// Not on every view. The rotation exists so an array nobody iterates is still
+			// reached eventually, and once every kRotationStride views is enough for that.
+			// Charging every view was measurable at +36 ns, a quarter of what opening a view
+			// costs; the curve flattens by a stride of four (+23 ns) and gains nothing after,
+			// so four it is -- four times the coverage of sixteen for the same price.
+			// Racy on purpose: the ticket only decides whose turn it is.
+			const auto ticket = mMaintainCursor.fetch_add(1, std::memory_order_relaxed);
+			if ((ticket % kRotationStride) != 0) [[likely]] { return; }
+
+			const auto [begin, end] = registeredArrays();
+			const auto count = static_cast<size_t>(end - begin);
+			if (count == 0) { return; }
+			maintainArray(begin[(ticket / kRotationStride) % count]);
+		}
+
+		static constexpr size_t kRotationStride = 4;
+
+		void maintainArray(Memory::SectorsArray<ThreadSafe, Allocator>* array) noexcept {
+			if constexpr (ThreadSafe) {
+				// Deliberately not ticking the snapshot bin here. This runs per array per view,
+				// and the snapshot grace period measures how long a reader might still be
+				// walking a list it loaded, not how many views have opened since. Draining it
+				// at that rate would collapse the window. update() ticks it instead, and a
+				// program that never calls update() only holds snapshots it stopped publishing
+				// once registration settled.
+				array->tick();
+				array->processPendingErases(true);
+			}
+			else {
+				// No holds exist here to make compaction unsafe, but a view that is already
+				// open would still be reading the array this is about to move sectors in, and
+				// the plain build has no way to know. Callers who nest views this way should
+				// leave the switch off; the same rule as calling update() mid-iteration.
+				if (array->needDefragment()) { array->defragment(); }
+			}
+		}
+
+		/// @brief Publish a fresh snapshot. Caller holds componentsArrayMapMutex (TS build).
+		///
+		/// The node and its four arrays are one allocation, so retiring a superseded snapshot
+		/// is a single free and the arrays a reader walks sit next to the node it loaded.
+		///
+		/// Superseded nodes go to a retire bin rather than being kept until the registry dies.
+		/// A lock-free reader may still be inside one, which is exactly what the grace period
+		/// is for -- the same mechanism the arrays already use for their own buffers. Keeping
+		/// every node instead made a registry's snapshot memory quadratic in the number of
+		/// component types registered: one node per registerArray(), each sized by the type
+		/// count, which reached 4.4 MB at 400 types.
+		void publishRegistered() {
+			using ArrayPtr = Memory::SectorsArray<ThreadSafe, Allocator>*;
+
+			const size_t mapCount = mComponentsArraysMap.size();
+			const size_t listCount = mComponentsArrays.size();
+
+			// Every member is pointer-sized, and sizeof(Registered) is a multiple of that, so
+			// laying the arrays out back to back keeps each of them aligned.
+			static_assert(sizeof(Registered) % alignof(void*) == 0, "array suffix would be misaligned");
+			const size_t bytes = sizeof(Registered)
+				+ mapCount * sizeof(ArrayPtr)
+				+ mapCount * sizeof(const Memory::LayoutData*)
+				+ mapCount * sizeof(const Memory::SectorLayoutMeta*)
+				+ listCount * sizeof(ArrayPtr);
+
+			auto* raw = static_cast<std::byte*>(std::malloc(bytes));
+			if (!raw) { return; }                     // out of memory: keep serving the old one
+			auto* node = new (raw) Registered{};
+
+			std::byte* cursor = raw + sizeof(Registered);
+			const auto carve = [&cursor](size_t count, size_t size) {
+				std::byte* p = cursor;
+				cursor += count * size;
+				return p;
+			};
+			node->mapCount = mapCount;
+			node->map = reinterpret_cast<ArrayPtr*>(carve(mapCount, sizeof(ArrayPtr)));
+			node->layout = reinterpret_cast<const Memory::LayoutData**>(carve(mapCount, sizeof(const Memory::LayoutData*)));
+			node->meta = reinterpret_cast<const Memory::SectorLayoutMeta**>(carve(mapCount, sizeof(const Memory::SectorLayoutMeta*)));
+			node->listCount = listCount;
+			node->list = reinterpret_cast<ArrayPtr*>(carve(listCount, sizeof(ArrayPtr)));
+
+			for (size_t i = 0; i < mapCount; ++i) {
+				node->map[i] = mComponentsArraysMap[i];
+				node->layout[i] = i < mComponentsLayoutsMap.size() ? mComponentsLayoutsMap[i] : nullptr;
+				node->meta[i] = i < mComponentsMetaMap.size() ? mComponentsMetaMap[i] : nullptr;
+			}
+			for (size_t i = 0; i < listCount; ++i) { node->list[i] = mComponentsArrays[i]; }
+
+			auto* superseded = mRegistered.exchange(node, std::memory_order_release);
+			if (superseded) { mNodeBin.retire(superseded); }
+		}
+
+		/// @brief Lock-free view over the registered arrays, for maintenance walks.
+		/// Returns {begin, end}; empty when nothing has been registered yet.
+		std::pair<Memory::SectorsArray<ThreadSafe, Allocator>* const*, Memory::SectorsArray<ThreadSafe, Allocator>* const*>
+		registeredArrays() const noexcept {
+			if (const auto* node = mRegistered.load(std::memory_order_acquire)) {
+				return { node->list, node->list + node->listCount };
+			}
+			return { nullptr, nullptr };
+		}
+
+	private:
+		static_assert(types::isLockFreeAtomic<Registered*>, "the registered-arrays snapshot must be lock-free");
+		/// Per component type, the LayoutData record and the layout it came from. Written only
+		/// while registering, then copied into each published snapshot.
+		std::vector<const Memory::LayoutData*>       mComponentsLayoutsMap;
+		std::vector<const Memory::SectorLayoutMeta*> mComponentsMetaMap;
+
+		/// One reader-writer lock per component type, for access(). Held in unique_ptrs because
+		/// a guard keeps a pointer while another thread may be growing the vector.
+		std::vector<std::unique_ptr<std::shared_mutex>> mTypeMutexes;
+		mutable std::shared_mutex mTypeMutexesGrowth;
+
+		/// Whether opening a view maintains its arrays. Read on every view; written once at
+		/// setup, so it is a plain load rather than anything ordered.
+		bool mAutoMaintenance = false;
+
+		/// Which array gets the spare maintenance slot next. @see maintainOneInRotation
+		mutable std::atomic<size_t> mMaintainCursor{ 0 };
+
+		std::atomic<Registered*> mRegistered{ nullptr }; ///< Published snapshot (lock-free reads).
+		/// Superseded snapshots, freed once no reader can still be inside one. @see tick()
+		mutable Memory::RetireBin mNodeBin;
+
+
+		/// @brief Live entity ids, one bit each.
+		///
+		/// This used to be a Ranges<EntityId> interval list. Entities die in arbitrary order,
+		/// and every erase inside a run split it -- a vector insert over an interval array
+		/// that grew towards N/2 entries, so destroying half of N entities was O(N^2)
+		/// (measured 166 ms at N=200k, 1084 ms at N=400k, against 0.14 / 0.32 ms here).
+		/// Ranges is still the right shape for the view range filters; it was the wrong one
+		/// for a set that fragments by design.
+		IdSet<EntityId, ThreadSafe> mEntities;
 
 		/// @brief Mapping: component type id -> sectors array (may group several component types).
 		std::vector<Memory::SectorsArray<ThreadSafe, Allocator>*> mComponentsArraysMap;
@@ -876,7 +1267,7 @@ namespace ecss {
 	 * Semantics:
 	 *   - Iterates only sectors where main component T is alive.
 	 *   - For each entity id, returns pointers (T*, optional others may be nullptr if absent).
-	 *   - In ranged mode, entity ranges are translated to nearest sector indices (clamped).
+	 *   - In ranged mode, skips entities outside the filter by jumping to the next range start.
 	 *
 	 * Thread safety:
 	 *   - ThreadSafe=true: Back sector pinning ensures iteration upper bound stability.
@@ -998,21 +1389,23 @@ namespace ecss {
 				if (info.iteratorIdx == TypeInfo::kMainIteratorIdx) [[likely]] {
 					return (slot.isAlive & info.typeAliveMask) ? reinterpret_cast<ComponentType*>(slot.data + info.typeOffsetInSector) : nullptr;
 				}
-			// Sparse lookup using optimized findSlot - single lookup returns data ptr + linearIdx
-			// O(1) sparse lookup + O(1) dense array access for isAlive
+			// Lock-free: one sparse load for the linear index, one alive-word load through the
+			// dense seqlock, then the address from the chunk snapshot cached at construction.
+			// Resolving through findSlot() instead would re-read the chunk seqlock per element.
 			auto* arr = mSecondaryArrays[info.iteratorIdx];
-			auto slotInfo = arr->template findSlot<false>(slot.id);
-			if (!slotInfo) [[unlikely]] {
+			const auto linearIdx = arr->template findLinearIdx<false>(slot.id);
+			if (linearIdx == INVALID_IDX) [[unlikely]] {
 				return nullptr;
 			}
-			// Route the alive-word read through the seqlock snapshot (loadView) so we
-			// don't race with concurrent push_back reallocating the isAlive vector.
-			// RetireAllocator keeps old buffers valid, so the snapshot is always safe.
-			auto isAlive = arr->loadAliveWord(slotInfo.linearIdx);
+			// The alive word goes through the seqlock snapshot (loadView) so we don't race
+			// with a concurrent push_back reallocating the isAlive vector; RetireAllocator
+			// keeps the old buffer valid, so the snapshot is always safe.
+			const auto isAlive = arr->loadAliveWord(linearIdx);
 			if (!(isAlive & info.typeAliveMask)) [[unlikely]] {
 				return nullptr;
 			}
-				return reinterpret_cast<ComponentType*>(slotInfo.data + info.typeOffsetInSector);
+			auto* data = arr->dataAt(mSecondaryChunks[info.iteratorIdx], linearIdx);
+			return data ? reinterpret_cast<ComponentType*>(data + info.typeOffsetInSector) : nullptr;
 			}
 
 			template<typename... Types>
@@ -1023,6 +1416,7 @@ namespace ecss {
 				for (const auto& entry : secondary) {
 					auto* arr = entry.first;
 					mSecondaryArrays[mSecondaryCount] = arr;
+					mSecondaryChunks[mSecondaryCount] = arr->loadChunks();
 					for (size_t a = 0; a < TypesCount; ++a) {
 						if (arrays[a] == arr) {
 							arrayIndexes[a] = mSecondaryCount;
@@ -1053,12 +1447,20 @@ namespace ecss {
 				while (mIterator) {
 					auto slot = *mIterator;
 					if (mRangeFilter->contains(slot.id)) return;
-					++mIterator;
+					EntityId next{};
+					if (!mRangeFilter->nextStartAfter(slot.id, next)) {
+						mIterator.becomeEnd();
+						return;
+					}
+					mIterator.advanceToId(next);
 				}
 			}
 
 			TypeAccessTuple mTypeAccessInfo;
 			Sectors*		mSecondaryArrays[CTCount ? CTCount : 1] = {};
+			/// Chunk snapshot per secondary array, taken once so the per-element lookup does
+			/// not re-read the seqlock.
+			typename Allocator::ChunksView mSecondaryChunks[CTCount ? CTCount : 1] = {};
 			SectorsIt		mIterator;
 			const Ranges<EntityId>* mRangeFilter = nullptr;
 			uint16_t		mMainOffset = 0;
@@ -1197,10 +1599,13 @@ namespace ecss {
 			{
 				auto mainArr = arrays[getIndex<T>()];
 				mMainArray = mainArr;
-				auto lock = mainArr->readLock();
+				// No lock: the size, the chunk table and the dense view all come from
+				// lock-free snapshots, and pinning validates itself against the structural
+				// epoch rather than relying on the shared lock.
 				mSize = mainArr->template size<false>();
-				mChunksSnapshot = mainArr->mAllocator.mChunks.data();
-				mChunksCount = mainArr->mAllocator.mChunks.size();
+				const auto chunks = mainArr->mAllocator.loadChunks();
+				mChunksSnapshot = chunks.chunks;
+				mChunksCount = chunks.count;
 				auto effectiveRanges = initRange(mainArr, ranges, getIndex<T>());
 				
 				// Determine iteration bounds
@@ -1265,17 +1670,19 @@ namespace ecss {
 				ranges.mergeIntersections();
 
 				if constexpr (ThreadSafe) {
-					auto sz = sectorsArray->template size<false>();
-					mPins[i] = ranges.empty() || sz == 0 
-						? Memory::PinnedSector{} 
-						: sectorsArray->template pinSectorAt<false>(sz - 1);
+					// A hold, not a pin: what iteration needs is that the array is not
+					// compacted, and a hold expresses exactly that without every thread
+					// piling onto one sector counter.
+					if (!ranges.empty() && sectorsArray->template size<false>() != 0) {
+						mHolds[i] = sectorsArray->holdStructure();
+					}
 				}
 			}
 			else {
 				size_t last;
 				if constexpr (ThreadSafe) {
-					mPins[i] = sectorsArray->template pinBackSector<false>();
-					last = mPins[i] ? sectorsArray->template size<false>() : 0;
+					mHolds[i] = sectorsArray->holdStructure();
+					last = sectorsArray->template size<false>();
 				}
 				else {
 					last = sectorsArray->size();
@@ -1296,10 +1703,9 @@ namespace ecss {
 				auto arr = arrays[i];
 				if (arr == main || std::find_if(secondary.begin(), secondary.end(), [arr](const auto& p){ return p.first == arr; }) != secondary.end()) { continue; }
 				if constexpr (ThreadSafe) {
-					// Acquire read lock and pin the back sector so the iteration upper
-					// bound stays valid. The secondary RangedIterator is never read
-					// (component lookups go through findSlot), so we don't build it.
-					auto lock = arr->readLock();
+					// Pin the back sector so the iteration upper bound stays valid. The
+					// secondary RangedIterator is never read (component lookups go through
+					// findSlot), so we do not build it.
 					initRange(arr, ranges, i);
 				}
 				// Non-ThreadSafe uses direct lookup; iterator is unused either way.
@@ -1328,7 +1734,19 @@ namespace ecss {
 
 	private:
 		struct Dummy{};
-		std::conditional_t<ThreadSafe, std::array<Memory::PinnedSector, TypesCount>, Dummy> mPins;  ///< Back-sector pinning for bound safety (thread-safe build).
+		/// One structural hold per distinct array, keeping the iteration bounds valid for the
+		/// lifetime of the view.
+		std::conditional_t<ThreadSafe, std::array<Memory::StructuralHold, TypesCount>, Dummy> mHolds;
+
+#ifndef NDEBUG
+		/// A view reads its component types for as long as it lives, which is what lets the
+		/// tracker notice another thread writing one of them meanwhile. Debug only, so the
+		/// released build's view carries nothing extra. @see Registry::setAccessTracking
+		std::array<detail::AccessScope, TypesCount> mReadScopes{
+			detail::readScope<T>(Registry<ThreadSafe, Allocator>::template componentTypeId<T>()),
+			detail::readScope<CompTypes>(Registry<ThreadSafe, Allocator>::template componentTypeId<CompTypes>())...
+		};
+#endif
 		Iterator mBeginIt;                                   ///< Cached begin iterator.
 
 		Sectors* mMainArray = nullptr;

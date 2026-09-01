@@ -191,7 +191,16 @@ TEST(PerfBench, MTReadWriteChurn) {
             while (!stop.load(std::memory_order_relaxed)) {
                 double s = 0;
                 for (auto [e, p] : reg.view<Pos>()) {
-                    if (p) s += p->x;
+                    // Walk the whole array -- ids, liveness, pointer maths, the appends and
+                    // erases the writers are making -- but only read the value of an entity
+                    // the writers never touch. The first MT_N ids are taken before the threads
+                    // start and are never destroyed, so their ids are never recycled, and an
+                    // open view keeps the container from relocating them mid-pass.
+                    //
+                    // Reading a value while another thread writes it is the caller's to
+                    // arrange, not the container's; the churn region is where the writers
+                    // live, so its values are not ours to read.
+                    if (p && e < static_cast<EntityId>(MT_N)) { s += p->x; }
                 }
                 (void)s;
                 ++ops;
@@ -209,4 +218,158 @@ TEST(PerfBench, MTReadWriteChurn) {
     std::cerr << "[Perf] MTChurn " << T << "T (" << writers << "W/" << readers << "R) "
               << elapsed << " ms: writes=" << write_ops.load()
               << " reads=" << read_ops.load() << "\n";
+}
+
+TEST(PerfBench, False_EachSingle) {
+    Registry<false> reg;
+    reg.reserve<Pos>(N);
+    for (int i = 0; i < N; ++i) {
+        auto e = reg.takeEntity();
+        reg.addComponent<Pos>(e, float(i), 0.f, 0.f);
+    }
+
+    volatile double sink = 0;
+    auto t0 = Clock::now();
+    reg.view<Pos>().each([&](Pos& p) { sink += p.x; });
+    auto t1 = Clock::now();
+    std::cerr << "[Perf] False_EachSingle " << N << ": " << std::fixed << std::setprecision(2) << ms(t0, t1) << " ms\n";
+}
+
+TEST(PerfBench, False_Lookup) {
+    Registry<false> reg;
+    reg.reserve<Pos>(N);
+    std::vector<EntityId> ids;
+    ids.reserve(N);
+    for (int i = 0; i < N; ++i) {
+        auto e = reg.takeEntity();
+        reg.addComponent<Pos>(e, float(i), 0.f, 0.f);
+        ids.push_back(e);
+    }
+
+    auto* container = reg.getComponentContainer<Pos>();
+    const auto& layout = container->getLayout();
+    volatile float sink = 0;
+    auto t0 = Clock::now();
+    for (auto id : ids) {
+        auto slot = container->findSlot<false>(id);
+        if (slot) {
+            auto* p = Memory::Sector::getComponent<Pos>(slot.data, container->getIsAliveRef(slot.linearIdx), layout);
+            if (p) sink += p->x;
+        }
+    }
+    auto t1 = Clock::now();
+    std::cerr << "[Perf] False_Lookup " << N << ": " << std::fixed << std::setprecision(2) << ms(t0, t1) << " ms\n";
+}
+
+TEST(PerfBench, True_FindSlotNoLock) {
+    Registry<true> reg;
+    reg.reserve<Pos>(N);
+    std::vector<EntityId> ids;
+    ids.reserve(N);
+    for (int i = 0; i < N; ++i) {
+        auto e = reg.takeEntity();
+        reg.addComponent<Pos>(e, float(i), 0.f, 0.f);
+        ids.push_back(e);
+    }
+
+    auto* container = reg.getComponentContainer<Pos>();
+    const auto& layout = container->getLayout();
+    volatile float sink = 0;
+    auto t0 = Clock::now();
+    for (auto id : ids) {
+        auto slot = container->findSlot<false>(id);
+        if (slot) {
+            auto* p = Memory::Sector::getComponent<Pos>(slot.data, container->loadAliveWord(slot.linearIdx), layout);
+            if (p) sink += p->x;
+        }
+    }
+    auto t1 = Clock::now();
+    std::cerr << "[Perf] True_FindSlotNoLock " << N << ": " << std::fixed << std::setprecision(2) << ms(t0, t1) << " ms\n";
+}
+
+TEST(PerfBench, Fair_Grouped_Each) {
+    Registry<true> reg;
+    reg.registerArray<Pos, Vel>();
+    reg.reserve<Pos>(N);
+    for (int i = 0; i < N; ++i) {
+        auto e = reg.takeEntity();
+        reg.addComponent<Pos>(e, float(i), 0.f, 0.f);
+        reg.addComponent<Vel>(e, 1.f, 1.f, 1.f);
+    }
+    volatile double sink = 0;
+    auto t0 = Clock::now();
+    reg.view<Pos, Vel>().each([&](Pos& p, Vel& v) { sink += p.x + v.dx; });
+    auto t1 = Clock::now();
+    std::cerr << "[Perf] Fair_Grouped_Each " << N << ": " << std::fixed << std::setprecision(2) << ms(t0, t1) << " ms\n";
+}
+
+TEST(PerfBench, Fair_Grouped_RangeFor) {
+    Registry<true> reg;
+    reg.registerArray<Pos, Vel>();
+    reg.reserve<Pos>(N);
+    for (int i = 0; i < N; ++i) {
+        auto e = reg.takeEntity();
+        reg.addComponent<Pos>(e, float(i), 0.f, 0.f);
+        reg.addComponent<Vel>(e, 1.f, 1.f, 1.f);
+    }
+    volatile double sink = 0;
+    auto t0 = Clock::now();
+    for (auto [e, p, v] : reg.view<Pos, Vel>()) {
+        if (p && v) sink += p->x + v->dx;
+    }
+    auto t1 = Clock::now();
+    std::cerr << "[Perf] Fair_Grouped_RangeFor " << N << ": " << std::fixed << std::setprecision(2) << ms(t0, t1) << " ms\n";
+}
+
+TEST(PerfBench, Fair_Grouped_TryInvoke) {
+    Registry<true> reg;
+    reg.registerArray<Pos, Vel>();
+    reg.reserve<Pos>(N);
+    for (int i = 0; i < N; ++i) {
+        auto e = reg.takeEntity();
+        reg.addComponent<Pos>(e, float(i), 0.f, 0.f);
+        reg.addComponent<Vel>(e, 1.f, 1.f, 1.f);
+    }
+    auto v = reg.view<Pos, Vel>();
+    volatile double sink = 0;
+    auto t0 = Clock::now();
+    for (auto it = v.begin(); it != v.end(); ++it) {
+        it.tryInvoke([&](Pos& p, Vel& vel) { sink += p.x + vel.dx; });
+    }
+    auto t1 = Clock::now();
+    std::cerr << "[Perf] Fair_Grouped_TryInvoke " << N << ": " << std::fixed << std::setprecision(2) << ms(t0, t1) << " ms\n";
+}
+
+TEST(PerfBench, Fair_Ungrouped_Each) {
+    Registry<true> reg;
+    reg.reserve<Pos>(N);
+    reg.reserve<Vel>(N);
+    for (int i = 0; i < N; ++i) {
+        auto e = reg.takeEntity();
+        reg.addComponent<Pos>(e, float(i), 0.f, 0.f);
+        reg.addComponent<Vel>(e, 1.f, 1.f, 1.f);
+    }
+    volatile double sink = 0;
+    auto t0 = Clock::now();
+    reg.view<Pos, Vel>().each([&](Pos& p, Vel& v) { sink += p.x + v.dx; });
+    auto t1 = Clock::now();
+    std::cerr << "[Perf] Fair_Ungrouped_Each " << N << ": " << std::fixed << std::setprecision(2) << ms(t0, t1) << " ms\n";
+}
+
+TEST(PerfBench, Fair_Ungrouped_RangeFor) {
+    Registry<true> reg;
+    reg.reserve<Pos>(N);
+    reg.reserve<Vel>(N);
+    for (int i = 0; i < N; ++i) {
+        auto e = reg.takeEntity();
+        reg.addComponent<Pos>(e, float(i), 0.f, 0.f);
+        reg.addComponent<Vel>(e, 1.f, 1.f, 1.f);
+    }
+    volatile double sink = 0;
+    auto t0 = Clock::now();
+    for (auto [e, p, v] : reg.view<Pos, Vel>()) {
+        if (p && v) sink += p->x + v->dx;
+    }
+    auto t1 = Clock::now();
+    std::cerr << "[Perf] Fair_Ungrouped_RangeFor " << N << ": " << std::fixed << std::setprecision(2) << ms(t0, t1) << " ms\n";
 }

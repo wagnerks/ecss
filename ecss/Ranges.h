@@ -1,7 +1,9 @@
-﻿#pragma once
+#pragma once
 
-#include <vector>
+#include <algorithm>
 #include <numeric>
+#include <utility>
+#include <vector>
 
 #include <ecss/Types.h>
 
@@ -20,8 +22,8 @@ namespace ecss {
 				return;
 			}
 
-			EntityId previous = sortedRanges.front();
-			EntityId begin = previous;
+			Type previous = sortedRanges.front();
+			Type begin = previous;
 
 			for (auto i = 1u; i < sortedRanges.size(); i++) {
 				const auto current = sortedRanges[i];
@@ -63,25 +65,60 @@ namespace ecss {
 			}
 		}
 
-		FORCE_INLINE Type take() {
-			if (ranges.empty()) {
-				ranges.push_back({ 0,0 });
-			}
-			auto id = ranges.front().second;
-			++ranges.front().second;
+		FORCE_INLINE Type take() { return takeBlock(1).first; }
 
+		/**
+		 * @brief Allocate up to @p maxCount contiguous values in one step.
+		 * @return {first, count}: the first allocated value and how many were actually taken.
+		 *         @p count is at least 1, and may be less than @p maxCount when the free gap
+		 *         that got used was smaller.
+		 *
+		 * Batching exists so a caller can amortise whatever lock guards this container over
+		 * many allocations instead of paying it per value.
+		 */
+		std::pair<Type, Type> takeBlock(Type maxCount) {
+			if (maxCount < Type{ 1 }) {
+				maxCount = Type{ 1 };
+			}
+
+			if (ranges.empty()) {
+				ranges.push_back({ Type{}, maxCount });
+				return { Type{}, maxCount };
+			}
+
+			// Prefer the gap *below* the first block. Values freed there used to be stranded
+			// forever: take() only ever extended the first block upward, so after erase(0) on
+			// {0..N} the next take() returned N+1 and 0 was never handed out again.
+			auto& front = ranges.front();
+			if (front.first > Type{}) {
+				const Type count = maxCount < front.first ? maxCount : front.first;
+				front.first -= count;
+				return { front.first, count };
+			}
+
+			// Otherwise extend the first block upward, clamped to the next allocated block so
+			// the returned span can never overlap values that are already handed out.
+			const Type first = front.second;
+			Type count = maxCount;
 			if (ranges.size() > 1) {
-				if (ranges[0].second == ranges[1].first) {
-					ranges[0].second = ranges[1].second;
-					ranges.erase(ranges.begin() + 1);
+				const Type gap = ranges[1].first - front.second;
+				if (gap < count) {
+					count = gap;
 				}
 			}
+			front.second += count;
 
-			return id;
+			// Closing the gap exactly makes the two blocks adjacent; merge them.
+			while (ranges.size() > 1 && ranges[0].second >= ranges[1].first) {
+				ranges[0].second = std::max(ranges[0].second, ranges[1].second);
+				ranges.erase(ranges.begin() + 1);
+			}
+
+			return { first, count };
 		}
 
-		void insert(EntityId id) {
-			auto it = std::lower_bound(ranges.begin(), ranges.end(), id, [](const Range& r, EntityId id) {
+		void insert(Type id) {
+			auto it = std::lower_bound(ranges.begin(), ranges.end(), id, [](const Range& r, Type id) {
 				return r.second < id;
 			});
 
@@ -107,7 +144,7 @@ namespace ecss {
 				return;
 			}
 
-			if (id == begin - 1) {
+			if (begin > Type{} && id == begin - 1) {
 				--begin;
 				// check prev range for merge
 				if (it != ranges.begin()) {
@@ -124,7 +161,7 @@ namespace ecss {
 			ranges.insert(it, { id, id + 1 });
 		}
 
-		void erase(EntityId id) {
+		void erase(Type id) {
 			auto index = binarySearchInRanges(ranges, id);
 			if (index == -1) {
 				return;
@@ -150,7 +187,7 @@ namespace ecss {
 			}
 		}
 
-		static int binarySearchInRanges(const std::vector<Range>& ranges, EntityId id) {
+		static int binarySearchInRanges(const std::vector<Range>& ranges, Type id) {
 			if (ranges.empty()) {
 				return -1;
 			}
@@ -190,6 +227,28 @@ namespace ecss {
 		FORCE_INLINE void pop_back() { ranges.pop_back(); }
 		FORCE_INLINE bool empty() const { return !size(); }
 		FORCE_INLINE bool contains(Type value) const { return binarySearchInRanges(ranges, value) != -1; }
+
+		/// @brief Start of the first range with first > @p id, if any.
+		FORCE_INLINE bool nextStartAfter(Type id, Type& out) const {
+			int left = 0;
+			int right = static_cast<int>(ranges.size()) - 1;
+			int ans = -1;
+			while (left <= right) {
+				const int mid = (left + right) / 2;
+				if (ranges[mid].first > id) {
+					ans = mid;
+					right = mid - 1;
+				}
+				else {
+					left = mid + 1;
+				}
+			}
+			if (ans < 0) {
+				return false;
+			}
+			out = ranges[ans].first;
+			return true;
+		}
 
 		std::vector<Type> getAll() const {
 			size_t total = 0;

@@ -17,12 +17,13 @@ hide:
 - Sector (chunk) based storage: tightly packed, predictable offsets, low fragmentation
 - Optional grouping of hot components into one sector (no pointer chasing between them)
 - O(1) entity id ➜ sector* lookup (sparse+direct mapping)
-- Optional thread safety (`Registry<true>`) with shared / unique locks + pin counters
-- Deferred erase + opportunistic / explicit defragmentation
+- Optional thread safety (`Registry<true>`): lock-free reads, locks only for structural writes
+- Batch and deferred structural changes (`insertBulk`, `takeEntities`, `CommandBuffer`)
+- Deferred erase + opportunistic / explicit defragmentation, from anywhere in the frame
 - Full support for non‑trivial types (`std::string`, `std::vector`, RAII) with proper move semantics
 - Reflection helper assigns dense type ids (no strings / no RTTI in hot paths)
 - Header‑only style integration, no external dependencies (C++20/23 standard library only)
-- Comprehensive test suite (200+ tests covering threading, non‑trivial types, edge cases)
+- Comprehensive test suite (550+ tests covering threading, non‑trivial types, edge cases)
 
 ---
 
@@ -42,17 +43,29 @@ hide:
 ---
 
 ## Threading & Safety (when enabled)
-- Readers take cheap shared locks.
-- Writers (insert / erase / defrag) take unique lock + wait on pin counters of impacted sectors.
-- Pin counters prevent relocation while a sector is observed.
-- Retired pointer maps reclaimed only after last reader (deferred reclamation pattern).
+- Reads take no lock at all: lookups and iteration go through seqlock-published snapshots.
+  Reading costs the same as in the non-thread-safe build, and scales — 6.8x on eight threads.
+- Writers (insert / erase / defrag) take a unique lock; only relocation waits on pin counters,
+  and appends do not wait at all.
+- Pin counters prevent relocation while a sector is observed; a view holds the array's shape
+  rather than any one sector.
+- Retired buffers are reclaimed only after the last reader could have left them (deferred
+  reclamation), so a snapshot stays readable across a resize.
+- Structural changes made one call at a time are the only ones that cost noticeably more than
+  the plain build — see [Batching & Deferral](batching.md).
+- The shape of an array is guaranteed; a component's *value* is not, since holding it would
+  need a lock or a pin per element. `access<Read<T>, Write<U>>()` claims types a system at a
+  time, and `setAccessTracking(true)` finds the overlaps you missed, free in release.
 
 ---
 
 ## Defragmentation
 - Erase marks holes; fragmentation ratio tracked.
 - Heuristic or manual trigger compacts alive sectors left.
-- Opportunistic mode aborts instantly if any pinned (alive) sector blocks movement.
+- `update()` attempts compaction rather than waiting for it, so it is safe to call from
+  anywhere in the frame — including from inside iteration — and costs ~3.5 ns when idle.
+- `setAutoMaintenance(true)` hands that job to view creation — including a rotation slot so
+  arrays that are never iterated are still reached — and there is nothing to place in the loop.
 
 ---
 
@@ -89,6 +102,7 @@ Choose `ECSS` if you want:
 ## Links & Further Docs
 - [Architecture](architecture.md)
 - [Examples](examples.md)
+- [Batching & Deferral](batching.md)
 - [Benchmarks](https://wagnerks.github.io/ecss_benchmarks)
 - [FAQ](faq.md)
 - [API Reference](ecss/annotated.md)

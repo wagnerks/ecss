@@ -1,6 +1,11 @@
 #pragma once
 
+#include <cassert>
 #include <cstdint>
+#include <memory>
+#include <tuple>
+#include <type_traits>
+#include <utility>
 
 #include <ecss/Types.h>
 
@@ -36,15 +41,26 @@ namespace ecss::Memory {
 		bool isTrivial = false;      // True if the component is trivially destructible/copiable/movable.
 	};
 
+	/**
+	 * @brief Immutable description of one sector's component layout.
+	 *
+	 * Built once by create() and never changed again: SectorsArray::create() keeps one
+	 * instance per distinct type pack in a function-local static, so every array sharing a
+	 * pack shares this object for the lifetime of the process, and the LayoutData records
+	 * live at fixed addresses. Everything that reads a layout therefore holds it by
+	 * const pointer -- the only mutation in the type is create() initialising what it just
+	 * allocated, which is why initData/initLayoutData are private.
+	 */
 	struct SectorLayoutMeta {
-		// Non-copyable / non-movable: this type owns raw arrays (layout/typeIds) and
-		// shallow copies would double-free. Keep it explicitly non-copyable/movable.
+		// Non-copyable / non-movable: exactly one instance per type pack, shared by every
+		// array built from it, so copying one would silently fork a shared invariant.
 		SectorLayoutMeta(const SectorLayoutMeta& other) = delete;
 		SectorLayoutMeta(SectorLayoutMeta&& other) noexcept = delete;
 		SectorLayoutMeta& operator=(const SectorLayoutMeta& other) = delete;
 		SectorLayoutMeta& operator=(SectorLayoutMeta&& other) noexcept = delete;
 		~SectorLayoutMeta() = default;
 
+	private:
 		/**
 		 * @brief Initialize LayoutData for a single component type U.
 		 *
@@ -105,6 +121,7 @@ namespace ecss::Memory {
 			), ...);
 		}
 
+	public:
 		/**
 		 * @brief Forward iterator over the contiguous LayoutData array.
 		 *
@@ -118,7 +135,7 @@ namespace ecss::Memory {
 			using pointer = value_type*;
 			using reference = value_type&;
 
-			Iterator(const SectorLayoutMeta* layoutMeta, uint8_t idx) : layoutsArray(const_cast<LayoutData*>(layoutMeta->getLayouts()) + idx) {}
+			Iterator(const SectorLayoutMeta* layoutMeta, uint8_t idx) : layoutsArray(layoutMeta->getLayouts() + idx) {}
 
 			Iterator& operator++() { ++layoutsArray; return *this; }
 			Iterator operator++(int) { Iterator tmp = *this; ++(*this); return tmp; }
@@ -130,7 +147,7 @@ namespace ecss::Memory {
 			reference& operator->() const { return *layoutsArray; }
 
 		private:
-			LayoutData* layoutsArray;
+			const LayoutData* layoutsArray;
 		};
 
 		/// @brief Begin/end iterators over layout records.
@@ -152,6 +169,7 @@ namespace ecss::Memory {
 			return meta;
 		}
 
+	private:
 		/**
 		* @brief Compute counts, total size, allocate storage, and populate per-type metadata.
 		*
@@ -176,6 +194,30 @@ namespace ecss::Memory {
 					break;
 				}
 			}
+		}
+
+	public:
+		/**
+		 * @brief Do these two describe the same sector shape?
+		 *
+		 * Instances are per type pack *per template instantiation*, so the same components
+		 * laid out for SectorsArray<true> and for SectorsArray<false> are two distinct
+		 * objects with identical contents. Pointer equality would reject copying between
+		 * them, which is a supported operation, so the contents are compared.
+		 *
+		 * Order is part of the shape: [A, B] and [B, A] give each component a different
+		 * offset and a different liveness bit, so they are not compatible.
+		 */
+		bool isCompatibleWith(const SectorLayoutMeta& other) const noexcept {
+			if (count != other.count || totalSize != other.totalSize) {
+				return false;
+			}
+			for (uint8_t i = 0; i < count; ++i) {
+				if (typeIds[i] != other.typeIds[i]) { return false; }
+				if (layout[i].offset != other.layout[i].offset) { return false; }
+				if (layout[i].isAliveMask != other.layout[i].isAliveMask) { return false; }
+			}
+			return true;
 		}
 
 		/// @return Total bytes consumed by sector data (component payloads only, no header).

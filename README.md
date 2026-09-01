@@ -49,12 +49,24 @@ Sectors live inside chunked storage that grows by powers of two. Offsets are com
 ## 🧵 Threading (when `Registry<true>`)
 | Operation | Mechanism |
 |-----------|-----------|
-| Read / iterate | Shared lock (short) + optional pin
-| Insert / erase / defrag | Unique lock + wait on pins for affected ids
-| Id → sector lookup | Atomic snapshot pointer map (lock‑free read)
-| Reclamation | Retire old maps after last reader (deferred)
+| Read / iterate / lookup | No lock — seqlock‑published snapshots
+| Iteration | Structural hold on the array (counted per thread, not per sector)
+| Append | Unique lock only; relocates nothing, so no pin wait
+| Relocating change (middle insert / defrag / clear) | Unique lock + wait for pins and holds, outside the lock
+| In‑place change (destroy / overwrite a member) | Unique lock + that one sector unpinned
+| Reclamation | Retire old buffers, freed after a grace period (deferred)
 
-Pins block relocation only for sectors in use; opportunistic defrag aborts instantly if any active pin conflicts.
+Reading costs about the same as the non‑thread‑safe build (1.0–1.3x) and scales: 6.8x on eight
+threads. Only structural changes made one call at a time cost noticeably more — batch them, or
+record them into a `CommandBuffer`.
+
+⚠️ An array must not be restructured while this thread is iterating it: the writer would wait
+for the view you are holding. Debug builds assert; release builds block.
+
+⚠️ The array's *shape* is guaranteed, a component's *value* is not: two threads on one
+component type, one writing, is yours to arrange. `access<Read<T>, Write<U>>()` claims types a
+system at a time (29.5 ns for one), and `setAccessTracking(true)` finds the ones you missed and
+costs nothing in release.
 
 ## 🧹 Defragmentation
 1. Erase marks liveness bits dead and increments per‑array fragmentation counter
@@ -145,7 +157,8 @@ Live dashboard: https://wagnerks.github.io/ecss_benchmarks  (compares iteration 
 ## 🔧 Tips
 - Keep grouped sets small & hot (avoid cold heavy data in same sector)
 - Make components trivially movable when possible
-- Call `update()` once per frame (TS build)
+- Batch structural changes: `takeEntities`, `insertBulk`, `destroyEntities`, `CommandBuffer`
+- Call `update()` once per frame — anywhere in it, nothing waits — or `setAutoMaintenance(true)`
 - Use ranged views for sparse workloads to reduce cache waste
 - Tune per‑array defrag thresholds rather than forcing global compaction
 
@@ -172,8 +185,9 @@ Live dashboard: https://wagnerks.github.io/ecss_benchmarks  (compares iteration 
 ## 📚 Documentation
 - Overview / Architecture: `docs/architecture.md`
 - Examples: `docs/examples.md` (more patterns; also see tests + https://github.com/wagnerks/StelForge )
+- Batching & Deferral: `docs/batching.md` (structural changes, bulk APIs, command buffer)
 - FAQ: `docs/faq.md`
-- API Reference: `docs/api_reference.md`
+- API Reference: generated from the headers, https://wagnerks.github.io/ecss/ecss/annotated/
 
 ## ⚖️ License
 MIT – see `LICENSE`.

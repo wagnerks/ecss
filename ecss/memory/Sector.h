@@ -1,6 +1,9 @@
 #pragma once
 
 #include <atomic>
+#include <cassert>
+#include <cstddef>
+
 #include <ecss/memory/SectorLayoutMeta.h>
 
 namespace ecss::Memory {
@@ -120,7 +123,7 @@ namespace ecss::Memory {
 
 		/** @brief Fetch component pointer of type T using layout; may be nullptr if not alive. */
 		template <typename T>
-		const T* getComponent(const std::byte* data, uint32_t isAliveData, SectorLayoutMeta* sectorLayout) {
+		const T* getComponent(const std::byte* data, uint32_t isAliveData, const SectorLayoutMeta* sectorLayout) {
 			if (!data) {
 				return nullptr;
 			}
@@ -130,7 +133,7 @@ namespace ecss::Memory {
 
 		/** @overload non-const version */
 		template <typename T>
-		T* getComponent(std::byte* data, uint32_t isAliveData, SectorLayoutMeta* sectorLayout) {
+		T* getComponent(std::byte* data, uint32_t isAliveData, const SectorLayoutMeta* sectorLayout) {
 			if (!data) {
 				return nullptr;
 			}

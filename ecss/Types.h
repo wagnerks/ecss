@@ -1,11 +1,13 @@
 ﻿#pragma once
 
+#include <atomic>
 #include <cstdint>
 #include <limits>
 #include <array>
 #include <type_traits>
 
 #if defined(_MSC_VER)
+#  include <intrin.h>
 #  define FORCE_INLINE __forceinline
 #elif defined(__GNUC__) || defined(__clang__)
 #  define FORCE_INLINE inline __attribute__((always_inline))
@@ -14,6 +16,23 @@
 #endif
 
 namespace ecss {
+	/// @brief CPU pause / yield hint for short seqlock retry loops.
+	FORCE_INLINE void cpuRelax() noexcept {
+#if defined(_MSC_VER)
+#  if defined(_M_X64) || defined(_M_IX86)
+		_mm_pause();
+#  elif defined(_M_ARM64)
+		__yield();
+#  endif
+#else
+#  if defined(__x86_64__) || defined(__i386__)
+		__builtin_ia32_pause();
+#  elif defined(__aarch64__)
+		__asm__ __volatile__("yield" ::: "memory");
+#  endif
+#endif
+	}
+
 	using SectorId = uint32_t;
 	using EntityId = SectorId;
 	using ECSType = uint16_t;
@@ -22,6 +41,20 @@ namespace ecss {
 	constexpr uint32_t INVALID_IDX = std::numeric_limits<uint32_t>::max();
 
 	namespace types {
+		/**
+		 * @brief Compile-time guard for state the design assumes is genuinely lock-free.
+		 *
+		 * A std::atomic whose payload exceeds the platform word size silently falls back to
+		 * a lock table inside the standard library. Nothing at the call site says so, and
+		 * the cost only shows up as readers that refuse to scale -- which is exactly how a
+		 * 16-byte std::atomic<SparseView> ended up serialising every sparse lookup in this
+		 * library through a process-global spin lock.
+		 *
+		 * Rule: every atomic on a hot path gets a static_assert with this next to it.
+		 */
+		template<typename T>
+		inline constexpr bool isLockFreeAtomic = std::atomic<T>::is_always_lock_free;
+
 		/// @brief Empty base for offset calculation when sector has no header.
 		struct EmptyBase {};
 
