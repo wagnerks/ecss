@@ -1802,6 +1802,59 @@ TEST(Regression_Grouping, LateRegisterArraySaysSoInsteadOfReturningQuietly) {
 	}
 }
 
+/// Every ranged-iterator test walked a handful of sectors inside one 8192-sector chunk, so
+/// the branch that carries RangedIterator across a chunk boundary -- recomputing the chunk
+/// base and the data pointer -- had never run in the suite. Counting is not enough to catch a
+/// wrong base either, so this reads the values back.
+TEST(Regression_RangedIterator, CrossesChunkBoundaries) {
+	using Small = SectorsArray<false, ChunksAllocator<16>>;
+	std::unique_ptr<Small> arr(Small::create<RInt>());
+
+	constexpr SectorId kCount = 100;   // seven chunks of sixteen
+	for (SectorId i = 0; i < kCount; ++i) { arr->emplace<RInt>(i, RInt{ int(i) * 3 }); }
+
+	// Starts mid-chunk and ends mid-chunk, five boundaries apart.
+	Ranges<SectorId> r(std::pair<SectorId, SectorId>{ 5, 90 });
+
+	std::vector<int> seen;
+	for (auto it = arr->beginRanged(r), en = arr->endRanged(); it != en; ++it) {
+		const auto slot = *it;
+		auto* c = Sector::getComponent<RInt>(slot.data, arr->getIsAlive(slot.id), arr->getLayout());
+		ASSERT_NE(c, nullptr);
+		seen.push_back(c->v);
+	}
+
+	ASSERT_EQ(seen.size(), 85u);
+	for (size_t k = 0; k < seen.size(); ++k) {
+		ASSERT_EQ(seen[k], int(5 + k) * 3) << "wrong sector at offset " << k
+			<< " -- a chunk boundary was crossed with a stale base";
+	}
+}
+
+/// takeEntities was only ever tested on Registry<true>; the plain build takes a different
+/// path through IdSet, which had no direct test of its own either.
+TEST(Regression_BatchIds, PlainBuildTakesEntitiesInBulk) {
+	Registry<false> reg;
+	std::vector<EntityId> ids;
+	reg.takeEntities(5000, ids);
+	ASSERT_EQ(ids.size(), 5000u);
+
+	std::set<EntityId> distinct(ids.begin(), ids.end());
+	EXPECT_EQ(distinct.size(), ids.size()) << "the same id was handed out twice";
+	for (auto e : ids) { EXPECT_TRUE(reg.contains(e)); }
+
+	// Freed ids come back, lowest first, and the batch form has to see them.
+	std::vector<EntityId> half(ids.begin(), ids.begin() + 2000);
+	reg.destroyEntities(half);
+
+	std::vector<EntityId> again;
+	reg.takeEntities(2000, again);
+	EXPECT_EQ(again.size(), 2000u);
+	std::set<EntityId> reused(again.begin(), again.end());
+	EXPECT_EQ(reused.size(), again.size());
+	for (auto e : again) { EXPECT_TRUE(reg.contains(e)); }
+}
+
 struct GrpC { int v{}; };
 
 /// hasComponent<T>() went through getComponentAccess, which registers T on first use. So
