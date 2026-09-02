@@ -1,6 +1,9 @@
-build*/*
-/.vs/*
-/out/*
+# A trailing slash, not /*: "build*/*" ignores what is inside the directory but not
+# the directory itself, so git status stays clean while every GUI that asks
+# check-ignore about the folder is told it is untracked, and paints it as new.
+build*/
+/.vs/
+/out/
 # Configuring in the source directory rather than a build one leaves these behind.
 # They are regenerable, and they made `git status` unreadable.
 /CMakeCache.txt
