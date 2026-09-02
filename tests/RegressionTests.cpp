@@ -1764,6 +1764,44 @@ TEST(Regression_Iteration, TypedFastPathHonoursHolesAndGroups) {
 
 namespace {
 
+struct GrpA { int v{}; };
+struct GrpB { int v{}; };
+
+/// registerArray() returned without a word when every type it named already had an array.
+/// That is right when they are already in one together -- the call is idempotent -- but not
+/// when they are in separate arrays: a component's layout is fixed when its array is created,
+/// so the grouping asked for can never happen. A registerArray() written one line too late,
+/// after the addComponent() that registered the type implicitly, looked exactly like one that
+/// worked. The README's own Quick Start had it in that order.
+TEST(Regression_Grouping, LateRegisterArraySaysSoInsteadOfReturningQuietly) {
+	{
+		// Asking twice for the same group is idempotent and must stay silent.
+		Registry<false> reg;
+		reg.registerArray<GrpA, GrpB>();
+		testing::internal::CaptureStderr();
+		reg.registerArray<GrpA, GrpB>();
+		EXPECT_EQ(testing::internal::GetCapturedStderr(), "")
+			<< "re-registering the same group is not a mistake and must not warn";
+		EXPECT_EQ(reg.getComponentContainer<GrpA>(), reg.getComponentContainer<GrpB>());
+	}
+	{
+		// Both types already registered implicitly, each into its own array.
+		Registry<false> reg;
+		const auto e = reg.takeEntity();
+		reg.addComponent<GrpA>(e, GrpA{ 1 });
+		reg.addComponent<GrpB>(e, GrpB{ 2 });
+
+		testing::internal::CaptureStderr();
+		reg.registerArray<GrpA, GrpB>();
+		const std::string err = testing::internal::GetCapturedStderr();
+
+		EXPECT_NE(err.find("was ignored"), std::string::npos)
+			<< "the grouping could not be honoured and the call said nothing";
+		EXPECT_NE(reg.getComponentContainer<GrpA>(), reg.getComponentContainer<GrpB>())
+			<< "the arrays are still separate -- which is the point of the warning";
+	}
+}
+
 /// addComponents(generator) was declared requires(ThreadSafe) although nothing in it needs
 /// threads: it drains the generator into a vector and hands the result to insertBulk, which
 /// the plain build has had all along. The documentation presented it as the general batch API.

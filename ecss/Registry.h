@@ -197,6 +197,49 @@ namespace ecss {
 		template<typename T>
 		FORCE_INLINE static ECSType componentTypeId() noexcept { return Memory::DenseTypeIdGenerator::getTypeId<T>(); }
 
+		/// @brief Say so when registerArray() was asked to group types that are already apart.
+		///
+		/// Registering the same group twice is genuinely idempotent and should say nothing.
+		/// Asking to group types that already live in separate arrays is a different thing: a
+		/// component's layout is fixed when its array is created, so the request cannot be
+		/// honoured and never will be. It used to return without a word, which meant a
+		/// registerArray() written one line too late -- after the addComponent() that registered
+		/// the type implicitly -- looked exactly like one that worked.
+		///
+		/// Define ECSS_NO_GROUPING_WARNINGS to silence it.
+		/// @thread_safety Caller must ensure exclusive access. Reads the live map, so it belongs
+		///                under componentsArrayMapMutex in the thread-safe build.
+		template <class... ComponentTypes>
+		void warnIfGroupingIgnored() const noexcept {
+			if constexpr (sizeof...(ComponentTypes) > 1) {
+				const Memory::SectorsArray<ThreadSafe, Allocator>* const found[] = {
+					mComponentsArraysMap[componentTypeId<ComponentTypes>()]...
+				};
+				bool together = true;
+				for (const auto* a : found) { together = together && a == found[0]; }
+				if (together) { return; }
+
+				// A warning rather than the assert its two neighbours in registerArray() use. Those
+				// guard a state that is actually broken -- a half-registered group. This is a missed
+				// optimisation: everything still works, just in separate arrays. Aborting a debug
+				// build over it would be out of proportion, and it would make the case untestable
+				// in exactly the configuration CI runs.
+				#ifndef ECSS_NO_GROUPING_WARNINGS
+				std::fprintf(stderr, "ecss: registerArray<");
+				bool first = true;
+				((std::fprintf(stderr, "%s%.*s", first ? "" : ", ",
+					static_cast<int>(detail::typeName<ComponentTypes>().size()),
+					detail::typeName<ComponentTypes>().data()), first = false), ...);
+				std::fprintf(stderr,
+					">() was ignored: those types already have separate arrays, and a\n"
+					"      component's layout is fixed when its array is created. Group them\n"
+					"      before the first addComponent() or getComponentContainer() that\n"
+					"      names them. Define ECSS_NO_GROUPING_WARNINGS to silence this.\n");
+				std::fflush(stderr);
+				#endif
+			}
+		}
+
 	public:
 		Registry(const Registry& other) noexcept = delete;
 		Registry& operator=(const Registry& other) noexcept = delete;
@@ -917,6 +960,7 @@ namespace ecss {
 					bool isCreated = true;
 					((isCreated = isCreated && mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()]), ...);
 					if (isCreated) {
+						warnIfGroupingIgnored<ComponentTypes...>();
 						return;
 					}
 
@@ -958,6 +1002,7 @@ namespace ecss {
 				bool isCreated = true;
 				((isCreated = isCreated && mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()]), ...);
 				if (isCreated) {
+					warnIfGroupingIgnored<ComponentTypes...>();
 					return;
 				}
 
