@@ -112,3 +112,21 @@ if(ECSS_BUILD_TESTS)
         target_link_libraries(ecss_tests PRIVATE atomic)
     endif()
 endif()
+
+# ---------------------------------------------------------------------------
+# Standalone benchmarks. Off by default and deliberately not part of ecss_tests:
+# they would otherwise run in every CI lane, sanitizers included, where a timing
+# number is meaningless and the minutes are not.
+#
+#   cmake -S . -B build-bench -DECSS_BUILD_BENCHMARKS=ON
+#   cmake --build build-bench --config Release --target ecss_mtbench
+# ---------------------------------------------------------------------------
+option(ECSS_BUILD_BENCHMARKS "Build the standalone benchmarks" OFF)
+if (ECSS_BUILD_BENCHMARKS)
+    add_executable(ecss_mtbench "${CMAKE_CURRENT_SOURCE_DIR}/bench/MTBench.cpp")
+    target_link_libraries(ecss_mtbench PRIVATE ecss)
+    target_compile_features(ecss_mtbench PRIVATE cxx_std_20)
+    find_package(Threads REQUIRED)
+    target_link_libraries(ecss_mtbench PRIVATE Threads::Threads)
+endif()
+
