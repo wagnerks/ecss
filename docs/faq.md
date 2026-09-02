@@ -110,15 +110,21 @@ shuffled ones, and ids collected from a view already are ascending.
 ---
 
 ### Q: How often should I call `update()`, and where?
-A: Once per frame is typical, but placement no longer matters: nothing in `update()` waits.
-Deferred erases destroy components in place, and compaction is attempted rather than awaited —
-an array something is iterating is skipped and picked up next call. So it is safe from anywhere,
-including inside a loop over a view, and calling it more than once is harmless: with nothing to
-do it costs about 3.5 ns for the whole registry.
+A: Once per frame is typical. In `Registry<true>` placement no longer matters: nothing in
+`update()` waits. Deferred erases destroy components in place, and compaction is attempted
+rather than awaited — an array something is iterating is skipped and picked up next call. So it
+is safe from anywhere, including inside a loop over a view, and calling it more than once is
+harmless: with nothing to do it costs about 3.5 ns for the whole registry.
 
-To drop the call entirely, `setAutoMaintenance(true)` once at startup makes opening a view do
-the same work — for the arrays it touches, plus one more in rotation, so a component type that
-is only ever looked up and never iterated is reached too.
+`Registry<false>` is different. There are no holds there to notice an open view, so `update()`
+compacts outright and moves sectors under anything already iterating. Call it between passes.
+
+`setAutoMaintenance(true)` once at startup makes opening a view do the erase and compaction
+pass — for the arrays it touches, plus one more in rotation, so a component type that is only
+ever looked up and never iterated is reached too. It does not replace `update()`: freeing
+retired memory still happens only there. A grace period measures how long a reader might still
+be walking a replaced buffer, so spending it once per view would collapse the window under
+exactly the load it exists to survive.
 
 ---
 
@@ -139,7 +145,9 @@ collide, because a type id names a type rather than a slot.
 The type id *space* is shared, though: ids come from one process-wide counter. The practical
 effect is that a registry's per-type table is sized by the highest global id it uses rather
 than by how many types it holds, so a small world in a process that defines many types indexes
-a sparse table. Two bytes per unused entry. Giving each registry its own dense index was
+a sparse table. An unused entry costs 32 bytes: a null pointer in the live map and three more
+in the published snapshot -- the array, its layout record, and the layout that record was
+resolved against. Giving each registry its own dense index was
 measured and rejected: it adds about 0.3 ns to every lookup that names a component type, which
 is more than the memory is worth unless you run many small worlds at once.
 
@@ -204,7 +212,17 @@ from `/W3` (what CMake and MSBuild projects use by default); GCC and clang repor
 ---
 
 ### Q: Are there global singletons or hidden systems?
-A: No. The library stays explicit: you manage registries, choose grouping, and drive maintenance.
+A: One, and it is worth knowing about: component type ids come from a single process-wide
+counter, so the same type gets the same id in every registry. That is what makes a lookup one
+indexed load, and it is why a registry's per-type table is sized by the highest id in the
+process rather than by the types it holds (see above).
+
+It is a counter, not a service: nothing schedules, allocates, or runs behind your back. You
+still manage registries, choose grouping, and drive maintenance.
+
+The counter lives in the header, so on Windows an executable and a DLL that each include ecss
+get their own. Ids agree within a module and not across them -- do not pass a registry, an
+array, or a type id over a module boundary.
 
 ---
 

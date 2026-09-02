@@ -84,7 +84,10 @@ if(ECSS_BUILD_TESTS)
         endif()
     endforeach()
 
-    file(GLOB TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
+    # CONFIGURE_DEPENDS so a new test file is picked up by the next build rather than
+    # needing a manual reconfigure. The glob still takes whatever is in tests/, so do not
+    # leave scratch .cpp files there -- they become part of the suite.
+    file(GLOB TEST_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
     add_executable(ecss_tests ${TEST_SOURCES})
     target_link_libraries(ecss_tests PRIVATE ecss gtest gtest_main)
 

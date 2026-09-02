@@ -25,7 +25,8 @@ Sectors live inside chunked storage that grows by powers of two. Offsets are com
 - O(1) id → sector* lookup (direct pointer map, lock‑free snapshot view in TS build)
 - Optional thread safety: `Registry<true>` adds shared/unique locks + per‑sector pin counters
 - Deferred erase + opportunistic / explicit defragmentation (alive runs compacted left)
-- Dense reflection: lightweight type id per registry (no global state)
+- Dense reflection: a small integer per component type, assigned on first use from one
+  process-wide counter and shared by every registry
 - Header‑only style integration, no external deps (C++20/23 stdlib only)
 
 ## 🧠 Design Principles
@@ -103,9 +104,9 @@ struct Position { float x,y; }; struct Velocity { float dx,dy; };
 using Reg = ecss::Registry<true>; // thread-safe
 int main(){
     Reg reg; auto e = reg.takeEntity();
+    reg.registerArray<Position, Velocity>(); // optional grouping -- before the first add
     reg.addComponent<Position>(e, {0,0});
     reg.addComponent<Velocity>(e, {1,0});
-    reg.registerArray<Position, Velocity>(); // optional grouping (do before mass add ideally)
     for (auto [id, p, v] : reg.view<Position, Velocity>()) {
         if (p && v) p->x += v->dx;
     }
@@ -160,7 +161,9 @@ Live dashboard: https://wagnerks.github.io/ecss_benchmarks  (compares iteration 
 - Keep grouped sets small & hot (avoid cold heavy data in same sector)
 - Make components trivially movable when possible
 - Batch structural changes: `takeEntities`, `insertBulk`, `destroyEntities`, `CommandBuffer`
-- Call `update()` once per frame — anywhere in it, nothing waits — or `setAutoMaintenance(true)`
+- Call `update()` once per frame — anywhere in it, nothing waits. `setAutoMaintenance(true)`
+  moves the erase and compaction pass onto view creation, but not the freeing of retired
+  memory, so keep calling `update()`
 - Use ranged views for sparse workloads to reduce cache waste
 - Tune per‑array defrag thresholds rather than forcing global compaction
 

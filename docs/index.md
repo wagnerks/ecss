@@ -62,10 +62,13 @@ hide:
 ## Defragmentation
 - Erase marks holes; fragmentation ratio tracked.
 - Heuristic or manual trigger compacts alive sectors left.
-- `update()` attempts compaction rather than waiting for it, so it is safe to call from
-  anywhere in the frame — including from inside iteration — and costs ~3.5 ns when idle.
-- `setAutoMaintenance(true)` hands that job to view creation — including a rotation slot so
-  arrays that are never iterated are still reached — and there is nothing to place in the loop.
+- In `Registry<true>`, `update()` attempts compaction rather than waiting for it, so it is safe
+  to call from anywhere in the frame — including from inside iteration — and costs ~3.5 ns when
+  idle. `Registry<false>` has no holds to notice an open view and compacts outright, so call it
+  between passes.
+- `setAutoMaintenance(true)` hands the erase and compaction pass to view creation — including a
+  rotation slot so arrays that are never iterated are still reached. Freeing retired memory
+  stays in `update()`, so the call does not go away.
 
 ---
 

@@ -768,15 +768,21 @@ namespace ecss {
 		}
 
 		/**
-		 * @brief Apply a function to each entity in a list, pinning requested component types (thread-safe build).
+		 * @brief Apply a function to each entity in a list, pinning the requested component types.
 		 * @tparam Components Component types to pin.
 		 * @tparam Func Callable signature: void(EntityId, Components*...).
 		 * @param entities Entity ids to process.
 		 * @param func Function invoked per entity.
 		 * @note Skips entities missing any main pinned component (pointer passed may be nullptr for non-main).
-		 * @thread_safety Internally synchronized. Each worker opens its own view over its slice.
-		 *                The same rule applies inside func: no structural change to an array being
-		 *                iterated.
+		 *
+		 * @warning Despite the name, this starts no threads. It is a loop over the list on the
+		 *          calling thread, pinning each entity's components in turn. The name and this
+		 *          contract described workers with a view each, which was never what it did.
+		 *          To spread the work, slice the list yourself and call this from each thread --
+		 *          which is safe, and is what the pinning is for.
+		 * @thread_safety Internally synchronized. Pins each entity's components for the length of
+		 *                one call to func. The usual rule applies inside func: no structural change
+		 *                to an array being iterated.
 		 */
 		template<typename... Components, typename Func>
 		inline void forEachAsync(const std::vector<EntityId>& entities, Func&& func) noexcept requires(ThreadSafe)
@@ -1680,7 +1686,10 @@ namespace ecss {
 		 * Dereferencing produces a tuple (EntityId, T*, CompTypes*...).
 		 * Non-main pointers may be nullptr if component not present for that entity.
 		 *
-		 * @note Iterator validity is bounded by the pinned back-sector (thread-safe mode).
+		 * @note In the thread-safe build the bounds stay valid because the view holds one
+		 *       structural hold per array for its whole lifetime, not because anything is
+		 *       pinned. Views did pin the back sector once, and every view on every thread
+		 *       then contended on that one counter; @see Threads::PinCounters.
 		 */
 		class Iterator {
 		public:
@@ -1877,7 +1886,16 @@ namespace ecss {
 		FORCE_INLINE bool empty() const noexcept { return mBeginIt == end(); }
 
 		/// @brief Fast iteration without tuple overhead.
-		/// Single component: func(T&), Multi component grouped: func(T&, CompTypes&...)
+		///        Single component: func(T&). Several: func(T&, CompTypes&...).
+		///
+		/// This is a join, and that is the difference from iterating the view with a range-for.
+		/// Here func takes references and is called only for entities that have every named
+		/// component; one missing secondary skips the entity. A range-for yields
+		/// (EntityId, T*, CompTypes*...) for every entity with the main component, and a
+		/// secondary it lacks arrives as nullptr for you to test.
+		///
+		/// Pick each() when the entity is only interesting with all of them, and the range-for
+		/// when a missing component means something to your code.
 		template<typename Func>
 		FORCE_INLINE void each(Func&& func) const {
 			if constexpr (sizeof...(CompTypes) == 0 && !Ranged) {
@@ -2092,8 +2110,9 @@ namespace ecss {
 				auto arr = arrays[i];
 				if (arr == main || std::find_if(secondary.begin(), secondary.end(), [arr](const auto& p){ return p.first == arr; }) != secondary.end()) { continue; }
 				if constexpr (ThreadSafe) {
-					// Pin the back sector so the iteration upper bound stays valid. The
-					// secondary RangedIterator is never read (component lookups go through
+					// Translate the id ranges into this array's linear index range. Nothing is
+					// pinned here -- the view's structural hold is what keeps the bounds valid.
+					// The secondary RangedIterator is never read (component lookups go through
 					// findSlot), so we do not build it.
 					initRange(arr, ranges, i);
 				}
