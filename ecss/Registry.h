@@ -364,11 +364,14 @@ namespace ecss {
 			// ArraysView::getComponent already does. Pinning here cost two seq_cst RMWs
 			// plus a potential wake syscall, and the shared lock serialised every reader,
 			// for an answer that is inherently a point-in-time sample either way.
-			const auto slot = container->template findSlot<false>(entity);
-			if (!slot) {
+			// findLinearIdx, not findSlot: the latter also resolves the sector's data pointer
+			// through the chunk table, and this answer never looks at the data. That address
+			// computation was the whole difference against a hand-rolled check.
+			const auto idx = container->template findLinearIdx<false>(entity);
+			if (idx == INVALID_IDX) {
 				return false;
 			}
-			return Memory::Sector::isAlive(container->template loadAliveWord<ThreadSafe>(slot.linearIdx),
+			return Memory::Sector::isAlive(container->template loadAliveWord<ThreadSafe>(idx),
 			                               access.layout->isAliveMask);
 		}
 
