@@ -1359,10 +1359,15 @@ namespace ecss {
 		/// @brief Also give one array nobody is looking at its turn.
 		///
 		/// Without this, auto maintenance would only ever reach arrays that get iterated: a
-		/// component type that is only ever looked up by id would keep its dead sectors and its
-		/// retired buffers forever. One extra array per view creation is enough -- an idle one
-		/// costs two lock-free loads to skip -- and it is what lets update() be dropped rather
-		/// than merely moved.
+		/// component type that is only ever looked up by id would keep its dead sectors
+		/// forever. One extra array per view creation is enough -- an idle one costs two
+		/// lock-free loads to skip.
+		///
+		/// Retired buffers are not part of this and are freed only by update(). Their grace
+		/// period measures how long a reader might still be walking one, so spending a tick of
+		/// it per view would collapse the window under exactly the load it exists to survive.
+		/// Auto maintenance moves the erase and compaction pass off the frame; it does not
+		/// remove the update() call.
 		void maintainOneInRotation() noexcept {
 			// Not on every view. The rotation exists so an array nobody iterates is still
 			// reached eventually, and once every kRotationStride views is enough for that.
