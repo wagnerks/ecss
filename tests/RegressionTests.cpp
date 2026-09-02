@@ -16,6 +16,7 @@
 #include <random>
 #include <thread>
 #include <unordered_set>
+#include <set>
 #include <vector>
 
 #include <ecss/CommandBuffer.h>
@@ -1686,4 +1687,74 @@ TEST(Regression_Access, NestingOnOneThreadIsAllowed) {
 	worker.join();
 	EXPECT_TRUE(reg.hasComponent<AccA>(99));
 	EXPECT_TRUE(reg.hasComponent<AccA>(98));
+}
+
+// ===========================================================================
+// eachSingle() takes a typed fast path when a sector holds one component, no
+// padding, and nothing in the array is dead -- the chunk is then a plain T[].
+// The guard is what makes it safe, so these check the cases that must NOT take
+// it as much as the one that must.
+// ===========================================================================
+
+struct FpA { int v{}; };
+struct FpB { int v{}; };
+
+TEST(Regression_Iteration, TypedFastPathHonoursHolesAndGroups) {
+	// holes: the array has dead sectors, so every slot must still be checked
+	{
+		Registry<false> reg;
+		std::set<int> want;
+		for (EntityId e = 0; e < 500; ++e) {
+			reg.takeEntity();
+			reg.addComponent<FpA>(e, FpA{ int(e) });
+			want.insert(int(e));
+		}
+		for (EntityId e = 0; e < 500; e += 3) {
+			reg.destroyComponent<FpA>(e);
+			want.erase(int(e));
+		}
+		std::set<int> got;
+		reg.view<FpA>().each([&](FpA& a) { got.insert(a.v); });
+		EXPECT_EQ(got, want) << "iteration visited dead single-type sectors";
+
+		// compacting removes the holes, so the fast path becomes legal again
+		reg.getComponentContainer<FpA>()->defragment();
+		std::set<int> after;
+		reg.view<FpA>().each([&](FpA& a) { after.insert(a.v); });
+		EXPECT_EQ(after, want) << "the fast path changed what iteration yields";
+	}
+
+	// grouped: a sector stays alive through its other component, so a cleared
+	// FpA bit must still be respected even with no dead sectors at all
+	{
+		Registry<false> reg;
+		reg.registerArray<FpA, FpB>();
+		std::set<int> want;
+		for (EntityId e = 0; e < 300; ++e) {
+			reg.takeEntity();
+			reg.addComponent<FpA>(e, FpA{ int(e) });
+			reg.addComponent<FpB>(e, FpB{ int(e) });
+			want.insert(int(e));
+		}
+		for (EntityId e = 0; e < 300; e += 10) {
+			reg.destroyComponent<FpA>(e);
+			want.erase(int(e));
+		}
+		std::set<int> got;
+		reg.view<FpA>().each([&](FpA& a) { got.insert(a.v); });
+		EXPECT_EQ(got, want) << "a grouped array took the single-type fast path";
+	}
+
+	// the case the fast path is for: many chunks, nothing dead
+	{
+		Registry<false> reg;
+		size_t sum = 0, expected = 0;
+		for (EntityId e = 0; e < 20000; ++e) {
+			reg.takeEntity();
+			reg.addComponent<FpA>(e, FpA{ int(e) });
+			expected += e;
+		}
+		reg.view<FpA>().each([&](FpA& a) { sum += size_t(a.v); });
+		EXPECT_EQ(sum, expected);
+	}
 }

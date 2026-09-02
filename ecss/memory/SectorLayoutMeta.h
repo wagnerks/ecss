@@ -287,7 +287,11 @@ namespace ecss::Memory {
 			return count;
 		}
 
+	public:
+		// Iteration needs to know whether a sector holds exactly one component, which is
+		// what makes a chunk a plain array of it. Reads data fixed at construction.
 		uint8_t getTypesCount() const { return count; }
+	private:
 
 	private:
 		inline static constexpr size_t maxComponentsPerSector = 32; // Arbitrary limit for sanity checks.
