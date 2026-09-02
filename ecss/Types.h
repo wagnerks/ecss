@@ -1,18 +1,16 @@
 ﻿#pragma once
 
-#include <atomic>
-#include <cstdint>
-#include <limits>
 #include <array>
+#include <atomic>
+#include <cstdio>
+#include <string_view>
+#include <tuple>
 #include <type_traits>
+
+#include <ecss/Fwd.h>
 
 #if defined(_MSC_VER)
 #  include <intrin.h>
-#  define FORCE_INLINE __forceinline
-#elif defined(__GNUC__) || defined(__clang__)
-#  define FORCE_INLINE inline __attribute__((always_inline))
-#else
-#  define FORCE_INLINE inline
 #endif
 
 namespace ecss {
@@ -32,13 +30,6 @@ namespace ecss {
 #  endif
 #endif
 	}
-
-	using SectorId = uint32_t;
-	using EntityId = SectorId;
-	using ECSType = uint16_t;
-
-	constexpr SectorId INVALID_ID = std::numeric_limits<SectorId>::max();
-	constexpr uint32_t INVALID_IDX = std::numeric_limits<uint32_t>::max();
 
 	namespace types {
 		/**
@@ -138,6 +129,123 @@ namespace ecss {
 		constexpr size_t typeIndex = 0;
 		template<typename T, typename... Ts>
 		constexpr size_t typeIndex<T, Ts...> = getIndex<T, Ts...>();
+	}
+
+	/**
+	 * @brief Declare that a component is knowingly not trivially copyable.
+	 *
+	 * Specialize to std::true_type for a component that owns a std::string or a std::vector
+	 * and always will:
+	 * @code
+	 * template<> struct ecss::AllowNonTrivial<MeshComponent> : std::true_type {};
+	 * @endcode
+	 *
+	 * The warning below exists to catch the accidental cases -- a stray virtual function, a
+	 * mutex member, a base class someone added for unrelated reasons -- where the cost is
+	 * paid for nothing. A type that cannot be made trivial has nothing to fix, and a warning
+	 * nobody can act on is one everybody learns to switch off wholesale.
+	 */
+	template<class T>
+	struct AllowNonTrivial : std::false_type {};
+
+	/// @brief Receives the name of every component that costs its array the trivial fast paths.
+	using TrivialityReporter = void (*)(std::string_view typeName);
+
+	namespace detail {
+		/**
+		 * @brief The component's name, carved out of the compiler's own signature for this
+		 *        function. No RTTI, and unlike typeid(T).name() it is readable on GCC too.
+		 */
+		template<class T>
+		constexpr std::string_view typeName() noexcept {
+#if defined(_MSC_VER)
+			constexpr std::string_view signature = __FUNCSIG__;
+			constexpr std::string_view open = "typeName<";
+			auto begin = signature.find(open) + open.size();
+			const auto end = signature.rfind('>');
+			// MSVC spells out the class-key; nobody wants to read "struct" in a diagnostic.
+			for (const std::string_view key : { "struct ", "class ", "enum ", "union " }) {
+				if (signature.compare(begin, key.size(), key) == 0) { begin += key.size(); break; }
+			}
+#else
+			constexpr std::string_view signature = __PRETTY_FUNCTION__;
+			const auto begin = signature.find("T = ") + 4;
+			// clang ends the clause at the bracket ("[T = Heavy]"); gcc lists the other
+			// substitutions after a semicolon ("[with T = Heavy; std::string_view = ...]").
+			const auto semicolon = signature.find(';', begin);
+			const auto end = semicolon != std::string_view::npos ? semicolon : signature.rfind(']');
+#endif
+			return begin < end ? signature.substr(begin, end - begin) : signature;
+		}
+
+		/// @brief The installed reporter. Prints one line to stderr until someone replaces it.
+		inline TrivialityReporter& trivialityReporter() noexcept {
+			static TrivialityReporter reporter = [](std::string_view name) {
+				std::fprintf(stderr,
+					"ecss: component '%.*s' is not trivially copyable, so its array gives up the\n"
+					"      raw-bytes paths: every middle insert, defragment and copy runs a move\n"
+					"      constructor plus a destructor per element instead of one memmove.\n"
+					"      Usually a virtual function (often inherited) or a mutex member. If it is\n"
+					"      deliberate, specialize ecss::AllowNonTrivial<T> for it.\n",
+					static_cast<int>(name.size()), name.data());
+				std::fflush(stderr);
+			};
+			return reporter;
+		}
+	}
+
+	/// @brief Route the triviality report into your own log, or pass nullptr to silence it.
+	inline void setTrivialityReporter(TrivialityReporter reporter) noexcept {
+		detail::trivialityReporter() = reporter;
+	}
+
+	namespace detail {
+		/**
+		 * @brief Instantiated for nothing but its own deprecation warning.
+		 *
+		 * A class template rather than a function: MSVC prints one C4996 per distinct
+		 * specialization and names it (`NonTrivialComponent<MeshComponent>`), while a
+		 * deprecated *function* template collapses to a single warning per source line, so a
+		 * translation unit registering ten components would only ever confess to the first.
+		 */
+		template<class T>
+		struct [[deprecated("ecss: this component is not trivially copyable, so its array gives up the "
+		                    "raw-bytes paths -- every middle insert, defragment and copy runs a move "
+		                    "constructor plus a destructor per element instead of one memmove. Usually "
+		                    "the cause is a virtual function (often an inherited base) or a mutex "
+		                    "member. If it is deliberate, specialize ecss::AllowNonTrivial<T> for it.")]]
+		NonTrivialComponent {};
+
+		/**
+		 * @brief Say once, per component type, that this one costs its array the fast paths.
+		 *
+		 * Two channels, because neither alone reaches everyone. The compile-time warning is the
+		 * better one -- it names the type without running anything -- but it is silenced for any
+		 * consumer that pulls ecss in as a *system* header, which every CMake project using
+		 * target_precompile_headers does: the generated PCH opens with `#pragma system_header`,
+		 * and a warning whose location is inside it never reaches the build log. So the same
+		 * condition also reports once at runtime, when the array's layout is built. That costs
+		 * one branch per array creation and nothing on any hot path.
+		 *
+		 * Define ECSS_NO_TRIVIALITY_WARNINGS to remove both; setTrivialityReporter(nullptr)
+		 * removes only the runtime half.
+		 *
+		 * @note MSVC reports C4996 at /W3 and above; /W1 (bare `cl` with no flags) hides it,
+		 *       CMake and MSBuild projects default to /W3. GCC and clang report it at any level.
+		 */
+		template<class T>
+		void checkTriviality() noexcept {
+#ifndef ECSS_NO_TRIVIALITY_WARNINGS
+			if constexpr (!std::is_trivially_copyable_v<T> && !AllowNonTrivial<T>::value) {
+				[[maybe_unused]] NonTrivialComponent<T> diagnostic{};
+
+				[[maybe_unused]] static const bool reported = [] {
+					if (const auto reporter = trivialityReporter()) { reporter(typeName<T>()); }
+					return true;
+				}();
+			}
+#endif
+		}
 	}
 }
 

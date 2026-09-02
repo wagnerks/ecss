@@ -393,6 +393,36 @@ TEST(Regression_Deadlock, TwoLiveViewsWhileAnotherThreadDestroysEntity) {
 	delete reg;
 }
 
+TEST(Regression_Concurrency, DestroyEntitiesDoesNotWaitForPinOnOtherSector) {
+	auto* reg = new Registry<true>();
+	reg->reserve<RPos>(16);
+	for (EntityId e = 0; e < 8; ++e) {
+		reg->takeEntity();
+		reg->addComponent<RPos>(e, RPos{ float(e), 0, 0 });
+	}
+
+	std::atomic<bool> done{ false };
+	std::thread writer;
+	{
+		auto pin = reg->pinComponent<RPos>(EntityId{ 0 });
+		ASSERT_TRUE(static_cast<bool>(pin));
+
+		writer = std::thread([&] {
+			std::vector<EntityId> doomed{ 3, 4, 5 };
+			reg->destroyEntities(doomed);
+			done.store(true, std::memory_order_release);
+		});
+
+		const bool ok = waitFor([&] { return done.load(std::memory_order_acquire); });
+		EXPECT_TRUE(ok) << "destroyEntities waited for a pin on a sector it was not destroying";
+		if (!ok) { writer.detach(); return; }
+	}
+	writer.join();
+	EXPECT_TRUE(reg->contains(EntityId{ 0 }));
+	EXPECT_FALSE(reg->contains(EntityId{ 3 }));
+	delete reg;
+}
+
 // ===========================================================================
 // Whole-registry churn: readers holding views and pins, writers inserting,
 // overwriting and destroying, plus maintenance. Watches for both a stall

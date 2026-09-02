@@ -47,11 +47,17 @@ else()
     endif()
 endif()
 
-include(CTest) # adds option BUILD_TESTING (ON by default)
-option(ECSS_BUILD_TESTS "Build unit tests" ${BUILD_TESTING})
+# The suite is for developing ecss, not for the projects that embed it. Defaulting to
+# BUILD_TESTING made a consumer that merely add_subdirectory()s us fetch googletest and
+# compile twelve more translation units -- each one instantiating the whole Registry --
+# as part of its own build, which is minutes it never asked for. include(CTest) is inside
+# the branch for the same reason: it defines BUILD_TESTING as a cache variable and adds
+# Nightly/Continuous/Experimental targets to whichever project pulled us in.
+option(ECSS_BUILD_TESTS "Build unit tests" ${PROJECT_IS_TOP_LEVEL})
 
 if(ECSS_BUILD_TESTS)
     message(STATUS "ecss: with unit tests")
+    include(CTest)
     include(FetchContent)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -81,6 +87,12 @@ if(ECSS_BUILD_TESTS)
     file(GLOB TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
     add_executable(ecss_tests ${TEST_SOURCES})
     target_link_libraries(ecss_tests PRIVATE ecss gtest gtest_main)
+
+    # The suite stores std::string and move-only components on purpose -- exercising those
+    # paths is its job -- so the warning about them has nothing to say here. Silencing it per
+    # type is not an option either: several of those components are declared inside a TestBody,
+    # and a local class cannot be named in an explicit specialization of ecss::AllowNonTrivial.
+    target_compile_definitions(ecss_tests PRIVATE ECSS_NO_TRIVIALITY_WARNINGS)
 
     include(GoogleTest)
     gtest_discover_tests(ecss_tests

@@ -187,6 +187,7 @@ The system automatically detects component triviality at compile time via `Secto
 
 ### Implementation Details
 - `SectorLayoutMeta` stores a `trivial` flag computed from `std::is_trivially_copyable` for all grouped types.
+- Computing that flag also names any component that turned out non‑trivial, since the cost is otherwise invisible: a compiler warning, plus one runtime report through `ecss::setTrivialityReporter` for the projects where the compile‑time half is swallowed (a PCH is a system header). Silence per type with `ecss::AllowNonTrivial<T>`, or entirely with `ECSS_NO_TRIVIALITY_WARNINGS`. See the [FAQ](faq.md#q-what-if-a-component-is-nontrivial).
 - When `isTrivial() == true`: `ChunksAllocator::moveSectorsDataTrivial()` uses raw `memmove`.
 - When `isTrivial() == false`: `Sector::moveSectorData()` invokes move constructors, properly destructs source, and placement‑news into destination.
 - Shift operations iterate in correct order (backwards for right‑shift) to avoid overwriting source before move.

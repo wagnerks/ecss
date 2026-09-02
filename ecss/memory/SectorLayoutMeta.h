@@ -50,6 +50,11 @@ namespace ecss::Memory {
 	 * live at fixed addresses. Everything that reads a layout therefore holds it by
 	 * const pointer -- the only mutation in the type is create() initialising what it just
 	 * allocated, which is why initData/initLayoutData are private.
+	 * @thread_safety Internally synchronized, because it never changes -- and that applies to
+	 *                every member below. The layout is built once, by create(), and is const from
+	 *                then on, so any number of threads may read it without a lock and none of it
+	 *                can go stale. Only create() and the init* helpers it calls are exclusive,
+	 *                and they run before anything can name the object.
 	 */
 	struct SectorLayoutMeta {
 		// Non-copyable / non-movable: exactly one instance per type pack, shared by every
@@ -88,6 +93,7 @@ namespace ecss::Memory {
 			data.isAliveMask = static_cast<uint32_t>(1u << data.index);
 			data.isNotAliveMask = ~(data.isAliveMask);
 			data.isTrivial = std::is_trivially_copyable_v<U>;
+			ecss::detail::checkTriviality<U>();
 
 			data.functionTable.move = [](void* dest, void* src) { new(dest) U(std::move(*static_cast<U*>(src))); };
 
@@ -151,7 +157,9 @@ namespace ecss::Memory {
 		};
 
 		/// @brief Begin/end iterators over layout records.
+		/// @thread_safety Internally synchronized. Walks layout records that are immutable once built.
 		Iterator begin() const { return { this, 0 }; }
+		/// @thread_safety Internally synchronized. Walks layout records that are immutable once built.
 		Iterator end() const { return { this, getTypesCount() }; }
 
 	public:
@@ -160,6 +168,8 @@ namespace ecss::Memory {
 		 *
 		 * @tparam Types ... Component types stored in a sector.
 		 * @return Newly allocated SectorLayoutMeta*; caller owns and must delete.
+		 * @thread_safety Caller must ensure exclusive access. Builds the layout. Nothing may read it until this
+		 *                returns; afterwards it never changes again.
 		 */
 		template<typename... Types>
 		static inline SectorLayoutMeta* create()

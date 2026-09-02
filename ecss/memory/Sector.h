@@ -33,6 +33,9 @@ namespace ecss::Memory {
 		 *  @param mask Liveness bitmask for this component type
 		 *  @param isAliveData Current alive state from external array
 		 *  @return Pointer to T or nullptr if not alive.
+		 * @thread_safety Internally synchronized. Pure: computes from the arguments it is given and
+		 *                touches no shared state. Whether the data behind the pointer is stable is
+		 *                the caller's question, settled by a pin or a structural hold.
 		 */
 		template<typename T>
 		FORCE_INLINE T* getMember(std::byte* data, uint16_t offset, uint32_t mask, uint32_t isAliveData) noexcept {
@@ -40,39 +43,58 @@ namespace ecss::Memory {
 		}
 
 		/** @overload const version */
+		/// @thread_safety Internally synchronized. Pure: computes from the arguments it is given and
+		///                touches no shared state. Whether the data behind the pointer is stable is
+		///                the caller's question, settled by a pin or a structural hold.
 		template<typename T>
 		FORCE_INLINE const T* getMember(const std::byte* data, uint16_t offset, uint32_t mask, uint32_t isAliveData) noexcept {
 			return (isAliveData & mask) ? reinterpret_cast<const T*>(data + offset) : nullptr;
 		}
 
 		/** @brief Get a member pointer using layout metadata; returns nullptr if not alive. */
+		/// @thread_safety Internally synchronized. Pure: computes from the arguments it is given and
+		///                touches no shared state. Whether the data behind the pointer is stable is
+		///                the caller's question, settled by a pin or a structural hold.
 		template<typename T>
 		FORCE_INLINE T* getMember(std::byte* data, const LayoutData& layout, uint32_t isAliveData) noexcept {
 			return getMember<T>(data, layout.offset, layout.isAliveMask, isAliveData);
 		}
 
 		/** @overload const version */
+		/// @thread_safety Internally synchronized. Pure: computes from the arguments it is given and
+		///                touches no shared state. Whether the data behind the pointer is stable is
+		///                the caller's question, settled by a pin or a structural hold.
 		template<typename T>
 		FORCE_INLINE const T* getMember(const std::byte* data, const LayoutData& layout, uint32_t isAliveData) noexcept {
 			return getMember<T>(data, layout.offset, layout.isAliveMask, isAliveData);
 		}
 
 		/** @brief Raw member address by byte offset from the sector data base. */
+		/// @thread_safety Internally synchronized. Pure: computes from the arguments it is given and
+		///                touches no shared state. Whether the data behind the pointer is stable is
+		///                the caller's question, settled by a pin or a structural hold.
 		FORCE_INLINE void* getMemberPtr(std::byte* data, uint16_t offset) noexcept {
 			return data + offset;
 		}
 
 		/** @overload const version */
+		/// @thread_safety Internally synchronized. Pure: computes from the arguments it is given and
+		///                touches no shared state. Whether the data behind the pointer is stable is
+		///                the caller's question, settled by a pin or a structural hold.
 		FORCE_INLINE const void* getMemberPtr(const std::byte* data, uint16_t offset) noexcept {
 			return data + offset;
 		}
 
 		/** @brief Check whether any masked bit is marked alive. */
+		/// @thread_safety Internally synchronized. A test on a word the caller already loaded, so it
+		///                answers about that sample and not about the sector as it is now.
 		FORCE_INLINE bool isAlive(uint32_t isAliveData, uint32_t mask) noexcept {
 			return isAliveData & mask;
 		}
 
 		/** @brief Check whether any bit is marked alive (sector has any live component). */
+		/// @thread_safety Internally synchronized. A test on a word the caller already loaded, so it
+		///                answers about that sample and not about the sector as it is now.
 		FORCE_INLINE bool isSectorAlive(uint32_t isAliveData) noexcept {
 			return isAliveData != 0;
 		}
@@ -83,6 +105,11 @@ namespace ecss::Memory {
 		 *  @param mask Bitmask of bits to modify
 		 *  @param value If true, sets the bits; if false, clears them
 		 *  @note When value == false, mask should already be ~mask
+		 * @thread_safety Internally synchronized. One atomic read-modify-write on the liveness word
+		 *                when ThreadSafe, a plain one otherwise. Publishing a component alive uses
+		 *                release ordering, so a reader that sees the bit also sees the value.
+		 *                Ordering the *sector* against relocation is a different question: only a
+		 *                pin or a hold answers it.
 		 */
 		template<bool ThreadSafe = false>
 		FORCE_INLINE void setAlive(uint32_t& isAliveData, uint32_t mask, bool value) noexcept {
@@ -98,6 +125,11 @@ namespace ecss::Memory {
 			}
 		}
 
+		/// @thread_safety Internally synchronized. One atomic read-modify-write on the liveness word
+		///                when ThreadSafe, a plain one otherwise. Publishing a component alive uses
+		///                release ordering, so a reader that sees the bit also sees the value.
+		///                Ordering the *sector* against relocation is a different question: only a
+		///                pin or a hold answers it.
 		template<bool ThreadSafe = false>
 		FORCE_INLINE void markAlive(uint32_t& isAliveData, uint32_t mask) noexcept {
 			if constexpr (ThreadSafe) {
@@ -149,6 +181,9 @@ namespace ecss::Memory {
 		 *  @param layout Layout data for this component type
 		 *  @param args Constructor arguments
 		 *  @return Pointer to constructed component
+		 * @thread_safety Caller must ensure exclusive access. Constructs into the sector, then publishes the
+		 *                liveness bit. Only sound where nobody else writes that component and the
+		 *                sector cannot move -- under the owning array's write lock.
 		 */
 		template<typename T, bool TS = false, class ...Args>
 		T* emplaceMember(std::byte* data, uint32_t& isAliveData, const LayoutData& layout, Args&&... args) {
@@ -167,6 +202,8 @@ namespace ecss::Memory {
 
 		/** @brief Destroy a specific member if alive and clear its liveness bits.
 		 *  @tparam ThreadSafe If true, uses atomic store for race-free lockless reads.
+		 * @thread_safety Caller must ensure exclusive access. Runs a destructor and clears the liveness bit.
+		 *                Needs the owning array's write lock, and that sector unpinned.
 		 */
 		template<bool ThreadSafe = false>
 		inline void destroyMember(std::byte* data, uint32_t& isAliveData, const LayoutData& layout) {
@@ -180,6 +217,9 @@ namespace ecss::Memory {
 
 		/** @brief Destroy all alive members in sector data and clear liveness bits.
 		 *  @tparam ThreadSafe If true, uses atomic store for race-free lockless reads.
+		 * @thread_safety Caller must ensure exclusive access. Destroys every component in the sector. Needs the
+		 *                owning array's write lock and that sector unpinned -- which is what
+		 *                exclusiveWhenUnpinned() establishes for its callers.
 		 */
 		template<bool ThreadSafe = false>
 		inline void destroySectorData(std::byte* data, uint32_t& isAliveData, const SectorLayoutMeta* layouts) {
@@ -272,6 +312,8 @@ namespace ecss::Memory {
 		 *  @param toData Destination sector data
 		 *  @param toIsAlive Reference to destination alive state (will be modified)
 		 *  @param layouts Sector layout metadata
+		 * @thread_safety Caller must ensure exclusive access. Copies a whole sector. Both sides must be held
+		 *                still by their owning arrays.
 		 */
 		template<bool ThreadSafe = false>
 		inline void copySectorData(const std::byte* fromData, uint32_t fromIsAlive,
@@ -303,6 +345,9 @@ namespace ecss::Memory {
 		 *  @param toData Destination sector data
 		 *  @param toIsAlive Reference to destination alive state (will be modified)
 		 *  @param layouts Sector layout metadata
+		 * @thread_safety Caller must ensure exclusive access. Moves a whole sector, which is relocation: the
+		 *                array must be quiescent, not merely write-locked. A reader holding a pin or a
+		 *                hold is looking at the bytes being moved.
 		 */
 		template<bool ThreadSafe = false>
 		inline void moveSectorData(std::byte* fromData, uint32_t& fromIsAlive,

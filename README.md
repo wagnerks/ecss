@@ -33,7 +33,9 @@ Sectors live inside chunked storage that grows by powers of two. Offsets are com
 - No virtual dispatch in hot iteration
 - Deterministic layout => stable perf tuning / profiling
 - Costs are per `SectorsArray`, never across whole registry
-- Favor trivial POD components (enables raw `memmove` for insertion / defrag)
+- Favor trivial POD components (enables raw `memmove` for insertion / defrag) — registering a
+  non‑trivially‑copyable one still works, but names it at compile time and once at runtime;
+  declare `ecss::AllowNonTrivial<T>` when it is deliberate
 
 ## 🧱 Memory Model (Conceptual)
 ```

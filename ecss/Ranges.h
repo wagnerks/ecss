@@ -1,13 +1,18 @@
 #pragma once
 
 #include <algorithm>
-#include <numeric>
 #include <utility>
 #include <vector>
 
-#include <ecss/Types.h>
+#include <ecss/Fwd.h>
 
 namespace ecss {
+	/// @thread_safety Thread-confined -- and that applies to every member
+	///                below, without exception. This is a plain sorted container of id ranges with
+	///                no synchronization anywhere in it: take(), takeBlock(), insert() and erase()
+	///                mutate, the rest read, and none of them is safe against a concurrent
+	///                mutation. Build one, then hand it to view(); do not touch it again while a
+	///                view built from it is still walking.
 	template<typename Type = uint32_t>
 	struct Ranges {
 		static_assert(std::is_arithmetic_v<Type>, "Not an arithmetic type");
@@ -259,9 +264,7 @@ namespace ecss {
 
 			Type* out = res.data();
 			for (const auto& r : ranges) {
-				const size_t len = static_cast<size_t>(r.second - r.first);
-				std::iota(out, out + len, r.first);
-				out += len;
+				for (Type value = r.first; value != r.second; ++value) { *out++ = value; }
 			}
 
 			return res;

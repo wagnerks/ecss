@@ -27,6 +27,10 @@ namespace ecss::Memory {
 	struct RetireBin {
 		static constexpr uint32_t DEFAULT_GRACE_PERIOD = 3;
 
+		/// @thread_safety Caller must ensure exclusive access. Applies to construction, assignment and
+		///                destruction. The destructor drains the bin, which frees everything still
+		///                queued regardless of its countdown -- so nothing may still be holding a
+		///                pointer into it.
 		RetireBin() = default;
 		explicit RetireBin(uint32_t gracePeriod) : mGracePeriod(gracePeriod) {}
 		~RetireBin() { drainAll(); }
@@ -52,6 +56,9 @@ namespace ecss::Memory {
 		/// there is nothing for the block to wait for. Queuing it anyway would need a
 		/// tick() the single-threaded build has no reason to call, and the block would
 		/// live until the bin was destroyed.
+		/// @thread_safety Internally synchronized. Takes the bin's mutex, briefly. With a zero grace
+		///                period the block is freed immediately instead of queued, which is right only
+		///                when there are no lock-free readers to outlive -- the single-threaded build.
 		void retire(void* p) {
 			if (!p) return;
 			if (mGracePeriod.load(std::memory_order_relaxed) == 0) {
@@ -70,6 +77,9 @@ namespace ecss::Memory {
 		 * reaches zero will be freed. This is safe to call from any thread.
 		 * 
 		 * @return Number of blocks freed this tick
+		 * @thread_safety Internally synchronized. Lock-free when the bin is empty, which is the
+		 *                common case and costs one acquire load; takes the mutex only when there is
+		 *                something to count down. Safe from any thread, including several at once.
 		 */
 		size_t tick() {
 			// Lock-free early-out. tick() runs for every array every frame and is almost
@@ -102,6 +112,10 @@ namespace ecss::Memory {
 		}
 
 		/// @brief Immediately free all retired memory (use only at safe sync points)
+		/// @thread_safety Caller must ensure exclusive access. Frees everything immediately, ignoring the grace
+		///                period. The mutex makes the bookkeeping safe, not the freeing: the caller has
+		///                to know no reader still holds a pointer into any queued block. Only for
+		///                teardown, or a point where all readers are known to be gone.
 		void drainAll() {
 			std::vector<void*> tmp;
 			{

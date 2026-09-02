@@ -3,6 +3,7 @@
 #include <vector>
 #include <thread>
 #include <atomic>
+#include <algorithm>
 #include <iostream>
 #include <iomanip>
 #include <numeric>
@@ -373,3 +374,162 @@ TEST(PerfBench, Fair_Ungrouped_RangeFor) {
     auto t1 = Clock::now();
     std::cerr << "[Perf] Fair_Ungrouped_RangeFor " << N << ": " << std::fixed << std::setprecision(2) << ms(t0, t1) << " ms\n";
 }
+
+namespace TypeLookupBench {
+
+struct C00 { int value{}; }; struct C01 { int value{}; };
+struct C02 { int value{}; }; struct C03 { int value{}; };
+struct C04 { int value{}; }; struct C05 { int value{}; };
+struct C06 { int value{}; }; struct C07 { int value{}; };
+struct C08 { int value{}; }; struct C09 { int value{}; };
+struct C10 { int value{}; }; struct C11 { int value{}; };
+struct C12 { int value{}; }; struct C13 { int value{}; };
+struct C14 { int value{}; }; struct C15 { int value{}; };
+struct C16 { int value{}; }; struct C17 { int value{}; };
+struct C18 { int value{}; }; struct C19 { int value{}; };
+struct C20 { int value{}; }; struct C21 { int value{}; };
+struct C22 { int value{}; }; struct C23 { int value{}; };
+struct C24 { int value{}; }; struct C25 { int value{}; };
+struct C26 { int value{}; }; struct C27 { int value{}; };
+struct C28 { int value{}; }; struct C29 { int value{}; };
+struct C30 { int value{}; }; struct C31 { int value{}; };
+
+#if defined(_MSC_VER)
+#define ECSS_BENCH_NOINLINE __declspec(noinline)
+#else
+#define ECSS_BENCH_NOINLINE __attribute__((noinline))
+#endif
+
+using BenchRegistry = Registry<false>;
+using BenchArray = Memory::SectorsArray<false, Memory::ChunksAllocator<8192>>;
+
+template<class Component>
+ECSS_BENCH_NOINLINE bool hasComponent(BenchRegistry& registry, EntityId entity) {
+    return registry.hasComponent<Component>(entity);
+}
+
+template<class Component>
+ECSS_BENCH_NOINLINE uint32_t layoutMask(BenchArray* array) {
+    return array->getLayoutData<Component>().isAliveMask;
+}
+
+template<class Operation>
+double medianNsPerOperation(Operation&& operation, size_t operationsPerSample) {
+    std::vector<double> samples;
+    samples.reserve(9);
+    uint64_t checksum = 0;
+
+    for (int sample = 0; sample < 9; ++sample) {
+        const auto begin = Clock::now();
+        checksum += operation();
+        const auto end = Clock::now();
+        samples.push_back(std::chrono::duration<double, std::nano>(end - begin).count()
+            / static_cast<double>(operationsPerSample));
+    }
+
+    std::ranges::sort(samples);
+    if (checksum == 0) std::abort();
+    return samples[samples.size() / 2];
+}
+
+template<class... Components>
+double groupedLastTypeHasNs() {
+    using Last = std::tuple_element_t<sizeof...(Components) - 1, std::tuple<Components...>>;
+    static constexpr size_t entityCount = 4096;
+    static constexpr size_t passes = 1024;
+    static constexpr size_t operations = entityCount * passes;
+
+    BenchRegistry registry;
+    registry.registerArray<Components...>();
+    registry.reserve<Last>(static_cast<uint32_t>(entityCount));
+
+    std::vector<EntityId> entities;
+    entities.reserve(entityCount);
+    for (size_t i = 0; i < entityCount; ++i) {
+        const auto entity = registry.takeEntity();
+        registry.addComponent<Last>(entity, static_cast<int>(i));
+        entities.push_back(entity);
+    }
+
+    return medianNsPerOperation([&] {
+        uint64_t sum = 0;
+        for (size_t pass = 0; pass < passes; ++pass)
+            for (const auto entity : entities) sum += hasComponent<Last>(registry, entity);
+        return sum;
+    }, operations);
+}
+
+TEST(PerfBench, TypeIdLayoutScaling) {
+    const auto group01 = groupedLastTypeHasNs<C00>();
+    const auto group02 = groupedLastTypeHasNs<C00, C01>();
+    const auto group04 = groupedLastTypeHasNs<C00, C01, C02, C03>();
+    const auto group08 = groupedLastTypeHasNs<C00, C01, C02, C03, C04, C05, C06, C07>();
+    const auto group16 = groupedLastTypeHasNs<
+        C00, C01, C02, C03, C04, C05, C06, C07,
+        C08, C09, C10, C11, C12, C13, C14, C15>();
+    const auto group32 = groupedLastTypeHasNs<
+        C00, C01, C02, C03, C04, C05, C06, C07,
+        C08, C09, C10, C11, C12, C13, C14, C15,
+        C16, C17, C18, C19, C20, C21, C22, C23,
+        C24, C25, C26, C27, C28, C29, C30, C31>();
+
+    std::cerr << std::fixed << std::setprecision(2)
+              << "[Perf] TypeLookup hasComponent group 1/2/4/8/16/32: "
+              << group01 << " / " << group02 << " / " << group04 << " / "
+              << group08 << " / " << group16 << " / " << group32 << " ns/op\n";
+}
+
+TEST(PerfBench, TypeIdAndLayoutLookup) {
+    static constexpr size_t entityCount = 16384;
+    static constexpr size_t passes = 256;
+    static constexpr size_t operations = entityCount * passes;
+
+    BenchRegistry registry;
+    registry.registerArray<
+        C00, C01, C02, C03, C04, C05, C06, C07,
+        C08, C09, C10, C11, C12, C13, C14, C15,
+        C16, C17, C18, C19, C20, C21, C22, C23,
+        C24, C25, C26, C27, C28, C29, C30, C31>();
+    registry.reserve<C00>(static_cast<uint32_t>(entityCount));
+
+    std::vector<EntityId> entities;
+    entities.reserve(entityCount);
+    for (size_t i = 0; i < entityCount; ++i) {
+        const auto entity = registry.takeEntity();
+        registry.addComponent<C00>(entity, static_cast<int>(i));
+        registry.addComponent<C31>(entity, static_cast<int>(i));
+        entities.push_back(entity);
+    }
+
+    auto* array = registry.getComponentContainer<C00>();
+    const auto directFirst = medianNsPerOperation([&] {
+        uint64_t sum = 0;
+        for (size_t i = 0; i < operations; ++i) sum += layoutMask<C00>(array);
+        return sum;
+    }, operations);
+    const auto directLast = medianNsPerOperation([&] {
+        uint64_t sum = 0;
+        for (size_t i = 0; i < operations; ++i) sum += layoutMask<C31>(array);
+        return sum;
+    }, operations);
+    const auto hasFirst = medianNsPerOperation([&] {
+        uint64_t sum = 0;
+        for (size_t pass = 0; pass < passes; ++pass)
+            for (const auto entity : entities) sum += hasComponent<C00>(registry, entity);
+        return sum;
+    }, operations);
+    const auto hasLast = medianNsPerOperation([&] {
+        uint64_t sum = 0;
+        for (size_t pass = 0; pass < passes; ++pass)
+            for (const auto entity : entities) sum += hasComponent<C31>(registry, entity);
+        return sum;
+    }, operations);
+
+    std::cerr << std::fixed << std::setprecision(2)
+              << "[Perf] TypeLookup direct-layout first/last: " << directFirst << " / " << directLast << " ns/op\n"
+              << "[Perf] TypeLookup hasComponent first/last: " << hasFirst << " / " << hasLast << " ns/op\n";
+}
+
+#undef ECSS_BENCH_NOINLINE
+
+} // namespace TypeLookupBench

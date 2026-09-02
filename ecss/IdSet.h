@@ -48,6 +48,9 @@ namespace ecss {
 	struct IdSet;
 
 	// ===================================================================== single-threaded
+	/// @thread_safety Not applicable (single-threaded build) -- and that applies to every member
+	///                below. There is no synchronization anywhere in this specialization: every
+	///                one of them needs exclusive access.
 	template<typename Type>
 	struct IdSet<Type, false> : private detail::IdSetLayout {
 		static_assert(std::is_unsigned_v<Type>, "IdSet indexes bits by id, so ids must be unsigned");
@@ -190,6 +193,26 @@ namespace ecss {
 	 *
 	 * @warning clear() is not safe against concurrent take/erase; the owner serialises it
 	 *          (Registry does so with mEntitiesMutex). Everything else is.
+	 * @thread_safety Internally synchronized -- and that applies to every member below, with
+	 *                the two exceptions named at the end.
+	 *
+	 *                take(), insert(), erase(), contains(), size() and empty() are lock-free:
+	 *                atomic operations on the bitmap, none of which waits for another thread.
+	 *                take(count, out) claims a whole word of ids per atomic operation rather
+	 *                than one at a time. getAll() is lock-free too, and gives a snapshot.
+	 *
+	 *                Not lock-free: growing. take() and reserve() add a block when the bitmap
+	 *                runs out, and that takes the growth mutex before publishing a fresh table.
+	 *                Superseded tables are kept rather than freed, so a concurrent reader
+	 *                walking the old one stays valid. reserve() up front keeps that off the
+	 *                hot path.
+	 *
+	 *                The exceptions: the constructor and the destructor need exclusive access.
+	 *                The destructor frees every table and block outright.
+	 *
+	 *                Results are true at the moment of the call: an id contains() reports may be
+	 *                destroyed by another thread immediately afterwards, and a snapshot is stale
+	 *                as soon as it is taken.
 	 */
 	template<typename Type>
 	struct IdSet<Type, true> : private detail::IdSetLayout {

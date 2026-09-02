@@ -169,6 +169,38 @@ A: Fully supported. The system detects non‑trivial types at compile time and u
 
 Types like `std::string`, `std::vector`, or custom RAII classes work correctly. Performance is lower than trivial types (no batch `memmove`), but correctness is guaranteed. Keep such types ungrouped unless locality gain outweighs the cost.
 
+Because it still works, it is easy to pay this without noticing — a base class someone added for
+an unrelated reason, or a mutex member, silently costs the whole array its `memmove` paths. So
+registering a non‑trivially‑copyable component emits a compiler warning naming the type:
+
+```
+warning C4996: 'ecss::detail::NonTrivialComponent<MeshComponent>': ecss: this component is not
+trivially copyable, so its array gives up the raw-bytes paths ...
+```
+
+It is a warning, never an error — the type is supported, you are only told what it costs.
+
+The same thing is also reported **once at runtime**, when the array's layout is built, because the
+compile‑time half does not reach everyone: a project that pulls ecss in through
+`target_precompile_headers` gets a PCH that CMake opens with `#pragma system_header`, and a
+warning whose location is inside a system header never reaches the build log. Route that report
+into your own log (a windowed build has nowhere to show stderr) or turn it off:
+
+```cpp
+ecss::setTrivialityReporter([](std::string_view component) { myLog("ecss: %s ...", component); });
+ecss::setTrivialityReporter(nullptr);   // silence the runtime half only
+```
+
+When a component owns a `std::string` or a `std::vector` and always will, say so once and both
+halves go quiet for it:
+
+```cpp
+template<> struct ecss::AllowNonTrivial<MeshComponent> : std::true_type {};
+```
+
+`-DECSS_NO_TRIVIALITY_WARNINGS` removes the whole diagnostic. MSVC reports the compile‑time half
+from `/W3` (what CMake and MSBuild projects use by default); GCC and clang report it at any level.
+
 ---
 
 ### Q: Are there global singletons or hidden systems?

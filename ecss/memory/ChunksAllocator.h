@@ -15,6 +15,8 @@
 
 namespace ecss::Memory {
 
+	/// @thread_safety Internally synchronized. Pure pointer arithmetic on its arguments; no
+	///                shared state is touched.
 	template<typename T>
 	static void* toAdr(T* ptr) {
 		if constexpr (std::is_const_v<T>) {
@@ -25,6 +27,8 @@ namespace ecss::Memory {
 		}
 	}
 
+	/// @thread_safety Internally synchronized. Pure pointer arithmetic on its arguments; no
+	///                shared state is touched.
 	template<typename T1, typename T2>
 	static bool isSameAdr(T1* ptr1, T2* ptr2) {
 		return toAdr(ptr1) == toAdr(ptr2);
@@ -48,6 +52,15 @@ namespace ecss::Memory {
 	 * Sector metadata (id, isAliveData) is stored externally in SectorsArray.
 	 * 
 	 * @tparam ChunkCapacity Number of sectors per chunk (rounded up to power of 2).
+	 * @thread_safety Caller must ensure exclusive access. This is the owning SectorsArray's
+	 *                private storage and carries no lock of its own: every mutating call is made
+	 *                under that array's write lock.
+	 *
+	 *                Readers are the exception, and are why the chunk table is published rather
+	 *                than simply written: loadChunks() hands out a snapshot a lock-free reader can
+	 *                walk while chunks are being added or returned. Chunks that go away are
+	 *                retired, not freed, so a reader holding a pointer into one stays safe until
+	 *                the grace period expires.
 	 */
 	template<uint32_t ChunkCapacity = 8192>
 	struct ChunksAllocator {
@@ -61,6 +74,12 @@ namespace ecss::Memory {
 		 * Does NOT have access to sector id/isAlive - those come from external arrays.
 		 */
 		struct Cursor {
+			/// @thread_safety Thread-confined. Applies to every member of this cursor.
+			///                It belongs to the thread that made it and holds no lock; any number of
+			///                threads may each walk their own. Built from the chunk snapshot the array
+			///                published, so stepping stays valid while chunks are added or returned -- but
+			///                not across a compaction, which moves the sectors it is pointing at. That is
+			///                what the owning view's structural hold prevents.
 			Cursor() = default;
 
 			Cursor(const ChunksAllocator* allocator, size_t index = 0) noexcept : shift(allocator->mSectorSize)
@@ -130,6 +149,8 @@ namespace ecss::Memory {
 			}
 		};
 
+		/// @thread_safety Internally synchronized. Reads the published chunk snapshot to build the
+		///                cursor. What the cursor then requires is on the cursor.
 		FORCE_INLINE Cursor getCursor(size_t index = 0) const { return { this, index }; }
 
 		/**
@@ -139,6 +160,12 @@ namespace ecss::Memory {
 		 * Does NOT have access to sector id/isAlive - those come from external arrays.
 		 */
 		struct RangesCursor {
+			/// @thread_safety Thread-confined. Applies to every member of this cursor.
+			///                It belongs to the thread that made it and holds no lock; any number of
+			///                threads may each walk their own. Built from the chunk snapshot the array
+			///                published, so stepping stays valid while chunks are added or returned -- but
+			///                not across a compaction, which moves the sectors it is pointing at. That is
+			///                what the owning view's structural hold prevents.
 			RangesCursor() = default;
 			RangesCursor(const ChunksAllocator* alloc, const Ranges<SectorId>& ranges, size_t size) : shift(alloc->mSectorSize) {
 				std::vector<void*> chunks;
@@ -267,12 +294,18 @@ namespace ecss::Memory {
 			std::byte* end{nullptr};
 		};
 
+		/// @thread_safety Internally synchronized. Reads the published chunk snapshot to build the
+		///                cursor. The Ranges argument must not be mutated while the cursor walks it.
 		FORCE_INLINE RangesCursor getRangesCursor(const Ranges<SectorId>& ranges, size_t size) const { return {this, ranges, size}; }
 
 	public:
 		// copy
+		/// @thread_safety Caller must ensure exclusive access. Construction, assignment and destruction of the
+		///                allocator are not concurrent with anything reading it.
 		template<uint32_t OC>
 		ChunksAllocator(const ChunksAllocator<OC>& other) { *this = other; }
+		/// @thread_safety Caller must ensure exclusive access. Construction, assignment and destruction of the
+		///                allocator are not concurrent with anything reading it.
 		ChunksAllocator(const ChunksAllocator& other) { *this = other; }
 
 		template<uint32_t OC>
@@ -280,8 +313,12 @@ namespace ecss::Memory {
 		ChunksAllocator& operator=(const ChunksAllocator& other) { if (this != &other) { copy(other); } return *this; }
 
 		// move
+		/// @thread_safety Caller must ensure exclusive access. Construction, assignment and destruction of the
+		///                allocator are not concurrent with anything reading it.
 		template<uint32_t OC>
 		ChunksAllocator(ChunksAllocator<OC>&& other) noexcept { *this = std::move(other); }
+		/// @thread_safety Caller must ensure exclusive access. Construction, assignment and destruction of the
+		///                allocator are not concurrent with anything reading it.
 		ChunksAllocator(ChunksAllocator&& other) noexcept { *this = std::move(other); }
 
 		template<uint32_t OC>
@@ -289,13 +326,21 @@ namespace ecss::Memory {
 		ChunksAllocator& operator=(ChunksAllocator&& other) noexcept { if (this != &other) { move(std::move(other)); } return *this; }
 
 	public:
+		/// @thread_safety Caller must ensure exclusive access. Construction, assignment and destruction of the
+		///                allocator are not concurrent with anything reading it.
 		ChunksAllocator() = default;
+		/// @thread_safety Caller must ensure exclusive access. Construction, assignment and destruction of the
+		///                allocator are not concurrent with anything reading it.
 		~ChunksAllocator() {
 			deallocate(0, capacity());
 		}
 
+		/// @thread_safety Internally synchronized. The layout pointer is set once and never changes
+		///                afterwards, so this is a plain read that cannot go stale.
 		FORCE_INLINE const SectorLayoutMeta* getSectorLayout() const { return mSectorLayout; }
 
+		/// @thread_safety Caller must ensure exclusive access. Sets the layout the whole allocator is shaped by.
+		///                Call it before anything else touches the allocator.
 		FORCE_INLINE void init(const SectorLayoutMeta* layoutMeta) { assert(layoutMeta);
 			mSectorLayout = layoutMeta;
 
@@ -319,6 +364,9 @@ namespace ecss::Memory {
 		/// the array shared lock instead, which is precisely the lock that made view()
 		/// construction and every sparse lookup serialise. Old buffers stay readable because
 		/// mChunks is retire-allocated.
+		/// @thread_safety Internally synchronized. Lock-free, and the reason readers can walk chunks
+		///                at all: a seqlock read that retries until it sees a table nobody was mid-way
+		///                through replacing. This, not at(), is what a lock-free reader must use.
 		FORCE_INLINE ChunksView loadChunks() const noexcept {
 			for (;;) {
 				const uint64_t s1 = mSeq.load(std::memory_order_acquire);
@@ -334,6 +382,9 @@ namespace ecss::Memory {
 		}
 
 		/// @brief Publish the current table. Called after every mutation of mChunks.
+		/// @thread_safety Caller must ensure exclusive access. Publishes a new chunk table. Every caller is
+		///                already under the owning array's write lock; the seqlock is what makes the
+		///                *readers* safe, not the writers.
 		FORCE_INLINE void storeChunks() {
 			const uint64_t s = mSeq.load(std::memory_order_relaxed);
 			mSeq.store(s + 1, std::memory_order_relaxed);
@@ -344,6 +395,8 @@ namespace ecss::Memory {
 		}
 
 		/// @brief Sector data address inside a snapshot; nullptr when out of range.
+		/// @thread_safety Internally synchronized. Addresses into a snapshot the caller already holds,
+		///                so nothing it reads can be replaced underneath it.
 		static FORCE_INLINE std::byte* atView(const ChunksView& view, size_t index) {
 			const size_t chunk = calcChunkIndex(index);
 			if (chunk >= view.count) [[unlikely]] { return nullptr; }
@@ -354,12 +407,19 @@ namespace ecss::Memory {
 		FORCE_INLINE std::byte* operator[](size_t index) const { 
 			return static_cast<std::byte*>(mChunks[calcChunkIndex(index)]) + calcInChunkShift(index, mSectorSize); 
 		}
+		/// @thread_safety Caller must ensure exclusive access. Reads the live chunk vector, so it is only
+		///                correct under the owning array's lock. A concurrent allocate() or
+		///                deallocate() may be reallocating that vector. Readers outside the lock must
+		///                go through loadChunks() and atView() instead.
 		FORCE_INLINE std::byte* at(size_t index) const { 
 			return static_cast<std::byte*>(mChunks[calcChunkIndex(index)]) + calcInChunkShift(index, mSectorSize); 
 		}
 
 
 		/// @brief Simple memmove for trivial sector data (no alive array needed)
+		/// @thread_safety Caller must ensure exclusive access. Moves sector bytes, so on top of the write lock the
+		///                array must be quiescent: no pin and no hold. Any reader would be looking at
+		///                the sectors being moved.
 		void moveSectorsDataTrivial(size_t dst, size_t src, size_t n) const {
 			if (!n || dst == src) return;
 
@@ -401,6 +461,9 @@ namespace ecss::Memory {
 			}
 		}
 
+		/// @thread_safety Caller must ensure exclusive access. Mutates the chunk vector, so it needs the owning
+		///                array's write lock. Chunks are retired rather than freed, which is what keeps
+		///                a lock-free reader holding a pointer into one safe.
 		void deallocate(size_t from, size_t to) {
 			from = std::min(mChunks.size(), calcChunkIndex(from) + static_cast<size_t>((from & (mChunkCapacity - 1)) > 0)); // chunkIndex returns chunk in which "from" exists, we need to delete next chunk if it is not the chunk start
 			to = std::min(mChunks.size(), calcChunkIndex(to));
@@ -423,6 +486,9 @@ namespace ecss::Memory {
 			}
 		}
 
+		/// @thread_safety Caller must ensure exclusive access. Mutates the chunk vector, so it needs the owning
+		///                array's write lock. Growth only adds chunks and moves no sector, so it does
+		///                not need the array to be quiescent.
 		void allocate(size_t newCapacity) {
 			const auto oldCapacity = capacity();
 			if (newCapacity <= oldCapacity) [[likely]] {
@@ -439,8 +505,13 @@ namespace ecss::Memory {
 			storeChunks();
 		}
 
+		/// @thread_safety Caller must ensure exclusive access. Reads the live chunk vector, so it is only
+		///                correct under the owning array's lock -- which is exactly why
+		///                SectorsArray::capacity() takes the shared lock rather than reading an atomic.
 		FORCE_INLINE size_t capacity() const { return mChunks.size() << mChunkShift; }
 
+		/// @thread_safety Caller must ensure exclusive access. Reads the live chunk vector, so it is only
+		///                correct under the owning array's lock.
 		size_t find(const std::byte* dataPtr) const {
 			if (!dataPtr || mChunks.empty()) return capacity();
 
@@ -482,6 +553,8 @@ namespace ecss::Memory {
 		/// @return false if the layouts differ, in which case nothing is changed and the
 		///         caller must abandon the operation rather than proceed with a description
 		///         that does not match the bytes.
+		/// @thread_safety Caller must ensure exclusive access. May call init(). Runs during copy and move
+		///                assignment, which are already exclusive.
 		template<uint32_t OC>
 		[[nodiscard]] bool adoptOrMatchLayout(const ChunksAllocator<OC>& other) {
 			if (mSectorLayout == other.mSectorLayout) {

@@ -1,11 +1,12 @@
 #pragma once
 
-#include <ecss/Types.h>
+#include <ecss/Fwd.h>
 
 #ifndef NDEBUG
 #include <cassert>
 #include <cstdio>
 #include <map>
+#include <atomic>
 #include <mutex>
 #include <thread>
 #include <typeinfo>
@@ -33,13 +34,28 @@ namespace ecss::detail {
 	 *
 	 * Compiled out entirely when NDEBUG is set: the whole point is to be free in the build
 	 * that ships. @see Registry::setAccessTracking
+	 * @thread_safety Internally synchronized. Every entry point takes the per-type mutex, and
+	 *                the flag is read before anything else, so leaving it off costs a load.
+	 *                enabled() is the exception: set it once at startup, not while threads run.
+	 *                The whole class compiles to nothing when NDEBUG is set.
 	 */
 	class AccessTracker {
 	public:
 #ifndef NDEBUG
 		/// @brief Whether conflicts are watched for. Off until a Registry turns it on.
-		static bool& enabled() noexcept { static bool on = false; return on; }
+		/// @thread_safety Internally synchronized. One relaxed load, which is a plain move on
+		///                every architecture that matters. Atomic rather than a bare bool because
+		///                every tracked call reads it while setEnabled() may be writing, and a
+		///                torn read there would be a data race in the tool meant to find them.
+		static bool enabled() noexcept { return flag().load(std::memory_order_relaxed); }
 
+		/// @thread_safety Internally synchronized. One relaxed store. Still meant for startup:
+		///                turning tracking on once threads are running cannot show the overlaps
+		///                that already happened.
+		static void setEnabled(bool on) noexcept { flag().store(on, std::memory_order_relaxed); }
+
+		/// @thread_safety Internally synchronized. Takes the per-type mutex. Checks the enabled flag
+		///                first, so leaving tracking off costs one load. Compiled out under NDEBUG.
 		static void beginRead(ECSType type, const char* name) {
 			if (!enabled()) { return; }
 			auto& st = stateFor(type);
@@ -50,6 +66,8 @@ namespace ecss::detail {
 			++st.readers[std::this_thread::get_id()];
 		}
 
+		/// @thread_safety Internally synchronized. Takes the per-type mutex. Checks the enabled flag
+		///                first, so leaving tracking off costs one load. Compiled out under NDEBUG.
 		static void endRead(ECSType type) {
 			if (!enabled()) { return; }
 			auto& st = stateFor(type);
@@ -58,6 +76,8 @@ namespace ecss::detail {
 			if (it != st.readers.end() && --it->second == 0) { st.readers.erase(it); }
 		}
 
+		/// @thread_safety Internally synchronized. Takes the per-type mutex. Checks the enabled flag
+		///                first, so leaving tracking off costs one load. Compiled out under NDEBUG.
 		static void beginWrite(ECSType type, const char* name) {
 			if (!enabled()) { return; }
 			auto& st = stateFor(type);
@@ -73,6 +93,8 @@ namespace ecss::detail {
 			++st.writerDepth;
 		}
 
+		/// @thread_safety Internally synchronized. Takes the per-type mutex. Checks the enabled flag
+		///                first, so leaving tracking off costs one load. Compiled out under NDEBUG.
 		static void endWrite(ECSType type) {
 			if (!enabled()) { return; }
 			auto& st = stateFor(type);
@@ -88,6 +110,11 @@ namespace ecss::detail {
 
 	private:
 #ifndef NDEBUG
+		static std::atomic<bool>& flag() noexcept {
+			static std::atomic<bool> on{ false };
+			return on;
+		}
+
 		struct State {
 			std::mutex mutex;
 			std::map<std::thread::id, int> readers;   ///< reentrant depth per thread
@@ -98,6 +125,8 @@ namespace ecss::detail {
 		/// One record per component type, for the life of the process. Types are numbered from
 		/// a single counter, so a plain map keyed by that number is enough and never rehashes
 		/// under a reader.
+		/// @thread_safety Internally synchronized. Takes the table mutex. The map is keyed by a dense
+		///                type id and lives for the process, so entries are never removed.
 		static State& stateFor(ECSType type) {
 			static std::mutex tableMutex;
 			static std::map<ECSType, State> table;
