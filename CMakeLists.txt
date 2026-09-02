@@ -99,7 +99,10 @@ if(ECSS_BUILD_TESTS)
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         DISCOVERY_MODE PRE_TEST
         DISCOVERY_TIMEOUT 60
-        TIMEOUT 150
+        # Per-test wall clock. It has to travel as a test property: gtest_discover_tests
+        # has no TIMEOUT keyword of its own, so a bare one is swallowed as an unparsed
+        # argument and every test runs under ctest's default instead.
+        PROPERTIES TIMEOUT 150
     )
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
