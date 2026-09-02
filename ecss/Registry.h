@@ -451,12 +451,13 @@ namespace ecss {
 		 * @param func Generator invoked repeatedly until it signals the end.
 		 * @note Ids may be emitted in any order. The batch is collected, then merged in a
 		 *       single pass under one write lock.
-		 * @thread_safety Internally synchronized; blocks. Same contract as addComponent(): an
-		 *                ascending run appends, anything landing in the middle waits for the array
-		 *                to carry no pins and no open views.
+		 * @thread_safety Internally synchronized; blocks in the thread-safe build. Same contract
+		 *                as addComponent(): an ascending run appends, anything landing in the middle
+		 *                waits for the array to carry no pins and no open views.
+		 *                Not applicable in the plain build, which has neither.
 		 */
 		template <class T, typename Func>
-		void addComponents(Func&& func) requires(ThreadSafe) {
+		void addComponents(Func&& func) {
 			// Drain the generator first. Holding the write lock across it saved the per-element
 			// lock traffic but still inserted one id at a time, so a generator that emitted ids
 			// out of order paid O(M*N): each middle insert shifts the tail and rewrites the

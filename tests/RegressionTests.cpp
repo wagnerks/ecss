@@ -1764,6 +1764,35 @@ TEST(Regression_Iteration, TypedFastPathHonoursHolesAndGroups) {
 
 namespace {
 
+/// addComponents(generator) was declared requires(ThreadSafe) although nothing in it needs
+/// threads: it drains the generator into a vector and hands the result to insertBulk, which
+/// the plain build has had all along. The documentation presented it as the general batch API.
+///
+/// It matters more than a missing overload usually would. A loop of addComponent() over ids
+/// that land in the middle of a compacted array pays a full shift each time -- measured at
+/// 39 ms for 200 inserts into 133k live sectors, against 0.5 ms for the same 200 handed over
+/// as one batch.
+TEST(Regression_BulkInsert, GeneratorFormWorksInThePlainBuild) {
+	Registry<false> reg;
+	// Deliberately out of order: this is the case the batch form exists for.
+	const std::vector<EntityId> ids{ 7, 1, 4, 9, 2 };
+	size_t next = 0;
+	reg.addComponents<RInt>([&]() -> std::pair<EntityId, RInt> {
+		if (next == ids.size()) { return { INVALID_ID, RInt{} }; }
+		const auto id = ids[next++];
+		return { id, RInt{ int(id) * 10 } };
+	});
+
+	EXPECT_EQ(reg.getComponentContainer<RInt>()->size(), ids.size());
+	std::map<EntityId, int> got;
+	for (auto [e, v] : reg.view<RInt>()) { if (v) { got[e] = v->v; } }
+	EXPECT_EQ(got.size(), ids.size());
+	for (auto id : ids) {
+		ASSERT_TRUE(got.count(id)) << "id " << id << " did not survive the batch";
+		EXPECT_EQ(got[id], int(id) * 10);
+	}
+}
+
 /// mergeIntersections only ever compares neighbours, so it is right only on a sorted list --
 /// and the constructor hands it whatever the caller passed. An unsorted list came back
 /// unmerged and every later lookup trusted it. Folding also erased from the middle, shifting
