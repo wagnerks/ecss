@@ -2809,12 +2809,46 @@ private:
 
 		auto otherSz = other.sizeImpl();
 		mSize.store(otherSz, std::memory_order_relaxed);
-		mAllocator = std::move(other.mAllocator);
-		
-		mDenseArrays.resize(otherSz, otherSz);
-		for (size_t i = 0; i < otherSz; ++i) {
-			mDenseArrays.setIdAt(i, other.mDenseArrays.idAt(i));
-			mDenseArrays.setAliveAt(i, other.mDenseArrays.isAliveAt(i));
+		if constexpr (Allocator::mChunkCapacity == Alloc::mChunkCapacity) {
+			// Same chunk geometry, so the chunks simply change owner and no sector moves.
+			mAllocator = std::move(other.mAllocator);
+			
+			mDenseArrays.resize(otherSz, otherSz);
+			for (size_t i = 0; i < otherSz; ++i) {
+				mDenseArrays.setIdAt(i, other.mDenseArrays.idAt(i));
+				mDenseArrays.setAliveAt(i, other.mDenseArrays.isAliveAt(i));
+			}
+		}
+		else {
+			// Different capacities put every sector at a different address, so each one has
+			// to be relocated rather than adopted. The allocator's own cross-capacity path
+			// does that with memcpy, which is a lie for any member that owns a resource or
+			// points into itself -- and it cannot do better, because the liveness words that
+			// say which members exist are held here, not in there. So it happens at this
+			// level, where they are.
+			mAllocator.copyCommonData(other.mAllocator);
+			mAllocator.allocate(otherSz);
+			
+			mDenseArrays.resize(otherSz, otherSz);
+			const bool trivial = getLayout()->isTrivial();
+			for (size_t i = 0; i < otherSz; ++i) {
+				mDenseArrays.setIdAt(i, other.mDenseArrays.idAt(i));
+				if (trivial) {
+					std::memcpy(mAllocator.at(i), other.mAllocator.at(i), mAllocator.mSectorSize);
+					mDenseArrays.setAliveAt(i, other.mDenseArrays.isAliveAt(i));
+				}
+				else {
+					// Destination liveness starts at zero: moveSectorData destroys whatever the
+					// target claims to hold before moving into it, and the target holds nothing.
+					uint32_t toIsAlive = 0;
+					Sector::moveSectorData(
+						other.mAllocator.at(i), other.mDenseArrays.isAliveAt(i),
+						mAllocator.at(i), toIsAlive,
+						getLayout());
+					mDenseArrays.setAliveAt(i, toIsAlive);
+				}
+			}
+			other.mAllocator.deallocate(0, other.mAllocator.capacity());
 		}
 		mDenseArrays.storeView(otherSz);
 		

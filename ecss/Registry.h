@@ -1376,13 +1376,13 @@ namespace ecss {
 
 		void maintainArray(Memory::SectorsArray<ThreadSafe, Allocator>* array) noexcept {
 			if constexpr (ThreadSafe) {
-				// Deliberately not ticking the snapshot bin here. This runs per array per view,
-				// and the snapshot grace period measures how long a reader might still be
-				// walking a list it loaded, not how many views have opened since. Draining it
-				// at that rate would collapse the window. update() ticks it instead, and a
-				// program that never calls update() only holds snapshots it stopped publishing
-				// once registration settled.
-				array->tick();
+				// Neither bin is ticked here, and for the same reason. A grace period counts how
+				// long a lock-free reader might still be walking a buffer that was replaced --
+				// it is a claim about readers, not about how many views have opened since. This
+				// runs per array per view, so ticking from here made the window collapse under
+				// exactly the load it exists to survive: a loop that opens views quickly spends
+				// the whole period in microseconds, and a program that opens none never spends
+				// it at all. update() ticks both, at the rate a frame actually passes.
 				array->processPendingErases(true);
 			}
 			else {

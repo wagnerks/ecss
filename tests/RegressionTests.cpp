@@ -1764,6 +1764,65 @@ TEST(Regression_Iteration, TypedFastPathHonoursHolesAndGroups) {
 
 namespace {
 
+/// Counts what actually happened to it. A byte-wise relocation runs no constructor and no
+/// destructor and leaves any self-reference pointing at the old address, so all three of
+/// these say plainly whether the sector was moved or just copied.
+struct RTracked {
+	static inline int moves = 0;
+	static inline int dtors = 0;
+	static void reset() { moves = 0; dtors = 0; }
+
+	std::string s;
+	const RTracked* self = this;
+
+	RTracked() = default;
+	explicit RTracked(std::string v) : s(std::move(v)) {}
+	RTracked(const RTracked& o) : s(o.s) {}
+	RTracked(RTracked&& o) noexcept : s(std::move(o.s)) { ++moves; }
+	RTracked& operator=(const RTracked& o) { s = o.s; return *this; }
+	RTracked& operator=(RTracked&& o) noexcept { s = std::move(o.s); ++moves; return *this; }
+	~RTracked() { ++dtors; }
+};
+
+/// A move between arrays of different chunk capacity cannot adopt the chunks -- every sector
+/// lands at a new address -- so it relocates them. That relocation used to be a memcpy of the
+/// sector bytes followed by freeing the source chunks, which runs no constructor on the
+/// destination and no destructor on the source: anything owning a resource ends up with two
+/// owners, and anything pointing into itself keeps pointing at the address it left. The
+/// liveness words saying which members are actually constructed live in the array, not the
+/// allocator, so the relocation belongs at the level that has them.
+TEST(Regression_Move, CrossCapacityMoveRelocatesNonTrivialComponents) {
+	using Small = SectorsArray<false, ChunksAllocator<16>>;
+	using Large = SectorsArray<false, ChunksAllocator<64>>;
+
+	constexpr SectorId kCount = 40;
+	const auto nameOf = [](SectorId i) {
+		// Comfortably past any small-string buffer, so the string really owns a heap block.
+		return "component-number-" + std::to_string(i) + "-with-enough-text";
+	};
+
+	std::unique_ptr<Small> src(Small::create<RTracked>());
+	for (SectorId i = 0; i < kCount; ++i) { src->emplace<RTracked>(i, RTracked{ nameOf(i) }); }
+
+	std::unique_ptr<Large> dst(Large::create<RTracked>());
+	RTracked::reset();
+	*dst = std::move(*src);
+
+	EXPECT_EQ(RTracked::moves, int(kCount)) << "sectors were relocated without being moved";
+	EXPECT_EQ(RTracked::dtors, int(kCount)) << "the source sectors were freed undestroyed";
+
+	ASSERT_EQ(dst->size(), size_t(kCount));
+	for (SectorId i = 0; i < kCount; ++i) {
+		const auto slot = dst->findSlot(i);
+		ASSERT_TRUE(slot) << "sector " << i << " was lost in the move";
+		auto* n = Sector::getComponent<RTracked>(slot.data, dst->getIsAlive(i), dst->getLayout());
+		ASSERT_NE(n, nullptr);
+		EXPECT_EQ(n->s, nameOf(i)) << "sector " << i << " did not survive relocation intact";
+		EXPECT_EQ(n->self, n) << "sector " << i << " still points at the address it left";
+	}
+	EXPECT_EQ(src->size(), 0u) << "the source still claims sectors it handed over";
+}
+
 /// clearAsync() used to release every entity id on the spot, while the arrays kept their
 /// sectors until a later update(). takeEntity() then handed a live id straight back and the
 /// new entity read the old one's components as its own.

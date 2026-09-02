@@ -1,4 +1,5 @@
 #pragma once
+#include <limits>
 
 #include <cassert>
 #include <cstdint>
@@ -192,6 +193,30 @@ namespace ecss::Memory {
 		*/
 		template<typename... Types>
 		void initData()	{
+			// T, T*, T& and const T all resolve to the same type id (DenseTypeIdGenerator::
+			// getTypeId strips all three), and one id means one layout record. For const that
+			// is exactly right -- view<const T> asks for read-only access to the same object,
+			// same size, same offsets. A pointer or a reference is a different size, so it
+			// would file sizeof(void*) under the record of the type it names and overwrite it.
+			static_assert((!std::is_pointer_v<std::remove_cv_t<Types>> && ...)
+				&& (!std::is_reference_v<Types> && ...),
+				"a component is stored by value: name A or const A, not A* or A& -- a pointer "
+				"shares the type id of what it points to but not its size, and would overwrite "
+				"that type's layout record");
+			
+			// Chunks come from calloc, which promises alignof(std::max_align_t) and no more,
+			// and sectors are placed at a stride inside them. An alignas(32) or alignas(64)
+			// member would be handed an address that merely looks right in testing.
+			static_assert(((alignof(Types) <= alignof(std::max_align_t)) && ...),
+				"over-aligned component types are not supported: chunk memory comes from "
+				"calloc, which guarantees only max_align_t");
+			
+			// Offsets and the stride are stored as uint16_t. Past 64 KB the cast below wraps
+			// and every sector address after the first is wrong, with nothing to say so.
+			static_assert(types::OffsetArray<types::EmptyBase, Types...>::totalSize
+				<= std::numeric_limits<uint16_t>::max(),
+				"sector larger than 64 KB: component offsets and the stride are uint16_t");
+			
 			count = types::OffsetArray<types::EmptyBase, Types...>::count;
 			totalSize = static_cast<uint16_t>(types::OffsetArray<types::EmptyBase, Types...>::totalSize);
 			size_t idx = 0;
