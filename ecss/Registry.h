@@ -1578,9 +1578,40 @@ namespace ecss {
 			for (size_t chunkIdx = 0; chunkIdx < numChunks && idx < size; ++chunkIdx) {
 				auto* base = static_cast<std::byte*>(chunks[chunkIdx]);
 				const size_t chunkEnd = std::min(idx + chunkCapacity, size);
-				for (size_t localIdx = 0; idx < chunkEnd; ++idx, ++localIdx) {
-					if ((Memory::detail::loadRelaxed<ThreadSafe>(isAliveData, idx) & aliveMask) == aliveMask) {
-						callback(base + localIdx * stride);
+				if constexpr (ThreadSafe) {
+					// Read a block of liveness words, then walk the block. Each word is still read
+					// once and still atomically -- another thread may be destroying a component in
+					// place -- but the atomic reads are no longer interleaved with the callback.
+					//
+					// That interleaving was the whole cost. std::atomic_ref with relaxed ordering
+					// compiles to a plain move on its own (checked: identical instructions to a
+					// direct read), but sitting in the same loop body as an inlined callback it
+					// stopped MSVC optimizing the body at all, and the thread-safe build ran at
+					// twice the plain one over a grouped array. Split, the two are level again.
+					constexpr size_t kAliveBlock = 64;
+					uint32_t alive[kAliveBlock];
+					size_t localIdx = 0;
+					while (idx < chunkEnd) {
+						const size_t n = std::min(kAliveBlock, chunkEnd - idx);
+						for (size_t k = 0; k < n; ++k) {
+							alive[k] = Memory::detail::loadRelaxed<ThreadSafe>(isAliveData, idx + k);
+						}
+						for (size_t k = 0; k < n; ++k) {
+							if ((alive[k] & aliveMask) == aliveMask) {
+								callback(base + (localIdx + k) * stride);
+							}
+						}
+						idx += n;
+						localIdx += n;
+					}
+				}
+				else {
+					// Nothing to order against here, so the straight loop stays: blocking it would
+					// only add a buffer the plain build has no use for, and it measured slower.
+					for (size_t localIdx = 0; idx < chunkEnd; ++idx, ++localIdx) {
+						if ((isAliveData[idx] & aliveMask) == aliveMask) {
+							callback(base + localIdx * stride);
+						}
 					}
 				}
 			}
