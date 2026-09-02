@@ -179,6 +179,63 @@ TEST(ViewFull, RangedGroupedPartialAlive) {
 	EXPECT_EQ(n, 0u);
 }
 
+// Sibling of RangedGroupedPartialAlive above, but for range-for instead of each(): where
+// each() is a join (skip an entity missing a secondary), a range-for is main-driven and hands
+// back nullptr for a secondary the entity lacks -- documented on ArraysView::each() ("A
+// range-for yields (EntityId, T*, CompTypes*...) for every entity with the main component,
+// and a secondary it lacks arrives as nullptr for you to test"). This is the grouped case
+// specifically: VA and VB share one physical sector, so the secondary going dead clears only
+// its own bit in that shared sector's mask, not the main's.
+TEST(ViewFull, RangeForGroupedPartialAlive_SecondaryComesBackNull) {
+	Registry<false> reg;
+	reg.registerArray<VA, VB>();
+
+	EntityId onlyA = reg.takeEntity();
+	reg.addComponent<VA>(onlyA)->x = 1;
+
+	EntityId both = reg.takeEntity();
+	reg.addComponent<VA>(both)->x = 2;
+	reg.addComponent<VB>(both)->y = 3.f;
+
+	int visited = 0;
+	int sawSecondaryNull = 0;
+	for (auto [id, a, b] : reg.view<VA, VB>()) {
+		++visited;
+		ASSERT_NE(a, nullptr) << "the main component must always be non-null when the entity is visited at all";
+		if (id == onlyA) {
+			EXPECT_EQ(b, nullptr) << "VB was never added to this entity: must arrive as nullptr, not skip it";
+			++sawSecondaryNull;
+		}
+		else if (id == both) {
+			ASSERT_NE(b, nullptr);
+			EXPECT_FLOAT_EQ(b->y, 3.f);
+		}
+	}
+	EXPECT_EQ(visited, 2) << "range-for must visit every entity with the main component, regardless of secondary liveness";
+	EXPECT_EQ(sawSecondaryNull, 1);
+}
+
+// Same shape, but the secondary was added and then explicitly destroyed rather than never
+// added -- proving the shared sector's bit gets cleared correctly, not just "never set".
+TEST(ViewFull, RangeForGroupedPartialAlive_AfterDestroyComponent) {
+	Registry<false> reg;
+	reg.registerArray<VA, VB>();
+
+	EntityId e = reg.takeEntity();
+	reg.addComponent<VA>(e)->x = 5;
+	reg.addComponent<VB>(e)->y = 6.f;
+	reg.destroyComponent<VB>(e);   // VA's bit in the shared sector must survive this
+
+	int visited = 0;
+	for (auto [id, a, b] : reg.view<VA, VB>()) {
+		++visited;
+		ASSERT_NE(a, nullptr);
+		EXPECT_EQ(a->x, 5);
+		EXPECT_EQ(b, nullptr) << "VB was destroyed: must arrive as nullptr, and VA's own bit must be unaffected";
+	}
+	EXPECT_EQ(visited, 1);
+}
+
 TEST(ViewFull, ViewEmpty_NoEntities) {
 	Registry<false> reg;
 	auto v = reg.view<VA>();
