@@ -129,6 +129,24 @@ namespace ecss {
 			if (word < mHint) { mHint = word; }
 		}
 
+		/// @brief Release a run of ids. Ids that fall in the same word are cleared together,
+		///        so a sorted list costs one operation per 64 ids rather than one per id.
+		///        Correct for an unsorted list too -- it simply flushes more often.
+		void erase(const Type* begin, const Type* end) {
+			while (begin != end) {
+				const size_t word = wordOf(*begin);
+				Word mask = 0;
+				do {
+					mask |= bitOf(*begin);
+					++begin;
+				} while (begin != end && wordOf(*begin) == word);
+
+				if (word >= mWords.size()) { continue; }
+				mWords[word] &= ~mask;
+				if (word < mHint) { mHint = word; }
+			}
+		}
+
 		FORCE_INLINE bool contains(Type id) const {
 			const size_t word = wordOf(id);
 			return word < mWords.size() && (mWords[word] & bitOf(id)) != 0;
@@ -310,6 +328,32 @@ namespace ecss {
 
 			if (wordAt(table, word).fetch_and(~bitOf(id), std::memory_order_acq_rel) & bitOf(id)) {
 				lowerHint(word); // this word has room again
+			}
+		}
+
+		/// @brief Release a run of ids. Ids that fall in the same word are cleared together,
+		///        so a sorted list costs one operation per 64 ids rather than one per id.
+		///        Correct for an unsorted list too -- it simply flushes more often.
+		///        Each word costs one read-modify-write on a line every other thread's take()
+		///        may be scanning, so batching them is worth more here than the instruction
+		///        count suggests.
+		void erase(const Type* begin, const Type* end) {
+			const Table* table = mTable.load(std::memory_order_acquire);
+			if (!table) { return; }
+			const size_t words = table->count * kWordsPerBlock;
+
+			while (begin != end) {
+				const size_t word = wordOf(*begin);
+				Word mask = 0;
+				do {
+					mask |= bitOf(*begin);
+					++begin;
+				} while (begin != end && wordOf(*begin) == word);
+
+				if (word >= words) { continue; }
+				if (wordAt(table, word).fetch_and(~mask, std::memory_order_acq_rel) & mask) {
+					lowerHint(word);
+				}
 			}
 		}
 

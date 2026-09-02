@@ -1187,9 +1187,9 @@ namespace ecss {
 				}
 			}
 
-			for (auto id : entities) {
-				mEntities.erase(id);
-			}
+			// One operation per word rather than per id: the list is sorted by now, so runs of
+			// ids share a word and clear together.
+			mEntities.erase(entities.data(), entities.data() + entities.size());
 		}
 
 		/// @brief Defragment the container for component T (if it exists).

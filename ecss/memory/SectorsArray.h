@@ -2567,11 +2567,12 @@ private:
 	}
 
 	void eraseAsyncImpl(SectorId id) requires(ThreadSafe) {
-		// Initial check with shared lock - early exit optimization
-		{
-			SHARED_LOCK();
-			if (findLinearIdxImpl(id) == INVALID_IDX) return;
-		}
+		// Early exit for an id this array does not hold. The lookup reads the sparse map's
+		// published snapshot and takes no lock -- the same read every other path here does
+		// lock-free -- so the shared lock this used to take bought nothing. The answer is a
+		// snapshot either way, which is why the real work below re-reads under the unique
+		// lock rather than trusting it.
+		if (findLinearIdxImpl(id) == INVALID_IDX) { return; }
 
 		if (!mPinsCounter.isPinned(id)) {
 			UNIQUE_LOCK();

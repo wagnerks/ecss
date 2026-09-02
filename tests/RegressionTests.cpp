@@ -1764,6 +1764,36 @@ TEST(Regression_Iteration, TypedFastPathHonoursHolesAndGroups) {
 
 namespace {
 
+/// mergeIntersections only ever compares neighbours, so it is right only on a sorted list --
+/// and the constructor hands it whatever the caller passed. An unsorted list came back
+/// unmerged and every later lookup trusted it. Folding also erased from the middle, shifting
+/// the tail once per merge, so a contiguous block of ids cost O(n^2) to collapse.
+TEST(Regression_Ranges, MergeSortsFirstAndFoldsInOnePass) {
+	{
+		// Same three ranges, out of order. They describe one contiguous span either way.
+		Ranges<EntityId> r(std::vector<std::pair<EntityId, EntityId>>{ {20, 30}, {0, 10}, {10, 20} });
+		ASSERT_EQ(r.ranges.size(), 1u) << "unsorted input was left unmerged";
+		EXPECT_EQ(r.ranges[0].first, 0u);
+		EXPECT_EQ(r.ranges[0].second, 30u);
+	}
+	{
+		// Already sorted and disjoint: nothing may be merged away.
+		Ranges<EntityId> r(std::vector<std::pair<EntityId, EntityId>>{ {0, 5}, {10, 15}, {20, 25} });
+		ASSERT_EQ(r.ranges.size(), 3u);
+		EXPECT_EQ(r.ranges[2].second, 25u);
+	}
+	{
+		// The quadratic case: many ranges that fold into one. Correctness here, not timing --
+		// the single pass is what makes it affordable, and the result must be identical.
+		std::vector<std::pair<EntityId, EntityId>> many;
+		for (EntityId i = 0; i < 20000; ++i) { many.emplace_back(i, i + 1); }
+		Ranges<EntityId> r(many);
+		ASSERT_EQ(r.ranges.size(), 1u);
+		EXPECT_EQ(r.ranges[0].first, 0u);
+		EXPECT_EQ(r.ranges[0].second, 20000u);
+	}
+}
+
 /// Counts what actually happened to it. A byte-wise relocation runs no constructor and no
 /// destructor and leaves any self-reference pointing at the old address, so all three of
 /// these say plainly whether the sector was moved or just copied.

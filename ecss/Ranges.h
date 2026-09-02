@@ -52,22 +52,34 @@ namespace ecss {
 
 		Ranges(const Range& range) : Ranges(std::vector<Range>{range}) {}
 
+		/// @brief Collapse overlapping and touching ranges into one each.
 		FORCE_INLINE void mergeIntersections() {
-			if (ranges.empty()) {
+			if (ranges.size() < 2) {
 				return;
 			}
 
-			for (auto it = ranges.begin() + 1; it != ranges.end();) {
-				auto& prev = *(it - 1);
-				auto& cur = *(it);
-				if (prev.second >= cur.first) {
-					prev.second = std::max(prev.second, cur.second);
-					it = ranges.erase(it);
+			// The merge below only ever compares neighbours, so it is correct only on a sorted
+			// list -- and the constructor takes ranges straight from the caller. An unsorted one
+			// used to come back quietly unmerged rather than merged, which every later lookup
+			// then trusted. Checking is one linear pass; the sort is paid only when it is real.
+
+			if (!std::is_sorted(ranges.begin(), ranges.end())) {
+				std::sort(ranges.begin(), ranges.end());
+			}
+
+			// One pass with a write cursor. Erasing from the middle instead shifted the whole
+			// tail once per merged range, so a list that collapses to a single range -- which is
+			// what a contiguous block of ids does -- cost O(n^2) to fold.
+			size_t out = 0;
+			for (size_t in = 1; in < ranges.size(); ++in) {
+				if (ranges[out].second >= ranges[in].first) {
+					ranges[out].second = std::max(ranges[out].second, ranges[in].second);
 				}
 				else {
-					++it;
+					ranges[++out] = ranges[in];
 				}
 			}
+			ranges.resize(out + 1);
 		}
 
 		FORCE_INLINE Type take() { return takeBlock(1).first; }
