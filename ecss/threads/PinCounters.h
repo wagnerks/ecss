@@ -106,8 +106,8 @@ namespace ecss::Threads {
 	 *
 	 * Invariants:
 	 *   - A sector is "pinned" while its counter > 0.
-	 *   - mTotalPinned == number of distinct sectors whose counter > 0.
-	 *   - mTotalPinned == 0  <=>  every per-sector counter is 0.
+	 *   - the pin shards sum to the number of distinct sectors whose counter > 0.
+	 *   - that sum is 0  <=>  every per-sector counter is 0.
 	 *
 	 * Locking: pin()/unpin() take no locks at all. The counter block table grows under a
 	 * mutex and is published as an immutable snapshot, so lookup is lock-free.
@@ -166,9 +166,10 @@ namespace ecss::Threads {
 			// re-reads the pin count. Both sides must sit in the single total order or each
 			// can miss the other, which acquire/release cannot arrange across two variables.
 			addOutstanding();
-			mTotalPinned.fetch_add(1, std::memory_order_seq_cst);
+			auto& shard = pinShardFor(id);
+			shard.count.fetch_add(1, std::memory_order_seq_cst);
 			if (get(id).fetch_add(1, std::memory_order_seq_cst) != 0) {
-				mTotalPinned.fetch_sub(1, std::memory_order_seq_cst);
+				shard.count.fetch_sub(1, std::memory_order_seq_cst);
 			}
 #ifndef NDEBUG
 			SelfWaitDebug::addPin(this, id);
@@ -200,7 +201,7 @@ namespace ecss::Threads {
 			if (var.fetch_sub(1, std::memory_order_seq_cst) != 1) {
 				return;
 			}
-			const auto remaining = mTotalPinned.fetch_sub(1, std::memory_order_seq_cst) - 1;
+			pinShardFor(id).count.fetch_sub(1, std::memory_order_seq_cst);
 
 			// Skip the wake syscalls when provably nobody is blocked: a waiter announces
 			// itself in mWaiters before sampling the counter it is about to wait on, and
@@ -210,9 +211,12 @@ namespace ecss::Threads {
 				return;
 			}
 			var.notify_all();
-			if (remaining == 0) {
-				mTotalPinned.notify_all();
-			}
+			// A quiescence waiter sleeps on the generation rather than on a count: with the
+			// aggregate sharded there is no single word left to wait on. It re-reads every
+			// shard when it wakes, so bumping on any last-unpin instead of only on the last
+			// one on the array costs a spurious wake-up and never a missed one.
+			mReleaseGeneration.fetch_add(1, std::memory_order_seq_cst);
+			mReleaseGeneration.notify_all();
 		}
 
 		/**
@@ -308,18 +312,16 @@ namespace ecss::Threads {
 				}
 				WaiterScope scope(mWaiters);
 
-				// Sample both wake-up sources before re-checking, so a release that lands in
-				// between still wakes us. Holds are summed across shards, so there is no single
-				// word to wait on; mHoldGeneration is bumped on every release and serves as it.
-				const auto gen = mHoldGeneration.load(std::memory_order_seq_cst);
-				const auto pinned = mTotalPinned.load(std::memory_order_seq_cst);
-				if (pinned == 0 && !anyHold()) {
+				// Sample the generation before re-checking, so a release that lands in between
+				// still wakes us. Pins and holds are both summed across shards, so neither has a
+				// single word left to wait on; every release bumps this one instead -- and only
+				// once we have announced ourselves above, which is what keeps the release paths
+				// off a shared cache line when nobody is waiting.
+				const auto gen = mReleaseGeneration.load(std::memory_order_seq_cst);
+				if (!hasAnyPins()) {
 					return;
 				}
-				const bool progressed = (pinned != 0)
-					? waitOrDeadline(mTotalPinned, pinned, deadline, bounded)
-					: waitOrDeadline(mHoldGeneration, gen, deadline, bounded);
-				if (!progressed) {
+				if (!waitOrDeadline(mReleaseGeneration, gen, deadline, bounded)) {
 					reportStuckWait("waiting for an array to carry no pins and no holds");
 				}
 			}
@@ -357,9 +359,20 @@ namespace ecss::Threads {
 #endif
 			dropOutstanding();
 			mHolds[shard].count.fetch_sub(1, std::memory_order_seq_cst);
-			mHoldGeneration.fetch_add(1, std::memory_order_seq_cst);
+			// The generation exists so a waiter has one word to sleep on; with nobody waiting
+			// there is nothing to tell. Bumping it unconditionally put every view close on this
+			// thread back onto one cache line -- the very contention the sharded counts above
+			// exist to avoid, and it capped view throughput at about twice single-threaded
+			// however many cores were available.
+			//
+			// Safe because of the order the waiter uses: it announces itself in mWaiters, then
+			// samples the counts, then re-checks them. Every step is seq_cst, so either this
+			// load sees the announcement and wakes it, or the announcement came after this load
+			// and its sample therefore comes after the decrement above -- and it sees the array
+			// free without needing to be woken.
 			if (mWaiters.load(std::memory_order_seq_cst) != 0) {
-				mHoldGeneration.notify_all();
+				mReleaseGeneration.fetch_add(1, std::memory_order_seq_cst);
+				mReleaseGeneration.notify_all();
 			}
 		}
 
@@ -368,6 +381,20 @@ namespace ecss::Threads {
 		/// wait, not in a tight loop.
 		/// @thread_safety Internally synchronized. Sums the shards, so it is a handful of loads rather
 		///                than one. Deliberately not something to spin on.
+		/// @brief True if any sector on this array carries a pin.
+		///
+		/// Inexact by construction, in the safe direction: a pin taken while the loop is
+		/// midway through can be missed. The structural epoch is what closes that -- a writer
+		/// publishes it before asking, and a pinner re-reads it after pinning and starts
+		/// over if it moved. anyHold() is inexact the same way, for the same reason.
+		/// @thread_safety Internally synchronized. One load per shard.
+		FORCE_INLINE bool anyPin() const noexcept {
+			for (size_t i = 0; i < kPinShards; ++i) {
+				if (mPinShards[i].count.load(std::memory_order_seq_cst) != 0) { return true; }
+			}
+			return false;
+		}
+
 		FORCE_INLINE bool anyHold() const noexcept {
 			for (size_t i = 0; i < kHoldShards; ++i) {
 				if (mHolds[i].count.load(std::memory_order_seq_cst) != 0) { return true; }
@@ -518,12 +545,13 @@ namespace ecss::Threads {
 		///                relocating sectors, so it errs by over-reporting and never the other way.
 		FORCE_INLINE bool hasAnyPins() const noexcept {
 			// seq_cst: see the note in pin(). This is the writer half of the handshake.
-			return mTotalPinned.load(std::memory_order_seq_cst) != 0 || anyHold();
+			return anyPin() || anyHold();
 		}
 
 		/// @brief True if any sector on this array carries a pin. Says nothing about holds.
 		///
-		/// mTotalPinned == 0 is exactly "every per-sector counter is zero", so a writer that
+		/// An empty sum across the pin shards is exactly "every per-sector counter is zero",
+		/// so a writer that
 		/// only changes named sectors in place can ask this one question instead of asking
 		/// about each id it named. Not enough to relocate anything -- that needs hasAnyPins(),
 		/// which counts holds too.
@@ -531,7 +559,7 @@ namespace ecss::Threads {
 		FORCE_INLINE bool hasAnyPinnedSector() const noexcept {
 			// seq_cst: same handshake as hasAnyPins(), and read after the writer has published
 			// its structural epoch.
-			return mTotalPinned.load(std::memory_order_seq_cst) != 0;
+			return anyPin();
 		}
 
 		/// @brief Alias of hasAnyPins(): no sector may be relocated while this is true.
@@ -554,6 +582,22 @@ namespace ecss::Threads {
 		/// pairs per second at four threads against 198M for sixty-four -- while keeping the
 		/// writer-side sum at about 4 ns instead of 14 ns.
 		static constexpr size_t kHoldShards = 16;
+
+		/// Same bargain as kHoldShards, for the pin aggregate. Sixteen because sequential
+		/// ids -- which is how they are handed out -- then land one per shard.
+		static constexpr size_t kPinShards = 16;
+		static_assert((kPinShards & (kPinShards - 1)) == 0, "kPinShards must be a power of two");
+
+		struct alignas(64) PinShard { std::atomic<uint32_t> count{ 0 }; };
+
+		/// @brief The shard a sector's pin is counted in.
+		///
+		/// Keyed by id, not by thread, and that is not interchangeable here: the increment
+		/// and the decrement for one sector have to land on the same shard, and a pin taken
+		/// on one thread can be released from another.
+		FORCE_INLINE PinShard& pinShardFor(SectorId id) const noexcept {
+			return mPinShards[static_cast<size_t>(id) & (kPinShards - 1)];
+		}
 
 		struct alignas(64) HoldShard { std::atomic<uint32_t> count{ 0 }; };
 
@@ -643,12 +687,20 @@ namespace ecss::Threads {
 		mutable std::vector<Counter*> mBlocks;           ///< Every counter block (freed in dtor).
 
 		// Written by every first-pin / last-unpin: keep off the read-mostly line above.
-		alignas(64) std::atomic<uint32_t> mTotalPinned{ 0 }; ///< Distinct sectors with counter > 0.
-		mutable std::atomic<uint32_t> mWaiters{ 0 };         ///< Threads blocked in a wait primitive.
+		/// Distinct sectors with a non-zero counter, split across shards so that pinning
+		/// unrelated sectors does not put every thread on one line. Was a single counter, and
+		/// that made pin/unpin throughput *fall* as threads were added: 39.8 ns/op on one
+		/// thread against 89.6 across thirty-two. @see bench/MTBench.cpp
+		mutable PinShard              mPinShards[kPinShards]{};
+
+		alignas(64) mutable std::atomic<uint32_t> mWaiters{ 0 }; ///< Threads blocked in a wait primitive.
 		mutable std::atomic<uint32_t> mWritersWaiting{ 0 };  ///< Writers waiting for pins to drain.
 
 		mutable HoldShard             mHolds[kHoldShards]{}; ///< Structural holds, keyed by thread.
-		mutable std::atomic<uint64_t> mHoldGeneration{ 0 };  ///< Bumped on release; what waiters wait on.
+		/// The one word a waiter sleeps on. Pins and holds are both sharded, so neither has a
+		/// single counter left to wait on; every release bumps this instead -- but only while
+		/// a waiter has announced itself in mWaiters, so the common case touches nothing here.
+		mutable std::atomic<uint64_t> mReleaseGeneration{ 0 };
 	};
 
 }
