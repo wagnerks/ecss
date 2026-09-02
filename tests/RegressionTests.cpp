@@ -1802,6 +1802,27 @@ TEST(Regression_Grouping, LateRegisterArraySaysSoInsteadOfReturningQuietly) {
 	}
 }
 
+struct GrpC { int v{}; };
+
+/// hasComponent<T>() went through getComponentAccess, which registers T on first use. So
+/// asking whether an entity has a component nothing had ever added created an array to answer
+/// "no" -- and left T registered on its own. The second half is the one that bites: a
+/// registerArray<T, U>() afterwards can no longer group them, because T's layout is already
+/// fixed. A question turned into a decision.
+TEST(Regression_Queries, HasComponentDoesNotRegisterTheTypeItAsksAbout) {
+	Registry<false> reg;
+	const auto e = reg.takeEntity();
+
+	EXPECT_FALSE(reg.hasComponent<GrpC>(e));
+
+	// If the query registered GrpC, this grouping is no longer possible and warns about it.
+	testing::internal::CaptureStderr();
+	reg.registerArray<GrpC, GrpB>();
+	EXPECT_EQ(testing::internal::GetCapturedStderr(), "")
+		<< "the query registered the type, putting the grouping out of reach";
+	EXPECT_EQ(reg.getComponentContainer<GrpC>(), reg.getComponentContainer<GrpB>());
+}
+
 /// addComponents(generator) was declared requires(ThreadSafe) although nothing in it needs
 /// threads: it drains the generator into a vector and hands the result to insertBulk, which
 /// the plain build has had all along. The documentation presented it as the general batch API.

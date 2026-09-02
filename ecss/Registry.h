@@ -197,6 +197,28 @@ namespace ecss {
 		template<typename T>
 		FORCE_INLINE static ECSType componentTypeId() noexcept { return Memory::DenseTypeIdGenerator::getTypeId<T>(); }
 
+		/// @brief Say so when only some of the named types already have arrays.
+		///
+		/// The assert beside this one is compiled out of a release build, which left the call
+		/// returning in silence there -- the same way the already-grouped case did, and just
+		/// as misleading. @see warnIfGroupingIgnored
+		/// @thread_safety Caller must ensure exclusive access. Reads the live map.
+		template <class... ComponentTypes>
+		void warnPartialGrouping() const noexcept {
+			#ifndef ECSS_NO_GROUPING_WARNINGS
+			std::fprintf(stderr, "ecss: registerArray<");
+			bool first = true;
+			((std::fprintf(stderr, "%s%.*s", first ? "" : ", ",
+				static_cast<int>(detail::typeName<ComponentTypes>().size()),
+				detail::typeName<ComponentTypes>().data()), first = false), ...);
+			std::fprintf(stderr,
+				">() was ignored: some of those types already have arrays and some do\n"
+				"      not, so the group cannot be formed. Register the whole group before\n"
+				"      anything adds one of its members.\n");
+			std::fflush(stderr);
+			#endif
+		}
+
 		/// @brief Say so when registerArray() was asked to group types that are already apart.
 		///
 		/// Registering the same group twice is genuinely idempotent and should say nothing.
@@ -414,7 +436,13 @@ namespace ecss {
 		 */
 		template <class T>
 		FORCE_INLINE bool hasComponent(EntityId entity) noexcept {
-			const auto access = getComponentAccess<T>();
+			// lookupComponentAccess, not getComponentAccess: a question must not register the
+			// type it is asking about. The latter creates the array on first use, so
+			// hasComponent<T>() on a type nothing had ever added allocated one to answer false
+			// -- and left T registered on its own, which quietly put a later
+			// registerArray<T, U>() beyond reach.
+			const auto access = lookupComponentAccess<T>();
+			if (!access) { return false; }
 			auto container = access.array;
 			// No pin and no lock: this hands out no pointer, so there is nothing to keep
 			// alive. The slot lookup and the alive word both go through the lock-free
@@ -953,6 +981,7 @@ namespace ecss {
 					bool anyPresent = ((mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()] != nullptr) || ...);
 					bool allPresent = ((mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()] != nullptr) && ...);
 					if (anyPresent && !allPresent) {
+						warnPartialGrouping<ComponentTypes...>();
 						assert(false && "Partial registerArray across mixed components is not allowed");
 						return;
 					}
@@ -995,6 +1024,7 @@ namespace ecss {
 				bool anyPresent = ((mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()] != nullptr) || ...);
 				bool allPresent = ((mComponentsArraysMap.size() > componentTypeId<ComponentTypes>() && mComponentsArraysMap[componentTypeId<ComponentTypes>()] != nullptr) && ...);
 				if (anyPresent && !allPresent) {
+					warnPartialGrouping<ComponentTypes...>();
 					assert(false && "Partial registerArray across mixed components is not allowed");
 					return;
 				}
