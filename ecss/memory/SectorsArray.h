@@ -367,9 +367,15 @@ namespace detail {
 			storeView(actualSize);
 		}
 
-		FORCE_INLINE void shrinkToFit() {
+		/// @brief Give back spare capacity, republishing because the buffers move.
+		///
+		/// The hazard reserve() documents, in the other direction: shrink_to_fit reallocates,
+		/// the old buffers go to the retire bin, and a view still naming them reads memory
+		/// that is correct only until the next write and freed once the grace period ends.
+		FORCE_INLINE void shrinkToFit(size_t actualSize) {
 			ids.shrink_to_fit();
 			isAlive.shrink_to_fit();
+			storeView(actualSize);
 		}
 
 		FORCE_INLINE SectorId& idAt(size_t idx) { return ids[idx]; }
@@ -451,7 +457,7 @@ namespace detail {
 			isAlive.clear();
 		}
 
-		FORCE_INLINE void shrinkToFit() {
+		FORCE_INLINE void shrinkToFit(size_t) {
 			ids.shrink_to_fit();
 			isAlive.shrink_to_fit();
 		}
@@ -723,16 +729,20 @@ public:
 		ITERATOR_COMMON_USING(Iterator)
 
 		Iterator(const SectorsArray* array, size_t idx) {
-			// Both snapshots are lock-free; the chunk table is published by a seqlock so it
-			// can be read without the array shared lock (see ChunksAllocator::loadChunks).
+			// The dense view first and the chunk table second, and the order is the point:
+			// the table must be no older than the size it is indexed with. Taken the other
+			// way round, an append landing between the two leaves a size that counts a
+			// sector living in a chunk this table does not list, and the walk runs past its
+			// end. Both snapshots are lock-free -- the chunk table has a seqlock of its own,
+			// so neither needs the array's shared lock (see ChunksAllocator::loadChunks).
+			auto view = array->mDenseArrays.loadView();
+			mIds = view.ids;
+			mIsAlive = view.isAlive;
+
 			const auto chunks = array->mAllocator.loadChunks();
 			mChunks = chunks.chunks;
 			mChunksCount = chunks.count;
 			mStride = chunks.sectorSize;
-
-			auto view = array->mDenseArrays.loadView();
-			mIds = view.ids;
-			mIsAlive = view.isAlive;
 			mSize = view.size;
 			mIdx = std::min(idx, mSize);
 			initChunkState();
@@ -837,15 +847,24 @@ public:
 			: mIdx(idx)
 			, mAliveMask(aliveMask)
 			, mIsPacked(isPacked) {
+			// The dense view first and the chunk table second, and the order is the point:
+			// the table must be no older than the size it is indexed with. Taken the other
+			// way round, an append landing between the two leaves a size that counts a
+			// sector living in a chunk this table does not list, and the walk runs past its
+			// end. Both snapshots are lock-free -- the chunk table has a seqlock of its own,
+			// so neither needs the array's shared lock (see ChunksAllocator::loadChunks).
+			auto view = array->mDenseArrays.loadView();
+			mIds = view.ids;
+			mIsAlive = view.isAlive;
+
 			const auto chunks = array->mAllocator.loadChunks();
 			mChunks = chunks.chunks;
 			mChunksCount = chunks.count;
 			mStride = chunks.sectorSize;
-
-			auto view = array->mDenseArrays.loadView();
-			mIds = view.ids;
-			mIsAlive = view.isAlive;
 			mSize = std::min(sz, view.size);
+			// Clamped against the snapshot, as Iterator does: an index past it would read
+			// liveness words that are not in this view.
+			mIdx = std::min(mIdx, mSize);
 			if (mIsPacked) {
 				initChunkState();
 			} else {
@@ -1023,14 +1042,20 @@ public:
 		ITERATOR_COMMON_USING(RangedIterator)
 
 		RangedIterator(const SectorsArray* array, const Ranges<SectorId>& ranges) {
+			// The dense view first and the chunk table second, and the order is the point:
+			// the table must be no older than the size it is indexed with. Taken the other
+			// way round, an append landing between the two leaves a size that counts a
+			// sector living in a chunk this table does not list, and the walk runs past its
+			// end. Both snapshots are lock-free -- the chunk table has a seqlock of its own,
+			// so neither needs the array's shared lock (see ChunksAllocator::loadChunks).
+			auto view = array->mDenseArrays.loadView();
+			mIds = view.ids;
+			mIsAlive = view.isAlive;
+
 			const auto chunks = array->mAllocator.loadChunks();
 			mChunks = chunks.chunks;
 			mChunksCount = chunks.count;
 			mStride = chunks.sectorSize;
-
-			auto view = array->mDenseArrays.loadView();
-			mIds = view.ids;
-			mIsAlive = view.isAlive;
 			mSize = view.size;
 			// Convert SectorId ranges to linear index ranges
 			for (const auto& [first, last] : ranges.ranges) {
@@ -1348,6 +1373,10 @@ public:
 		mHasPendingClear.store(true, std::memory_order_release);
 	}
 
+	/// @brief Whether a clearAsync() is still waiting for a frame it can run in.
+	/// @thread_safety Internally synchronized. One atomic load.
+	bool hasPendingClear() const noexcept { return mHasPendingClear.load(std::memory_order_acquire); }
+
 	/// @brief Clear if the array is free right now; leave it for the next call if not.
 	/// @return true if the clear ran.
 	/// @thread_safety Internally synchronized. Gives up rather than waiting, so it is safe to
@@ -1514,6 +1543,10 @@ public:
 	template<bool TS = ThreadSafe> void clear() {
 		if constexpr (TS && ThreadSafe) { exclusiveWhenQuiescent([&] { clearImpl(); }); }
 		else { clearImpl(); }
+		// A clearAsync() still waiting for a free frame has just had its wish granted.
+		// Leaving the flag set sends the next maintenance pass through a write lock and a
+		// published structural epoch to clear an array that is already empty.
+		mHasPendingClear.store(false, std::memory_order_release);
 	}
 
 	// ==================== Defragmentation ====================
@@ -1548,12 +1581,12 @@ public:
 	/// @thread_safety Internally synchronized. Relaxed loads against the threshold.
 	template<bool TS = ThreadSafe> bool needDefragment() const {
 		enforceTSMode<TS>();
-		return getDefragmentationRatio<false>() > mDefragThreshold;
+		return getDefragmentationRatio<false>() > loadDefragThreshold();
 	}
 	/// @thread_safety Internally synchronized. One relaxed store. Changes when compaction is
 	///                asked for, never compaction itself.
 	template<bool TS = ThreadSafe> void setDefragmentThreshold(float threshold) { 
-		TS_GUARD(TS && ThreadSafe, UNIQUE, mDefragThreshold = std::max(0.f, std::min(threshold, 1.f));); 
+		enforceTSMode<TS>(); storeDefragThreshold(std::max(0.f, std::min(threshold, 1.f))); 
 	}
 
 	// ==================== Retired Memory Management (ThreadSafe only) ====================
@@ -2096,8 +2129,9 @@ private:
 	}
 
 	void shrinkToFitImpl() {
-		mAllocator.deallocate(sizeImpl(), mAllocator.capacity());
-		mDenseArrays.shrinkToFit();
+		const auto sz = sizeImpl();
+		mAllocator.deallocate(sz, mAllocator.capacity());
+		mDenseArrays.shrinkToFit(sz);
 	}
 
 	void clearImpl() {
@@ -2699,7 +2733,6 @@ private:
 			mDenseArrays.setIdAt(i, other.mDenseArrays.idAt(i));
 			mDenseArrays.setAliveAt(i, other.mDenseArrays.isAliveAt(i));
 		}
-		mDenseArrays.storeView(otherSz);
 		
 		if (!getLayout()->isTrivial()) {
 			for (size_t i = 0; i < otherSz; ++i) {
@@ -2711,8 +2744,10 @@ private:
 					getLayout());
 				mDenseArrays.setAliveAt(i, dstIsAlive);
 			}
-			mDenseArrays.storeView(otherSz);
 		}
+		// Published once, and only here: a sector announced alive before its members are
+		// constructed is one a lock-free reader can pick up and read as raw zeroes.
+		mDenseArrays.storeView(otherSz);
 		
 		mSparseMap.resize(other.mSparseMap.capacity());
 		for (size_t i = 0; i < otherSz; ++i) {
@@ -2720,7 +2755,7 @@ private:
 		}
 
 		mDefragmentSize.store(other.mDefragmentSize.load(std::memory_order_relaxed), std::memory_order_relaxed);
-		mDefragThreshold = other.mDefragThreshold;
+		storeDefragThreshold(other.loadDefragThreshold());
 	}
 
 	template<bool T, typename Alloc>
@@ -2789,7 +2824,7 @@ private:
 		}
 
 		mDefragmentSize.store(other.mDefragmentSize.load(std::memory_order_relaxed), std::memory_order_relaxed);
-		mDefragThreshold = other.mDefragThreshold;
+		storeDefragThreshold(other.loadDefragThreshold());
 		
 		// The source must stop advertising sectors it no longer owns: its sparse slots still
 		// point into the chunks this array just took over, so containsSector()/findSectorData()
@@ -2821,6 +2856,21 @@ private:
 
 	// Sparse map: [sectorId] -> linearIdx
 	detail::SparseMap<ThreadSafe> mSparseMap;
+
+	FORCE_INLINE float loadDefragThreshold() const noexcept {
+		if constexpr (ThreadSafe) {
+			return std::atomic_ref<float>(const_cast<float&>(mDefragThreshold))
+				.load(std::memory_order_relaxed);
+		}
+		else { return mDefragThreshold; }
+	}
+
+	FORCE_INLINE void storeDefragThreshold(float value) noexcept {
+		if constexpr (ThreadSafe) {
+			std::atomic_ref<float>(mDefragThreshold).store(value, std::memory_order_relaxed);
+		}
+		else { mDefragThreshold = value; }
+	}
 
 	static_assert(types::isLockFreeAtomic<size_t>,   "mSize must be lock-free");
 	static_assert(types::isLockFreeAtomic<uint32_t>, "mDefragmentSize must be lock-free");
@@ -2857,6 +2907,10 @@ private:
 
 	alignas(kSizeAlign) std::atomic<size_t> mSize{0};
 	std::atomic<uint32_t> mDefragmentSize{0};
+	/// Plain storage read through atomic_ref in the thread-safe build: needDefragment()
+	/// reads it lock-free on the maintenance path while setDefragmentThreshold() writes
+	/// it, and two protocols on one word is a race however benign the value looks.
+	/// @see loadDefragThreshold(), storeDefragThreshold()
 	float mDefragThreshold = 0.2f;
 };
 

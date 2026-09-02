@@ -17,6 +17,9 @@
 #include <thread>
 #include <unordered_set>
 #include <set>
+#include <cstdlib>
+#include <stdexcept>
+#include <type_traits>
 #include <vector>
 
 #include <ecss/CommandBuffer.h>
@@ -1758,3 +1761,106 @@ TEST(Regression_Iteration, TypedFastPathHonoursHolesAndGroups) {
 		EXPECT_EQ(sum, expected);
 	}
 }
+
+namespace {
+
+/// clearAsync() used to release every entity id on the spot, while the arrays kept their
+/// sectors until a later update(). takeEntity() then handed a live id straight back and the
+/// new entity read the old one's components as its own.
+TEST(Regression_EntityIds, ClearAsyncHoldsIdsUntilTheComponentsAreGone) {
+	Registry<true> reg;
+	reg.setAutoMaintenance(false);
+
+	const auto a = reg.takeEntity();
+	reg.addComponent<RPos>(a, RPos{ 1.f, 2.f, 3.f });
+	reg.addComponent<RVel>(a, RVel{ 4.f, 5.f, 6.f });
+
+	reg.clearAsync();
+
+	// Nothing has actually been cleared yet -- no update() has run.
+	const auto b = reg.takeEntity();
+	EXPECT_FALSE(reg.hasComponent<RPos>(b))
+		<< "a recycled id named a sector whose components were still there";
+	EXPECT_FALSE(reg.hasComponent<RVel>(b));
+
+	reg.update();
+	EXPECT_FALSE(reg.hasComponent<RPos>(a)) << "the deferred clear never ran";
+}
+
+/// The other half of what reserve() documents: shrink_to_fit reallocates too, and the old
+/// buffers go to the retire bin while the published view still names them. Only reserve()
+/// republished, so a view opened after shrinkToFit() read memory that was correct until the
+/// next write and freed once the grace period ran out.
+TEST(Regression_Reclamation, ShrinkToFitRepublishesTheDenseView) {
+	Registry<true> reg;
+	auto* arr = reg.getComponentContainer<RInt>();
+	arr->reserve(100000);
+	for (EntityId e = 0; e < 4; ++e) { reg.addComponent<RInt>(e, RInt{ int(e) }); }
+
+	arr->shrinkToFit();   // hands back the spare capacity, moving the buffers again
+
+	reg.destroyComponent<RInt>(2);
+
+	EXPECT_FALSE(reg.hasComponent<RInt>(2))
+		<< "a destroyed component still reads as present -- the published dense view still "
+		   "names the buffers shrinkToFit() moved away from";
+	size_t seen = 0;
+	for (auto it : reg.view<RInt>()) { (void)it; ++seen; }
+	EXPECT_EQ(seen, 3u) << "iteration walked a stale dense view";
+}
+
+/// tick() bails out on mPending alone, so a move that carried the queued blocks without the
+/// counter produced a bin that reported nothing to do while still holding them: they lived
+/// until the destructor, whatever the grace period said.
+TEST(Regression_Reclamation, RetireBinMoveCarriesThePendingCount) {
+	{
+		RetireBin src(1);
+		src.retire(std::malloc(64));
+		src.retire(std::malloc(64));
+
+		RetireBin dst(std::move(src));
+		EXPECT_EQ(dst.tick(), 2u) << "the moved-to bin never freed what it inherited";
+		EXPECT_EQ(src.tick(), 0u) << "the moved-from bin kept blocks it no longer owns";
+	}
+	{
+		// Move-assignment has the destination's own queue to deal with first: the assignment
+		// overwrites the vector that owns those blocks, and nothing else names them.
+		RetireBin src(1), dst(1);
+		src.retire(std::malloc(32));
+		dst.retire(std::malloc(32));
+
+		dst = std::move(src);
+		EXPECT_EQ(dst.tick(), 1u);
+	}
+}
+
+/// A view's cached begin iterator points into the view's own mRanges, and its structural
+/// holds are released against per-thread bookkeeping. Copying or moving one left the
+/// iterator addressing the original and a second owner releasing holds it never took.
+TEST(Regression_Iteration, ViewIsNeitherCopiedNorMoved) {
+	using View = decltype(std::declval<Registry<true>&>().view<RPos>());
+	static_assert(!std::is_copy_constructible_v<View>);
+	static_assert(!std::is_move_constructible_v<View>);
+	static_assert(!std::is_copy_assignable_v<View>);
+	static_assert(!std::is_move_assignable_v<View>);
+	SUCCEED();
+}
+
+/// There is no lock upgrade. Asking for Write while this thread holds Read used to assert
+/// and then carry on, so a release build handed out a Write claim backed by nothing but a
+/// shared lock. It now fails the same way in every configuration -- and before any lock is
+/// taken, so the half-built guard leaves nothing held.
+TEST(Regression_Access, WriteWhileHoldingReadFailsInEveryBuild) {
+	Registry<true> reg;
+	const auto e = reg.takeEntity();
+	reg.addComponent<RPos>(e, RPos{});
+	reg.addComponent<RVel>(e, RVel{});
+
+	auto readGuard = reg.access<Read<RPos>>();
+	EXPECT_THROW(reg.access<Write<RPos>>(), std::logic_error);
+
+	// The failed attempt took nothing, so an unrelated type is still free to claim.
+	EXPECT_NO_THROW(reg.access<Write<RVel>>());
+}
+
+} // namespace

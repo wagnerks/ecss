@@ -191,8 +191,13 @@ namespace ecss {
 	 * allocated once and never relocated, so adding a block cannot lose a bit that another
 	 * thread is CASing at that moment -- which copying a flat array would.
 	 *
-	 * @warning clear() is not safe against concurrent take/erase; the owner serialises it
-	 *          (Registry does so with mEntitiesMutex). Everything else is.
+	 * @warning clear() is not safe against concurrent take/erase, and the owner cannot make
+	 *          it so: take() and erase() are lock-free by design and pass no mutex, so
+	 *          Registry's mEntitiesMutex orders clear() against readers of the set and
+	 *          nothing else. Excluding concurrent creation and destruction is the caller's.
+	 *          It costs no memory safety -- the words are zeroed in place, never freed --
+	 *          but an id claimed just then can come back free and be handed out twice.
+	 *          Everything else here is safe.
 	 * @thread_safety Internally synchronized -- and that applies to every member below, with
 	 *                the two exceptions named at the end.
 	 *

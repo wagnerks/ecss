@@ -4,6 +4,7 @@
 #include <array>
 #include <cassert>
 #include <shared_mutex>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -69,12 +70,28 @@ namespace ecss {
 					[](const Entry& a, const Entry& b) { return a.type < b.type; });
 
 				static_assert(N <= 8, "name at most 8 component types in one access()");
+
+				// Checked before a single lock is taken, and that ordering is the point: throwing
+				// from the middle of the acquisition loop would abandon the guard half-built, with
+				// no destructor to run and the locks it had already taken held for good.
+				//
+				// Asking to write what this thread already holds for reading has no answer: there is
+				// no upgrade, and taking the lock again deadlocks against a waiting writer. It used
+				// to assert and carry on, so a release build handed out a Write claim backed by
+				// nothing but a shared lock -- other readers still inside it, mutation under way,
+				// no diagnostic. This fails the same way in every configuration.
+				for (const auto& claim : claims) {
+					const auto& depth = depthFor(claim.mutex);
+					if (claim.writes && depth.reads != 0 && depth.writes == 0) {
+						throw std::logic_error(
+							"ecss: access<Write<T>> while this thread already holds Read<T>; "
+							"there is no lock upgrade, ask for Write from the start");
+					}
+				}
+
 				for (auto& claim : claims) {
 					auto& depth = depthFor(claim.mutex);
 					if (depth.reads != 0 || depth.writes != 0) {
-						assert(!(claim.writes && depth.writes == 0)
-							&& "ecss: access<Write<T>> while this thread already holds Read<T>; "
-							   "there is no lock upgrade, ask for Write from the start");
 						claim.acquired = false;
 					}
 					else {

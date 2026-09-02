@@ -257,6 +257,21 @@ namespace ecss {
 				(*it)->tick();  // Free retired memory older than grace period
 				(*it)->processPendingErases(withDefragment);
 			}
+
+			// The other half of clearAsync(): the ids it withheld are released here, once no
+			// array is still carrying the clear it asked for. Until then an id handed back
+			// would name a sector whose components are still there.
+			if (mPendingEntityClear.load(std::memory_order_acquire)) {
+				bool stillPending = false;
+				for (auto it = begin; it != end; ++it) {
+					if ((*it)->hasPendingClear()) { stillPending = true; break; }
+				}
+				if (!stillPending) {
+					std::unique_lock lock(mEntitiesMutex);
+					mEntities.clear();
+					mPendingEntityClear.store(false, std::memory_order_release);
+				}
+			}
 		}
 
 		/**
@@ -805,6 +820,7 @@ namespace ecss {
 
 				std::unique_lock lock(mEntitiesMutex);
 				mEntities.clear();
+				mPendingEntityClear.store(false, std::memory_order_release);
 			}
 			else {
 				for (auto* array : mComponentsArrays) {
@@ -822,8 +838,11 @@ namespace ecss {
 		 * it is safe to call from anywhere, including from inside a loop over a view. Each
 		 * array performs it the first time update() finds it free.
 		 *
-		 * Entities are released immediately -- that takes no structural change -- so contains()
-		 * stops reporting them at once, while their components go when the arrays come free.
+		 * Entity ids are held until the components are actually gone, and released by the
+		 * update() that finds every array done. Releasing them at once would be cheap and
+		 * wrong: takeEntity() would hand one straight back while the sector naming it is
+		 * still alive, and the new entity would read the old one's components as its own.
+		 * So contains() keeps reporting them until the clear has really happened.
 		 *
 		 * @note Asked for, not promised. @see clear(), update()
 		 * @thread_safety Internally synchronized. One relaxed store per array plus the id set;
@@ -833,9 +852,7 @@ namespace ecss {
 			if constexpr (ThreadSafe) {
 				const auto [begin, end] = registeredArrays();
 				for (auto it = begin; it != end; ++it) { (*it)->clearAsync(); }
-
-				std::unique_lock lock(mEntitiesMutex);
-				mEntities.clear();
+				mPendingEntityClear.store(true, std::memory_order_release);
 			}
 			else {
 				clear();
@@ -1512,6 +1529,10 @@ namespace ecss {
 		std::vector<Memory::SectorsArray<ThreadSafe, Allocator>*> mComponentsArrays;
 
 		struct Dummy{};
+		/// Raised by clearAsync(), lowered by the update() that finds every array's own
+		/// deferred clear finished. One atomic read per update(), not per element, so it is
+		/// not worth hiding behind ThreadSafe the way the per-iteration flags are.
+		std::atomic<bool> mPendingEntityClear{ false };
 		mutable std::conditional_t<ThreadSafe, std::shared_mutex, Dummy> mEntitiesMutex;          ///< Protects entities container (ThreadSafe build).
 		mutable std::conditional_t<ThreadSafe, std::shared_mutex, Dummy> componentsArrayMapMutex; ///< Protects component arrays map/list (ThreadSafe build).
 	};
@@ -1838,6 +1859,19 @@ namespace ecss {
 		/// @brief Construct a full-range view (Ranged=false specialization).
 		explicit ArraysView(Registry<ThreadSafe, Allocator>* manager) noexcept requires (!Ranged) { init(manager); }
 		explicit ArraysView(Registry<ThreadSafe, Allocator>* manager, const Ranges<EntityId>& ranges = {}) noexcept requires (Ranged) { init(manager, ranges); }
+
+		/// A view is a fixed place, not a value. Its cached begin iterator points into the
+		/// view's own mRanges, so a copy or a move would leave that iterator addressing the
+		/// original -- dangling the moment the original dies. The structural holds it carries
+		/// have the same shape of problem as AccessGuard's: they are released against
+		/// per-thread bookkeeping, so a second owner would release what it never took.
+		///
+		/// Nothing is lost by this. Registry::view() returns a prvalue, so `auto v = reg.view<T>()`
+		/// and iterating a temporary both go through guaranteed elision and never needed either.
+		ArraysView(const ArraysView&) = delete;
+		ArraysView& operator=(const ArraysView&) = delete;
+		ArraysView(ArraysView&&) = delete;
+		ArraysView& operator=(ArraysView&&) = delete;
 
 		FORCE_INLINE bool empty() const noexcept { return mBeginIt == end(); }
 

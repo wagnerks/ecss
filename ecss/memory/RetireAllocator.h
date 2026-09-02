@@ -3,6 +3,7 @@
 #include <atomic>
 #include <cstddef>
 #include <cstdlib>
+#include <new>
 #include <vector>
 #include <mutex>
 #include <type_traits>
@@ -38,14 +39,27 @@ namespace ecss::Memory {
 		RetireBin(const RetireBin&) {}
 		RetireBin& operator=(const RetireBin&) { return *this; }
 
-		RetireBin(RetireBin&& other) noexcept 
+		// Moving carries the queued blocks, and with them mPending: tick() bails out on that
+		// counter alone, so a bin that inherits the blocks without it reports nothing to do
+		// while still holding them -- they would live until the destructor.
+		RetireBin(RetireBin&& other) noexcept
 			: mRetired(std::move(other.mRetired))
-			, mGracePeriod(other.mGracePeriod.load(std::memory_order_relaxed)) {}
+			, mGracePeriod(other.mGracePeriod.load(std::memory_order_relaxed)) {
+			mPending.store(mRetired.size(), std::memory_order_release);
+			other.mRetired.clear();
+			other.mPending.store(0, std::memory_order_release);
+		}
 		
 		RetireBin& operator=(RetireBin&& other) noexcept {
 			if (this == &other) { return *this; }
+			// Ours first: the assignment below overwrites the vector that owns them, and
+			// nothing else has a pointer to those blocks.
+			drainAll();
 			mRetired = std::move(other.mRetired);
 			mGracePeriod.store(other.mGracePeriod.load(std::memory_order_relaxed), std::memory_order_relaxed);
+			mPending.store(mRetired.size(), std::memory_order_release);
+			other.mRetired.clear();
+			other.mPending.store(0, std::memory_order_release);
 			return *this;
 		}
 
@@ -187,7 +201,11 @@ namespace ecss::Memory {
 		RetireAllocator(const RetireAllocator<U>& other) noexcept : bin(other.bin) {}
 
 		T* allocate(size_t n) {
-			return static_cast<T*>(std::calloc(n, sizeof(T)));
+			auto* p = static_cast<T*>(std::calloc(n, sizeof(T)));
+			// The Allocator requirements say allocate() either returns storage or throws.
+			// Handing back null instead makes the container write through it.
+			if (!p && n != 0) { throw std::bad_alloc(); }
+			return p;
 		}
 
 		void deallocate(T* p, size_t n) noexcept {
