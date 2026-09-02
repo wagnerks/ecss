@@ -13,3 +13,7 @@ build*/*
 /*.vcxproj.filters
 /*.dir/
 /ecss_tests*.cmake
+
+__pycache__/
+*.pyc
+*.profraw

@@ -147,6 +147,7 @@ namespace ecss {
 			}
 		}
 
+		/// @return True exactly when @p id is currently allocated in this set.
 		FORCE_INLINE bool contains(Type id) const {
 			const size_t word = wordOf(id);
 			return word < mWords.size() && (mWords[word] & bitOf(id)) != 0;
@@ -167,11 +168,15 @@ namespace ecss {
 			return out;
 		}
 
+		/// @brief Release every allocated id without shrinking retained storage.
+		/// @post empty() is true, size() is zero, and the next take() starts again at id zero.
 		void clear() {
 			mWords.clear(); // keeps capacity; the next take() starts from 0 again
 			mHint = 0;
 		}
 
+		/// @brief Preallocate enough bitmap storage to represent @p maxId.
+		/// @post Membership is unchanged; later access to ids through @p maxId needs no bitmap growth.
 		void reserve(Type maxId) {
 			const size_t word = wordOf(maxId);
 			if (word >= mWords.size()) { mWords.resize(word + 1, Word{ 0 }); }
@@ -185,10 +190,12 @@ namespace ecss {
 			for (auto w : mWords) { n += static_cast<size_t>(std::popcount(w)); }
 			return n;
 		}
+		/// @return True exactly when size() is zero.
 		bool empty() const {
 			for (auto w : mWords) { if (w) { return false; } }
 			return true;
 		}
+		/// @return Bytes retained by the bitmap's allocated word capacity.
 		size_t byteSize() const { return mWords.capacity() * sizeof(Word); }
 
 	private:
@@ -242,15 +249,22 @@ namespace ecss {
 		static_assert(std::is_unsigned_v<Type>, "IdSet indexes bits by id, so ids must be unsigned");
 		static_assert(types::isLockFreeAtomic<uint64_t>, "id bitmap words must be lock-free");
 
+		/// @brief Construct an empty id set.
 		IdSet() = default;
+		/// @brief Copying is forbidden because the set owns atomic bitmap storage.
 		IdSet(const IdSet&) = delete;
+		/// @brief Copy assignment is forbidden because the set owns atomic bitmap storage.
 		IdSet& operator=(const IdSet&) = delete;
 
+		/// @brief Destroy the set and its retained tables and blocks.
+		/// @pre No operation may run concurrently with destruction.
 		~IdSet() {
 			for (auto* table : mTables) { delete[] table->blocks; delete table; }
 			for (auto* block : mBlocks) { delete[] block; }
 		}
 
+		/// @brief Allocate and return one free id.
+		/// @note Concurrent allocations return distinct ids, but their completion order is unspecified.
 		Type take() {
 			for (;;) {
 				const Table* table = mTable.load(std::memory_order_acquire);
@@ -315,12 +329,16 @@ namespace ecss {
 			}
 		}
 
+		/// @brief Mark @p id allocated.
+		/// @post contains(id) is true; inserting an already allocated id is a no-op.
 		void insert(Type id) {
 			ensure(id);
 			const Table* table = mTable.load(std::memory_order_acquire);
 			wordAt(table, wordOf(id)).fetch_or(bitOf(id), std::memory_order_acq_rel);
 		}
 
+		/// @brief Release @p id.
+		/// @post contains(id) is false; erasing an unallocated id is a no-op.
 		void erase(Type id) {
 			const Table* table = mTable.load(std::memory_order_acquire);
 			const size_t word = wordOf(id);
@@ -357,6 +375,7 @@ namespace ecss {
 			}
 		}
 
+		/// @return Whether @p id was allocated at the instant sampled by this call.
 		FORCE_INLINE bool contains(Type id) const {
 			const Table* table = mTable.load(std::memory_order_acquire);
 			const size_t word = wordOf(id);
@@ -364,6 +383,8 @@ namespace ecss {
 			return (wordAt(table, word).load(std::memory_order_acquire) & bitOf(id)) != 0;
 		}
 
+		/// @return A snapshot of allocated ids, in ascending order when no mutation overlaps the call.
+		/// @note A concurrent mutation may make the returned snapshot stale immediately.
 		std::vector<Type> getAll() const {
 			std::vector<Type> out;
 			const Table* table = mTable.load(std::memory_order_acquire);
@@ -382,7 +403,9 @@ namespace ecss {
 			return out;
 		}
 
-		/// @warning Caller must exclude concurrent take/erase.
+		/// @brief Release every allocated id without shrinking retained storage.
+		/// @post empty() is true, size() is zero, and the next take() starts again at id zero.
+		/// @warning Caller must exclude concurrent take(), insert(), and erase().
 		void clear() {
 			const Table* table = mTable.load(std::memory_order_acquire);
 			if (table) {
@@ -394,8 +417,12 @@ namespace ecss {
 			mHint.store(0, std::memory_order_release);
 		}
 
+		/// @brief Preallocate enough bitmap storage to represent @p maxId.
+		/// @post Membership is unchanged; later access to ids through @p maxId needs no bitmap growth.
+		/// @thread_safety Internally synchronized; growth may take the growth mutex.
 		void reserve(Type maxId) { ensure(maxId); }
 
+		/// @return A snapshot count of allocated ids.
 		size_t size() const {
 			const Table* table = mTable.load(std::memory_order_acquire);
 			if (!table) { return 0; }
@@ -406,8 +433,10 @@ namespace ecss {
 			}
 			return n;
 		}
+		/// @return Whether the set had no allocated ids in the snapshot observed by size().
 		bool empty() const { return size() == 0; }
 
+		/// @return Bytes owned by currently published bitmap blocks, excluding retained old tables.
 		size_t byteSize() const {
 			const Table* table = mTable.load(std::memory_order_acquire);
 			return table ? table->count * kWordsPerBlock * sizeof(Word) : 0;

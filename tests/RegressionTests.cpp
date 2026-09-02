@@ -1909,6 +1909,56 @@ TEST(Regression_BulkInsert, GeneratorFormWorksInThePlainBuild) {
 /// and the constructor hands it whatever the caller passed. An unsorted list came back
 /// unmerged and every later lookup trusted it. Folding also erased from the middle, shifting
 /// the tail once per merge, so a contiguous block of ids cost O(n^2) to collapse.
+/// mergeIntersections folds by comparing one range's end against the next one's start, which
+/// a reversed pair does not merely fail to match -- it corrupts the running end. Empty and
+/// reversed ranges are dropped before the fold rather than trusted to fall out of it.
+TEST(Regression_Ranges, DegenerateRangesAreDroppedBeforeFolding) {
+	{
+		Ranges<EntityId> r(std::vector<std::pair<EntityId, EntityId>>{ {0, 5}, {9, 3}, {10, 15} });
+		ASSERT_EQ(r.ranges.size(), 2u) << "a reversed range survived the fold";
+		EXPECT_EQ(r.ranges[0].first, 0u);
+		EXPECT_EQ(r.ranges[0].second, 5u);
+		EXPECT_EQ(r.ranges[1].first, 10u);
+		EXPECT_EQ(r.ranges[1].second, 15u);
+	}
+	{
+		// Empty ranges say nothing and must not split the run they sit inside.
+		Ranges<EntityId> r(std::vector<std::pair<EntityId, EntityId>>{ {0, 5}, {5, 5}, {5, 10} });
+		ASSERT_EQ(r.ranges.size(), 1u);
+		EXPECT_EQ(r.ranges[0].first, 0u);
+		EXPECT_EQ(r.ranges[0].second, 10u);
+	}
+	{
+		// Nothing but degenerate input leaves nothing behind.
+		Ranges<EntityId> r(std::vector<std::pair<EntityId, EntityId>>{ {7, 7}, {9, 2} });
+		EXPECT_TRUE(r.ranges.empty());
+	}
+}
+
+/// take() returned takeBlock(1).first without looking at the count, so an exhausted id space
+/// handed back whatever .first happened to hold as though it were a fresh id. And takeBlock
+/// clamped a request for zero up to one, which is not what asking for none means.
+TEST(Regression_Ranges, ExhaustionAndZeroRequestsAreReported) {
+	{
+		Ranges<uint8_t> r;
+		// 255 is reserved: ranges carry an exclusive end, so it can never be handed out.
+		size_t taken = 0;
+		try {
+			for (int i = 0; i < 300; ++i) { r.take(); ++taken; }
+			FAIL() << "took " << taken << " ids from an 8-bit space without ever running out";
+		}
+		catch (const std::overflow_error&) {
+			EXPECT_EQ(taken, 255u) << "stopped at the wrong point";
+		}
+	}
+	{
+		Ranges<EntityId> r;
+		const auto [first, count] = r.takeBlock(0);
+		EXPECT_EQ(count, 0u) << "asking for no ids handed out one";
+		(void)first;
+	}
+}
+
 TEST(Regression_Ranges, MergeSortsFirstAndFoldsInOnePass) {
 	{
 		// Same three ranges, out of order. They describe one contiguous span either way.

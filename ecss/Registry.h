@@ -75,10 +75,20 @@ namespace ecss {
 	 */
 	template<class T>
 	struct PinnedComponent {
+		/// @brief Copying is forbidden because a sector pin has one owner.
 		PinnedComponent(const PinnedComponent& other) = delete;
+		/// @brief Transfer the component pointer and its sector pin.
+		/// @post The destination refers to the same component as @p other did before the move.
+		/// @note The moved-from handle remains valid but its state is unspecified.
 		PinnedComponent(PinnedComponent&& other) noexcept = default;
+		/// @brief Copy assignment is forbidden because a sector pin has one owner.
 		PinnedComponent& operator=(const PinnedComponent& other) = delete;
+		/// @brief Release the current pin and take the pointer and pin from @p other.
+		/// @post The destination refers to the same component as @p other did before the move.
+		/// @note The moved-from handle remains valid but its state is unspecified.
 		PinnedComponent& operator=(PinnedComponent&& other) noexcept = default;
+		/// @brief Construct an empty handle.
+		/// @post get() == nullptr and operator bool() == false.
 		PinnedComponent() = default;
 
 		/**
@@ -97,7 +107,7 @@ namespace ecss {
 		/// @return Operator access forwarding to underlying component pointer.
 		T* operator->() const noexcept { return ptr; }
 
-		/// @return Dereferenced component reference (UB if ptr is null � guard with bool()).
+		/// @return Dereferenced component reference (UB if ptr is null; guard with bool()).
 		T& operator* () const noexcept { return *ptr; }
 
 		/// @return True if a valid component pointer is held.
@@ -263,9 +273,13 @@ namespace ecss {
 		}
 
 	public:
+		/// @brief Registry instances cannot be copied; they uniquely own their arrays and entity ids.
 		Registry(const Registry& other) noexcept = delete;
+		/// @brief Registry instances cannot be copy-assigned.
 		Registry& operator=(const Registry& other) noexcept = delete;
+		/// @brief Registry instances cannot be moved because views and handles may refer to their address.
 		Registry(Registry&& other) noexcept = delete;
+		/// @brief Registry instances cannot be move-assigned.
 		Registry& operator=(Registry&& other) noexcept = delete;
 
 	public:
@@ -939,7 +953,7 @@ namespace ecss {
 
 		/**
 		 * @brief Defragment all arrays (compacts fragmented dead slots).
-		 * @note Can be expensive if many arrays large � schedule during low frame-load moments.
+		 * @note Can be expensive if many arrays are large; schedule during low frame-load moments.
 		 * @thread_safety Internally synchronized; blocks on every array. Compaction moves sectors,
 		 *                so each array waits until it carries no pins and no open views. update() is
 		 *                the deferred form: it skips busy arrays and picks them up next time, which
@@ -1084,6 +1098,7 @@ namespace ecss {
 		struct ComponentAccess {
 			Memory::SectorsArray<ThreadSafe, Allocator>* array = nullptr;
 			const Memory::LayoutData* layout = nullptr;
+			/// @return True when an array was resolved; false for an empty lookup result.
 			explicit operator bool() const noexcept { return array != nullptr; }
 		};
 
@@ -1783,6 +1798,7 @@ namespace ecss {
 			using reference = value_type&;
 
 		public:
+			/// @brief Construct an end-like iterator that refers to no element.
 			Iterator() noexcept = default;
 
 			/**
@@ -1797,25 +1813,35 @@ namespace ecss {
 				skipOutOfRange();
 			}
 
+			/// @return `(EntityId, T*, CompTypes*...)` for the current alive main component.
+			/// @pre The iterator is not at end. The main pointer is non-null; secondary pointers may be null.
 			FORCE_INLINE value_type operator*() const noexcept { 
 				auto slot = *mIterator;
 				return { slot.id, 
 				         reinterpret_cast<T*>(slot.data + mMainOffset), 
 				         getComponent<CompTypes>(slot)... }; 
 			}
+			/// @brief Advance to the next alive main component accepted by the optional range filter.
+			/// @pre The iterator is not at end.
 			FORCE_INLINE Iterator& operator++() noexcept {
 				++mIterator;
 				skipOutOfRange();
 				return *this;
 			}
 
+			/// @return Whether two iterators from the same view refer to different positions.
 			FORCE_INLINE bool operator!=(const Iterator& other) const noexcept { return mIterator != other.mIterator; }
+			/// @return Whether two iterators from the same view refer to the same position.
 			FORCE_INLINE bool operator==(const Iterator& other) const noexcept { return mIterator == other.mIterator; }
 
 			// Alive iterator self-checks end condition by returning nullptr.
+			/// @return True when this iterator has reached the end position.
 			FORCE_INLINE bool operator==(const EndIterator&) const noexcept { return !mIterator; }
+			/// @return True when this iterator still refers to an element.
 			FORCE_INLINE bool operator!=(const EndIterator&) const noexcept { return static_cast<bool>(mIterator); }
+			/// @return True when @p it has reached the end position.
 			FORCE_INLINE friend bool operator==(const EndIterator endIt, const Iterator& it) noexcept { return it == endIt; }
+			/// @return True when @p it still refers to an element.
 			FORCE_INLINE friend bool operator!=(const EndIterator endIt, const Iterator& it) noexcept { return it != endIt; }
 
 			/// @brief Invoke func directly without tuple creation. Returns true if all components found.
@@ -1948,6 +1974,9 @@ namespace ecss {
 	public:
 		/// @brief Construct a full-range view (Ranged=false specialization).
 		explicit ArraysView(Registry<ThreadSafe, Allocator>* manager) noexcept requires (!Ranged) { init(manager); }
+		/// @brief Construct a ranged view limited to @p ranges (Ranged=true specialization).
+		/// @param manager Registry whose component arrays are viewed.
+		/// @param ranges Half-open entity-id ranges to visit. An empty set visits no entities.
 		explicit ArraysView(Registry<ThreadSafe, Allocator>* manager, const Ranges<EntityId>& ranges = {}) noexcept requires (Ranged) { init(manager, ranges); }
 
 		/// A view is a fixed place, not a value. Its cached begin iterator points into the
@@ -1963,16 +1992,17 @@ namespace ecss {
 		ArraysView(ArraysView&&) = delete;
 		ArraysView& operator=(ArraysView&&) = delete;
 
+		/// @return True when begin() equals end(), otherwise false.
 		FORCE_INLINE bool empty() const noexcept { return mBeginIt == end(); }
 
 		/// @brief Fast iteration without tuple overhead.
 		///        Single component: func(T&). Several: func(T&, CompTypes&...).
 		///
 		/// This is a join, and that is the difference from iterating the view with a range-for.
-		/// Here func takes references and is called only for entities that have every named
-		/// component; one missing secondary skips the entity. A range-for yields
-		/// (EntityId, T*, CompTypes*...) for every entity with the main component, and a
-		/// secondary it lacks arrives as nullptr for you to test.
+		/// Here func takes references and is called, in view iteration order, only for entities
+		/// that have every named component; one missing secondary skips the entity. A range-for
+		/// yields (EntityId, T*, CompTypes*...) for every entity with the main component, and
+		/// a secondary it lacks arrives as nullptr for you to test.
 		///
 		/// Pick each() when the entity is only interesting with all of them, and the range-for
 		/// when a missing component means something to your code.

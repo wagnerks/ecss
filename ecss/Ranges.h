@@ -1,6 +1,8 @@
 #pragma once
 
 #include <algorithm>
+#include <limits>
+#include <stdexcept>
 #include <utility>
 #include <vector>
 
@@ -20,8 +22,13 @@ namespace ecss {
 
 		std::vector<Range> ranges;
 
+		/// @brief Construct an empty set of allocated values.
 		Ranges() = default;
 		
+		/// @brief Construct from individual allocated values and compress consecutive values.
+		/// @param sortedRanges Values in nondecreasing order. Duplicates are ignored.
+		/// @pre Every value is nonnegative, less than `std::numeric_limits<Type>::max()`, and the
+		///      sequence is sorted. The maximum value is reserved because ranges use an exclusive end.
 		Ranges(const std::vector<Type>& sortedRanges) {
 			if (sortedRanges.empty()) {
 				return;
@@ -45,15 +52,27 @@ namespace ecss {
 			ranges.emplace_back(begin, previous + 1);
 		}
 
+		/// @brief Construct from sorted half-open ranges and normalize them.
+		/// @param range Ranges whose valid (`first < second`) subsequence is ordered by `first`.
+		/// Empty and reversed ranges are ignored. Overlapping and touching ranges are coalesced.
 		Ranges(const std::vector<Range>& range) {
 			ranges = range;
 			mergeIntersections();
 		}
 
+		/// @brief Construct from one half-open range.
+		/// An empty or reversed range produces an empty object.
 		Ranges(const Range& range) : Ranges(std::vector<Range>{range}) {}
 
-		/// @brief Collapse overlapping and touching ranges into one each.
+		/// @brief Normalize the list in place: drop the degenerate, coalesce the rest.
+		///
+		/// Empty and reversed ranges are removed first, and that has to come first: the fold
+		/// below compares one range's end against the next one's start, and a reversed pair
+		/// would corrupt that comparison rather than simply being skipped by it.
 		FORCE_INLINE void mergeIntersections() {
+			ranges.erase(std::remove_if(ranges.begin(), ranges.end(), [](const Range& range) {
+				return range.first >= range.second;
+			}), ranges.end());
 			if (ranges.size() < 2) {
 				return;
 			}
@@ -82,20 +101,31 @@ namespace ecss {
 			ranges.resize(out + 1);
 		}
 
-		FORCE_INLINE Type take() { return takeBlock(1).first; }
+		/// @brief Allocate and return the lowest value not already represented by the ranges.
+		/// @post The returned value is contained by this object.
+		/// @throws std::overflow_error No value below `std::numeric_limits<Type>::max()` is free.
+		FORCE_INLINE Type take() {
+			const auto [first, count] = takeBlock(Type{ 1 });
+			if (count == Type{}) {
+				throw std::overflow_error("ecss::Ranges id space exhausted");
+			}
+			return first;
+		}
 
 		/**
 		 * @brief Allocate up to @p maxCount contiguous values in one step.
-		 * @return {first, count}: the first allocated value and how many were actually taken.
-		 *         @p count is at least 1, and may be less than @p maxCount when the free gap
-		 *         that got used was smaller.
+		 * @return `{first, count}`: the first allocated value and how many were actually taken.
+		 *         `count` may be less than @p maxCount when the chosen free gap is smaller.
+		 *         Returns `{0, 0}` without changing the object when @p maxCount is zero or no
+		 *         representable value remains. `std::numeric_limits<Type>::max()` is reserved as
+		 *         the exclusive endpoint and is never allocated.
 		 *
 		 * Batching exists so a caller can amortise whatever lock guards this container over
 		 * many allocations instead of paying it per value.
 		 */
 		std::pair<Type, Type> takeBlock(Type maxCount) {
 			if (maxCount < Type{ 1 }) {
-				maxCount = Type{ 1 };
+				return { Type{}, Type{} };
 			}
 
 			if (ranges.empty()) {
@@ -116,7 +146,14 @@ namespace ecss {
 			// Otherwise extend the first block upward, clamped to the next allocated block so
 			// the returned span can never overlap values that are already handed out.
 			const Type first = front.second;
+			const Type available = std::numeric_limits<Type>::max() - first;
+			if (available == Type{}) {
+				return { Type{}, Type{} };
+			}
 			Type count = maxCount;
+			if (available < count) {
+				count = available;
+			}
 			if (ranges.size() > 1) {
 				const Type gap = ranges[1].first - front.second;
 				if (gap < count) {
@@ -134,6 +171,8 @@ namespace ecss {
 			return { first, count };
 		}
 
+		/// @brief Mark @p id allocated while preserving normalized range order.
+		/// @post contains(id) is true; inserting an already represented id is a no-op.
 		void insert(Type id) {
 			auto it = std::lower_bound(ranges.begin(), ranges.end(), id, [](const Range& r, Type id) {
 				return r.second < id;
@@ -178,6 +217,8 @@ namespace ecss {
 			ranges.insert(it, { id, id + 1 });
 		}
 
+		/// @brief Release @p id while preserving normalized range order.
+		/// @post contains(id) is false; erasing a value not represented is a no-op.
 		void erase(Type id) {
 			auto index = binarySearchInRanges(ranges, id);
 			if (index == -1) {
@@ -204,6 +245,9 @@ namespace ecss {
 			}
 		}
 
+		/// @brief Find the normalized half-open range containing @p id.
+		/// @return Its zero-based index, or -1 when no range contains @p id.
+		/// @pre @p ranges is ordered by start and contains no overlaps.
 		static int binarySearchInRanges(const std::vector<Range>& ranges, Type id) {
 			if (ranges.empty()) {
 				return -1;
@@ -237,12 +281,23 @@ namespace ecss {
 			return -1;
 		}
 
+		/// @brief Remove all stored ranges.
+		/// @post empty() is true.
 		FORCE_INLINE void clear() { ranges.clear(); }
+		/// @return Number of normalized ranges, not the number of individual values.
 		FORCE_INLINE size_t size() const { return ranges.size(); }
+		/// @return First normalized range.
+		/// @pre empty() is false.
 		FORCE_INLINE const Range& front() const { return ranges.front(); }
+		/// @return Last normalized range.
+		/// @pre empty() is false.
 		FORCE_INLINE const Range& back() const { return ranges.back(); }
+		/// @brief Remove the last normalized range.
+		/// @pre empty() is false.
 		FORCE_INLINE void pop_back() { ranges.pop_back(); }
+		/// @return True exactly when no ranges are stored.
 		FORCE_INLINE bool empty() const { return !size(); }
+		/// @return True when @p value belongs to one of the stored half-open ranges.
 		FORCE_INLINE bool contains(Type value) const { return binarySearchInRanges(ranges, value) != -1; }
 
 		/// @brief Start of the first range with first > @p id, if any.
@@ -267,6 +322,7 @@ namespace ecss {
 			return true;
 		}
 
+		/// @return Every represented value in ascending order, with no duplicates.
 		std::vector<Type> getAll() const {
 			size_t total = 0;
 			for (const auto& r : ranges) { total += static_cast<size_t>(r.second - r.first); }

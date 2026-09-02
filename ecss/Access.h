@@ -39,7 +39,7 @@ namespace ecss {
 		 * deadlock would come back.
 		 * @thread_safety Internally synchronized; blocks by design. Blocking is the point: it holds a
 		 *                reader-writer lock per component type until it dies. The guard object itself
-		 *                belongs to one thread and is move-only.
+		 *                belongs to one thread and is neither movable nor copyable.
 		 *
 		 *                Name every type a system touches in one call. Taking claims one at a time is
 		 *                how two systems deadlock on the same pair in opposite orders; asked for
@@ -117,9 +117,13 @@ namespace ecss {
 			// Note this is the opposite of PinnedSector and StructuralHold, which are movable and
 			// may be released by a different thread than took them -- their bookkeeping travels
 			// inside the object rather than living in thread_local storage.
+			/// @brief Moving is forbidden because a guard must be released on its acquiring thread.
 			AccessGuard(AccessGuard&&) = delete;
+			/// @brief Move assignment is forbidden for the same thread-affinity reason.
 			AccessGuard& operator=(AccessGuard&&) = delete;
+			/// @brief A guard has unique ownership of its component-type claims.
 			AccessGuard(const AccessGuard&) = delete;
+			/// @brief Copy assignment is forbidden; claims cannot have two owners.
 			AccessGuard& operator=(const AccessGuard&) = delete;
 
 			/// @thread_safety Internally synchronized. Runs on the thread that took the claims --

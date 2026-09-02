@@ -56,9 +56,17 @@ namespace ecss {
 		/// @thread_safety Thread-confined. One buffer belongs to one thread; nothing in it
 		///                takes a lock. Give each recording thread its own.
 		CommandBuffer() = default;
+		/// @brief Copying is forbidden; recorded operations have one owning buffer.
 		CommandBuffer(const CommandBuffer&) = delete;
+		/// @brief Copy assignment is forbidden; recorded operations have one owning buffer.
 		CommandBuffer& operator=(const CommandBuffer&) = delete;
+		/// @brief Transfer all recorded operations to another buffer.
+		/// @post The destination has the source's former observable state.
+		/// @note The moved-from buffer remains valid but its state is unspecified.
 		CommandBuffer(CommandBuffer&&) noexcept = default;
+		/// @brief Replace this buffer with the recorded operations owned by @p other.
+		/// @post The destination has @p other's former observable state.
+		/// @note The moved-from buffer remains valid but its state is unspecified.
 		CommandBuffer& operator=(CommandBuffer&&) noexcept = default;
 
 		/// @brief Record "give @p entity a T", to be applied by apply().
