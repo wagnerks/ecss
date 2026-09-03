@@ -165,7 +165,11 @@ jobs:
           TEST_TIMEOUT: ${{ steps.flags.outputs.tsan == 'true' && '900' || '150' }}
         run: |
           mkdir -p asan tsan
-          ctest --test-dir build --output-on-failure --build-config ${{ matrix.build_type }} --timeout "${TEST_TIMEOUT}"
+          # PerfBench asserts nothing; it prints timings, and a debug or sanitizer build
+          # measures the instrumentation rather than the library. Minutes per lane for a
+          # number nobody reads.
+          EXCLUDE=$([ "${{ matrix.build_type }}" = "Debug" ] && echo '--exclude-regex PerfBench' || true)
+          ctest --test-dir build --output-on-failure --build-config ${{ matrix.build_type }} --timeout "${TEST_TIMEOUT}" $EXCLUDE
 
       - name: Show ccache stats (after)
         run: ccache -s || true
@@ -326,6 +330,7 @@ jobs:
           --output-on-failure
           --build-config ${{ matrix.build_type }}
           --timeout 150
+          ${{ matrix.build_type == 'Debug' && '--exclude-regex PerfBench' || '' }}
 
       - name: Upload logs on failure
         if: failure()

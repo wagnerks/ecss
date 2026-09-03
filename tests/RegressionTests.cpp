@@ -879,6 +879,13 @@ TEST(Regression_BulkInsert, ArbitraryOrderMatchesOneAtATime) {
 }
 
 TEST(Regression_BulkInsert, StaysLinearInBatchSize) {
+	// A wall-clock assertion, so it only means anything in an optimized build. In Debug
+	// -- and far worse under a sanitizer -- it measures the compiler's bookkeeping
+	// rather than the merge, takes minutes rather than seconds, and was the one test
+	// that timed out once the ctest limit started being applied.
+	#ifndef NDEBUG
+	GTEST_SKIP() << "timing assertion; meaningless in a debug build";
+	#endif
 	// Per-element cost must not grow with the array size. The batch has to land *inside*
 	// what is already stored, or the merge degenerates to "sort, then append" and the path
 	// that used to be quadratic -- relocating the tail and rewriting its sparse entries --
