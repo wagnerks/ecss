@@ -1,0 +1,322 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1IdSet_3_01Type_00_01false_01_4" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::IdSet&lt; Type, false &gt;</compoundname>
+    <basecompoundref refid="structecss_1_1detail_1_1IdSetLayout" prot="private" virt="non-virtual">ecss::detail::IdSetLayout</basecompoundref>
+    <includes refid="IdSet_8h" local="no">IdSet.h</includes>
+    <templateparamlist>
+      <param>
+        <type>typename Type</type>
+      </param>
+    </templateparamlist>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="structecss_1_1IdSet_3_01Type_00_01false_01_4_1a5ac5a014e07b081c5ba7c1ca8d0321c1" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::IdSet&lt; Type, false &gt;::mHint</definition>
+        <argsstring></argsstring>
+        <name>mHint</name>
+        <qualifiedname>ecss::IdSet&lt; Type, false &gt;::mHint</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+<para>First word that may still hold a free bit. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="203" column="8" bodyfile="ecss/IdSet.h" bodystart="203" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1IdSet_3_01Type_00_01false_01_4_1aaafffef0861fe9c57fe8b0da2d6d802e" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; Word &gt;</type>
+        <definition>std::vector&lt;Word&gt; ecss::IdSet&lt; Type, false &gt;::mWords</definition>
+        <argsstring></argsstring>
+        <name>mWords</name>
+        <qualifiedname>ecss::IdSet&lt; Type, false &gt;::mWords</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="202" column="13" bodyfile="ecss/IdSet.h" bodystart="202" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01false_01_4_1a0a4c0e34f1db5d1ca8cc97e9219c57c7" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ecss::IdSet&lt; Type, false &gt;::byteSize</definition>
+        <argsstring>() const</argsstring>
+        <name>byteSize</name>
+        <qualifiedname>ecss::IdSet&lt; Type, false &gt;::byteSize</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Bytes retained by the bitmap&apos;s allocated word capacity. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="199" column="8" bodyfile="ecss/IdSet.h" bodystart="199" bodyend="199"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01false_01_4_1a80cd6ffb55e10abd4f60f9c3dd3157ea" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::IdSet&lt; Type, false &gt;::clear</definition>
+        <argsstring>()</argsstring>
+        <name>clear</name>
+        <qualifiedname>ecss::IdSet&lt; Type, false &gt;::clear</qualifiedname>
+        <briefdescription>
+<para>Release every allocated id without shrinking retained storage. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="post"><para><ref refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1a542a152780177bedc087416c931e29b7" kindref="member">empty()</ref> is true, <ref refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1afcd24b51f74d99d2b8a78ea048ca3d61" kindref="member">size()</ref> is zero, and the next <ref refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1ab0961bef66d1b051d2ed1f90c9e53373" kindref="member">take()</ref> starts again at id zero. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="173" column="6" bodyfile="ecss/IdSet.h" bodystart="173" bodyend="176"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01false_01_4_1a1a18c54b2f6431ca1f504496228497fc" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::IdSet&lt; Type, false &gt;::contains</definition>
+        <argsstring>(Type id) const</argsstring>
+        <name>contains</name>
+        <qualifiedname>ecss::IdSet&lt; Type, false &gt;::contains</qualifiedname>
+        <param>
+          <type>Type</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>True exactly when <computeroutput>id</computeroutput> is currently allocated in this set. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="151" column="19" bodyfile="ecss/IdSet.h" bodystart="151" bodyend="154"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01false_01_4_1a542a152780177bedc087416c931e29b7" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ecss::IdSet&lt; Type, false &gt;::empty</definition>
+        <argsstring>() const</argsstring>
+        <name>empty</name>
+        <qualifiedname>ecss::IdSet&lt; Type, false &gt;::empty</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>True exactly when <ref refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1afcd24b51f74d99d2b8a78ea048ca3d61" kindref="member">size()</ref> is zero. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="194" column="6" bodyfile="ecss/IdSet.h" bodystart="194" bodyend="197"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01false_01_4_1a0be72f3075209c47fc880bf78714158d" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::IdSet&lt; Type, false &gt;::erase</definition>
+        <argsstring>(const Type *begin, const Type *end)</argsstring>
+        <name>erase</name>
+        <qualifiedname>ecss::IdSet&lt; Type, false &gt;::erase</qualifiedname>
+        <param>
+          <type>const Type *</type>
+          <declname>begin</declname>
+        </param>
+        <param>
+          <type>const Type *</type>
+          <declname>end</declname>
+        </param>
+        <briefdescription>
+<para>Release a run of ids. Ids that fall in the same word are cleared together, so a sorted list costs one operation per 64 ids rather than one per id. Correct for an unsorted list too <ndash/> it simply flushes more often. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="135" column="6" bodyfile="ecss/IdSet.h" bodystart="135" bodyend="148"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01false_01_4_1ad2925c2d0e618c2821a3d09c7c33b141" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::IdSet&lt; Type, false &gt;::erase</definition>
+        <argsstring>(Type id)</argsstring>
+        <name>erase</name>
+        <qualifiedname>ecss::IdSet&lt; Type, false &gt;::erase</qualifiedname>
+        <param>
+          <type>Type</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+<para>Release <computeroutput>id</computeroutput>. No-op if it is not allocated. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="125" column="6" bodyfile="ecss/IdSet.h" bodystart="125" bodyend="130"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01false_01_4_1af36d5e0abf54919a8bcccc35ed753074" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::vector&lt; Type &gt;</type>
+        <definition>std::vector&lt; Type &gt; ecss::IdSet&lt; Type, false &gt;::getAll</definition>
+        <argsstring>() const</argsstring>
+        <name>getAll</name>
+        <qualifiedname>ecss::IdSet&lt; Type, false &gt;::getAll</qualifiedname>
+        <briefdescription>
+<para>Every allocated id, ascending. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="157" column="13" bodyfile="ecss/IdSet.h" bodystart="157" bodyend="169"/>
+        <references refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1afcd24b51f74d99d2b8a78ea048ca3d61" compoundref="IdSet_8h" startline="188" endline="192">size</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01false_01_4_1ae27eae662f608c33514657da5a53b632" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::IdSet&lt; Type, false &gt;::insert</definition>
+        <argsstring>(Type id)</argsstring>
+        <name>insert</name>
+        <qualifiedname>ecss::IdSet&lt; Type, false &gt;::insert</qualifiedname>
+        <param>
+          <type>Type</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+<para>Mark <computeroutput>id</computeroutput> allocated. No-op if it already is. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="118" column="6" bodyfile="ecss/IdSet.h" bodystart="118" bodyend="122"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01false_01_4_1a0abedb58eac2c8321d23899e464b343d" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::IdSet&lt; Type, false &gt;::reserve</definition>
+        <argsstring>(Type maxId)</argsstring>
+        <name>reserve</name>
+        <qualifiedname>ecss::IdSet&lt; Type, false &gt;::reserve</qualifiedname>
+        <param>
+          <type>Type</type>
+          <declname>maxId</declname>
+        </param>
+        <briefdescription>
+<para>Preallocate enough bitmap storage to represent <computeroutput>maxId</computeroutput>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="post"><para>Membership is unchanged; later access to ids through <computeroutput>maxId</computeroutput> needs no bitmap growth. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="180" column="6" bodyfile="ecss/IdSet.h" bodystart="180" bodyend="183"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01false_01_4_1afcd24b51f74d99d2b8a78ea048ca3d61" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ecss::IdSet&lt; Type, false &gt;::size</definition>
+        <argsstring>() const</argsstring>
+        <name>size</name>
+        <qualifiedname>ecss::IdSet&lt; Type, false &gt;::size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Number of allocated ids. Counted, not cached: keeping a counter would mean one more contended write per take/erase in the thread-safe flavour, and this is never on a hot path. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="188" column="8" bodyfile="ecss/IdSet.h" bodystart="188" bodyend="192"/>
+        <referencedby refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1af36d5e0abf54919a8bcccc35ed753074" compoundref="IdSet_8h" startline="157" endline="169">getAll</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01false_01_4_1ab0961bef66d1b051d2ed1f90c9e53373" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>Type</type>
+        <definition>Type ecss::IdSet&lt; Type, false &gt;::take</definition>
+        <argsstring>()</argsstring>
+        <name>take</name>
+        <qualifiedname>ecss::IdSet&lt; Type, false &gt;::take</qualifiedname>
+        <briefdescription>
+<para>Allocate and return the lowest free id. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="59" column="6" bodyfile="ecss/IdSet.h" bodystart="59" bodyend="75"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01false_01_4_1ab4db887e24c8823799b8634b7115b898" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::IdSet&lt; Type, false &gt;::take</definition>
+        <argsstring>(size_t count, std::vector&lt; Type &gt; &amp;out)</argsstring>
+        <name>take</name>
+        <qualifiedname>ecss::IdSet&lt; Type, false &gt;::take</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>count</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; Type &gt; &amp;</type>
+          <declname>out</declname>
+        </param>
+        <briefdescription>
+<para>Allocate <computeroutput>count</computeroutput> ids at once, appending them to <computeroutput>out</computeroutput> in ascending order. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>One walk of the bitmap instead of one per id: each word is loaded once and every free bit in it is taken before moving on, where a loop of <ref refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1ab0961bef66d1b051d2ed1f90c9e53373" kindref="member">take()</ref> re-reads the hint and rescans from it every time. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="82" column="6" bodyfile="ecss/IdSet.h" bodystart="82" bodyend="115"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>@thread_safety Not applicable (single-threaded build) <ndash/> and that applies to every member below. There is no synchronization anywhere in this specialization: every one of them needs exclusive access. </para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>ecss::IdSet&lt; Type, false &gt;</label>
+        <link refid="structecss_1_1IdSet_3_01Type_00_01false_01_4"/>
+        <childnode refid="2" relation="private-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ecss::detail::IdSetLayout</label>
+        <link refid="structecss_1_1detail_1_1IdSetLayout"/>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>ecss::IdSet&lt; Type, false &gt;</label>
+        <link refid="structecss_1_1IdSet_3_01Type_00_01false_01_4"/>
+        <childnode refid="2" relation="private-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ecss::detail::IdSetLayout</label>
+        <link refid="structecss_1_1detail_1_1IdSetLayout"/>
+      </node>
+    </collaborationgraph>
+    <location file="ecss/IdSet.h" line="55" column="1" bodyfile="ecss/IdSet.h" bodystart="55" bodyend="204"/>
+    <listofallmembers>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1a0a4c0e34f1db5d1ca8cc97e9219c57c7" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, false &gt;</scope><name>byteSize</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1a80cd6ffb55e10abd4f60f9c3dd3157ea" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, false &gt;</scope><name>clear</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1a1a18c54b2f6431ca1f504496228497fc" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, false &gt;</scope><name>contains</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1a542a152780177bedc087416c931e29b7" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, false &gt;</scope><name>empty</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1ad2925c2d0e618c2821a3d09c7c33b141" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, false &gt;</scope><name>erase</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1a0be72f3075209c47fc880bf78714158d" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, false &gt;</scope><name>erase</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1af36d5e0abf54919a8bcccc35ed753074" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, false &gt;</scope><name>getAll</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1ae27eae662f608c33514657da5a53b632" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, false &gt;</scope><name>insert</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1a5ac5a014e07b081c5ba7c1ca8d0321c1" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, false &gt;</scope><name>mHint</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1aaafffef0861fe9c57fe8b0da2d6d802e" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, false &gt;</scope><name>mWords</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1a0abedb58eac2c8321d23899e464b343d" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, false &gt;</scope><name>reserve</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1afcd24b51f74d99d2b8a78ea048ca3d61" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, false &gt;</scope><name>size</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1ab0961bef66d1b051d2ed1f90c9e53373" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, false &gt;</scope><name>take</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01false_01_4_1ab4db887e24c8823799b8634b7115b898" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, false &gt;</scope><name>take</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,89 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Registry_1_1ComponentAccess" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Registry::ComponentAccess</compoundname>
+    <includes refid="Registry_8h" local="no">Registry.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Registry_1_1ComponentAccess_1a98c5a0d738bb510ec40d37a1c94326fc" prot="public" static="no" mutable="no">
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Memory::SectorsArray</ref>&lt; ThreadSafe, Allocator &gt; *</type>
+        <definition>Memory::SectorsArray&lt;ThreadSafe, Allocator&gt;* ecss::Registry&lt; ThreadSafe, Allocator &gt;::ComponentAccess::array</definition>
+        <argsstring></argsstring>
+        <name>array</name>
+        <qualifiedname>ecss::Registry::ComponentAccess::array</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1099" column="22" bodyfile="ecss/Registry.h" bodystart="1099" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Registry_1_1ComponentAccess_1a3d60b5fc2a3a4c0fca4b0f2097dc0b78" prot="public" static="no" mutable="no">
+        <type>const <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">Memory::LayoutData</ref> *</type>
+        <definition>const Memory::LayoutData* ecss::Registry&lt; ThreadSafe, Allocator &gt;::ComponentAccess::layout</definition>
+        <argsstring></argsstring>
+        <name>layout</name>
+        <qualifiedname>ecss::Registry::ComponentAccess::layout</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1100" column="26" bodyfile="ecss/Registry.h" bodystart="1100" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1Registry_1_1ComponentAccess_1a7ce69cf0067e0cc45fd404753c713c85" prot="public" static="no" const="yes" explicit="yes" inline="yes" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Registry&lt; ThreadSafe, Allocator &gt;::ComponentAccess::operator bool</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>operator bool</name>
+        <qualifiedname>ecss::Registry::ComponentAccess::operator bool</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>True when an array was resolved; false for an empty lookup result. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1102" column="10" bodyfile="ecss/Registry.h" bodystart="1102" bodyend="1102"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>The array holding T together with T&apos;s layout record, from one snapshot load. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="3">
+        <label>ecss::Memory::LayoutData</label>
+        <link refid="structecss_1_1Memory_1_1LayoutData"/>
+      </node>
+      <node id="2">
+        <label>ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;</label>
+        <link refid="classecss_1_1Memory_1_1SectorsArray"/>
+      </node>
+      <node id="1">
+        <label>ecss::Registry&lt; ThreadSafe, Allocator &gt;::ComponentAccess</label>
+        <link refid="structecss_1_1Registry_1_1ComponentAccess"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>array</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>layout</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="ecss/Registry.h" line="1098" column="1" bodyfile="ecss/Registry.h" bodystart="1098" bodyend="1103"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Registry_1_1ComponentAccess_1a98c5a0d738bb510ec40d37a1c94326fc" prot="public" virt="non-virtual"><scope>ecss::Registry::ComponentAccess</scope><name>array</name></member>
+      <member refid="structecss_1_1Registry_1_1ComponentAccess_1a3d60b5fc2a3a4c0fca4b0f2097dc0b78" prot="public" virt="non-virtual"><scope>ecss::Registry::ComponentAccess</scope><name>layout</name></member>
+      <member refid="structecss_1_1Registry_1_1ComponentAccess_1a7ce69cf0067e0cc45fd404753c713c85" prot="public" virt="non-virtual"><scope>ecss::Registry::ComponentAccess</scope><name>operator bool</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

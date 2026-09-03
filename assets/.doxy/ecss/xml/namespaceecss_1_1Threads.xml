@@ -1,0 +1,13 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="namespaceecss_1_1Threads" kind="namespace" language="C++">
+    <compoundname>ecss::Threads</compoundname>
+    <innerclass refid="structecss_1_1Threads_1_1PinCounters" prot="public">ecss::Threads::PinCounters</innerclass>
+    <innerclass refid="structecss_1_1Threads_1_1SelfWaitDebug" prot="public">ecss::Threads::SelfWaitDebug</innerclass>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/threads/PinCounters.h" line="21" column="1"/>
+  </compounddef>
+</doxygen>

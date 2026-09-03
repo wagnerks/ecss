@@ -1,0 +1,216 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="classecss_1_1detail_1_1AccessScope" kind="class" language="C++" prot="public">
+    <compoundname>ecss::detail::AccessScope</compoundname>
+    <includes refid="AccessTracker_8h" local="no">AccessTracker.h</includes>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classecss_1_1detail_1_1AccessScope_1a4be1bd12b345492098e30b81103c838b" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ecss::detail::AccessScope::mHeld</definition>
+        <argsstring></argsstring>
+        <name>mHeld</name>
+        <qualifiedname>ecss::detail::AccessScope::mHeld</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="198" column="6" bodyfile="ecss/AccessTracker.h" bodystart="198" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1detail_1_1AccessScope_1af45552483f4810fc76a3417b82437083" prot="private" static="no" mutable="no">
+        <type>ECSType</type>
+        <definition>ECSType ecss::detail::AccessScope::mType</definition>
+        <argsstring></argsstring>
+        <name>mType</name>
+        <qualifiedname>ecss::detail::AccessScope::mType</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="196" column="9" bodyfile="ecss/AccessTracker.h" bodystart="196" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1detail_1_1AccessScope_1aca7103e0cc10c9a307ff8bf15ae64e52" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ecss::detail::AccessScope::mWriting</definition>
+        <argsstring></argsstring>
+        <name>mWriting</name>
+        <qualifiedname>ecss::detail::AccessScope::mWriting</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="197" column="6" bodyfile="ecss/AccessTracker.h" bodystart="197" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessScope_1ab2b996e52fdfb8eadea279476c10f95f" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::detail::AccessScope::AccessScope</definition>
+        <argsstring>()=default</argsstring>
+        <name>AccessScope</name>
+        <qualifiedname>ecss::detail::AccessScope::AccessScope</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="164" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessScope_1af8e4f74944576c5739b1a8f02d7443b1" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::detail::AccessScope::AccessScope</definition>
+        <argsstring>(AccessScope &amp;&amp;other) noexcept</argsstring>
+        <name>AccessScope</name>
+        <qualifiedname>ecss::detail::AccessScope::AccessScope</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1detail_1_1AccessScope" kindref="compound">AccessScope</ref> &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="172" column="1" bodyfile="ecss/AccessTracker.h" bodystart="172" bodyend="172"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessScope_1a375259deaf744b3795ee8417db3474bf" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::detail::AccessScope::AccessScope</definition>
+        <argsstring>(const AccessScope &amp;)=delete</argsstring>
+        <name>AccessScope</name>
+        <qualifiedname>ecss::detail::AccessScope::AccessScope</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1detail_1_1AccessScope" kindref="compound">AccessScope</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="183" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessScope_1a06771d27a6714667a34e8720d636f51a" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::detail::AccessScope::AccessScope</definition>
+        <argsstring>(ECSType type, const char *name, bool forWriting)</argsstring>
+        <name>AccessScope</name>
+        <qualifiedname>ecss::detail::AccessScope::AccessScope</qualifiedname>
+        <param>
+          <type>ECSType</type>
+          <declname>type</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>name</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>forWriting</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="166" column="1" bodyfile="ecss/AccessTracker.h" bodystart="166" bodyend="170"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessScope_1a3147b0e746a3b349026a78a61dc0638d" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classecss_1_1detail_1_1AccessScope" kindref="compound">AccessScope</ref> &amp;</type>
+        <definition>AccessScope &amp; ecss::detail::AccessScope::operator=</definition>
+        <argsstring>(AccessScope &amp;&amp;other) noexcept</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::detail::AccessScope::operator=</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1detail_1_1AccessScope" kindref="compound">AccessScope</ref> &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="173" column="13" bodyfile="ecss/AccessTracker.h" bodystart="173" bodyend="182"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessScope_1a55a5bdb9d44e3f8e028684285a175be7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classecss_1_1detail_1_1AccessScope" kindref="compound">AccessScope</ref> &amp;</type>
+        <definition>AccessScope &amp; ecss::detail::AccessScope::operator=</definition>
+        <argsstring>(const AccessScope &amp;)=delete</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::detail::AccessScope::operator=</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1detail_1_1AccessScope" kindref="compound">AccessScope</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="184" column="13"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessScope_1a30a1c5c6788cea61309c17c646ab0ceb" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::detail::AccessScope::~AccessScope</definition>
+        <argsstring>()</argsstring>
+        <name>~AccessScope</name>
+        <qualifiedname>ecss::detail::AccessScope::~AccessScope</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="186" column="1" bodyfile="ecss/AccessTracker.h" bodystart="186" bodyend="186"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessScope_1a393872315a037facbd37223543e7bae8" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::detail::AccessScope::release</definition>
+        <argsstring>()</argsstring>
+        <name>release</name>
+        <qualifiedname>ecss::detail::AccessScope::release</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="189" column="6" bodyfile="ecss/AccessTracker.h" bodystart="189" bodyend="194"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>RAII claim on one component type, for the tracker to see. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Movable and default-constructible so a view can keep an array of them, one per component type it names, without knowing the count until instantiation. A moved-from or default-constructed scope releases nothing. </para>
+    </detaileddescription>
+    <location file="ecss/AccessTracker.h" line="162" column="1" bodyfile="ecss/AccessTracker.h" bodystart="162" bodyend="199"/>
+    <listofallmembers>
+      <member refid="classecss_1_1detail_1_1AccessScope_1ab2b996e52fdfb8eadea279476c10f95f" prot="public" virt="non-virtual"><scope>ecss::detail::AccessScope</scope><name>AccessScope</name></member>
+      <member refid="classecss_1_1detail_1_1AccessScope_1a06771d27a6714667a34e8720d636f51a" prot="public" virt="non-virtual"><scope>ecss::detail::AccessScope</scope><name>AccessScope</name></member>
+      <member refid="classecss_1_1detail_1_1AccessScope_1af8e4f74944576c5739b1a8f02d7443b1" prot="public" virt="non-virtual"><scope>ecss::detail::AccessScope</scope><name>AccessScope</name></member>
+      <member refid="classecss_1_1detail_1_1AccessScope_1a375259deaf744b3795ee8417db3474bf" prot="public" virt="non-virtual"><scope>ecss::detail::AccessScope</scope><name>AccessScope</name></member>
+      <member refid="classecss_1_1detail_1_1AccessScope_1a4be1bd12b345492098e30b81103c838b" prot="private" virt="non-virtual"><scope>ecss::detail::AccessScope</scope><name>mHeld</name></member>
+      <member refid="classecss_1_1detail_1_1AccessScope_1af45552483f4810fc76a3417b82437083" prot="private" virt="non-virtual"><scope>ecss::detail::AccessScope</scope><name>mType</name></member>
+      <member refid="classecss_1_1detail_1_1AccessScope_1aca7103e0cc10c9a307ff8bf15ae64e52" prot="private" virt="non-virtual"><scope>ecss::detail::AccessScope</scope><name>mWriting</name></member>
+      <member refid="classecss_1_1detail_1_1AccessScope_1a3147b0e746a3b349026a78a61dc0638d" prot="public" virt="non-virtual"><scope>ecss::detail::AccessScope</scope><name>operator=</name></member>
+      <member refid="classecss_1_1detail_1_1AccessScope_1a55a5bdb9d44e3f8e028684285a175be7" prot="public" virt="non-virtual"><scope>ecss::detail::AccessScope</scope><name>operator=</name></member>
+      <member refid="classecss_1_1detail_1_1AccessScope_1a393872315a037facbd37223543e7bae8" prot="private" virt="non-virtual"><scope>ecss::detail::AccessScope</scope><name>release</name></member>
+      <member refid="classecss_1_1detail_1_1AccessScope_1a30a1c5c6788cea61309c17c646ab0ceb" prot="public" virt="non-virtual"><scope>ecss::detail::AccessScope</scope><name>~AccessScope</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,207 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1StructuralHold" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Memory::StructuralHold</compoundname>
+    <includes refid="SectorsArray_8h" local="no">SectorsArray.h</includes>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1StructuralHold_1a8fee5397b9639012c10de3b12e34eb9b" prot="private" static="no" mutable="no">
+        <type>const <ref refid="structecss_1_1Threads_1_1PinCounters" kindref="compound">Threads::PinCounters</ref> *</type>
+        <definition>const Threads::PinCounters* ecss::Memory::StructuralHold::owner</definition>
+        <argsstring></argsstring>
+        <name>owner</name>
+        <qualifiedname>ecss::Memory::StructuralHold::owner</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="602" column="28" bodyfile="ecss/memory/SectorsArray.h" bodystart="602" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1StructuralHold_1a232c84adf8d85e3a5169f37aed8e4213" prot="private" static="no" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t ecss::Memory::StructuralHold::shard</definition>
+        <argsstring></argsstring>
+        <name>shard</name>
+        <qualifiedname>ecss::Memory::StructuralHold::shard</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="603" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="603" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1Memory_1_1StructuralHold_1a4a094beaa990d512c914effd5ec55aad" prot="public" static="no" const="yes" explicit="yes" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::StructuralHold::operator bool</definition>
+        <argsstring>() const</argsstring>
+        <name>operator bool</name>
+        <qualifiedname>ecss::Memory::StructuralHold::operator bool</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="599" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="599" bodyend="599"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1StructuralHold_1a7a2a562dd2934eef9f0a815a1ed2e412" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structecss_1_1Memory_1_1StructuralHold" kindref="compound">StructuralHold</ref> &amp;</type>
+        <definition>StructuralHold &amp; ecss::Memory::StructuralHold::operator=</definition>
+        <argsstring>(const StructuralHold &amp;)=delete</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::StructuralHold::operator=</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1StructuralHold" kindref="compound">StructuralHold</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="579" column="16"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1StructuralHold_1a2f634d74bc5a2f4f678405a3d774f4b9" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type><ref refid="structecss_1_1Memory_1_1StructuralHold" kindref="compound">StructuralHold</ref> &amp;</type>
+        <definition>StructuralHold &amp; ecss::Memory::StructuralHold::operator=</definition>
+        <argsstring>(StructuralHold &amp;&amp;other) noexcept</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::StructuralHold::operator=</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1Memory_1_1StructuralHold" kindref="compound">StructuralHold</ref> &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="582" column="16" bodyfile="ecss/memory/SectorsArray.h" bodystart="582" bodyend="590"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1StructuralHold_1a557c5ca61305475e073268a5ecffe662" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Memory::StructuralHold::release</definition>
+        <argsstring>()</argsstring>
+        <name>release</name>
+        <qualifiedname>ecss::Memory::StructuralHold::release</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="594" column="6" bodyfile="ecss/memory/SectorsArray.h" bodystart="594" bodyend="597"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1StructuralHold_1ab262bb2ee9a247c5f294c871c42de6b3" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::StructuralHold::StructuralHold</definition>
+        <argsstring>()=default</argsstring>
+        <name>StructuralHold</name>
+        <qualifiedname>ecss::Memory::StructuralHold::StructuralHold</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="573" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1StructuralHold_1a5bcf88cb0ccca3500fd28568e70bd8ce" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::StructuralHold::StructuralHold</definition>
+        <argsstring>(const StructuralHold &amp;)=delete</argsstring>
+        <name>StructuralHold</name>
+        <qualifiedname>ecss::Memory::StructuralHold::StructuralHold</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1StructuralHold" kindref="compound">StructuralHold</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="578" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1StructuralHold_1a0c7ec1009ea2c28adfb3aed80341dde7" prot="public" static="no" const="no" explicit="yes" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::StructuralHold::StructuralHold</definition>
+        <argsstring>(const Threads::PinCounters &amp;counters)</argsstring>
+        <name>StructuralHold</name>
+        <qualifiedname>ecss::Memory::StructuralHold::StructuralHold</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Threads_1_1PinCounters" kindref="compound">Threads::PinCounters</ref> &amp;</type>
+          <declname>counters</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="575" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="575" bodyend="576"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1StructuralHold_1a163c6b9f8a783fe2c743df8f283c57ea" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::StructuralHold::StructuralHold</definition>
+        <argsstring>(StructuralHold &amp;&amp;other) noexcept</argsstring>
+        <name>StructuralHold</name>
+        <qualifiedname>ecss::Memory::StructuralHold::StructuralHold</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1Memory_1_1StructuralHold" kindref="compound">StructuralHold</ref> &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="581" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="581" bodyend="581"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1StructuralHold_1aa22c57ba5cfb26fe3ef81f486de224aa" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::StructuralHold::~StructuralHold</definition>
+        <argsstring>()</argsstring>
+        <name>~StructuralHold</name>
+        <qualifiedname>ecss::Memory::StructuralHold::~StructuralHold</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="592" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="592" bodyend="592"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>RAII structural hold: while one is alive, no sector in the array may be relocated. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>@thread_safety Thread-confined <ndash/> the handle, not the array. Holds are counted per thread, so holders on different threads do not even share a cache line; a hold may be released by a different thread than took it, which is why the shard travels inside the object.</para>
+<para>While one is outstanding, everything that relocates sectors waits: clear, defragment, a middle insert, copy and move assignment. A view keeps one for its whole life, so those calls cannot finish while a view is open <ndash/> from another thread they block, from this one they deadlock.</para>
+<para>Weaker and cheaper than a pin. A pin says &quot;leave this sector alone&quot; and is counted per sector; a hold says &quot;do not compact the array&quot; and is counted per thread, so holders on different threads do not share a cache line. Iteration needs the second, not the first <ndash/> which is why views used to pin the back sector and made every thread contend on it. </para>
+    </detaileddescription>
+    <location file="ecss/memory/SectorsArray.h" line="572" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="572" bodyend="604"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Memory_1_1StructuralHold_1a4a094beaa990d512c914effd5ec55aad" prot="public" virt="non-virtual"><scope>ecss::Memory::StructuralHold</scope><name>operator bool</name></member>
+      <member refid="structecss_1_1Memory_1_1StructuralHold_1a7a2a562dd2934eef9f0a815a1ed2e412" prot="public" virt="non-virtual"><scope>ecss::Memory::StructuralHold</scope><name>operator=</name></member>
+      <member refid="structecss_1_1Memory_1_1StructuralHold_1a2f634d74bc5a2f4f678405a3d774f4b9" prot="public" virt="non-virtual"><scope>ecss::Memory::StructuralHold</scope><name>operator=</name></member>
+      <member refid="structecss_1_1Memory_1_1StructuralHold_1a8fee5397b9639012c10de3b12e34eb9b" prot="private" virt="non-virtual"><scope>ecss::Memory::StructuralHold</scope><name>owner</name></member>
+      <member refid="structecss_1_1Memory_1_1StructuralHold_1a557c5ca61305475e073268a5ecffe662" prot="public" virt="non-virtual"><scope>ecss::Memory::StructuralHold</scope><name>release</name></member>
+      <member refid="structecss_1_1Memory_1_1StructuralHold_1a232c84adf8d85e3a5169f37aed8e4213" prot="private" virt="non-virtual"><scope>ecss::Memory::StructuralHold</scope><name>shard</name></member>
+      <member refid="structecss_1_1Memory_1_1StructuralHold_1ab262bb2ee9a247c5f294c871c42de6b3" prot="public" virt="non-virtual"><scope>ecss::Memory::StructuralHold</scope><name>StructuralHold</name></member>
+      <member refid="structecss_1_1Memory_1_1StructuralHold_1a0c7ec1009ea2c28adfb3aed80341dde7" prot="public" virt="non-virtual"><scope>ecss::Memory::StructuralHold</scope><name>StructuralHold</name></member>
+      <member refid="structecss_1_1Memory_1_1StructuralHold_1a5bcf88cb0ccca3500fd28568e70bd8ce" prot="public" virt="non-virtual"><scope>ecss::Memory::StructuralHold</scope><name>StructuralHold</name></member>
+      <member refid="structecss_1_1Memory_1_1StructuralHold_1a163c6b9f8a783fe2c743df8f283c57ea" prot="public" virt="non-virtual"><scope>ecss::Memory::StructuralHold</scope><name>StructuralHold</name></member>
+      <member refid="structecss_1_1Memory_1_1StructuralHold_1aa22c57ba5cfb26fe3ef81f486de224aa" prot="public" virt="non-virtual"><scope>ecss::Memory::StructuralHold</scope><name>~StructuralHold</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

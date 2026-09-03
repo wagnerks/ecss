@@ -1,0 +1,118 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1SectorsArray_1_1StructuralEdit" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Memory::SectorsArray::StructuralEdit</compoundname>
+    <includes refid="SectorsArray_8h" local="no">SectorsArray.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1SectorsArray_1_1StructuralEdit_1a2a582974c4f1690296b4b2ff999b371b" prot="public" static="no" mutable="no">
+        <type>const <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> &amp;</type>
+        <definition>const SectorsArray&amp; ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::StructuralEdit::arr</definition>
+        <argsstring></argsstring>
+        <name>arr</name>
+        <qualifiedname>ecss::Memory::SectorsArray::StructuralEdit::arr</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1802" column="20" bodyfile="ecss/memory/SectorsArray.h" bodystart="1802" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorsArray_1_1StructuralEdit_1ad9f15bf4cc95f8a777186b66fc9b9623" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structecss_1_1Memory_1_1SectorsArray_1_1StructuralEdit" kindref="compound">StructuralEdit</ref> &amp;</type>
+        <definition>StructuralEdit &amp; ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::StructuralEdit::operator=</definition>
+        <argsstring>(const StructuralEdit &amp;)=delete</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::SectorsArray::StructuralEdit::operator=</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1SectorsArray_1_1StructuralEdit" kindref="compound">StructuralEdit</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1800" column="16"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorsArray_1_1StructuralEdit_1ae3971a3bdb8490cd6895910397d9e1a4" prot="public" static="no" const="no" explicit="yes" inline="yes" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::StructuralEdit::StructuralEdit</definition>
+        <argsstring>(const SectorsArray &amp;owner) noexcept</argsstring>
+        <name>StructuralEdit</name>
+        <qualifiedname>ecss::Memory::SectorsArray::StructuralEdit::StructuralEdit</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> &amp;</type>
+          <declname>owner</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1795" column="10" bodyfile="ecss/memory/SectorsArray.h" bodystart="1795" bodyend="1797"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorsArray_1_1StructuralEdit_1acbe3c09c5a26b38915cb1a13fb3e7bc7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::StructuralEdit::StructuralEdit</definition>
+        <argsstring>(const StructuralEdit &amp;)=delete</argsstring>
+        <name>StructuralEdit</name>
+        <qualifiedname>ecss::Memory::SectorsArray::StructuralEdit::StructuralEdit</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1SectorsArray_1_1StructuralEdit" kindref="compound">StructuralEdit</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1799" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1SectorsArray_1_1StructuralEdit_1ac119b17c4cc772370d4210cde84c5f54" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::StructuralEdit::~StructuralEdit</definition>
+        <argsstring>()</argsstring>
+        <name>~StructuralEdit</name>
+        <qualifiedname>ecss::Memory::SectorsArray::StructuralEdit::~StructuralEdit</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="1798" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="1798" bodyend="1798"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>RAII publication of &quot;sector storage is changing&quot; around a writer body. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Pins are taken with no lock at all, so a pin can be published just after a writer has checked that nothing is pinned. Both sides therefore publish before they check: the reader pins and then re-reads the epoch, the writer bumps the epoch and then re-reads the pin state. Whichever went second sees the other, so a validated pin can never be live across a structural change, and a writer never relocates or destroys a sector that a reader has already committed to. </para>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;</label>
+        <link refid="classecss_1_1Memory_1_1SectorsArray"/>
+      </node>
+      <node id="1">
+        <label>ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;::StructuralEdit</label>
+        <link refid="structecss_1_1Memory_1_1SectorsArray_1_1StructuralEdit"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>arr</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="ecss/memory/SectorsArray.h" line="1794" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="1794" bodyend="1803"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Memory_1_1SectorsArray_1_1StructuralEdit_1a2a582974c4f1690296b4b2ff999b371b" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::StructuralEdit</scope><name>arr</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorsArray_1_1StructuralEdit_1ad9f15bf4cc95f8a777186b66fc9b9623" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::StructuralEdit</scope><name>operator=</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorsArray_1_1StructuralEdit_1ae3971a3bdb8490cd6895910397d9e1a4" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::StructuralEdit</scope><name>StructuralEdit</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorsArray_1_1StructuralEdit_1acbe3c09c5a26b38915cb1a13fb3e7bc7" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::StructuralEdit</scope><name>StructuralEdit</name></member>
+      <member refid="structecss_1_1Memory_1_1SectorsArray_1_1StructuralEdit_1ac119b17c4cc772370d4210cde84c5f54" prot="public" virt="non-virtual"><scope>ecss::Memory::SectorsArray::StructuralEdit</scope><name>~StructuralEdit</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

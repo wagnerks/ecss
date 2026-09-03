@@ -1,0 +1,126 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1detail_1_1IdSetLayout" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::detail::IdSetLayout</compoundname>
+    <derivedcompoundref refid="structecss_1_1IdSet_3_01Type_00_01false_01_4" prot="private" virt="non-virtual">ecss::IdSet&lt; Type, false &gt;</derivedcompoundref>
+    <derivedcompoundref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4" prot="private" virt="non-virtual">ecss::IdSet&lt; Type, true &gt;</derivedcompoundref>
+    <includes refid="IdSet_8h" local="no">IdSet.h</includes>
+    <sectiondef kind="public-type">
+      <memberdef kind="typedef" id="structecss_1_1detail_1_1IdSetLayout_1a1a55363c65e0f12770b671df2868c910" prot="public" static="no">
+        <type>uint64_t</type>
+        <definition>using ecss::detail::IdSetLayout::Word =  uint64_t</definition>
+        <argsstring></argsstring>
+        <name>Word</name>
+        <qualifiedname>ecss::detail::IdSetLayout::Word</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="19" column="1" bodyfile="ecss/IdSet.h" bodystart="19" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="structecss_1_1detail_1_1IdSetLayout_1a9556bc9ddcd1d79009080504417f0ecf" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>Word</type>
+        <definition>Word ecss::detail::IdSetLayout::kFull</definition>
+        <argsstring></argsstring>
+        <name>kFull</name>
+        <qualifiedname>ecss::detail::IdSetLayout::kFull</qualifiedname>
+        <initializer>= ~Word{ 0 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="21" column="25" bodyfile="ecss/IdSet.h" bodystart="21" bodyend="21"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1detail_1_1IdSetLayout_1ae0b0defa811f6cb01e1689bd57405502" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::detail::IdSetLayout::kWordBits</definition>
+        <argsstring></argsstring>
+        <name>kWordBits</name>
+        <qualifiedname>ecss::detail::IdSetLayout::kWordBits</qualifiedname>
+        <initializer>= std::numeric_limits&lt;Word&gt;::digits</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="20" column="25" bodyfile="ecss/IdSet.h" bodystart="20" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="structecss_1_1detail_1_1IdSetLayout_1aa2a12c80ae921c0f5f18ed4769d993e0" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE Word</type>
+        <definition>static FORCE_INLINE Word ecss::detail::IdSetLayout::bitOf</definition>
+        <argsstring>(size_t id)</argsstring>
+        <name>bitOf</name>
+        <qualifiedname>ecss::detail::IdSetLayout::bitOf</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="24" column="28" bodyfile="ecss/IdSet.h" bodystart="24" bodyend="24"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1detail_1_1IdSetLayout_1a260fff05bfabe985d4ee89491be02a9c" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE size_t</type>
+        <definition>static FORCE_INLINE size_t ecss::detail::IdSetLayout::wordOf</definition>
+        <argsstring>(size_t id)</argsstring>
+        <name>wordOf</name>
+        <qualifiedname>ecss::detail::IdSetLayout::wordOf</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="23" column="28" bodyfile="ecss/IdSet.h" bodystart="23" bodyend="23"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Bit arithmetic shared by both <ref refid="structecss_1_1IdSet" kindref="compound">IdSet</ref> flavours. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="2">
+        <label>ecss::IdSet&lt; Type, false &gt;</label>
+        <link refid="structecss_1_1IdSet_3_01Type_00_01false_01_4"/>
+        <childnode refid="1" relation="private-inheritance">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>ecss::IdSet&lt; Type, true &gt;</label>
+        <link refid="structecss_1_1IdSet_3_01Type_00_01true_01_4"/>
+        <childnode refid="1" relation="private-inheritance">
+        </childnode>
+      </node>
+      <node id="1">
+        <label>ecss::detail::IdSetLayout</label>
+        <link refid="structecss_1_1detail_1_1IdSetLayout"/>
+      </node>
+    </inheritancegraph>
+    <location file="ecss/IdSet.h" line="18" column="1" bodyfile="ecss/IdSet.h" bodystart="18" bodyend="25"/>
+    <listofallmembers>
+      <member refid="structecss_1_1detail_1_1IdSetLayout_1aa2a12c80ae921c0f5f18ed4769d993e0" prot="public" virt="non-virtual"><scope>ecss::detail::IdSetLayout</scope><name>bitOf</name></member>
+      <member refid="structecss_1_1detail_1_1IdSetLayout_1a9556bc9ddcd1d79009080504417f0ecf" prot="public" virt="non-virtual"><scope>ecss::detail::IdSetLayout</scope><name>kFull</name></member>
+      <member refid="structecss_1_1detail_1_1IdSetLayout_1ae0b0defa811f6cb01e1689bd57405502" prot="public" virt="non-virtual"><scope>ecss::detail::IdSetLayout</scope><name>kWordBits</name></member>
+      <member refid="structecss_1_1detail_1_1IdSetLayout_1a1a55363c65e0f12770b671df2868c910" prot="public" virt="non-virtual"><scope>ecss::detail::IdSetLayout</scope><name>Word</name></member>
+      <member refid="structecss_1_1detail_1_1IdSetLayout_1a260fff05bfabe985d4ee89491be02a9c" prot="public" virt="non-virtual"><scope>ecss::detail::IdSetLayout</scope><name>wordOf</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

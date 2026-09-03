@@ -1,0 +1,1150 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="namespaceecss_1_1Memory_1_1Sector" kind="namespace" language="C++">
+    <compoundname>ecss::Memory::Sector</compoundname>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1af451b4412b1662acab384657dccd7090" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>false</defval>
+          </param>
+        </templateparamlist>
+        <type>T *</type>
+        <definition>T * ecss::Memory::Sector::copyMember</definition>
+        <argsstring>(const T &amp;from, std::byte *toData, uint32_t &amp;toIsAlive, const LayoutData &amp;layout)</argsstring>
+        <name>copyMember</name>
+        <qualifiedname>ecss::Memory::Sector::copyMember</qualifiedname>
+        <param>
+          <type>const T &amp;</type>
+          <declname>from</declname>
+        </param>
+        <param>
+          <type>std::byte *</type>
+          <declname>toData</declname>
+        </param>
+        <param>
+          <type>uint32_t &amp;</type>
+          <declname>toIsAlive</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> &amp;</type>
+          <declname>layout</declname>
+        </param>
+        <briefdescription>
+<para>Copy-assign member T into destination and mark alive. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>TS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, uses atomic store for race-free lockless reads. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="249" column="3" bodyfile="ecss/memory/Sector.h" bodystart="249" bodyend="256"/>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a0e5a45085f4665dd80c425d0e475167e" compoundref="Sector_8h" startline="209" endline="216">destroyMember</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a403c4e24eb1ba9a35a633850ce4dd30b" compoundref="Sector_8h" startline="76" endline="78">getMemberPtr</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a871ad77d22534046ea39d0adfccfea40" compoundref="Sector_8h" startline="115" endline="126">setAlive</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1aca25a38d2f522a84e147a6315eb5d79b" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>ThreadSafe</declname>
+            <defname>ThreadSafe</defname>
+            <defval>false</defval>
+          </param>
+        </templateparamlist>
+        <type>void *</type>
+        <definition>void * ecss::Memory::Sector::copyMember</definition>
+        <argsstring>(const void *from, std::byte *toData, uint32_t &amp;toIsAlive, const LayoutData &amp;layout)</argsstring>
+        <name>copyMember</name>
+        <qualifiedname>ecss::Memory::Sector::copyMember</qualifiedname>
+        <param>
+          <type>const void *</type>
+          <declname>from</declname>
+        </param>
+        <param>
+          <type>std::byte *</type>
+          <declname>toData</declname>
+        </param>
+        <param>
+          <type>uint32_t &amp;</type>
+          <declname>toIsAlive</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> &amp;</type>
+          <declname>layout</declname>
+        </param>
+        <briefdescription>
+<para>Copy-assign an opaque member using layout function table. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>ThreadSafe</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, uses atomic store for race-free lockless reads. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="276" column="13" bodyfile="ecss/memory/Sector.h" bodystart="276" bodyend="288"/>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a0e5a45085f4665dd80c425d0e475167e" compoundref="Sector_8h" startline="209" endline="216">destroyMember</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a403c4e24eb1ba9a35a633850ce4dd30b" compoundref="Sector_8h" startline="76" endline="78">getMemberPtr</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a871ad77d22534046ea39d0adfccfea40" compoundref="Sector_8h" startline="115" endline="126">setAlive</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1aa9112ed72591963a5cd626f8f61e3c7b" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>ThreadSafe</declname>
+            <defname>ThreadSafe</defname>
+            <defval>false</defval>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::Sector::copySectorData</definition>
+        <argsstring>(const std::byte *fromData, uint32_t fromIsAlive, std::byte *toData, uint32_t &amp;toIsAlive, const SectorLayoutMeta *layouts)</argsstring>
+        <name>copySectorData</name>
+        <qualifiedname>ecss::Memory::Sector::copySectorData</qualifiedname>
+        <param>
+          <type>const std::byte *</type>
+          <declname>fromData</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>fromIsAlive</declname>
+        </param>
+        <param>
+          <type>std::byte *</type>
+          <declname>toData</declname>
+        </param>
+        <param>
+          <type>uint32_t &amp;</type>
+          <declname>toIsAlive</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1SectorLayoutMeta" kindref="compound">SectorLayoutMeta</ref> *</type>
+          <declname>layouts</declname>
+        </param>
+        <briefdescription>
+<para>Copy sector data from one location to another. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>ThreadSafe</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, uses atomic store for race-free lockless reads. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>fromData</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Source sector data </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fromIsAlive</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Source alive state </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>toData</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Destination sector data </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>toIsAlive</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Reference to destination alive state (will be modified) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>layouts</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><ref refid="namespaceecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> layout metadata @thread_safety Caller must ensure exclusive access. Copies a whole sector. Both sides must be held still by their owning arrays. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="319" column="13" bodyfile="ecss/memory/Sector.h" bodystart="319" bodyend="339"/>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1aafd33426b350c34504248d1533ecdc41" compoundref="Sector_8h" startline="225" endline="242">destroySectorData</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a403c4e24eb1ba9a35a633850ce4dd30b" compoundref="Sector_8h" startline="76" endline="78">getMemberPtr</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1ab60b8eaab180174b9d04ba330eb3dce5" compoundref="Sector_8h" startline="91" endline="93">isAlive</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1a0e5a45085f4665dd80c425d0e475167e" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>ThreadSafe</declname>
+            <defname>ThreadSafe</defname>
+            <defval>false</defval>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::Sector::destroyMember</definition>
+        <argsstring>(std::byte *data, uint32_t &amp;isAliveData, const LayoutData &amp;layout)</argsstring>
+        <name>destroyMember</name>
+        <qualifiedname>ecss::Memory::Sector::destroyMember</qualifiedname>
+        <param>
+          <type>std::byte *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>uint32_t &amp;</type>
+          <declname>isAliveData</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> &amp;</type>
+          <declname>layout</declname>
+        </param>
+        <briefdescription>
+<para>Destroy a specific member if alive and clear its liveness bits. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>ThreadSafe</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, uses atomic store for race-free lockless reads. @thread_safety Caller must ensure exclusive access. Runs a destructor and clears the liveness bit. Needs the owning array&apos;s write lock, and that sector unpinned. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="209" column="13" bodyfile="ecss/memory/Sector.h" bodystart="209" bodyend="216"/>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a403c4e24eb1ba9a35a633850ce4dd30b" compoundref="Sector_8h" startline="76" endline="78">getMemberPtr</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1ab60b8eaab180174b9d04ba330eb3dce5" compoundref="Sector_8h" startline="91" endline="93">isAlive</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a871ad77d22534046ea39d0adfccfea40" compoundref="Sector_8h" startline="115" endline="126">setAlive</references>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1af451b4412b1662acab384657dccd7090" compoundref="Sector_8h" startline="249" endline="256">copyMember</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1aca25a38d2f522a84e147a6315eb5d79b" compoundref="Sector_8h" startline="276" endline="288">copyMember</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a40e500f0b85b8185251ac13f3977a5fa" compoundref="Registry_8h" startline="601" endline="634">ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyComponent</referencedby>
+        <referencedby refid="classecss_1_1Registry_1ace81965843c6f3b518508670707e7148" compoundref="Registry_8h" startline="647" endline="693">ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyComponent</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1a3b280616b684cecfc5f5ff20aa15bf44" compoundref="Sector_8h" startline="263" endline="270">moveMember</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1a9edb9b63bf33807675893c5aabfa2413" compoundref="Sector_8h" startline="294" endline="306">moveMember</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1aafd33426b350c34504248d1533ecdc41" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>ThreadSafe</declname>
+            <defname>ThreadSafe</defname>
+            <defval>false</defval>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::Sector::destroySectorData</definition>
+        <argsstring>(std::byte *data, uint32_t &amp;isAliveData, const SectorLayoutMeta *layouts)</argsstring>
+        <name>destroySectorData</name>
+        <qualifiedname>ecss::Memory::Sector::destroySectorData</qualifiedname>
+        <param>
+          <type>std::byte *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>uint32_t &amp;</type>
+          <declname>isAliveData</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1SectorLayoutMeta" kindref="compound">SectorLayoutMeta</ref> *</type>
+          <declname>layouts</declname>
+        </param>
+        <briefdescription>
+<para>Destroy all alive members in sector data and clear liveness bits. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>ThreadSafe</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, uses atomic store for race-free lockless reads. @thread_safety Caller must ensure exclusive access. Destroys every component in the sector. Needs the owning array&apos;s write lock and that sector unpinned <ndash/> which is what exclusiveWhenUnpinned() establishes for its callers. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="225" column="13" bodyfile="ecss/memory/Sector.h" bodystart="225" bodyend="242"/>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a403c4e24eb1ba9a35a633850ce4dd30b" compoundref="Sector_8h" startline="76" endline="78">getMemberPtr</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1ab60b8eaab180174b9d04ba330eb3dce5" compoundref="Sector_8h" startline="91" endline="93">isAlive</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a0079c23ad319592b1d8e1d4ac6e45eeb" compoundref="Sector_8h" startline="98" endline="100">isSectorAlive</references>
+        <references refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a71cfff6bf4638937d568c4557b65e5e0" compoundref="SectorLayoutMeta_8h" startline="262" endline="262">ecss::Memory::SectorLayoutMeta::isTrivial</references>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1aa9112ed72591963a5cd626f8f61e3c7b" compoundref="Sector_8h" startline="319" endline="339">copySectorData</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a13215b01a606362fc3ddc0f12c6cfa64" compoundref="Registry_8h" startline="1231" endline="1290">ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyEntities</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1a74fabb1d6bf2e6946a7aaa57d2a1388e" compoundref="Sector_8h" startline="353" endline="375">moveSectorData</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1af8358afe7990c231101e0b5c984d5cb7" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>false</defval>
+          </param>
+          <param>
+            <type>class ...</type>
+            <declname>Args</declname>
+            <defname>Args</defname>
+          </param>
+        </templateparamlist>
+        <type>T *</type>
+        <definition>T * ecss::Memory::Sector::emplaceMember</definition>
+        <argsstring>(std::byte *data, uint32_t &amp;isAliveData, const LayoutData &amp;layout, Args &amp;&amp;... args)</argsstring>
+        <name>emplaceMember</name>
+        <qualifiedname>ecss::Memory::Sector::emplaceMember</qualifiedname>
+        <param>
+          <type>std::byte *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>uint32_t &amp;</type>
+          <declname>isAliveData</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> &amp;</type>
+          <declname>layout</declname>
+        </param>
+        <param>
+          <type>Args &amp;&amp;...</type>
+          <declname>args</declname>
+        </param>
+        <briefdescription>
+<para>(Re)construct member T in place and mark it alive. Destroys previous value if present. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>TS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, uses atomic store for race-free lockless reads. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Raw pointer to sector data </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>isAliveData</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Reference to alive data (will be modified) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>layout</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Layout data for this component type </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>args</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Constructor arguments </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Pointer to constructed component @thread_safety Caller must ensure exclusive access. Constructs into the sector, then publishes the liveness bit. Only sound where nobody else writes that component and the sector cannot move <ndash/> under the owning array&apos;s write lock. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="189" column="3" bodyfile="ecss/memory/Sector.h" bodystart="189" bodyend="201"/>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a403c4e24eb1ba9a35a633850ce4dd30b" compoundref="Sector_8h" startline="76" endline="78">getMemberPtr</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1ab60b8eaab180174b9d04ba330eb3dce5" compoundref="Sector_8h" startline="91" endline="93">isAlive</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a26358a3fb6eceaa40f97bcf3384d8321" compoundref="Sector_8h" startline="134" endline="145">markAlive</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1a244f23f381130f049e0edd71c153daa6" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>const T *</type>
+        <definition>const T * ecss::Memory::Sector::getComponent</definition>
+        <argsstring>(const std::byte *data, uint32_t isAliveData, const SectorLayoutMeta *sectorLayout)</argsstring>
+        <name>getComponent</name>
+        <qualifiedname>ecss::Memory::Sector::getComponent</qualifiedname>
+        <param>
+          <type>const std::byte *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>isAliveData</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1SectorLayoutMeta" kindref="compound">SectorLayoutMeta</ref> *</type>
+          <declname>sectorLayout</declname>
+        </param>
+        <briefdescription>
+<para>Fetch component pointer of type T using layout; may be nullptr if not alive. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="158" column="9" bodyfile="ecss/memory/Sector.h" bodystart="158" bodyend="164"/>
+        <references refid="structecss_1_1Memory_1_1SectorLayoutMeta_1a434e675af2ddb6da7c9f4cfd338701e0" compoundref="SectorLayoutMeta_8h" startline="266" endline="266">ecss::Memory::SectorLayoutMeta::getLayoutData</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a483c116020e22cf92f0096ad9112cc1b" compoundref="Sector_8h" startline="41" endline="43">getMember</references>
+        <referencedby refid="classecss_1_1Registry_1abc89274e98252fb7a35d5a1417a9a854" compoundref="Registry_8h" startline="491" endline="498">ecss::Registry&lt; ThreadSafe, Allocator &gt;::pinComponent</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1ab8ec84a36f487f8cb6aa703d0869f816" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>T *</type>
+        <definition>T * ecss::Memory::Sector::getComponent</definition>
+        <argsstring>(std::byte *data, uint32_t isAliveData, const SectorLayoutMeta *sectorLayout)</argsstring>
+        <name>getComponent</name>
+        <qualifiedname>ecss::Memory::Sector::getComponent</qualifiedname>
+        <param>
+          <type>std::byte *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>isAliveData</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1SectorLayoutMeta" kindref="compound">SectorLayoutMeta</ref> *</type>
+          <declname>sectorLayout</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="168" column="3" bodyfile="ecss/memory/Sector.h" bodystart="168" bodyend="174"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1ad216b00fe88756b975d9e689d81eff4b" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE const T *</type>
+        <definition>FORCE_INLINE const T * ecss::Memory::Sector::getMember</definition>
+        <argsstring>(const std::byte *data, const LayoutData &amp;layout, uint32_t isAliveData) noexcept</argsstring>
+        <name>getMember</name>
+        <qualifiedname>ecss::Memory::Sector::getMember</qualifiedname>
+        <param>
+          <type>const std::byte *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> &amp;</type>
+          <declname>layout</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>isAliveData</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. Pure: computes from the arguments it is given and touches no shared state. Whether the data behind the pointer is stable is the caller&apos;s question, settled by a pin or a structural hold. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="68" column="22" bodyfile="ecss/memory/Sector.h" bodystart="68" bodyend="70"/>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a483c116020e22cf92f0096ad9112cc1b" compoundref="Sector_8h" startline="41" endline="43">getMember</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1a2a9c42619ba8d5ea1f9973589d71320f" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE const T *</type>
+        <definition>FORCE_INLINE const T * ecss::Memory::Sector::getMember</definition>
+        <argsstring>(const std::byte *data, uint16_t offset, uint32_t mask, uint32_t isAliveData) noexcept</argsstring>
+        <name>getMember</name>
+        <qualifiedname>ecss::Memory::Sector::getMember</qualifiedname>
+        <param>
+          <type>const std::byte *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>offset</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>mask</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>isAliveData</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. Pure: computes from the arguments it is given and touches no shared state. Whether the data behind the pointer is stable is the caller&apos;s question, settled by a pin or a structural hold. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="50" column="22" bodyfile="ecss/memory/Sector.h" bodystart="50" bodyend="52"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1aade1ad996a3e40bf8752c7489c70f25e" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE T *</type>
+        <definition>FORCE_INLINE T * ecss::Memory::Sector::getMember</definition>
+        <argsstring>(std::byte *data, const LayoutData &amp;layout, uint32_t isAliveData) noexcept</argsstring>
+        <name>getMember</name>
+        <qualifiedname>ecss::Memory::Sector::getMember</qualifiedname>
+        <param>
+          <type>std::byte *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> &amp;</type>
+          <declname>layout</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>isAliveData</declname>
+        </param>
+        <briefdescription>
+<para>Get a member pointer using layout metadata; returns nullptr if not alive. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. Pure: computes from the arguments it is given and touches no shared state. Whether the data behind the pointer is stable is the caller&apos;s question, settled by a pin or a structural hold. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="59" column="16" bodyfile="ecss/memory/Sector.h" bodystart="59" bodyend="61"/>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a483c116020e22cf92f0096ad9112cc1b" compoundref="Sector_8h" startline="41" endline="43">getMember</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1a483c116020e22cf92f0096ad9112cc1b" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE T *</type>
+        <definition>FORCE_INLINE T * ecss::Memory::Sector::getMember</definition>
+        <argsstring>(std::byte *data, uint16_t offset, uint32_t mask, uint32_t isAliveData) noexcept</argsstring>
+        <name>getMember</name>
+        <qualifiedname>ecss::Memory::Sector::getMember</qualifiedname>
+        <param>
+          <type>std::byte *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>offset</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>mask</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>isAliveData</declname>
+        </param>
+        <briefdescription>
+<para>Get a member pointer by offset if the corresponding liveness bit is set. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>data</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Raw pointer to sector data </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>offset</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Byte offset of the component </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>mask</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Liveness bitmask for this component type </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>isAliveData</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Current alive state from external array </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Pointer to T or nullptr if not alive. @thread_safety Internally synchronized. Pure: computes from the arguments it is given and touches no shared state. Whether the data behind the pointer is stable is the caller&apos;s question, settled by a pin or a structural hold. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="41" column="16" bodyfile="ecss/memory/Sector.h" bodystart="41" bodyend="43"/>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1a244f23f381130f049e0edd71c153daa6" compoundref="Sector_8h" startline="158" endline="164">getComponent</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1ad216b00fe88756b975d9e689d81eff4b" compoundref="Sector_8h" startline="68" endline="70">getMember</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1aade1ad996a3e40bf8752c7489c70f25e" compoundref="Sector_8h" startline="59" endline="61">getMember</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1af1a4072a99fd62ceecb9e7b4923085d3" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE const void *</type>
+        <definition>FORCE_INLINE const void * ecss::Memory::Sector::getMemberPtr</definition>
+        <argsstring>(const std::byte *data, uint16_t offset) noexcept</argsstring>
+        <name>getMemberPtr</name>
+        <qualifiedname>ecss::Memory::Sector::getMemberPtr</qualifiedname>
+        <param>
+          <type>const std::byte *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>offset</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. Pure: computes from the arguments it is given and touches no shared state. Whether the data behind the pointer is stable is the caller&apos;s question, settled by a pin or a structural hold. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="84" column="25" bodyfile="ecss/memory/Sector.h" bodystart="84" bodyend="86"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1a403c4e24eb1ba9a35a633850ce4dd30b" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE void *</type>
+        <definition>FORCE_INLINE void * ecss::Memory::Sector::getMemberPtr</definition>
+        <argsstring>(std::byte *data, uint16_t offset) noexcept</argsstring>
+        <name>getMemberPtr</name>
+        <qualifiedname>ecss::Memory::Sector::getMemberPtr</qualifiedname>
+        <param>
+          <type>std::byte *</type>
+          <declname>data</declname>
+        </param>
+        <param>
+          <type>uint16_t</type>
+          <declname>offset</declname>
+        </param>
+        <briefdescription>
+<para>Raw member address by byte offset from the sector data base. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. Pure: computes from the arguments it is given and touches no shared state. Whether the data behind the pointer is stable is the caller&apos;s question, settled by a pin or a structural hold. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="76" column="19" bodyfile="ecss/memory/Sector.h" bodystart="76" bodyend="78"/>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1af451b4412b1662acab384657dccd7090" compoundref="Sector_8h" startline="249" endline="256">copyMember</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1aca25a38d2f522a84e147a6315eb5d79b" compoundref="Sector_8h" startline="276" endline="288">copyMember</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1aa9112ed72591963a5cd626f8f61e3c7b" compoundref="Sector_8h" startline="319" endline="339">copySectorData</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1a0e5a45085f4665dd80c425d0e475167e" compoundref="Sector_8h" startline="209" endline="216">destroyMember</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1aafd33426b350c34504248d1533ecdc41" compoundref="Sector_8h" startline="225" endline="242">destroySectorData</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1af8358afe7990c231101e0b5c984d5cb7" compoundref="Sector_8h" startline="189" endline="201">emplaceMember</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1a3b280616b684cecfc5f5ff20aa15bf44" compoundref="Sector_8h" startline="263" endline="270">moveMember</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1a9edb9b63bf33807675893c5aabfa2413" compoundref="Sector_8h" startline="294" endline="306">moveMember</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1a74fabb1d6bf2e6946a7aaa57d2a1388e" compoundref="Sector_8h" startline="353" endline="375">moveSectorData</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1ab60b8eaab180174b9d04ba330eb3dce5" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Memory::Sector::isAlive</definition>
+        <argsstring>(uint32_t isAliveData, uint32_t mask) noexcept</argsstring>
+        <name>isAlive</name>
+        <qualifiedname>ecss::Memory::Sector::isAlive</qualifiedname>
+        <param>
+          <type>uint32_t</type>
+          <declname>isAliveData</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>mask</declname>
+        </param>
+        <briefdescription>
+<para>Check whether any masked bit is marked alive. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. A test on a word the caller already loaded, so it answers about that sample and not about the sector as it is now. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="91" column="19" bodyfile="ecss/memory/Sector.h" bodystart="91" bodyend="93"/>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1aa9112ed72591963a5cd626f8f61e3c7b" compoundref="Sector_8h" startline="319" endline="339">copySectorData</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1a0e5a45085f4665dd80c425d0e475167e" compoundref="Sector_8h" startline="209" endline="216">destroyMember</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1aafd33426b350c34504248d1533ecdc41" compoundref="Sector_8h" startline="225" endline="242">destroySectorData</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1af8358afe7990c231101e0b5c984d5cb7" compoundref="Sector_8h" startline="189" endline="201">emplaceMember</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a7009c07793d9a4521915c010241a0aa8" compoundref="Registry_8h" startline="452" endline="476">ecss::Registry&lt; ThreadSafe, Allocator &gt;::hasComponent</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1a74fabb1d6bf2e6946a7aaa57d2a1388e" compoundref="Sector_8h" startline="353" endline="375">moveSectorData</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1a0079c23ad319592b1d8e1d4ac6e45eeb" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Memory::Sector::isSectorAlive</definition>
+        <argsstring>(uint32_t isAliveData) noexcept</argsstring>
+        <name>isSectorAlive</name>
+        <qualifiedname>ecss::Memory::Sector::isSectorAlive</qualifiedname>
+        <param>
+          <type>uint32_t</type>
+          <declname>isAliveData</declname>
+        </param>
+        <briefdescription>
+<para>Check whether any bit is marked alive (sector has any live component). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. A test on a word the caller already loaded, so it answers about that sample and not about the sector as it is now. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="98" column="19" bodyfile="ecss/memory/Sector.h" bodystart="98" bodyend="100"/>
+        <referencedby refid="classecss_1_1Registry_1a40e500f0b85b8185251ac13f3977a5fa" compoundref="Registry_8h" startline="601" endline="634">ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyComponent</referencedby>
+        <referencedby refid="classecss_1_1Registry_1ace81965843c6f3b518508670707e7148" compoundref="Registry_8h" startline="647" endline="693">ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyComponent</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1aafd33426b350c34504248d1533ecdc41" compoundref="Sector_8h" startline="225" endline="242">destroySectorData</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1a26358a3fb6eceaa40f97bcf3384d8321" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>ThreadSafe</declname>
+            <defname>ThreadSafe</defname>
+            <defval>false</defval>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::Sector::markAlive</definition>
+        <argsstring>(uint32_t &amp;isAliveData, uint32_t mask) noexcept</argsstring>
+        <name>markAlive</name>
+        <qualifiedname>ecss::Memory::Sector::markAlive</qualifiedname>
+        <param>
+          <type>uint32_t &amp;</type>
+          <declname>isAliveData</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>mask</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. One atomic read-modify-write on the liveness word when ThreadSafe, a plain one otherwise. Publishing a component alive uses release ordering, so a reader that sees the bit also sees the value. Ordering the <emphasis>sector</emphasis> against relocation is a different question: only a pin or a hold answers it. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="134" column="19" bodyfile="ecss/memory/Sector.h" bodystart="134" bodyend="145"/>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1af8358afe7990c231101e0b5c984d5cb7" compoundref="Sector_8h" startline="189" endline="201">emplaceMember</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1adb360f837854283060e86110d138c1be" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>ThreadSafe</declname>
+            <defname>ThreadSafe</defname>
+            <defval>false</defval>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::Sector::markNotAlive</definition>
+        <argsstring>(uint32_t &amp;isAliveData, uint32_t mask) noexcept</argsstring>
+        <name>markNotAlive</name>
+        <qualifiedname>ecss::Memory::Sector::markNotAlive</qualifiedname>
+        <param>
+          <type>uint32_t &amp;</type>
+          <declname>isAliveData</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>mask</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="148" column="19" bodyfile="ecss/memory/Sector.h" bodystart="148" bodyend="154"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1a3b280616b684cecfc5f5ff20aa15bf44" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+            <defval>false</defval>
+          </param>
+        </templateparamlist>
+        <type>T *</type>
+        <definition>T * ecss::Memory::Sector::moveMember</definition>
+        <argsstring>(T &amp;&amp;from, std::byte *toData, uint32_t &amp;toIsAlive, const LayoutData &amp;layout)</argsstring>
+        <name>moveMember</name>
+        <qualifiedname>ecss::Memory::Sector::moveMember</qualifiedname>
+        <param>
+          <type>T &amp;&amp;</type>
+          <declname>from</declname>
+        </param>
+        <param>
+          <type>std::byte *</type>
+          <declname>toData</declname>
+        </param>
+        <param>
+          <type>uint32_t &amp;</type>
+          <declname>toIsAlive</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> &amp;</type>
+          <declname>layout</declname>
+        </param>
+        <briefdescription>
+<para>Move-assign member T into destination and mark alive. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>TS</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, uses atomic store for race-free lockless reads. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="263" column="3" bodyfile="ecss/memory/Sector.h" bodystart="263" bodyend="270"/>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a0e5a45085f4665dd80c425d0e475167e" compoundref="Sector_8h" startline="209" endline="216">destroyMember</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a403c4e24eb1ba9a35a633850ce4dd30b" compoundref="Sector_8h" startline="76" endline="78">getMemberPtr</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a871ad77d22534046ea39d0adfccfea40" compoundref="Sector_8h" startline="115" endline="126">setAlive</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1a9edb9b63bf33807675893c5aabfa2413" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>ThreadSafe</declname>
+            <defname>ThreadSafe</defname>
+            <defval>false</defval>
+          </param>
+        </templateparamlist>
+        <type>void *</type>
+        <definition>void * ecss::Memory::Sector::moveMember</definition>
+        <argsstring>(void *from, std::byte *toData, uint32_t &amp;toIsAlive, const LayoutData &amp;layout)</argsstring>
+        <name>moveMember</name>
+        <qualifiedname>ecss::Memory::Sector::moveMember</qualifiedname>
+        <param>
+          <type>void *</type>
+          <declname>from</declname>
+        </param>
+        <param>
+          <type>std::byte *</type>
+          <declname>toData</declname>
+        </param>
+        <param>
+          <type>uint32_t &amp;</type>
+          <declname>toIsAlive</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">LayoutData</ref> &amp;</type>
+          <declname>layout</declname>
+        </param>
+        <briefdescription>
+<para>Move-assign an opaque member using layout function table. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>ThreadSafe</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, uses atomic store for race-free lockless reads. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="294" column="13" bodyfile="ecss/memory/Sector.h" bodystart="294" bodyend="306"/>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a0e5a45085f4665dd80c425d0e475167e" compoundref="Sector_8h" startline="209" endline="216">destroyMember</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a403c4e24eb1ba9a35a633850ce4dd30b" compoundref="Sector_8h" startline="76" endline="78">getMemberPtr</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a871ad77d22534046ea39d0adfccfea40" compoundref="Sector_8h" startline="115" endline="126">setAlive</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1a74fabb1d6bf2e6946a7aaa57d2a1388e" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>ThreadSafe</declname>
+            <defname>ThreadSafe</defname>
+            <defval>false</defval>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Memory::Sector::moveSectorData</definition>
+        <argsstring>(std::byte *fromData, uint32_t &amp;fromIsAlive, std::byte *toData, uint32_t &amp;toIsAlive, const SectorLayoutMeta *layouts)</argsstring>
+        <name>moveSectorData</name>
+        <qualifiedname>ecss::Memory::Sector::moveSectorData</qualifiedname>
+        <param>
+          <type>std::byte *</type>
+          <declname>fromData</declname>
+        </param>
+        <param>
+          <type>uint32_t &amp;</type>
+          <declname>fromIsAlive</declname>
+        </param>
+        <param>
+          <type>std::byte *</type>
+          <declname>toData</declname>
+        </param>
+        <param>
+          <type>uint32_t &amp;</type>
+          <declname>toIsAlive</declname>
+        </param>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1SectorLayoutMeta" kindref="compound">SectorLayoutMeta</ref> *</type>
+          <declname>layouts</declname>
+        </param>
+        <briefdescription>
+<para>Move sector data from one location to another. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>ThreadSafe</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, uses atomic store for race-free lockless reads. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>fromData</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Source sector data </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>fromIsAlive</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Reference to source alive state (will be cleared) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>toData</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Destination sector data </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>toIsAlive</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Reference to destination alive state (will be modified) </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>layouts</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><ref refid="namespaceecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> layout metadata @thread_safety Caller must ensure exclusive access. Moves a whole sector, which is relocation: the array must be quiescent, not merely write-locked. A reader holding a pin or a hold is looking at the bytes being moved. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="353" column="13" bodyfile="ecss/memory/Sector.h" bodystart="353" bodyend="375"/>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1aafd33426b350c34504248d1533ecdc41" compoundref="Sector_8h" startline="225" endline="242">destroySectorData</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1a403c4e24eb1ba9a35a633850ce4dd30b" compoundref="Sector_8h" startline="76" endline="78">getMemberPtr</references>
+        <references refid="namespaceecss_1_1Memory_1_1Sector_1ab60b8eaab180174b9d04ba330eb3dce5" compoundref="Sector_8h" startline="91" endline="93">isAlive</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1Memory_1_1Sector_1a871ad77d22534046ea39d0adfccfea40" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>ThreadSafe</declname>
+            <defname>ThreadSafe</defname>
+            <defval>false</defval>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::Sector::setAlive</definition>
+        <argsstring>(uint32_t &amp;isAliveData, uint32_t mask, bool value) noexcept</argsstring>
+        <name>setAlive</name>
+        <qualifiedname>ecss::Memory::Sector::setAlive</qualifiedname>
+        <param>
+          <type>uint32_t &amp;</type>
+          <declname>isAliveData</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>mask</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+<para>Set or clear bits in isAliveData. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>ThreadSafe</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, uses atomic store for race-free lockless reads. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>isAliveData</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Reference to alive data to modify </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>mask</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Bitmask of bits to modify </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>value</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, sets the bits; if false, clears them </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>When value == false, mask should already be ~mask @thread_safety Internally synchronized. One atomic read-modify-write on the liveness word when ThreadSafe, a plain one otherwise. Publishing a component alive uses release ordering, so a reader that sees the bit also sees the value. Ordering the <emphasis>sector</emphasis> against relocation is a different question: only a pin or a hold answers it. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/Sector.h" line="115" column="19" bodyfile="ecss/memory/Sector.h" bodystart="115" bodyend="126"/>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1af451b4412b1662acab384657dccd7090" compoundref="Sector_8h" startline="249" endline="256">copyMember</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1aca25a38d2f522a84e147a6315eb5d79b" compoundref="Sector_8h" startline="276" endline="288">copyMember</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1a0e5a45085f4665dd80c425d0e475167e" compoundref="Sector_8h" startline="209" endline="216">destroyMember</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1a3b280616b684cecfc5f5ff20aa15bf44" compoundref="Sector_8h" startline="263" endline="270">moveMember</referencedby>
+        <referencedby refid="namespaceecss_1_1Memory_1_1Sector_1a9edb9b63bf33807675893c5aabfa2413" compoundref="Sector_8h" startline="294" endline="306">moveMember</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Namespace containing static functions for component operations within sector data. </para>
+    </briefdescription>
+    <detaileddescription>
+<para><ref refid="namespaceecss_1_1Memory_1_1Sector" kindref="compound">Sector</ref> is now a logical concept - a contiguous memory region storing multiple components. The metadata (id, isAliveData) is stored externally in <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> for better cache locality.</para>
+<para>Memory layout per sector slot: <programlisting><codeline><highlight class="normal">[SECTOR<sp/>DATA<sp/>at<sp/>linearIdx]</highlight></codeline>
+<codeline><highlight class="normal">0x<sp/>+<sp/>0<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>Component0<sp/>}</highlight></codeline>
+<codeline><highlight class="normal">0x<sp/>+<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(Component0)<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>{<sp/>Component1<sp/>}</highlight></codeline>
+<codeline><highlight class="normal">0x<sp/>+<sp/>...<sp/>+<sp/></highlight><highlight class="keyword">sizeof</highlight><highlight class="normal">(ComponentN)<sp/><sp/><sp/>{<sp/>ComponentN<sp/>}</highlight></codeline>
+</programlisting></para>
+<para>External arrays in <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref>:<itemizedlist>
+<listitem><para>mIds[linearIdx] -&gt; SectorId</para>
+</listitem><listitem><para>mIsAliveData[linearIdx] -&gt; uint32_t bitfield of alive components </para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <location file="ecss/memory/Sector.h" line="28" column="1"/>
+  </compounddef>
+</doxygen>

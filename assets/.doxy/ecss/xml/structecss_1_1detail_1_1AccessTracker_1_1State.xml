@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1detail_1_1AccessTracker_1_1State" kind="struct" language="C++" prot="private">
+    <compoundname>ecss::detail::AccessTracker::State</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1detail_1_1AccessTracker_1_1State_1a758570425ecaa52c109645901d6a4357" prot="public" static="no" mutable="no">
+        <type>std::mutex</type>
+        <definition>std::mutex ecss::detail::AccessTracker::State::mutex</definition>
+        <argsstring></argsstring>
+        <name>mutex</name>
+        <qualifiedname>ecss::detail::AccessTracker::State::mutex</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="119" column="12" bodyfile="ecss/AccessTracker.h" bodystart="119" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1detail_1_1AccessTracker_1_1State_1a9ff1316a7a8adf75677f9860c81c072e" prot="public" static="no" mutable="no">
+        <type>std::map&lt; std::thread::id, int &gt;</type>
+        <definition>std::map&lt;std::thread::id, int&gt; ecss::detail::AccessTracker::State::readers</definition>
+        <argsstring></argsstring>
+        <name>readers</name>
+        <qualifiedname>ecss::detail::AccessTracker::State::readers</qualifiedname>
+        <briefdescription>
+<para>reentrant depth per thread </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="120" column="10" bodyfile="ecss/AccessTracker.h" bodystart="120" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1detail_1_1AccessTracker_1_1State_1a6a91835c64085b014622a6102002192f" prot="public" static="no" mutable="no">
+        <type>std::thread::id</type>
+        <definition>std::thread::id ecss::detail::AccessTracker::State::writer</definition>
+        <argsstring></argsstring>
+        <name>writer</name>
+        <qualifiedname>ecss::detail::AccessTracker::State::writer</qualifiedname>
+        <initializer>{}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="121" column="17" bodyfile="ecss/AccessTracker.h" bodystart="121" bodyend="121"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1detail_1_1AccessTracker_1_1State_1acbf665e6323f78c95622260cfe87df65" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ecss::detail::AccessTracker::State::writerDepth</definition>
+        <argsstring></argsstring>
+        <name>writerDepth</name>
+        <qualifiedname>ecss::detail::AccessTracker::State::writerDepth</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="122" column="5" bodyfile="ecss/AccessTracker.h" bodystart="122" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/AccessTracker.h" line="118" column="1" bodyfile="ecss/AccessTracker.h" bodystart="118" bodyend="123"/>
+    <listofallmembers>
+      <member refid="structecss_1_1detail_1_1AccessTracker_1_1State_1a758570425ecaa52c109645901d6a4357" prot="public" virt="non-virtual"><scope>ecss::detail::AccessTracker::State</scope><name>mutex</name></member>
+      <member refid="structecss_1_1detail_1_1AccessTracker_1_1State_1a9ff1316a7a8adf75677f9860c81c072e" prot="public" virt="non-virtual"><scope>ecss::detail::AccessTracker::State</scope><name>readers</name></member>
+      <member refid="structecss_1_1detail_1_1AccessTracker_1_1State_1a6a91835c64085b014622a6102002192f" prot="public" virt="non-virtual"><scope>ecss::detail::AccessTracker::State</scope><name>writer</name></member>
+      <member refid="structecss_1_1detail_1_1AccessTracker_1_1State_1acbf665e6323f78c95622260cfe87df65" prot="public" virt="non-virtual"><scope>ecss::detail::AccessTracker::State</scope><name>writerDepth</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,94 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1CommandBuffer_1_1IStore" kind="struct" language="C++" prot="private" abstract="yes">
+    <compoundname>ecss::CommandBuffer::IStore</compoundname>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1CommandBuffer_1_1IStore_1a6742c6004024f6fc703c483a73eb5f3c" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>void</type>
+        <definition>virtual void ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::IStore::apply</definition>
+        <argsstring>(Reg &amp;)=0</argsstring>
+        <name>apply</name>
+        <qualifiedname>ecss::CommandBuffer::IStore::apply</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Registry" kindref="compound">Reg</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="162" column="14"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1CommandBuffer_1_1IStore_1aad7016a83374a52155c4de7a0cb43f62" prot="public" static="no" const="no" explicit="no" inline="no" virt="pure-virtual">
+        <type>void</type>
+        <definition>virtual void ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::IStore::clear</definition>
+        <argsstring>()=0</argsstring>
+        <name>clear</name>
+        <qualifiedname>ecss::CommandBuffer::IStore::clear</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="163" column="14"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1CommandBuffer_1_1IStore_1a5a862cb80e39e15d4020c468c86eed04" prot="public" static="no" const="yes" explicit="no" inline="no" virt="pure-virtual">
+        <type>bool</type>
+        <definition>virtual bool ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::IStore::empty</definition>
+        <argsstring>() const =0</argsstring>
+        <name>empty</name>
+        <qualifiedname>ecss::CommandBuffer::IStore::empty</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="164" column="14"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1CommandBuffer_1_1IStore_1a628ed533389303d376c5c55d8a851278" prot="public" static="no" const="yes" explicit="no" inline="no" virt="pure-virtual">
+        <type>size_t</type>
+        <definition>virtual size_t ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::IStore::size</definition>
+        <argsstring>() const =0</argsstring>
+        <name>size</name>
+        <qualifiedname>ecss::CommandBuffer::IStore::size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="165" column="16"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1CommandBuffer_1_1IStore_1a66d26260c94d7e067fd2b54d18e2ae8e" prot="public" static="no" const="no" explicit="no" inline="no" virt="virtual">
+        <type></type>
+        <definition>virtual ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::IStore::~IStore</definition>
+        <argsstring>()=default</argsstring>
+        <name>~IStore</name>
+        <qualifiedname>ecss::CommandBuffer::IStore::~IStore</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="161" column="9"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Type-erased handle so the buffer can hold one bucket per component type. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/CommandBuffer.h" line="160" column="1" bodyfile="ecss/CommandBuffer.h" bodystart="160" bodyend="166"/>
+    <listofallmembers>
+      <member refid="structecss_1_1CommandBuffer_1_1IStore_1a6742c6004024f6fc703c483a73eb5f3c" prot="public" virt="pure-virtual"><scope>ecss::CommandBuffer::IStore</scope><name>apply</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1IStore_1aad7016a83374a52155c4de7a0cb43f62" prot="public" virt="pure-virtual"><scope>ecss::CommandBuffer::IStore</scope><name>clear</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1IStore_1a5a862cb80e39e15d4020c468c86eed04" prot="public" virt="pure-virtual"><scope>ecss::CommandBuffer::IStore</scope><name>empty</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1IStore_1a628ed533389303d376c5c55d8a851278" prot="public" virt="pure-virtual"><scope>ecss::CommandBuffer::IStore</scope><name>size</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1IStore_1a66d26260c94d7e067fd2b54d18e2ae8e" prot="public" virt="virtual"><scope>ecss::CommandBuffer::IStore</scope><name>~IStore</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

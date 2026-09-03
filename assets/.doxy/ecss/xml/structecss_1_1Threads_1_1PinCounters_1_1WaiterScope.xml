@@ -1,0 +1,104 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Threads_1_1PinCounters_1_1WaiterScope" kind="struct" language="C++" prot="private">
+    <compoundname>ecss::Threads::PinCounters::WaiterScope</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1_1WaiterScope_1aaecef0736b0540b7067b67ef021f9338" prot="public" static="no" mutable="no">
+        <type>std::atomic&lt; uint32_t &gt; &amp;</type>
+        <definition>std::atomic&lt;uint32_t&gt;&amp; ecss::Threads::PinCounters::WaiterScope::waiters</definition>
+        <argsstring></argsstring>
+        <name>waiters</name>
+        <qualifiedname>ecss::Threads::PinCounters::WaiterScope::waiters</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="644" column="13" bodyfile="ecss/threads/PinCounters.h" bodystart="644" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1_1WaiterScope_1aadd3a7bd4c3dd1d7063608492c8512cb" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type>WaiterScope &amp;</type>
+        <definition>WaiterScope &amp; ecss::Threads::PinCounters::WaiterScope::operator=</definition>
+        <argsstring>(const WaiterScope &amp;)=delete</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Threads::PinCounters::WaiterScope::operator=</qualifiedname>
+        <param>
+          <type>const WaiterScope &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="643" column="13"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1_1WaiterScope_1a79b793471e7057b82cb6515d69316a05" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Threads::PinCounters::WaiterScope::WaiterScope</definition>
+        <argsstring>(const WaiterScope &amp;)=delete</argsstring>
+        <name>WaiterScope</name>
+        <qualifiedname>ecss::Threads::PinCounters::WaiterScope::WaiterScope</qualifiedname>
+        <param>
+          <type>const WaiterScope &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="642" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1_1WaiterScope_1a74203ca64fe21339b1f9d369e97d9504" prot="public" static="no" const="no" explicit="yes" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Threads::PinCounters::WaiterScope::WaiterScope</definition>
+        <argsstring>(std::atomic&lt; uint32_t &gt; &amp;w)</argsstring>
+        <name>WaiterScope</name>
+        <qualifiedname>ecss::Threads::PinCounters::WaiterScope::WaiterScope</qualifiedname>
+        <param>
+          <type>std::atomic&lt; uint32_t &gt; &amp;</type>
+          <declname>w</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. Two seq_cst increments over its lifetime. Announces a blocked waiter <emphasis>before</emphasis> it samples what it is about to wait on, which is what stops a concurrent release from losing the wake-up. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="640" column="10" bodyfile="ecss/threads/PinCounters.h" bodystart="640" bodyend="640"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1_1WaiterScope_1aab0f3d810614faa0662f97cc227f7398" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Threads::PinCounters::WaiterScope::~WaiterScope</definition>
+        <argsstring>()</argsstring>
+        <name>~WaiterScope</name>
+        <qualifiedname>ecss::Threads::PinCounters::WaiterScope::~WaiterScope</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="641" column="1" bodyfile="ecss/threads/PinCounters.h" bodystart="641" bodyend="641"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>RAII announce/retract of a blocked waiter; gates the notify syscalls. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/threads/PinCounters.h" line="636" column="1" bodyfile="ecss/threads/PinCounters.h" bodystart="636" bodyend="645"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1_1WaiterScope_1aadd3a7bd4c3dd1d7063608492c8512cb" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters::WaiterScope</scope><name>operator=</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1_1WaiterScope_1aaecef0736b0540b7067b67ef021f9338" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters::WaiterScope</scope><name>waiters</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1_1WaiterScope_1a74203ca64fe21339b1f9d369e97d9504" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters::WaiterScope</scope><name>WaiterScope</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1_1WaiterScope_1a79b793471e7057b82cb6515d69316a05" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters::WaiterScope</scope><name>WaiterScope</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1_1WaiterScope_1aab0f3d810614faa0662f97cc227f7398" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters::WaiterScope</scope><name>~WaiterScope</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

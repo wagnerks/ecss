@@ -1,0 +1,32 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1IdSet" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::IdSet</compoundname>
+    <templateparamlist>
+      <param>
+        <type>typename Type</type>
+        <defval>EntityId</defval>
+      </param>
+      <param>
+        <type>bool</type>
+        <declname>ThreadSafe</declname>
+        <defname>ThreadSafe</defname>
+        <defval>true</defval>
+      </param>
+    </templateparamlist>
+    <briefdescription>
+<para>Dense set of allocated ids, one bit per id. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Replaces a sorted interval list for the &quot;which ids are live&quot; question. An interval list is compact only while the set is contiguous: every erase in the middle of a run splits it, which is a vector insert over the interval array, and the interval count grows towards N/2 as entities die in arbitrary order. That made random-order destruction quadratic <ndash/> 171 ms for 200k ids, against 1.5 ms here.</para>
+<para>A bitmap does not care about fragmentation: erase clears a bit and nothing moves.</para>
+<para>Memory bound: take() always hands out the lowest free id and ids only ever enter through take(), so the high watermark is bounded by the <emphasis>peak</emphasis> number of simultaneously live ids <ndash/> it does not grow with churn. One million live ids costs 125 KB flat.</para>
+<para><simplesect kind="note"><para>Intervals remain the right shape for range <emphasis>filters</emphasis> (see <ref refid="structecss_1_1Ranges" kindref="compound">Ranges</ref> and Registry::view(ranges)); this type is only for the live-id set. </para>
+</simplesect>
+</para>
+    </detaileddescription>
+    <location file="ecss/IdSet.h" line="48" column="1" bodyfile="ecss/IdSet.h" bodystart="48" bodyend="-1"/>
+    <listofallmembers>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

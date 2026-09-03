@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1AllowNonTrivial" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::AllowNonTrivial</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">std::false_type</basecompoundref>
+    <includes refid="Types_8h" local="no">Types.h</includes>
+    <templateparamlist>
+      <param>
+        <type>class T</type>
+      </param>
+    </templateparamlist>
+    <briefdescription>
+<para>Declare that a component is knowingly not trivially copyable. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Specialize to std::true_type for a component that owns a std::string or a std::vector and always will: <programlisting><codeline><highlight class="keyword">template</highlight><highlight class="normal">&lt;&gt;<sp/></highlight><highlight class="keyword">struct<sp/></highlight><highlight class="normal">ecss::AllowNonTrivial&lt;MeshComponent&gt;<sp/>:<sp/>std::true_type<sp/>{};</highlight></codeline>
+</programlisting></para>
+<para>The warning below exists to catch the accidental cases <ndash/> a stray virtual function, a mutex member, a base class someone added for unrelated reasons <ndash/> where the cost is paid for nothing. A type that cannot be made trivial has nothing to fix, and a warning nobody can act on is one everybody learns to switch off wholesale. </para>
+    </detaileddescription>
+    <location file="ecss/Types.h" line="149" column="1" bodyfile="ecss/Types.h" bodystart="149" bodyend="149"/>
+    <listofallmembers>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

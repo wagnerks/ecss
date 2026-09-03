@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_a962d82ba20a6bdb2db40fe5433057e5" kind="dir">
+    <compoundname>templ</compoundname>
+    <innerdir refid="dir_a52889122f050db694c99961ed108494">html</innerdir>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/templ/"/>
+  </compounddef>
+</doxygen>

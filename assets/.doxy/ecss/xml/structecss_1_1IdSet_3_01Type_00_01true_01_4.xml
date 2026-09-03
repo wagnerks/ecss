@@ -1,0 +1,771 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1IdSet_3_01Type_00_01true_01_4" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::IdSet&lt; Type, true &gt;</compoundname>
+    <basecompoundref refid="structecss_1_1detail_1_1IdSetLayout" prot="private" virt="non-virtual">ecss::detail::IdSetLayout</basecompoundref>
+    <includes refid="IdSet_8h" local="no">IdSet.h</includes>
+    <innerclass refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1_1Table" prot="private">ecss::IdSet&lt; Type, true &gt;::Table</innerclass>
+    <templateparamlist>
+      <param>
+        <type>typename Type</type>
+      </param>
+    </templateparamlist>
+    <sectiondef kind="private-type">
+      <memberdef kind="typedef" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1abc50049be76f5a97188c8a77afd78661" prot="private" static="no">
+        <type>std::atomic&lt; Word &gt;</type>
+        <definition>using ecss::IdSet&lt; Type, true &gt;::Cell =  std::atomic&lt;Word&gt;</definition>
+        <argsstring></argsstring>
+        <name>Cell</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::Cell</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="446" column="1" bodyfile="ecss/IdSet.h" bodystart="446" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a1b3ad89a8e3dbaccd8d600c804fa4382" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::IdSet&lt; Type, true &gt;::kIdsPerBlock</definition>
+        <argsstring></argsstring>
+        <name>kIdsPerBlock</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::kIdsPerBlock</qualifiedname>
+        <initializer>= kWordsPerBlock * kWordBits</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="448" column="25" bodyfile="ecss/IdSet.h" bodystart="448" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1ad0bbd7e0cb7f3c6d3e9c40b7c4aad59b" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>Type</type>
+        <definition>Type ecss::IdSet&lt; Type, true &gt;::kNoId</definition>
+        <argsstring></argsstring>
+        <name>kNoId</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::kNoId</qualifiedname>
+        <initializer>= std::numeric_limits&lt;Type&gt;::max()</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="450" column="25" bodyfile="ecss/IdSet.h" bodystart="450" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a58463f5e352ca385fcf466f532bfb147" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::IdSet&lt; Type, true &gt;::kStripes</definition>
+        <argsstring></argsstring>
+        <name>kStripes</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::kStripes</qualifiedname>
+        <initializer>= 16</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="449" column="25" bodyfile="ecss/IdSet.h" bodystart="449" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a77a196251c05497298a627da1e68cd45" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::IdSet&lt; Type, true &gt;::kWordsPerBlock</definition>
+        <argsstring></argsstring>
+        <name>kWordsPerBlock</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::kWordsPerBlock</qualifiedname>
+        <initializer>= 1024</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="447" column="25" bodyfile="ecss/IdSet.h" bodystart="447" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aa0431a30ff259f33c4b9f7208e9bdc3a" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; Cell * &gt;</type>
+        <definition>std::vector&lt;Cell*&gt; ecss::IdSet&lt; Type, true &gt;::mBlocks</definition>
+        <argsstring></argsstring>
+        <name>mBlocks</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::mBlocks</qualifiedname>
+        <briefdescription>
+<para>Every block ever allocated (freed in dtor). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="583" column="20" bodyfile="ecss/IdSet.h" bodystart="583" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a75a4387a0e3ae912ebcbbe7f598d6f15" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; bool &gt;</type>
+        <definition>std::atomic&lt;bool&gt; ecss::IdSet&lt; Type, true &gt;::mContended</definition>
+        <argsstring></argsstring>
+        <name>mContended</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::mContended</qualifiedname>
+        <initializer>{ false }</initializer>
+        <briefdescription>
+<para>Latches on the first lost CAS. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="578" column="21" bodyfile="ecss/IdSet.h" bodystart="578" bodyend="578"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aa913f1f0025be2961a333582623791d0" prot="private" static="no" mutable="no">
+        <type>std::mutex</type>
+        <definition>std::mutex ecss::IdSet&lt; Type, true &gt;::mGrowMtx</definition>
+        <argsstring></argsstring>
+        <name>mGrowMtx</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::mGrowMtx</qualifiedname>
+        <briefdescription>
+<para>Serialises growth only. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="581" column="27" bodyfile="ecss/IdSet.h" bodystart="581" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aec0177d6ee0c0fa199618291e8a42336" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; size_t &gt;</type>
+        <definition>std::atomic&lt;size_t&gt; ecss::IdSet&lt; Type, true &gt;::mHint</definition>
+        <argsstring></argsstring>
+        <name>mHint</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::mHint</qualifiedname>
+        <initializer>{ 0 }</initializer>
+        <briefdescription>
+<para>First word that may hold a free bit. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="579" column="21" bodyfile="ecss/IdSet.h" bodystart="579" bodyend="579"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a71b754d3df888c741cfcb4a17990f9d2" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; Table * &gt;</type>
+        <definition>std::atomic&lt;Table*&gt; ecss::IdSet&lt; Type, true &gt;::mTable</definition>
+        <argsstring></argsstring>
+        <name>mTable</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::mTable</qualifiedname>
+        <initializer>{ nullptr }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="575" column="19" bodyfile="ecss/IdSet.h" bodystart="575" bodyend="575"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a7e25133095d638d6d072634abea28881" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; Table * &gt;</type>
+        <definition>std::vector&lt;Table*&gt; ecss::IdSet&lt; Type, true &gt;::mTables</definition>
+        <argsstring></argsstring>
+        <name>mTables</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::mTables</qualifiedname>
+        <briefdescription>
+<para>Every table ever published (freed in dtor). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="582" column="19" bodyfile="ecss/IdSet.h" bodystart="582" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aa8a9faa7bafaaaea7e7beddc2d1e41ca" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ecss::IdSet&lt; Type, true &gt;::byteSize</definition>
+        <argsstring>() const</argsstring>
+        <name>byteSize</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::byteSize</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Bytes owned by currently published bitmap blocks, excluding retained old tables. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="440" column="8" bodyfile="ecss/IdSet.h" bodystart="440" bodyend="443"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a08cf07844fe6fdd0232d2510dd79ce7f" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::IdSet&lt; Type, true &gt;::clear</definition>
+        <argsstring>()</argsstring>
+        <name>clear</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::clear</qualifiedname>
+        <briefdescription>
+<para>Release every allocated id without shrinking retained storage. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="post"><para><ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1af9b9596520f4d994ad65639768aeebc1" kindref="member">empty()</ref> is true, <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aacd1d0861e6407060758d6c31355aa1f" kindref="member">size()</ref> is zero, and the next <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aec978032e8ac3108f7f9c3e0caa3a642" kindref="member">take()</ref> starts again at id zero. </para>
+</simplesect>
+<simplesect kind="warning"><para>Caller must exclude concurrent <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aec978032e8ac3108f7f9c3e0caa3a642" kindref="member">take()</ref>, <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a3d011744f4adca691bbf167a86f935b5" kindref="member">insert()</ref>, and <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1abc4188faef2c09614eaadff707f49b85" kindref="member">erase()</ref>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="409" column="6" bodyfile="ecss/IdSet.h" bodystart="409" bodyend="418"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aecaa36fda7c0b343251f9d63f992c0a1" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::IdSet&lt; Type, true &gt;::contains</definition>
+        <argsstring>(Type id) const</argsstring>
+        <name>contains</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::contains</qualifiedname>
+        <param>
+          <type>Type</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Whether <computeroutput>id</computeroutput> was allocated at the instant sampled by this call. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="379" column="19" bodyfile="ecss/IdSet.h" bodystart="379" bodyend="384"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1af9b9596520f4d994ad65639768aeebc1" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ecss::IdSet&lt; Type, true &gt;::empty</definition>
+        <argsstring>() const</argsstring>
+        <name>empty</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::empty</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Whether the set had no allocated ids in the snapshot observed by <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aacd1d0861e6407060758d6c31355aa1f" kindref="member">size()</ref>. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="437" column="6" bodyfile="ecss/IdSet.h" bodystart="437" bodyend="437"/>
+        <references refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aacd1d0861e6407060758d6c31355aa1f" compoundref="IdSet_8h" startline="426" endline="435">size</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1ac3ca7fd78a13fdaf76a898b7293e4790" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::IdSet&lt; Type, true &gt;::erase</definition>
+        <argsstring>(const Type *begin, const Type *end)</argsstring>
+        <name>erase</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::erase</qualifiedname>
+        <param>
+          <type>const Type *</type>
+          <declname>begin</declname>
+        </param>
+        <param>
+          <type>const Type *</type>
+          <declname>end</declname>
+        </param>
+        <briefdescription>
+<para>Release a run of ids. Ids that fall in the same word are cleared together, so a sorted list costs one operation per 64 ids rather than one per id. Correct for an unsorted list too <ndash/> it simply flushes more often. Each word costs one read-modify-write on a line every other thread&apos;s <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aec978032e8ac3108f7f9c3e0caa3a642" kindref="member">take()</ref> may be scanning, so batching them is worth more here than the instruction count suggests. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="358" column="6" bodyfile="ecss/IdSet.h" bodystart="358" bodyend="376"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1abc4188faef2c09614eaadff707f49b85" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::IdSet&lt; Type, true &gt;::erase</definition>
+        <argsstring>(Type id)</argsstring>
+        <name>erase</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::erase</qualifiedname>
+        <param>
+          <type>Type</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+<para>Release <computeroutput>id</computeroutput>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="post"><para>contains(id) is false; erasing an unallocated id is a no-op. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="342" column="6" bodyfile="ecss/IdSet.h" bodystart="342" bodyend="350"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1ae402ee21233d71d535134f6c2ef906be" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::vector&lt; Type &gt;</type>
+        <definition>std::vector&lt; Type &gt; ecss::IdSet&lt; Type, true &gt;::getAll</definition>
+        <argsstring>() const</argsstring>
+        <name>getAll</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::getAll</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>A snapshot of allocated ids, in ascending order when no mutation overlaps the call. </para>
+</simplesect>
+<simplesect kind="note"><para>A concurrent mutation may make the returned snapshot stale immediately. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="388" column="13" bodyfile="ecss/IdSet.h" bodystart="388" bodyend="404"/>
+        <references refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aacd1d0861e6407060758d6c31355aa1f" compoundref="IdSet_8h" startline="426" endline="435">size</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a416cb3ebd1efd0755daa08cb04ccdd64" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::IdSet&lt; Type, true &gt;::IdSet</definition>
+        <argsstring>()=default</argsstring>
+        <name>IdSet</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::IdSet</qualifiedname>
+        <briefdescription>
+<para>Construct an empty id set. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="253" column="1"/>
+        <referencedby refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a9dbdf270a07ddb967e4f2aee670bd094">IdSet</referencedby>
+        <referencedby refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a2affa09ed53b54e3235e53a23b52da17">operator=</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a9dbdf270a07ddb967e4f2aee670bd094" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::IdSet&lt; Type, true &gt;::IdSet</definition>
+        <argsstring>(const IdSet &amp;)=delete</argsstring>
+        <name>IdSet</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::IdSet</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1IdSet" kindref="compound">IdSet</ref> &amp;</type>
+        </param>
+        <briefdescription>
+<para>Copying is forbidden because the set owns atomic bitmap storage. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="255" column="1"/>
+        <references refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a416cb3ebd1efd0755daa08cb04ccdd64">IdSet</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a3d011744f4adca691bbf167a86f935b5" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::IdSet&lt; Type, true &gt;::insert</definition>
+        <argsstring>(Type id)</argsstring>
+        <name>insert</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::insert</qualifiedname>
+        <param>
+          <type>Type</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+<para>Mark <computeroutput>id</computeroutput> allocated. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="post"><para>contains(id) is true; inserting an already allocated id is a no-op. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="334" column="6" bodyfile="ecss/IdSet.h" bodystart="334" bodyend="338"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a2affa09ed53b54e3235e53a23b52da17" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structecss_1_1IdSet" kindref="compound">IdSet</ref> &amp;</type>
+        <definition>IdSet &amp; ecss::IdSet&lt; Type, true &gt;::operator=</definition>
+        <argsstring>(const IdSet &amp;)=delete</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::operator=</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1IdSet" kindref="compound">IdSet</ref> &amp;</type>
+        </param>
+        <briefdescription>
+<para>Copy assignment is forbidden because the set owns atomic bitmap storage. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="257" column="7"/>
+        <references refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a416cb3ebd1efd0755daa08cb04ccdd64">IdSet</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1af201fe086ef255ae42edbffedf8e4d8f" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::IdSet&lt; Type, true &gt;::reserve</definition>
+        <argsstring>(Type maxId)</argsstring>
+        <name>reserve</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::reserve</qualifiedname>
+        <param>
+          <type>Type</type>
+          <declname>maxId</declname>
+        </param>
+        <briefdescription>
+<para>Preallocate enough bitmap storage to represent <computeroutput>maxId</computeroutput>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="post"><para>Membership is unchanged; later access to ids through <computeroutput>maxId</computeroutput> needs no bitmap growth. @thread_safety Internally synchronized; growth may take the growth mutex. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="423" column="6" bodyfile="ecss/IdSet.h" bodystart="423" bodyend="423"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aacd1d0861e6407060758d6c31355aa1f" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ecss::IdSet&lt; Type, true &gt;::size</definition>
+        <argsstring>() const</argsstring>
+        <name>size</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>A snapshot count of allocated ids. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="426" column="8" bodyfile="ecss/IdSet.h" bodystart="426" bodyend="435"/>
+        <referencedby refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1af9b9596520f4d994ad65639768aeebc1" compoundref="IdSet_8h" startline="437" endline="437">empty</referencedby>
+        <referencedby refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1ae402ee21233d71d535134f6c2ef906be" compoundref="IdSet_8h" startline="388" endline="404">getAll</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aec978032e8ac3108f7f9c3e0caa3a642" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>Type</type>
+        <definition>Type ecss::IdSet&lt; Type, true &gt;::take</definition>
+        <argsstring>()</argsstring>
+        <name>take</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::take</qualifiedname>
+        <briefdescription>
+<para>Allocate and return one free id. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>Concurrent allocations return distinct ids, but their completion order is unspecified. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="268" column="6" bodyfile="ecss/IdSet.h" bodystart="268" bodyend="303"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a2b131eaecc3e83ce0b8b54bc8b02aa6f" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::IdSet&lt; Type, true &gt;::take</definition>
+        <argsstring>(size_t count, std::vector&lt; Type &gt; &amp;out)</argsstring>
+        <name>take</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::take</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>count</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; Type &gt; &amp;</type>
+          <declname>out</declname>
+        </param>
+        <briefdescription>
+<para>Allocate <computeroutput>count</computeroutput> ids at once, appending them to <computeroutput>out</computeroutput>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>A free word is claimed whole with a single compare-exchange, so a large batch costs about one atomic per 64 ids rather than one per id <ndash/> and threads that collide on a word simply move to the next one, which spreads them without needing the striping the single-id path uses.</para>
+<para>Ids come out ascending within each word but a batch taken while another thread is also taking may interleave, so the result is not guaranteed globally sorted. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="314" column="6" bodyfile="ecss/IdSet.h" bodystart="314" bodyend="330"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1ae9b58e263fc3f91cb6d91ca369ba82a5" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::IdSet&lt; Type, true &gt;::~IdSet</definition>
+        <argsstring>()</argsstring>
+        <name>~IdSet</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::~IdSet</qualifiedname>
+        <briefdescription>
+<para>Destroy the set and its retained tables and blocks. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="pre"><para>No operation may run concurrently with destruction. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="261" column="1" bodyfile="ecss/IdSet.h" bodystart="261" bodyend="264"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-func">
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a28e98d007fa2e248f3f037c1483866a6" prot="private" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>static size_t ecss::IdSet&lt; Type, true &gt;::threadStripe</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>threadStripe</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::threadStripe</qualifiedname>
+        <briefdescription>
+<para>Stable per-thread index, used only to spread the <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aec978032e8ac3108f7f9c3e0caa3a642" kindref="member">take()</ref> scan start. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="453" column="15" bodyfile="ecss/IdSet.h" bodystart="453" bodyend="457"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aca8fae3dc7f0743b91e59834acaa02f1" prot="private" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE Cell &amp;</type>
+        <definition>static FORCE_INLINE Cell &amp; ecss::IdSet&lt; Type, true &gt;::wordAt</definition>
+        <argsstring>(const Table *table, size_t word)</argsstring>
+        <name>wordAt</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::wordAt</qualifiedname>
+        <param>
+          <type>const Table *</type>
+          <declname>table</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>word</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="466" column="26" bodyfile="ecss/IdSet.h" bodystart="466" bodyend="468"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1abc44cb94e9117039a1160cd19c3f30ef" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>Type</type>
+        <definition>Type ecss::IdSet&lt; Type, true &gt;::claimIn</definition>
+        <argsstring>(const Table *table, size_t from, size_t to, bool &amp;lostCas)</argsstring>
+        <name>claimIn</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::claimIn</qualifiedname>
+        <param>
+          <type>const Table *</type>
+          <declname>table</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>from</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>to</declname>
+        </param>
+        <param>
+          <type>bool &amp;</type>
+          <declname>lostCas</declname>
+        </param>
+        <briefdescription>
+<para>Claim the first free bit in [from, to), or kNoId. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>lostCas</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>set when a CAS was beaten by another thread (busy, not full). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="471" column="6" bodyfile="ecss/IdSet.h" bodystart="471" bodyend="494"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a0f9be467087565594f30d5751396e619" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::IdSet&lt; Type, true &gt;::claimWord</definition>
+        <argsstring>(const Table *table, size_t word, size_t &amp;count, std::vector&lt; Type &gt; &amp;out)</argsstring>
+        <name>claimWord</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::claimWord</qualifiedname>
+        <param>
+          <type>const Table *</type>
+          <declname>table</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>word</declname>
+        </param>
+        <param>
+          <type>size_t &amp;</type>
+          <declname>count</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; Type &gt; &amp;</type>
+          <declname>out</declname>
+        </param>
+        <briefdescription>
+<para>Take up to <computeroutput>count</computeroutput> ids from one word, decrementing it by what was taken. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="497" column="6" bodyfile="ecss/IdSet.h" bodystart="497" bodyend="527"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a25470d7bb3a6c17956d62c5d8eaf45af" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::IdSet&lt; Type, true &gt;::ensure</definition>
+        <argsstring>(Type id)</argsstring>
+        <name>ensure</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::ensure</qualifiedname>
+        <param>
+          <type>Type</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="541" column="6" bodyfile="ecss/IdSet.h" bodystart="541" bodyend="546"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a4cb8cfc595fe8243104dde9d5343c510" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::IdSet&lt; Type, true &gt;::grow</definition>
+        <argsstring>(size_t minWords)</argsstring>
+        <name>grow</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::grow</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>minWords</declname>
+        </param>
+        <briefdescription>
+<para>Publish a table covering at least <computeroutput>minWords</computeroutput> words. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="549" column="6" bodyfile="ecss/IdSet.h" bodystart="549" bodyend="573"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aa344e8421e41f28cbbcae126a2f7105b" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::IdSet&lt; Type, true &gt;::lowerHint</definition>
+        <argsstring>(size_t word)</argsstring>
+        <name>lowerHint</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::lowerHint</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>word</declname>
+        </param>
+        <briefdescription>
+<para>Pull the hint back to a word that just gained a free bit. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="536" column="6" bodyfile="ecss/IdSet.h" bodystart="536" bodyend="539"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1IdSet_3_01Type_00_01true_01_4_1ac66fe3ccdd8257f8d9f9f9bf4565f74c" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::IdSet&lt; Type, true &gt;::raiseHint</definition>
+        <argsstring>(size_t word)</argsstring>
+        <name>raiseHint</name>
+        <qualifiedname>ecss::IdSet&lt; Type, true &gt;::raiseHint</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>word</declname>
+        </param>
+        <briefdescription>
+<para>Push the hint forward past a word that just became full. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/IdSet.h" line="530" column="6" bodyfile="ecss/IdSet.h" bodystart="530" bodyend="533"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Lock-free live-id set. </para>
+    </briefdescription>
+    <detaileddescription>
+<para><ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aec978032e8ac3108f7f9c3e0caa3a642" kindref="member">take()</ref> claims a bit with a CAS, <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1abc4188faef2c09614eaadff707f49b85" kindref="member">erase()</ref> clears one with fetch_and, <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aecaa36fda7c0b343251f9d63f992c0a1" kindref="member">contains()</ref> is a single load. No mutex on any of them: the previous version serialised every entity creation on one registry-global mutex (measured ~560x per-op latency at 32 threads), and the structure underneath was already O(1).</para>
+<para>Growth never moves a block. The published table holds <emphasis>pointers</emphasis> to blocks that are allocated once and never relocated, so adding a block cannot lose a bit that another thread is CASing at that moment <ndash/> which copying a flat array would.</para>
+<para><simplesect kind="warning"><para><ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a08cf07844fe6fdd0232d2510dd79ce7f" kindref="member">clear()</ref> is not safe against concurrent take/erase, and the owner cannot make it so: <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aec978032e8ac3108f7f9c3e0caa3a642" kindref="member">take()</ref> and <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1abc4188faef2c09614eaadff707f49b85" kindref="member">erase()</ref> are lock-free by design and pass no mutex, so <ref refid="classecss_1_1Registry" kindref="compound">Registry</ref>&apos;s mEntitiesMutex orders <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a08cf07844fe6fdd0232d2510dd79ce7f" kindref="member">clear()</ref> against readers of the set and nothing else. Excluding concurrent creation and destruction is the caller&apos;s. It costs no memory safety <ndash/> the words are zeroed in place, never freed <ndash/> but an id claimed just then can come back free and be handed out twice. Everything else here is safe. @thread_safety Internally synchronized <ndash/> and that applies to every member below, with the two exceptions named at the end.</para>
+</simplesect>
+<ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aec978032e8ac3108f7f9c3e0caa3a642" kindref="member">take()</ref>, <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a3d011744f4adca691bbf167a86f935b5" kindref="member">insert()</ref>, <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1abc4188faef2c09614eaadff707f49b85" kindref="member">erase()</ref>, <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aecaa36fda7c0b343251f9d63f992c0a1" kindref="member">contains()</ref>, <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aacd1d0861e6407060758d6c31355aa1f" kindref="member">size()</ref> and <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1af9b9596520f4d994ad65639768aeebc1" kindref="member">empty()</ref> are lock-free: atomic operations on the bitmap, none of which waits for another thread. take(count, out) claims a whole word of ids per atomic operation rather than one at a time. <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1ae402ee21233d71d535134f6c2ef906be" kindref="member">getAll()</ref> is lock-free too, and gives a snapshot.</para>
+<para>Not lock-free: growing. <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aec978032e8ac3108f7f9c3e0caa3a642" kindref="member">take()</ref> and <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1af201fe086ef255ae42edbffedf8e4d8f" kindref="member">reserve()</ref> add a block when the bitmap runs out, and that takes the growth mutex before publishing a fresh table. Superseded tables are kept rather than freed, so a concurrent reader walking the old one stays valid. <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1af201fe086ef255ae42edbffedf8e4d8f" kindref="member">reserve()</ref> up front keeps that off the hot path.</para>
+<para>The exceptions: the constructor and the destructor need exclusive access. The destructor frees every table and block outright.</para>
+<para>Results are true at the moment of the call: an id <ref refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aecaa36fda7c0b343251f9d63f992c0a1" kindref="member">contains()</ref> reports may be destroyed by another thread immediately afterwards, and a snapshot is stale as soon as it is taken. </para>
+    </detaileddescription>
+    <inheritancegraph>
+      <node id="1">
+        <label>ecss::IdSet&lt; Type, true &gt;</label>
+        <link refid="structecss_1_1IdSet_3_01Type_00_01true_01_4"/>
+        <childnode refid="2" relation="private-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ecss::detail::IdSetLayout</label>
+        <link refid="structecss_1_1detail_1_1IdSetLayout"/>
+      </node>
+    </inheritancegraph>
+    <collaborationgraph>
+      <node id="1">
+        <label>ecss::IdSet&lt; Type, true &gt;</label>
+        <link refid="structecss_1_1IdSet_3_01Type_00_01true_01_4"/>
+        <childnode refid="2" relation="private-inheritance">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>ecss::detail::IdSetLayout</label>
+        <link refid="structecss_1_1detail_1_1IdSetLayout"/>
+      </node>
+    </collaborationgraph>
+    <location file="ecss/IdSet.h" line="248" column="1" bodyfile="ecss/IdSet.h" bodystart="248" bodyend="584"/>
+    <listofallmembers>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aa8a9faa7bafaaaea7e7beddc2d1e41ca" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>byteSize</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1abc50049be76f5a97188c8a77afd78661" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>Cell</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1abc44cb94e9117039a1160cd19c3f30ef" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>claimIn</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a0f9be467087565594f30d5751396e619" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>claimWord</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a08cf07844fe6fdd0232d2510dd79ce7f" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>clear</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aecaa36fda7c0b343251f9d63f992c0a1" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>contains</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1af9b9596520f4d994ad65639768aeebc1" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>empty</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a25470d7bb3a6c17956d62c5d8eaf45af" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>ensure</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1abc4188faef2c09614eaadff707f49b85" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>erase</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1ac3ca7fd78a13fdaf76a898b7293e4790" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>erase</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1ae402ee21233d71d535134f6c2ef906be" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>getAll</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a4cb8cfc595fe8243104dde9d5343c510" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>grow</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a416cb3ebd1efd0755daa08cb04ccdd64" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>IdSet</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a9dbdf270a07ddb967e4f2aee670bd094" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>IdSet</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a3d011744f4adca691bbf167a86f935b5" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>insert</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a1b3ad89a8e3dbaccd8d600c804fa4382" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>kIdsPerBlock</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1ad0bbd7e0cb7f3c6d3e9c40b7c4aad59b" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>kNoId</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a58463f5e352ca385fcf466f532bfb147" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>kStripes</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a77a196251c05497298a627da1e68cd45" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>kWordsPerBlock</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aa344e8421e41f28cbbcae126a2f7105b" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>lowerHint</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aa0431a30ff259f33c4b9f7208e9bdc3a" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>mBlocks</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a75a4387a0e3ae912ebcbbe7f598d6f15" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>mContended</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aa913f1f0025be2961a333582623791d0" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>mGrowMtx</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aec0177d6ee0c0fa199618291e8a42336" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>mHint</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a71b754d3df888c741cfcb4a17990f9d2" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>mTable</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a7e25133095d638d6d072634abea28881" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>mTables</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a2affa09ed53b54e3235e53a23b52da17" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>operator=</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1ac66fe3ccdd8257f8d9f9f9bf4565f74c" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>raiseHint</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1af201fe086ef255ae42edbffedf8e4d8f" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>reserve</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aacd1d0861e6407060758d6c31355aa1f" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>size</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aec978032e8ac3108f7f9c3e0caa3a642" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>take</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a2b131eaecc3e83ce0b8b54bc8b02aa6f" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>take</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1a28e98d007fa2e248f3f037c1483866a6" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>threadStripe</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1aca8fae3dc7f0743b91e59834acaa02f1" prot="private" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>wordAt</name></member>
+      <member refid="structecss_1_1IdSet_3_01Type_00_01true_01_4_1ae9b58e263fc3f91cb6d91ca369ba82a5" prot="public" virt="non-virtual"><scope>ecss::IdSet&lt; Type, true &gt;</scope><name>~IdSet</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

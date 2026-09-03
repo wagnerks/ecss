@@ -1,0 +1,492 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Ranges" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Ranges</compoundname>
+    <includes refid="Ranges_8h" local="no">Ranges.h</includes>
+    <templateparamlist>
+      <param>
+        <type>typename Type</type>
+        <defval>uint32_t</defval>
+      </param>
+    </templateparamlist>
+    <sectiondef kind="public-type">
+      <memberdef kind="typedef" id="structecss_1_1Ranges_1acf5d8ba49720409e91f9419af722cdf1" prot="public" static="no">
+        <type>std::pair&lt; Type, Type &gt;</type>
+        <definition>using ecss::Ranges&lt; Type &gt;::Range =  std::pair&lt;Type, Type&gt;</definition>
+        <argsstring></argsstring>
+        <name>Range</name>
+        <qualifiedname>ecss::Ranges::Range</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="21" column="1" bodyfile="ecss/Ranges.h" bodystart="21" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Ranges_1a4ccbc000830283ad16a6892e5d80f4ff" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; Range &gt;</type>
+        <definition>std::vector&lt;Range&gt; ecss::Ranges&lt; Type &gt;::ranges</definition>
+        <argsstring></argsstring>
+        <name>ranges</name>
+        <qualifiedname>ecss::Ranges::ranges</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="23" column="13" bodyfile="ecss/Ranges.h" bodystart="23" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1Ranges_1ac0717b084588661ca9f70151e3b1d047" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE const Range &amp;</type>
+        <definition>FORCE_INLINE const Range &amp; ecss::Ranges&lt; Type &gt;::back</definition>
+        <argsstring>() const</argsstring>
+        <name>back</name>
+        <qualifiedname>ecss::Ranges::back</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Last normalized range. </para>
+</simplesect>
+<simplesect kind="pre"><para><ref refid="structecss_1_1Ranges_1abbc77897c06ab2c1caa3e62c71d69809" kindref="member">empty()</ref> is false. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="294" column="26" bodyfile="ecss/Ranges.h" bodystart="294" bodyend="294"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1ade445aec9ed4ecfe8e69ee679acc6558" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Ranges&lt; Type &gt;::clear</definition>
+        <argsstring>()</argsstring>
+        <name>clear</name>
+        <qualifiedname>ecss::Ranges::clear</qualifiedname>
+        <briefdescription>
+<para>Remove all stored ranges. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="post"><para><ref refid="structecss_1_1Ranges_1abbc77897c06ab2c1caa3e62c71d69809" kindref="member">empty()</ref> is true. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="286" column="19" bodyfile="ecss/Ranges.h" bodystart="286" bodyend="286"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1ae8f13a869c894882a6b5547b3582085c" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Ranges&lt; Type &gt;::contains</definition>
+        <argsstring>(Type value) const</argsstring>
+        <name>contains</name>
+        <qualifiedname>ecss::Ranges::contains</qualifiedname>
+        <param>
+          <type>Type</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>True when <computeroutput>value</computeroutput> belongs to one of the stored half-open ranges. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="301" column="19" bodyfile="ecss/Ranges.h" bodystart="301" bodyend="301"/>
+        <references refid="structecss_1_1Ranges_1a9499027a7bba117c7ec802d3afc39b09" compoundref="Ranges_8h" startline="251" endline="282">ecss::Ranges&lt; Type &gt;::binarySearchInRanges</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1abbc77897c06ab2c1caa3e62c71d69809" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Ranges&lt; Type &gt;::empty</definition>
+        <argsstring>() const</argsstring>
+        <name>empty</name>
+        <qualifiedname>ecss::Ranges::empty</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>True exactly when no ranges are stored. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="299" column="19" bodyfile="ecss/Ranges.h" bodystart="299" bodyend="299"/>
+        <references refid="structecss_1_1Ranges_1af5c0f025d78388e94ddb0d36b1787caf" compoundref="Ranges_8h" startline="288" endline="288">ecss::Ranges&lt; Type &gt;::size</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1a25e386aa50b344ce47a2669822118399" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Ranges&lt; Type &gt;::erase</definition>
+        <argsstring>(Type id)</argsstring>
+        <name>erase</name>
+        <qualifiedname>ecss::Ranges::erase</qualifiedname>
+        <param>
+          <type>Type</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+<para>Release <computeroutput>id</computeroutput> while preserving normalized range order. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="post"><para>contains(id) is false; erasing a value not represented is a no-op. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="222" column="6" bodyfile="ecss/Ranges.h" bodystart="222" bodyend="246"/>
+        <references refid="structecss_1_1Ranges_1a9499027a7bba117c7ec802d3afc39b09" compoundref="Ranges_8h" startline="251" endline="282">ecss::Ranges&lt; Type &gt;::binarySearchInRanges</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1a93b1e017fddef912246176bae550020b" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE const Range &amp;</type>
+        <definition>FORCE_INLINE const Range &amp; ecss::Ranges&lt; Type &gt;::front</definition>
+        <argsstring>() const</argsstring>
+        <name>front</name>
+        <qualifiedname>ecss::Ranges::front</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>First normalized range. </para>
+</simplesect>
+<simplesect kind="pre"><para><ref refid="structecss_1_1Ranges_1abbc77897c06ab2c1caa3e62c71d69809" kindref="member">empty()</ref> is false. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="291" column="26" bodyfile="ecss/Ranges.h" bodystart="291" bodyend="291"/>
+        <referencedby refid="structecss_1_1Ranges_1aa15ea635db52cf1538cd440e540b6ecf" compoundref="Ranges_8h" startline="126" endline="172">ecss::Ranges&lt; Type &gt;::takeBlock</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1a103c05c13fde8b2ef0dd8331c4ad635d" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::vector&lt; Type &gt;</type>
+        <definition>std::vector&lt; Type &gt; ecss::Ranges&lt; Type &gt;::getAll</definition>
+        <argsstring>() const</argsstring>
+        <name>getAll</name>
+        <qualifiedname>ecss::Ranges::getAll</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Every represented value in ascending order, with no duplicates. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="326" column="13" bodyfile="ecss/Ranges.h" bodystart="326" bodyend="339"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1ae954bba72c3c39a5a0434d77592eca45" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Ranges&lt; Type &gt;::insert</definition>
+        <argsstring>(Type id)</argsstring>
+        <name>insert</name>
+        <qualifiedname>ecss::Ranges::insert</qualifiedname>
+        <param>
+          <type>Type</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+<para>Mark <computeroutput>id</computeroutput> allocated while preserving normalized range order. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="post"><para>contains(id) is true; inserting an already represented id is a no-op. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="176" column="6" bodyfile="ecss/Ranges.h" bodystart="176" bodyend="218"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1a9f3f7b81a09114d1c90389ba3061256c" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Ranges&lt; Type &gt;::mergeIntersections</definition>
+        <argsstring>()</argsstring>
+        <name>mergeIntersections</name>
+        <qualifiedname>ecss::Ranges::mergeIntersections</qualifiedname>
+        <briefdescription>
+<para>Normalize the list in place: drop the degenerate, coalesce the rest. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Empty and reversed ranges are removed first, and that has to come first: the fold below compares one range&apos;s end against the next one&apos;s start, and a reversed pair would corrupt that comparison rather than simply being skipped by it. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="72" column="19" bodyfile="ecss/Ranges.h" bodystart="72" bodyend="102"/>
+        <referencedby refid="structecss_1_1Ranges_1a4240e432b5cef5377f2f105535942d56" compoundref="Ranges_8h" startline="58" endline="61">ecss::Ranges&lt; Type &gt;::Ranges</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1a9f127a8c90ad6ed4b0d7a45557962bbf" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Ranges&lt; Type &gt;::nextStartAfter</definition>
+        <argsstring>(Type id, Type &amp;out) const</argsstring>
+        <name>nextStartAfter</name>
+        <qualifiedname>ecss::Ranges::nextStartAfter</qualifiedname>
+        <param>
+          <type>Type</type>
+          <declname>id</declname>
+        </param>
+        <param>
+          <type>Type &amp;</type>
+          <declname>out</declname>
+        </param>
+        <briefdescription>
+<para>Start of the first range with first &gt; <computeroutput>id</computeroutput>, if any. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="304" column="19" bodyfile="ecss/Ranges.h" bodystart="304" bodyend="323"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1aa2319c72aeeb9142e4d8f87230902fe8" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Ranges&lt; Type &gt;::pop_back</definition>
+        <argsstring>()</argsstring>
+        <name>pop_back</name>
+        <qualifiedname>ecss::Ranges::pop_back</qualifiedname>
+        <briefdescription>
+<para>Remove the last normalized range. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="pre"><para><ref refid="structecss_1_1Ranges_1abbc77897c06ab2c1caa3e62c71d69809" kindref="member">empty()</ref> is false. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="297" column="19" bodyfile="ecss/Ranges.h" bodystart="297" bodyend="297"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1a3a7e9d24717171eb026152e38b8195ee" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Ranges&lt; Type &gt;::Ranges</definition>
+        <argsstring>()=default</argsstring>
+        <name>Ranges</name>
+        <qualifiedname>ecss::Ranges::Ranges</qualifiedname>
+        <briefdescription>
+<para>Construct an empty set of allocated values. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="26" column="1"/>
+        <referencedby refid="structecss_1_1Ranges_1ab6d789399d28ccab443e01835ba58ea9" compoundref="Ranges_8h" startline="65" endline="65">ecss::Ranges&lt; Type &gt;::Ranges</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1ab6d789399d28ccab443e01835ba58ea9" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Ranges&lt; Type &gt;::Ranges</definition>
+        <argsstring>(const Range &amp;range)</argsstring>
+        <name>Ranges</name>
+        <qualifiedname>ecss::Ranges::Ranges</qualifiedname>
+        <param>
+          <type>const Range &amp;</type>
+          <declname>range</declname>
+        </param>
+        <briefdescription>
+<para>Construct from one half-open range. An empty or reversed range produces an empty object. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="65" column="1" bodyfile="ecss/Ranges.h" bodystart="65" bodyend="65"/>
+        <references refid="structecss_1_1Ranges_1a3a7e9d24717171eb026152e38b8195ee">ecss::Ranges&lt; Type &gt;::Ranges</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1a4240e432b5cef5377f2f105535942d56" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Ranges&lt; Type &gt;::Ranges</definition>
+        <argsstring>(const std::vector&lt; Range &gt; &amp;range)</argsstring>
+        <name>Ranges</name>
+        <qualifiedname>ecss::Ranges::Ranges</qualifiedname>
+        <param>
+          <type>const std::vector&lt; Range &gt; &amp;</type>
+          <declname>range</declname>
+        </param>
+        <briefdescription>
+<para>Construct from sorted half-open ranges and normalize them. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>range</parametername>
+</parameternamelist>
+<parameterdescription>
+<para><ref refid="structecss_1_1Ranges" kindref="compound">Ranges</ref> whose valid (<computeroutput>first &lt; second</computeroutput>) subsequence is ordered by <computeroutput>first</computeroutput>. Empty and reversed ranges are ignored. Overlapping and touching ranges are coalesced. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="58" column="1" bodyfile="ecss/Ranges.h" bodystart="58" bodyend="61"/>
+        <references refid="structecss_1_1Ranges_1a9f3f7b81a09114d1c90389ba3061256c" compoundref="Ranges_8h" startline="72" endline="102">ecss::Ranges&lt; Type &gt;::mergeIntersections</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1a386f31388c239fb389b38d062967a9aa" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Ranges&lt; Type &gt;::Ranges</definition>
+        <argsstring>(const std::vector&lt; Type &gt; &amp;sortedRanges)</argsstring>
+        <name>Ranges</name>
+        <qualifiedname>ecss::Ranges::Ranges</qualifiedname>
+        <param>
+          <type>const std::vector&lt; Type &gt; &amp;</type>
+          <declname>sortedRanges</declname>
+        </param>
+        <briefdescription>
+<para>Construct from individual allocated values and compress consecutive values. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>sortedRanges</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Values in nondecreasing order. Duplicates are ignored. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="pre"><para>Every value is nonnegative, less than <computeroutput>std::numeric_limits&lt;Type&gt;::max()</computeroutput>, and the sequence is sorted. The maximum value is reserved because ranges use an exclusive end. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="32" column="1" bodyfile="ecss/Ranges.h" bodystart="32" bodyend="53"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1af5c0f025d78388e94ddb0d36b1787caf" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE size_t</type>
+        <definition>FORCE_INLINE size_t ecss::Ranges&lt; Type &gt;::size</definition>
+        <argsstring>() const</argsstring>
+        <name>size</name>
+        <qualifiedname>ecss::Ranges::size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Number of normalized ranges, not the number of individual values. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="288" column="21" bodyfile="ecss/Ranges.h" bodystart="288" bodyend="288"/>
+        <referencedby refid="structecss_1_1Ranges_1abbc77897c06ab2c1caa3e62c71d69809" compoundref="Ranges_8h" startline="299" endline="299">ecss::Ranges&lt; Type &gt;::empty</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1a7b35fad7b967eca69ce1205cb0bfd5db" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE Type</type>
+        <definition>FORCE_INLINE Type ecss::Ranges&lt; Type &gt;::take</definition>
+        <argsstring>()</argsstring>
+        <name>take</name>
+        <qualifiedname>ecss::Ranges::take</qualifiedname>
+        <briefdescription>
+<para>Allocate and return the lowest value not already represented by the ranges. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="post"><para>The returned value is contained by this object. </para>
+</simplesect>
+<parameterlist kind="exception"><parameteritem>
+<parameternamelist>
+<parametername>std::overflow_error</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>No value below <computeroutput>std::numeric_limits&lt;Type&gt;::max()</computeroutput> is free. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="107" column="19" bodyfile="ecss/Ranges.h" bodystart="107" bodyend="113"/>
+        <references refid="structecss_1_1Ranges_1aa15ea635db52cf1538cd440e540b6ecf" compoundref="Ranges_8h" startline="126" endline="172">ecss::Ranges&lt; Type &gt;::takeBlock</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Ranges_1aa15ea635db52cf1538cd440e540b6ecf" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::pair&lt; Type, Type &gt;</type>
+        <definition>std::pair&lt; Type, Type &gt; ecss::Ranges&lt; Type &gt;::takeBlock</definition>
+        <argsstring>(Type maxCount)</argsstring>
+        <name>takeBlock</name>
+        <qualifiedname>ecss::Ranges::takeBlock</qualifiedname>
+        <param>
+          <type>Type</type>
+          <declname>maxCount</declname>
+        </param>
+        <briefdescription>
+<para>Allocate up to <computeroutput>maxCount</computeroutput> contiguous values in one step. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para><computeroutput>{first, count}</computeroutput>: the first allocated value and how many were actually taken. <computeroutput>count</computeroutput> may be less than <computeroutput>maxCount</computeroutput> when the chosen free gap is smaller. Returns <computeroutput>{0, 0}</computeroutput> without changing the object when <computeroutput>maxCount</computeroutput> is zero or no representable value remains. <computeroutput>std::numeric_limits&lt;Type&gt;::max()</computeroutput> is reserved as the exclusive endpoint and is never allocated.</para>
+</simplesect>
+Batching exists so a caller can amortise whatever lock guards this container over many allocations instead of paying it per value. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="126" column="11" bodyfile="ecss/Ranges.h" bodystart="126" bodyend="172"/>
+        <references refid="structecss_1_1Ranges_1a93b1e017fddef912246176bae550020b" compoundref="Ranges_8h" startline="291" endline="291">ecss::Ranges&lt; Type &gt;::front</references>
+        <referencedby refid="structecss_1_1Ranges_1a7b35fad7b967eca69ce1205cb0bfd5db" compoundref="Ranges_8h" startline="107" endline="113">ecss::Ranges&lt; Type &gt;::take</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="structecss_1_1Ranges_1a9499027a7bba117c7ec802d3afc39b09" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>int</type>
+        <definition>static int ecss::Ranges&lt; Type &gt;::binarySearchInRanges</definition>
+        <argsstring>(const std::vector&lt; Range &gt; &amp;ranges, Type id)</argsstring>
+        <name>binarySearchInRanges</name>
+        <qualifiedname>ecss::Ranges::binarySearchInRanges</qualifiedname>
+        <param>
+          <type>const std::vector&lt; Range &gt; &amp;</type>
+          <declname>ranges</declname>
+        </param>
+        <param>
+          <type>Type</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+<para>Find the normalized half-open range containing <computeroutput>id</computeroutput>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Its zero-based index, or -1 when no range contains <computeroutput>id</computeroutput>. </para>
+</simplesect>
+<simplesect kind="pre"><para><computeroutput>ranges</computeroutput> is ordered by start and contains no overlaps. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Ranges.h" line="251" column="12" bodyfile="ecss/Ranges.h" bodystart="251" bodyend="282"/>
+        <referencedby refid="structecss_1_1Ranges_1ae8f13a869c894882a6b5547b3582085c" compoundref="Ranges_8h" startline="301" endline="301">ecss::Ranges&lt; Type &gt;::contains</referencedby>
+        <referencedby refid="structecss_1_1Ranges_1a25e386aa50b344ce47a2669822118399" compoundref="Ranges_8h" startline="222" endline="246">ecss::Ranges&lt; Type &gt;::erase</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+<para>@thread_safety Thread-confined <ndash/> and that applies to every member below, without exception. This is a plain sorted container of id ranges with no synchronization anywhere in it: <ref refid="structecss_1_1Ranges_1a7b35fad7b967eca69ce1205cb0bfd5db" kindref="member">take()</ref>, <ref refid="structecss_1_1Ranges_1aa15ea635db52cf1538cd440e540b6ecf" kindref="member">takeBlock()</ref>, <ref refid="structecss_1_1Ranges_1ae954bba72c3c39a5a0434d77592eca45" kindref="member">insert()</ref> and <ref refid="structecss_1_1Ranges_1a25e386aa50b344ce47a2669822118399" kindref="member">erase()</ref> mutate, the rest read, and none of them is safe against a concurrent mutation. Build one, then hand it to view(); do not touch it again while a view built from it is still walking. </para>
+    </detaileddescription>
+    <location file="ecss/Ranges.h" line="19" column="1" bodyfile="ecss/Ranges.h" bodystart="19" bodyend="340"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Ranges_1ac0717b084588661ca9f70151e3b1d047" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>back</name></member>
+      <member refid="structecss_1_1Ranges_1a9499027a7bba117c7ec802d3afc39b09" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>binarySearchInRanges</name></member>
+      <member refid="structecss_1_1Ranges_1ade445aec9ed4ecfe8e69ee679acc6558" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>clear</name></member>
+      <member refid="structecss_1_1Ranges_1ae8f13a869c894882a6b5547b3582085c" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>contains</name></member>
+      <member refid="structecss_1_1Ranges_1abbc77897c06ab2c1caa3e62c71d69809" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>empty</name></member>
+      <member refid="structecss_1_1Ranges_1a25e386aa50b344ce47a2669822118399" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>erase</name></member>
+      <member refid="structecss_1_1Ranges_1a93b1e017fddef912246176bae550020b" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>front</name></member>
+      <member refid="structecss_1_1Ranges_1a103c05c13fde8b2ef0dd8331c4ad635d" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>getAll</name></member>
+      <member refid="structecss_1_1Ranges_1ae954bba72c3c39a5a0434d77592eca45" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>insert</name></member>
+      <member refid="structecss_1_1Ranges_1a9f3f7b81a09114d1c90389ba3061256c" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>mergeIntersections</name></member>
+      <member refid="structecss_1_1Ranges_1a9f127a8c90ad6ed4b0d7a45557962bbf" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>nextStartAfter</name></member>
+      <member refid="structecss_1_1Ranges_1aa2319c72aeeb9142e4d8f87230902fe8" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>pop_back</name></member>
+      <member refid="structecss_1_1Ranges_1acf5d8ba49720409e91f9419af722cdf1" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>Range</name></member>
+      <member refid="structecss_1_1Ranges_1a3a7e9d24717171eb026152e38b8195ee" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>Ranges</name></member>
+      <member refid="structecss_1_1Ranges_1a386f31388c239fb389b38d062967a9aa" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>Ranges</name></member>
+      <member refid="structecss_1_1Ranges_1a4240e432b5cef5377f2f105535942d56" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>Ranges</name></member>
+      <member refid="structecss_1_1Ranges_1ab6d789399d28ccab443e01835ba58ea9" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>Ranges</name></member>
+      <member refid="structecss_1_1Ranges_1a4ccbc000830283ad16a6892e5d80f4ff" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>ranges</name></member>
+      <member refid="structecss_1_1Ranges_1af5c0f025d78388e94ddb0d36b1787caf" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>size</name></member>
+      <member refid="structecss_1_1Ranges_1a7b35fad7b967eca69ce1205cb0bfd5db" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>take</name></member>
+      <member refid="structecss_1_1Ranges_1aa15ea635db52cf1538cd440e540b6ecf" prot="public" virt="non-virtual"><scope>ecss::Ranges</scope><name>takeBlock</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

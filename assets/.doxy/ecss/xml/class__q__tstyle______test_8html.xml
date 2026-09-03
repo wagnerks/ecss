@@ -1,0 +1,347 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="class__q__tstyle______test_8html" kind="file" language="C++">
+    <compoundname>class_q_tstyle___test.html</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">&lt;!DOCTYPE<sp/>html<sp/>PUBLIC<sp/>&quot;-//W3C//DTD<sp/>XHTML<sp/>1.0<sp/>Transitional//EN&quot;<sp/>&quot;https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;html<sp/>xmlns=&quot;http://www.w3.org/1999/xhtml&quot;<sp/>lang=&quot;en-US&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;head&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;meta<sp/>http-equiv=&quot;Content-Type&quot;<sp/>content=&quot;text/xhtml;charset=UTF-8&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;meta<sp/>http-equiv=&quot;X-UA-Compatible&quot;<sp/>content=&quot;IE=11&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;meta<sp/>name=&quot;generator&quot;<sp/>content=&quot;Doxygen<sp/>1.14.0&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;meta<sp/>name=&quot;viewport&quot;<sp/>content=&quot;width=device-width,<sp/>initial-scale=1&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;title&gt;Qt<sp/>Style:<sp/>QTstyle_Test<sp/>Class<sp/>Reference&lt;/title&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;link<sp/>rel=&quot;icon&quot;<sp/>href=&quot;doxygen.ico&quot;<sp/>type=&quot;image/x-icon&quot;<sp/>/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;link<sp/>href=&quot;tabs.css&quot;<sp/>rel=&quot;stylesheet&quot;<sp/>type=&quot;text/css&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;script<sp/>type=&quot;text/javascript&quot;<sp/>src=&quot;jquery.js&quot;&gt;&lt;/script&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;script<sp/>type=&quot;text/javascript&quot;<sp/>src=&quot;dynsections.js&quot;&gt;&lt;/script&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;script<sp/>type=&quot;text/javascript&quot;<sp/>src=&quot;clipboard.js&quot;&gt;&lt;/script&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;link<sp/>href=&quot;navtree.css&quot;<sp/>rel=&quot;stylesheet&quot;<sp/>type=&quot;text/css&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;script<sp/>type=&quot;text/javascript&quot;<sp/>src=&quot;navtreedata.js&quot;&gt;&lt;/script&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;script<sp/>type=&quot;text/javascript&quot;<sp/>src=&quot;navtree.js&quot;&gt;&lt;/script&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;script<sp/>type=&quot;text/javascript&quot;<sp/>src=&quot;cookie.js&quot;&gt;&lt;/script&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;script<sp/>type=&quot;text/javascript&quot;<sp/>src=&quot;darkmode_toggle.js&quot;&gt;&lt;/script&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;link<sp/>href=&quot;doxygen.css&quot;<sp/>rel=&quot;stylesheet&quot;<sp/>type=&quot;text/css&quot;<sp/>/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;link<sp/>href=&quot;doxygen_manual.css&quot;<sp/>rel=&quot;stylesheet&quot;<sp/>type=&quot;text/css&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/head&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;body&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>id=&quot;top&quot;&gt;&lt;!--<sp/>do<sp/>not<sp/>remove<sp/>this<sp/>div,<sp/>it<sp/>is<sp/>closed<sp/>by<sp/>doxygen!<sp/>--&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>id=&quot;titlearea&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;table<sp/>cellspacing=&quot;0&quot;<sp/>cellpadding=&quot;0&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/>&lt;tbody&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/>&lt;tr<sp/>id=&quot;projectrow&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;td<sp/>id=&quot;projectalign&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>&lt;div<sp/>id=&quot;projectname&quot;&gt;Qt<sp/>Style</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/>&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/>&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/>&lt;/tbody&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/table&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;!--<sp/>end<sp/>header<sp/>part<sp/>--&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;!--<sp/>Generated<sp/>by<sp/>Doxygen<sp/>1.14.0<sp/>--&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;script<sp/>type=&quot;text/javascript&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">$(function()<sp/>{<sp/>codefold.init();<sp/>});</highlight></codeline>
+<codeline><highlight class="normal">&lt;/script&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;script<sp/>type=&quot;text/javascript&quot;<sp/>src=&quot;menudata.js&quot;&gt;&lt;/script&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;script<sp/>type=&quot;text/javascript&quot;<sp/>src=&quot;menu.js&quot;&gt;&lt;/script&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;script<sp/>type=&quot;text/javascript&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">$(function()<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>initMenu(&apos;&apos;,false,false,&apos;search.php&apos;,&apos;Search&apos;,true);</highlight></codeline>
+<codeline><highlight class="normal">});</highlight></codeline>
+<codeline><highlight class="normal">&lt;/script&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>id=&quot;main-nav&quot;&gt;&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;&lt;!--<sp/>top<sp/>--&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>id=&quot;side-nav&quot;<sp/>class=&quot;ui-resizable<sp/>side-nav-resizable&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;div<sp/>id=&quot;nav-tree&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&lt;div<sp/>id=&quot;nav-tree-contents&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;div<sp/>id=&quot;nav-sync&quot;<sp/>class=&quot;sync&quot;&gt;&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;div<sp/>id=&quot;splitbar&quot;<sp/>style=&quot;-moz-user-select:none;&quot;<sp/></highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/>class=&quot;ui-resizable-handle&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;script<sp/>type=&quot;text/javascript&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">$(function(){initNavTree(&apos;class_q_tstyle___test.html&apos;,&apos;&apos;,&apos;class_q_tstyle___test-members&apos;);<sp/>});</highlight></codeline>
+<codeline><highlight class="normal">&lt;/script&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>id=&quot;container&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>id=&quot;doc-content&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;header&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;div<sp/>class=&quot;summary&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;#pub-types&quot;&gt;Public<sp/>Types&lt;/a&gt;<sp/>&amp;#124;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;#pub-methods&quot;&gt;Public<sp/>Member<sp/>Functions&lt;/a&gt;<sp/>&amp;#124;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;#pub-attribs&quot;&gt;Public<sp/>Attributes&lt;/a&gt;<sp/>&amp;#124;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;class_q_tstyle___test-members.html&quot;&gt;List<sp/>of<sp/>all<sp/>members&lt;/a&gt;<sp/><sp/>&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;div<sp/>class=&quot;headertitle&quot;&gt;&lt;div<sp/>class=&quot;title&quot;&gt;QTstyle_Test<sp/>Class<sp/>Reference&lt;span<sp/>class=&quot;mlabels&quot;&gt;&lt;span<sp/>class=&quot;mlabel<sp/>abstract&quot;&gt;abstract&lt;/span&gt;&lt;/span&gt;&lt;/div&gt;&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;&lt;!--header--&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;contents&quot;&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;p&gt;A<sp/>test<sp/>class.<sp/><sp/></highlight></codeline>
+<codeline><highlight class="normal"><sp/>&lt;a<sp/>href=&quot;#details&quot;&gt;More...&lt;/a&gt;&lt;/p&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;table<sp/>class=&quot;memberdecls&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;heading&quot;&gt;&lt;td<sp/>colspan=&quot;2&quot;&gt;&lt;h2<sp/>id=&quot;header-pub-types&quot;<sp/>class=&quot;groupheader&quot;&gt;&lt;a<sp/>id=&quot;pub-types&quot;<sp/>name=&quot;pub-types&quot;&gt;&lt;/a&gt;</highlight></codeline>
+<codeline><highlight class="normal">Public<sp/>Types&lt;/h2&gt;&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;memitem:a0525f798cda415a94fedeceb806d2c49&quot;<sp/>id=&quot;r_a0525f798cda415a94fedeceb806d2c49&quot;&gt;&lt;td<sp/>class=&quot;memItemLeft&quot;<sp/>align=&quot;right&quot;<sp/>valign=&quot;top&quot;&gt;enum<sp/>&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;memItemRight&quot;<sp/>valign=&quot;bottom&quot;&gt;&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#a0525f798cda415a94fedeceb806d2c49&quot;&gt;TEnum&lt;/a&gt;<sp/>{<sp/>&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#a0525f798cda415a94fedeceb806d2c49a7929af91f99c319ffe2e49c9632bc3fa&quot;&gt;TVal1&lt;/a&gt;</highlight></codeline>
+<codeline><highlight class="normal">,<sp/>&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#a0525f798cda415a94fedeceb806d2c49afff89db6859123549579806212d9fd80&quot;&gt;TVal2&lt;/a&gt;</highlight></codeline>
+<codeline><highlight class="normal">,<sp/>&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#a0525f798cda415a94fedeceb806d2c49a8227cd0f0c1285d59ff14376fcd00f85&quot;&gt;TVal3&lt;/a&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/>}&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;memdesc:a0525f798cda415a94fedeceb806d2c49&quot;&gt;&lt;td<sp/>class=&quot;mdescLeft&quot;&gt;&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;mdescRight&quot;&gt;An<sp/>enum.<sp/><sp/>&lt;a<sp/>href=&quot;#a0525f798cda415a94fedeceb806d2c49&quot;&gt;More...&lt;/a&gt;&lt;br<sp/>/&gt;&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/table&gt;&lt;table<sp/>class=&quot;memberdecls&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;heading&quot;&gt;&lt;td<sp/>colspan=&quot;2&quot;&gt;&lt;h2<sp/>id=&quot;header-pub-methods&quot;<sp/>class=&quot;groupheader&quot;&gt;&lt;a<sp/>id=&quot;pub-methods&quot;<sp/>name=&quot;pub-methods&quot;&gt;&lt;/a&gt;</highlight></codeline>
+<codeline><highlight class="normal">Public<sp/>Member<sp/>Functions&lt;/h2&gt;&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;memitem:a14a296ea4e2ad446712f2310bec60766&quot;<sp/>id=&quot;r_a14a296ea4e2ad446712f2310bec60766&quot;&gt;&lt;td<sp/>class=&quot;memItemLeft&quot;<sp/>align=&quot;right&quot;<sp/>valign=&quot;top&quot;&gt;&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;memItemRight&quot;<sp/>valign=&quot;bottom&quot;&gt;&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#a14a296ea4e2ad446712f2310bec60766&quot;&gt;QTstyle_Test&lt;/a&gt;<sp/>()&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;memdesc:a14a296ea4e2ad446712f2310bec60766&quot;&gt;&lt;td<sp/>class=&quot;mdescLeft&quot;&gt;&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;mdescRight&quot;&gt;A<sp/>constructor.<sp/><sp/>&lt;br<sp/>/&gt;&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;memitem:a7e82397d534d9a867f0857da01a46e9e&quot;<sp/>id=&quot;r_a7e82397d534d9a867f0857da01a46e9e&quot;&gt;&lt;td<sp/>class=&quot;memItemLeft&quot;<sp/>align=&quot;right&quot;<sp/>valign=&quot;top&quot;&gt;&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;memItemRight&quot;<sp/>valign=&quot;bottom&quot;&gt;&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#a7e82397d534d9a867f0857da01a46e9e&quot;&gt;~QTstyle_Test&lt;/a&gt;<sp/>()&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;memdesc:a7e82397d534d9a867f0857da01a46e9e&quot;&gt;&lt;td<sp/>class=&quot;mdescLeft&quot;&gt;&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;mdescRight&quot;&gt;A<sp/>destructor.<sp/><sp/>&lt;br<sp/>/&gt;&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;memitem:a8840748753118dd468e8368a28e49c62&quot;<sp/>id=&quot;r_a8840748753118dd468e8368a28e49c62&quot;&gt;&lt;td<sp/>class=&quot;memItemLeft&quot;<sp/>align=&quot;right&quot;<sp/>valign=&quot;top&quot;&gt;int&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;memItemRight&quot;<sp/>valign=&quot;bottom&quot;&gt;&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#a8840748753118dd468e8368a28e49c62&quot;&gt;testMe&lt;/a&gt;<sp/>(int<sp/>a,<sp/>const<sp/>char<sp/>*s)&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;memdesc:a8840748753118dd468e8368a28e49c62&quot;&gt;&lt;td<sp/>class=&quot;mdescLeft&quot;&gt;&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;mdescRight&quot;&gt;A<sp/>normal<sp/>member<sp/>taking<sp/>two<sp/>arguments<sp/>and<sp/>returning<sp/>an<sp/>integer<sp/>value.<sp/><sp/>&lt;br<sp/>/&gt;&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;memitem:ad5b201f097a720d44bf976c2f27efbda&quot;<sp/>id=&quot;r_ad5b201f097a720d44bf976c2f27efbda&quot;&gt;&lt;td<sp/>class=&quot;memItemLeft&quot;<sp/>align=&quot;right&quot;<sp/>valign=&quot;top&quot;&gt;virtual<sp/>void&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;memItemRight&quot;<sp/>valign=&quot;bottom&quot;&gt;&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#ad5b201f097a720d44bf976c2f27efbda&quot;&gt;testMeToo&lt;/a&gt;<sp/>(char<sp/>c1,<sp/>char<sp/>c2)=0&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;memdesc:ad5b201f097a720d44bf976c2f27efbda&quot;&gt;&lt;td<sp/>class=&quot;mdescLeft&quot;&gt;&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;mdescRight&quot;&gt;A<sp/>pure<sp/>virtual<sp/>member.<sp/><sp/>&lt;br<sp/>/&gt;&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/table&gt;&lt;table<sp/>class=&quot;memberdecls&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;heading&quot;&gt;&lt;td<sp/>colspan=&quot;2&quot;&gt;&lt;h2<sp/>id=&quot;header-pub-attribs&quot;<sp/>class=&quot;groupheader&quot;&gt;&lt;a<sp/>id=&quot;pub-attribs&quot;<sp/>name=&quot;pub-attribs&quot;&gt;&lt;/a&gt;</highlight></codeline>
+<codeline><highlight class="normal">Public<sp/>Attributes&lt;/h2&gt;&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;memitem:a973a4566c9a036f4eca508ba5fe80dcb&quot;<sp/>id=&quot;r_a973a4566c9a036f4eca508ba5fe80dcb&quot;&gt;&lt;td<sp/>class=&quot;memItemLeft&quot;<sp/>align=&quot;right&quot;<sp/>valign=&quot;top&quot;&gt;enum<sp/>&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#a0525f798cda415a94fedeceb806d2c49&quot;&gt;QTstyle_Test::TEnum&lt;/a&gt;<sp/>*&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;memItemRight&quot;<sp/>valign=&quot;bottom&quot;&gt;&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#a973a4566c9a036f4eca508ba5fe80dcb&quot;&gt;enumPtr&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;memdesc:a973a4566c9a036f4eca508ba5fe80dcb&quot;&gt;&lt;td<sp/>class=&quot;mdescLeft&quot;&gt;&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;mdescRight&quot;&gt;Enum<sp/>pointer.<sp/><sp/>&lt;br<sp/>/&gt;&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;memitem:a241fb54f66dc0b3b03eece3a1a1bf18b&quot;<sp/>id=&quot;r_a241fb54f66dc0b3b03eece3a1a1bf18b&quot;&gt;&lt;td<sp/>class=&quot;memItemLeft&quot;<sp/>align=&quot;right&quot;<sp/>valign=&quot;top&quot;&gt;enum<sp/>&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#a0525f798cda415a94fedeceb806d2c49&quot;&gt;QTstyle_Test::TEnum&lt;/a&gt;&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;memItemRight&quot;<sp/>valign=&quot;bottom&quot;&gt;&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#a241fb54f66dc0b3b03eece3a1a1bf18b&quot;&gt;enumVar&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;memdesc:a241fb54f66dc0b3b03eece3a1a1bf18b&quot;&gt;&lt;td<sp/>class=&quot;mdescLeft&quot;&gt;&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;mdescRight&quot;&gt;Enum<sp/>variable.<sp/><sp/>&lt;br<sp/>/&gt;&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;memitem:aabf7b2e9ed83ea44aca4d213baae06d3&quot;<sp/>id=&quot;r_aabf7b2e9ed83ea44aca4d213baae06d3&quot;&gt;&lt;td<sp/>class=&quot;memItemLeft&quot;<sp/>align=&quot;right&quot;<sp/>valign=&quot;top&quot;&gt;int&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;memItemRight&quot;<sp/>valign=&quot;bottom&quot;&gt;&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#aabf7b2e9ed83ea44aca4d213baae06d3&quot;&gt;publicVar&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;memdesc:aabf7b2e9ed83ea44aca4d213baae06d3&quot;&gt;&lt;td<sp/>class=&quot;mdescLeft&quot;&gt;&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;mdescRight&quot;&gt;A<sp/>public<sp/>variable.<sp/><sp/>&lt;br<sp/>/&gt;&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;memitem:a79dd4e5498f09057775a819d911349e2&quot;<sp/>id=&quot;r_a79dd4e5498f09057775a819d911349e2&quot;&gt;&lt;td<sp/>class=&quot;memItemLeft&quot;<sp/>align=&quot;right&quot;<sp/>valign=&quot;top&quot;&gt;int(*&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;memItemRight&quot;<sp/>valign=&quot;bottom&quot;&gt;&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#a79dd4e5498f09057775a819d911349e2&quot;&gt;handler&lt;/a&gt;<sp/>)(int<sp/>a,<sp/>int<sp/>b)&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr<sp/>class=&quot;memdesc:a79dd4e5498f09057775a819d911349e2&quot;&gt;&lt;td<sp/>class=&quot;mdescLeft&quot;&gt;&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;mdescRight&quot;&gt;A<sp/>function<sp/>variable.<sp/><sp/>&lt;br<sp/>/&gt;&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/table&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>name=&quot;details&quot;<sp/>id=&quot;details&quot;&gt;&lt;/a&gt;&lt;h2<sp/>id=&quot;header-details&quot;<sp/>class=&quot;groupheader&quot;&gt;Detailed<sp/>Description&lt;/h2&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;textblock&quot;&gt;&lt;p&gt;A<sp/>test<sp/>class.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;p&gt;A<sp/>more<sp/>elaborate<sp/>class<sp/>description.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;&lt;a<sp/>name=&quot;doc-enum-members&quot;<sp/>id=&quot;doc-enum-members&quot;&gt;&lt;/a&gt;&lt;h2<sp/>id=&quot;header-doc-enum-members&quot;<sp/>class=&quot;groupheader&quot;&gt;Member<sp/>Enumeration<sp/>Documentation&lt;/h2&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>id=&quot;a0525f798cda415a94fedeceb806d2c49&quot;<sp/>name=&quot;a0525f798cda415a94fedeceb806d2c49&quot;&gt;&lt;/a&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;h2<sp/>class=&quot;memtitle&quot;&gt;&lt;span<sp/>class=&quot;permalink&quot;&gt;&lt;a<sp/>href=&quot;#a0525f798cda415a94fedeceb806d2c49&quot;&gt;&amp;#9670;&amp;#160;&lt;/a&gt;&lt;/span&gt;TEnum&lt;/h2&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;memitem&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;memproto&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;table<sp/>class=&quot;memname&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;memname&quot;&gt;enum<sp/>&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#a0525f798cda415a94fedeceb806d2c49&quot;&gt;QTstyle_Test::TEnum&lt;/a&gt;&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/table&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;&lt;div<sp/>class=&quot;memdoc&quot;&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;p&gt;An<sp/>enum.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;p&gt;More<sp/>detailed<sp/>enum<sp/>description.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;table<sp/>class=&quot;fieldtable&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr&gt;&lt;th<sp/>colspan=&quot;2&quot;&gt;Enumerator&lt;/th&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td<sp/>class=&quot;fieldname&quot;&gt;&lt;a<sp/>id=&quot;a0525f798cda415a94fedeceb806d2c49a7929af91f99c319ffe2e49c9632bc3fa&quot;<sp/>name=&quot;a0525f798cda415a94fedeceb806d2c49a7929af91f99c319ffe2e49c9632bc3fa&quot;&gt;&lt;/a&gt;TVal1&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;fielddoc&quot;&gt;&lt;p&gt;Enum<sp/>value<sp/>TVal1.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr&gt;&lt;td<sp/>class=&quot;fieldname&quot;&gt;&lt;a<sp/>id=&quot;a0525f798cda415a94fedeceb806d2c49afff89db6859123549579806212d9fd80&quot;<sp/>name=&quot;a0525f798cda415a94fedeceb806d2c49afff89db6859123549579806212d9fd80&quot;&gt;&lt;/a&gt;TVal2&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;fielddoc&quot;&gt;&lt;p&gt;Enum<sp/>value<sp/>TVal2.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;tr&gt;&lt;td<sp/>class=&quot;fieldname&quot;&gt;&lt;a<sp/>id=&quot;a0525f798cda415a94fedeceb806d2c49a8227cd0f0c1285d59ff14376fcd00f85&quot;<sp/>name=&quot;a0525f798cda415a94fedeceb806d2c49a8227cd0f0c1285d59ff14376fcd00f85&quot;&gt;&lt;/a&gt;TVal3&amp;#160;&lt;/td&gt;&lt;td<sp/>class=&quot;fielddoc&quot;&gt;&lt;p&gt;Enum<sp/>value<sp/>TVal3.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/table&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>name=&quot;doc-constructors&quot;<sp/>id=&quot;doc-constructors&quot;&gt;&lt;/a&gt;&lt;h2<sp/>id=&quot;header-doc-constructors&quot;<sp/>class=&quot;groupheader&quot;&gt;Constructor<sp/>&amp;amp;<sp/>Destructor<sp/>Documentation&lt;/h2&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>id=&quot;a14a296ea4e2ad446712f2310bec60766&quot;<sp/>name=&quot;a14a296ea4e2ad446712f2310bec60766&quot;&gt;&lt;/a&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;h2<sp/>class=&quot;memtitle&quot;&gt;&lt;span<sp/>class=&quot;permalink&quot;&gt;&lt;a<sp/>href=&quot;#a14a296ea4e2ad446712f2310bec60766&quot;&gt;&amp;#9670;&amp;#160;&lt;/a&gt;&lt;/span&gt;QTstyle_Test()&lt;/h2&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;memitem&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;memproto&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;table<sp/>class=&quot;memname&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;memname&quot;&gt;QTstyle_Test::QTstyle_Test<sp/>&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td&gt;(&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;paramname&quot;&gt;&lt;span<sp/>class=&quot;paramname&quot;&gt;&lt;em&gt;&lt;/em&gt;&lt;/span&gt;&lt;/td&gt;&lt;td&gt;)&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td&gt;&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/table&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;&lt;div<sp/>class=&quot;memdoc&quot;&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;p&gt;A<sp/>constructor.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;p&gt;A<sp/>more<sp/>elaborate<sp/>description<sp/>of<sp/>the<sp/>constructor.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>id=&quot;a7e82397d534d9a867f0857da01a46e9e&quot;<sp/>name=&quot;a7e82397d534d9a867f0857da01a46e9e&quot;&gt;&lt;/a&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;h2<sp/>class=&quot;memtitle&quot;&gt;&lt;span<sp/>class=&quot;permalink&quot;&gt;&lt;a<sp/>href=&quot;#a7e82397d534d9a867f0857da01a46e9e&quot;&gt;&amp;#9670;&amp;#160;&lt;/a&gt;&lt;/span&gt;~QTstyle_Test()&lt;/h2&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;memitem&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;memproto&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;table<sp/>class=&quot;memname&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;memname&quot;&gt;QTstyle_Test::~QTstyle_Test<sp/>&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td&gt;(&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;paramname&quot;&gt;&lt;span<sp/>class=&quot;paramname&quot;&gt;&lt;em&gt;&lt;/em&gt;&lt;/span&gt;&lt;/td&gt;&lt;td&gt;)&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td&gt;&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/table&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;&lt;div<sp/>class=&quot;memdoc&quot;&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;p&gt;A<sp/>destructor.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;p&gt;A<sp/>more<sp/>elaborate<sp/>description<sp/>of<sp/>the<sp/>destructor.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>name=&quot;doc-func-members&quot;<sp/>id=&quot;doc-func-members&quot;&gt;&lt;/a&gt;&lt;h2<sp/>id=&quot;header-doc-func-members&quot;<sp/>class=&quot;groupheader&quot;&gt;Member<sp/>Function<sp/>Documentation&lt;/h2&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>id=&quot;a8840748753118dd468e8368a28e49c62&quot;<sp/>name=&quot;a8840748753118dd468e8368a28e49c62&quot;&gt;&lt;/a&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;h2<sp/>class=&quot;memtitle&quot;&gt;&lt;span<sp/>class=&quot;permalink&quot;&gt;&lt;a<sp/>href=&quot;#a8840748753118dd468e8368a28e49c62&quot;&gt;&amp;#9670;&amp;#160;&lt;/a&gt;&lt;/span&gt;testMe()&lt;/h2&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;memitem&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;memproto&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;table<sp/>class=&quot;memname&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;memname&quot;&gt;int<sp/>QTstyle_Test::testMe<sp/>&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td&gt;(&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;paramtype&quot;&gt;int&lt;/td&gt;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;paramname&quot;&gt;&lt;span<sp/>class=&quot;paramname&quot;&gt;&lt;em&gt;a&lt;/em&gt;&lt;/span&gt;,<sp/>&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;paramkey&quot;&gt;&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td&gt;&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;paramtype&quot;&gt;const<sp/>char<sp/>*&lt;/td&gt;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;paramname&quot;&gt;&lt;span<sp/>class=&quot;paramname&quot;&gt;&lt;em&gt;s&lt;/em&gt;&lt;/span&gt;&amp;#160;)&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/table&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;&lt;div<sp/>class=&quot;memdoc&quot;&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;p&gt;A<sp/>normal<sp/>member<sp/>taking<sp/>two<sp/>arguments<sp/>and<sp/>returning<sp/>an<sp/>integer<sp/>value.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;dl<sp/>class=&quot;params&quot;&gt;&lt;dt&gt;Parameters&lt;/dt&gt;&lt;dd&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;table<sp/>class=&quot;params&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&lt;tr&gt;&lt;td<sp/>class=&quot;paramname&quot;&gt;a&lt;/td&gt;&lt;td&gt;an<sp/>integer<sp/>argument.<sp/>&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&lt;tr&gt;&lt;td<sp/>class=&quot;paramname&quot;&gt;s&lt;/td&gt;&lt;td&gt;a<sp/>constant<sp/>character<sp/>pointer.<sp/>&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;/table&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;/dd&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/dl&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;dl<sp/>class=&quot;section<sp/>return&quot;&gt;&lt;dt&gt;Returns&lt;/dt&gt;&lt;dd&gt;The<sp/>test<sp/>results<sp/>&lt;/dd&gt;&lt;/dl&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;dl<sp/>class=&quot;section<sp/>see&quot;&gt;&lt;dt&gt;See<sp/>also&lt;/dt&gt;&lt;dd&gt;&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#a14a296ea4e2ad446712f2310bec60766&quot;<sp/>title=&quot;A<sp/>constructor.&quot;&gt;QTstyle_Test()&lt;/a&gt;,<sp/>&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#a7e82397d534d9a867f0857da01a46e9e&quot;<sp/>title=&quot;A<sp/>destructor.&quot;&gt;~QTstyle_Test()&lt;/a&gt;,<sp/>&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#ad5b201f097a720d44bf976c2f27efbda&quot;<sp/>title=&quot;A<sp/>pure<sp/>virtual<sp/>member.&quot;&gt;testMeToo()&lt;/a&gt;<sp/>and<sp/>&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#aabf7b2e9ed83ea44aca4d213baae06d3&quot;<sp/>title=&quot;A<sp/>public<sp/>variable.&quot;&gt;publicVar()&lt;/a&gt;<sp/>&lt;/dd&gt;&lt;/dl&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>id=&quot;ad5b201f097a720d44bf976c2f27efbda&quot;<sp/>name=&quot;ad5b201f097a720d44bf976c2f27efbda&quot;&gt;&lt;/a&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;h2<sp/>class=&quot;memtitle&quot;&gt;&lt;span<sp/>class=&quot;permalink&quot;&gt;&lt;a<sp/>href=&quot;#ad5b201f097a720d44bf976c2f27efbda&quot;&gt;&amp;#9670;&amp;#160;&lt;/a&gt;&lt;/span&gt;testMeToo()&lt;/h2&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;memitem&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;memproto&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;table<sp/>class=&quot;mlabels&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;td<sp/>class=&quot;mlabels-left&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;table<sp/>class=&quot;memname&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;memname&quot;&gt;virtual<sp/>void<sp/>QTstyle_Test::testMeToo<sp/>&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td&gt;(&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;paramtype&quot;&gt;char&lt;/td&gt;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;paramname&quot;&gt;&lt;span<sp/>class=&quot;paramname&quot;&gt;&lt;em&gt;c1&lt;/em&gt;&lt;/span&gt;,<sp/>&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;paramkey&quot;&gt;&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td&gt;&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;paramtype&quot;&gt;char&lt;/td&gt;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;paramname&quot;&gt;&lt;span<sp/>class=&quot;paramname&quot;&gt;&lt;em&gt;c2&lt;/em&gt;&lt;/span&gt;&amp;#160;)&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/table&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;td<sp/>class=&quot;mlabels-right&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;span<sp/>class=&quot;mlabels&quot;&gt;&lt;span<sp/>class=&quot;mlabel<sp/>pure-virtual&quot;&gt;pure<sp/>virtual&lt;/span&gt;&lt;/span&gt;<sp/><sp/>&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/table&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;&lt;div<sp/>class=&quot;memdoc&quot;&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;p&gt;A<sp/>pure<sp/>virtual<sp/>member.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;dl<sp/>class=&quot;section<sp/>see&quot;&gt;&lt;dt&gt;See<sp/>also&lt;/dt&gt;&lt;dd&gt;&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#a8840748753118dd468e8368a28e49c62&quot;<sp/>title=&quot;A<sp/>normal<sp/>member<sp/>taking<sp/>two<sp/>arguments<sp/>and<sp/>returning<sp/>an<sp/>integer<sp/>value.&quot;&gt;testMe()&lt;/a&gt;<sp/>&lt;/dd&gt;&lt;/dl&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;dl<sp/>class=&quot;params&quot;&gt;&lt;dt&gt;Parameters&lt;/dt&gt;&lt;dd&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;table<sp/>class=&quot;params&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&lt;tr&gt;&lt;td<sp/>class=&quot;paramname&quot;&gt;c1&lt;/td&gt;&lt;td&gt;the<sp/>first<sp/>argument.<sp/>&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&lt;tr&gt;&lt;td<sp/>class=&quot;paramname&quot;&gt;c2&lt;/td&gt;&lt;td&gt;the<sp/>second<sp/>argument.<sp/>&lt;/td&gt;&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;/table&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;/dd&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/dl&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>name=&quot;doc-variable-members&quot;<sp/>id=&quot;doc-variable-members&quot;&gt;&lt;/a&gt;&lt;h2<sp/>id=&quot;header-doc-variable-members&quot;<sp/>class=&quot;groupheader&quot;&gt;Member<sp/>Data<sp/>Documentation&lt;/h2&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>id=&quot;a973a4566c9a036f4eca508ba5fe80dcb&quot;<sp/>name=&quot;a973a4566c9a036f4eca508ba5fe80dcb&quot;&gt;&lt;/a&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;h2<sp/>class=&quot;memtitle&quot;&gt;&lt;span<sp/>class=&quot;permalink&quot;&gt;&lt;a<sp/>href=&quot;#a973a4566c9a036f4eca508ba5fe80dcb&quot;&gt;&amp;#9670;&amp;#160;&lt;/a&gt;&lt;/span&gt;enumPtr&lt;/h2&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;memitem&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;memproto&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;table<sp/>class=&quot;memname&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;memname&quot;&gt;enum<sp/>&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#a0525f798cda415a94fedeceb806d2c49&quot;&gt;QTstyle_Test::TEnum&lt;/a&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>*<sp/>QTstyle_Test::enumPtr&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/table&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;&lt;div<sp/>class=&quot;memdoc&quot;&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;p&gt;Enum<sp/>pointer.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;p&gt;Details.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>id=&quot;a241fb54f66dc0b3b03eece3a1a1bf18b&quot;<sp/>name=&quot;a241fb54f66dc0b3b03eece3a1a1bf18b&quot;&gt;&lt;/a&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;h2<sp/>class=&quot;memtitle&quot;&gt;&lt;span<sp/>class=&quot;permalink&quot;&gt;&lt;a<sp/>href=&quot;#a241fb54f66dc0b3b03eece3a1a1bf18b&quot;&gt;&amp;#9670;&amp;#160;&lt;/a&gt;&lt;/span&gt;enumVar&lt;/h2&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;memitem&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;memproto&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;table<sp/>class=&quot;memname&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;memname&quot;&gt;enum<sp/>&lt;a<sp/>class=&quot;el&quot;<sp/>href=&quot;#a0525f798cda415a94fedeceb806d2c49&quot;&gt;QTstyle_Test::TEnum&lt;/a&gt;<sp/>QTstyle_Test::enumVar&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/table&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;&lt;div<sp/>class=&quot;memdoc&quot;&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;p&gt;Enum<sp/>variable.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;p&gt;Details.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>id=&quot;a79dd4e5498f09057775a819d911349e2&quot;<sp/>name=&quot;a79dd4e5498f09057775a819d911349e2&quot;&gt;&lt;/a&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;h2<sp/>class=&quot;memtitle&quot;&gt;&lt;span<sp/>class=&quot;permalink&quot;&gt;&lt;a<sp/>href=&quot;#a79dd4e5498f09057775a819d911349e2&quot;&gt;&amp;#9670;&amp;#160;&lt;/a&gt;&lt;/span&gt;handler&lt;/h2&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;memitem&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;memproto&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;table<sp/>class=&quot;memname&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;memname&quot;&gt;int(*<sp/>QTstyle_Test::handler)<sp/>(int<sp/>a,<sp/>int<sp/>b)&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/table&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;&lt;div<sp/>class=&quot;memdoc&quot;&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;p&gt;A<sp/>function<sp/>variable.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;p&gt;Details.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>id=&quot;aabf7b2e9ed83ea44aca4d213baae06d3&quot;<sp/>name=&quot;aabf7b2e9ed83ea44aca4d213baae06d3&quot;&gt;&lt;/a&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;h2<sp/>class=&quot;memtitle&quot;&gt;&lt;span<sp/>class=&quot;permalink&quot;&gt;&lt;a<sp/>href=&quot;#aabf7b2e9ed83ea44aca4d213baae06d3&quot;&gt;&amp;#9670;&amp;#160;&lt;/a&gt;&lt;/span&gt;publicVar&lt;/h2&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;memitem&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>class=&quot;memproto&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;table<sp/>class=&quot;memname&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;td<sp/>class=&quot;memname&quot;&gt;int<sp/>QTstyle_Test::publicVar&lt;/td&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/tr&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/><sp/><sp/>&lt;/table&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;&lt;div<sp/>class=&quot;memdoc&quot;&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;p&gt;A<sp/>public<sp/>variable.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;p&gt;Details.<sp/>&lt;/p&gt;</highlight></codeline>
+<codeline></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;hr/&gt;The<sp/>documentation<sp/>for<sp/>this<sp/>class<sp/>was<sp/>generated<sp/>from<sp/>the<sp/>following<sp/>file:&lt;ul&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;li&gt;&lt;b&gt;qtstyle.cpp&lt;/b&gt;&lt;/li&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/ul&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;&lt;!--<sp/>contents<sp/>--&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;&lt;!--<sp/>doc-content<sp/>--&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;&lt;!--<sp/>container<sp/>--&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;!--<sp/>start<sp/>footer<sp/>part<sp/>--&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;div<sp/>id=&quot;nav-path&quot;<sp/>class=&quot;navpath&quot;&gt;&lt;!--<sp/>id<sp/>is<sp/>needed<sp/>for<sp/>treeview<sp/>function!<sp/>--&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;ul&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&lt;li<sp/>class=&quot;navelem&quot;&gt;&lt;a<sp/>href=&quot;class_q_tstyle___test.html&quot;&gt;QTstyle_Test&lt;/a&gt;&lt;/li&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>&lt;li<sp/>class=&quot;footer&quot;&gt;Generated<sp/>by<sp/>&lt;a<sp/>href=&quot;https://www.doxygen.org/index.html&quot;&gt;&lt;img<sp/>class=&quot;footer&quot;<sp/>src=&quot;doxygen.svg&quot;<sp/>width=&quot;104&quot;<sp/>height=&quot;31&quot;<sp/>alt=&quot;doxygen&quot;/&gt;&lt;/a&gt;<sp/>1.14.0<sp/>&lt;/li&gt;</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/>&lt;/ul&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/div&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/body&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/html&gt;</highlight></codeline>
+    </programlisting>
+    <location file="doxygen-1.14.0/html/examples/qtstyle/html/class_q_tstyle___test.html"/>
+  </compounddef>
+</doxygen>

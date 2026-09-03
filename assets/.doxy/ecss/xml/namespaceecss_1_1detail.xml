@@ -1,0 +1,283 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="namespaceecss_1_1detail" kind="namespace" language="C++">
+    <compoundname>ecss::detail</compoundname>
+    <innerclass refid="classecss_1_1detail_1_1AccessGuard" prot="public">ecss::detail::AccessGuard</innerclass>
+    <innerclass refid="classecss_1_1detail_1_1AccessScope" prot="public">ecss::detail::AccessScope</innerclass>
+    <innerclass refid="classecss_1_1detail_1_1AccessTracker" prot="public">ecss::detail::AccessTracker</innerclass>
+    <innerclass refid="structecss_1_1detail_1_1IdSetLayout" prot="public">ecss::detail::IdSetLayout</innerclass>
+    <innerclass refid="structecss_1_1detail_1_1NonTrivialComponent" prot="public">ecss::detail::NonTrivialComponent</innerclass>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="namespaceecss_1_1detail_1ae3236f11ff52eb13678c4a51f2c2bd37" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>const char *</type>
+        <definition>const char * ecss::detail::accessTypeName</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>accessTypeName</name>
+        <qualifiedname>ecss::detail::accessTypeName</qualifiedname>
+        <briefdescription>
+<para>Name a component type for a tracker message. Debug only; empty otherwise. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="203" column="19" bodyfile="ecss/AccessTracker.h" bodystart="203" bodyend="209"/>
+        <referencedby refid="namespaceecss_1_1detail_1a934cc10db730f567f9784bd5478aeed6" compoundref="AccessTracker_8h" startline="213" endline="213">readScope</referencedby>
+        <referencedby refid="namespaceecss_1_1detail_1a04691aa21db1957616b51f9d1628c470" compoundref="AccessTracker_8h" startline="217" endline="217">writeScope</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1detail_1a840c8525b3312687dfe0694500d6d705" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::detail::checkTriviality</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>checkTriviality</name>
+        <qualifiedname>ecss::detail::checkTriviality</qualifiedname>
+        <briefdescription>
+<para>Say once, per component type, that this one costs its array the fast paths. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Two channels, because neither alone reaches everyone. The compile-time warning is the better one <ndash/> it names the type without running anything <ndash/> but it is silenced for any consumer that pulls ecss in as a <emphasis>system</emphasis> header, which every CMake project using target_precompile_headers does: the generated PCH opens with <computeroutput>#pragma system_header</computeroutput>, and a warning whose location is inside it never reaches the build log. So the same condition also reports once at runtime, when the array&apos;s layout is built. That costs one branch per array creation and nothing on any hot path.</para>
+<para>Define ECSS_NO_TRIVIALITY_WARNINGS to remove both; setTrivialityReporter(nullptr) removes only the runtime half.</para>
+<para><simplesect kind="note"><para>MSVC reports C4996 at /W3 and above; /W1 (bare <computeroutput>cl</computeroutput> with no flags) hides it, CMake and MSBuild projects default to /W3. GCC and clang report it at any level. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="237" column="6" bodyfile="ecss/Types.h" bodystart="237" bodyend="248"/>
+        <references refid="namespaceecss_1_1detail_1a6758841e54bd09f51cb50edc6414fc99" compoundref="Types_8h" startline="182" endline="194">trivialityReporter</references>
+        <references refid="namespaceecss_1_1detail_1a90854a4f2726a8a2a6f10783ec51554f" compoundref="Types_8h" startline="160" endline="179">typeName</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1detail_1a4e6878ff9194f139dd205294ac77b447" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>ThreadSafe</declname>
+            <defname>ThreadSafe</defname>
+          </param>
+          <param>
+            <type>class Callback</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::detail::forEachAliveSlot</definition>
+        <argsstring>(void *const *chunks, size_t numChunks, size_t size, const uint32_t *isAliveData, uint32_t aliveMask, size_t stride, size_t chunkCapacity, Callback &amp;&amp;callback)</argsstring>
+        <name>forEachAliveSlot</name>
+        <qualifiedname>ecss::detail::forEachAliveSlot</qualifiedname>
+        <param>
+          <type>void *const *</type>
+          <declname>chunks</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>numChunks</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>size</declname>
+        </param>
+        <param>
+          <type>const uint32_t *</type>
+          <declname>isAliveData</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>aliveMask</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>stride</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>chunkCapacity</declname>
+        </param>
+        <param>
+          <type>Callback &amp;&amp;</type>
+          <declname>callback</declname>
+        </param>
+        <briefdescription>
+<para>Walk the alive slots of one array, handing each slot&apos;s base address to a callback. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Outside <ref refid="classecss_1_1ArraysView" kindref="compound">ArraysView</ref> on purpose. The body says nothing about component types <ndash/> they reach it as runtime offsets inside ctx <ndash/> yet as a static member it was instantiated once per view, so a translation unit opening 48 different views compiled 48 copies of the same loop. Parameterised on ThreadSafe alone, there are at most two.</para>
+<para>Walk the live slots of a chunked array, calling <computeroutput>callback</computeroutput> with each.</para>
+<para>The callback is a template parameter rather than a function pointer, and that is the whole point: with a pointer the compiler cannot see through the call, so it inlined nothing, unrolled nothing and vectorized nothing, and every element paid an indirect call. Measured over a million single-component sectors, the pointer form ran at 1.86 ms against 0.82 for this one <ndash/> same elements visited, same checksum. @thread_safety Internally synchronized. Reads a snapshot the caller already holds. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1694" column="19" bodyfile="ecss/Registry.h" bodystart="1694" bodyend="1741"/>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1detail_1a934cc10db730f567f9784bd5478aeed6" prot="public" static="no" nodiscard="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type><ref refid="classecss_1_1detail_1_1AccessScope" kindref="compound">AccessScope</ref></type>
+        <definition>AccessScope ecss::detail::readScope</definition>
+        <argsstring>(ECSType type)</argsstring>
+        <name>readScope</name>
+        <qualifiedname>ecss::detail::readScope</qualifiedname>
+        <param>
+          <type>ECSType</type>
+          <declname>type</declname>
+        </param>
+        <briefdescription>
+<para>Claim <computeroutput>type</computeroutput> for reading until the returned scope dies. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="see"><para><ref refid="classecss_1_1detail_1_1AccessTracker" kindref="compound">AccessTracker</ref> </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="213" column="21" bodyfile="ecss/AccessTracker.h" bodystart="213" bodyend="213"/>
+        <references refid="namespaceecss_1_1detail_1ae3236f11ff52eb13678c4a51f2c2bd37" compoundref="AccessTracker_8h" startline="203" endline="209">accessTypeName</references>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1detail_1a6758841e54bd09f51cb50edc6414fc99" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>TrivialityReporter &amp;</type>
+        <definition>TrivialityReporter &amp; ecss::detail::trivialityReporter</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>trivialityReporter</name>
+        <qualifiedname>ecss::detail::trivialityReporter</qualifiedname>
+        <briefdescription>
+<para>The installed reporter. Prints one line to stderr until someone replaces it. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="182" column="27" bodyfile="ecss/Types.h" bodystart="182" bodyend="194"/>
+        <referencedby refid="namespaceecss_1_1detail_1a840c8525b3312687dfe0694500d6d705" compoundref="Types_8h" startline="237" endline="248">checkTriviality</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1detail_1a90854a4f2726a8a2a6f10783ec51554f" prot="public" static="no" constexpr="yes" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+        </templateparamlist>
+        <type>std::string_view</type>
+        <definition>std::string_view ecss::detail::typeName</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>typeName</name>
+        <qualifiedname>ecss::detail::typeName</qualifiedname>
+        <briefdescription>
+<para>The component&apos;s name, carved out of the compiler&apos;s own signature for this function. No RTTI, and unlike typeid(T).name() it is readable on GCC too. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="160" column="28" bodyfile="ecss/Types.h" bodystart="160" bodyend="179"/>
+        <referencedby refid="namespaceecss_1_1detail_1a840c8525b3312687dfe0694500d6d705" compoundref="Types_8h" startline="237" endline="248">checkTriviality</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a73283188a0b6dd4217de0c1426d45b88" compoundref="Registry_8h" startline="245" endline="273">ecss::Registry&lt; ThreadSafe, Allocator &gt;::warnIfGroupingIgnored</referencedby>
+        <referencedby refid="classecss_1_1Registry_1afbd477361cfd817cc05d22d39e118d5c" compoundref="Registry_8h" startline="217" endline="230">ecss::Registry&lt; ThreadSafe, Allocator &gt;::warnPartialGrouping</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="namespaceecss_1_1detail_1a04691aa21db1957616b51f9d1628c470" prot="public" static="no" nodiscard="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type><ref refid="classecss_1_1detail_1_1AccessScope" kindref="compound">AccessScope</ref></type>
+        <definition>AccessScope ecss::detail::writeScope</definition>
+        <argsstring>(ECSType type)</argsstring>
+        <name>writeScope</name>
+        <qualifiedname>ecss::detail::writeScope</qualifiedname>
+        <param>
+          <type>ECSType</type>
+          <declname>type</declname>
+        </param>
+        <briefdescription>
+<para>Claim <computeroutput>type</computeroutput> for writing until the returned scope dies. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="see"><para><ref refid="classecss_1_1detail_1_1AccessTracker" kindref="compound">AccessTracker</ref> </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="217" column="21" bodyfile="ecss/AccessTracker.h" bodystart="217" bodyend="217"/>
+        <references refid="namespaceecss_1_1detail_1ae3236f11ff52eb13678c4a51f2c2bd37" compoundref="AccessTracker_8h" startline="203" endline="209">accessTypeName</references>
+        <referencedby refid="classecss_1_1Registry_1a8a603f0b45d65870c22cb5be1f41061f" compoundref="Registry_8h" startline="527" endline="530">ecss::Registry&lt; ThreadSafe, Allocator &gt;::addComponent</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a27a26a67d985539cfda27259612df57e" compoundref="Registry_8h" startline="545" endline="564">ecss::Registry&lt; ThreadSafe, Allocator &gt;::addComponents</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a40e500f0b85b8185251ac13f3977a5fa" compoundref="Registry_8h" startline="601" endline="634">ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyComponent</referencedby>
+        <referencedby refid="classecss_1_1Registry_1ace81965843c6f3b518508670707e7148" compoundref="Registry_8h" startline="647" endline="693">ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyComponent</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a4cb56c44ad178c9dcde751c61521c8a7" compoundref="Registry_8h" startline="585" endline="588">ecss::Registry&lt; ThreadSafe, Allocator &gt;::insertBulk</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Iterable view over entities with one main component and optional additional components. </para>
+    </briefdescription>
+    <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>ThreadSafe</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Mirrors <ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> thread-safe flag (affects pinning). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>Allocator</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Allocator used by sectors. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>Ranged</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Whether this view limits iteration to provided ranges. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Main component type (drives iteration order). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>CompTypes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Additional component types optionally retrieved per entity.</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+Semantics:<itemizedlist>
+<listitem><para>Iterates only sectors where main component T is alive.</para>
+</listitem><listitem><para>For each entity id, returns pointers (T*, optional others may be nullptr if absent).</para>
+</listitem><listitem><para>In ranged mode, skips entities outside the filter by jumping to the next range start.</para>
+</listitem></itemizedlist>
+</para>
+<para>Thread safety:<itemizedlist>
+<listitem><para>ThreadSafe=true: Back sector pinning ensures iteration upper bound stability.</para>
+</listitem><listitem><para>Non-main components may be null if not present or not grouped in same array.</para>
+</listitem></itemizedlist>
+</para>
+<para><simplesect kind="warning"><para>Do not cache raw pointers across mutating frames unless externally synchronized. </para>
+</simplesect>
+</para>
+    </detaileddescription>
+    <location file="ecss/Access.h" line="20" column="1"/>
+  </compounddef>
+</doxygen>

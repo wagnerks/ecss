@@ -1,0 +1,156 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="namespaceecss" kind="namespace" language="C++">
+    <compoundname>ecss</compoundname>
+    <innerclass refid="structecss_1_1AllowNonTrivial" prot="public">ecss::AllowNonTrivial</innerclass>
+    <innerclass refid="classecss_1_1ArraysView" prot="public">ecss::ArraysView</innerclass>
+    <innerclass refid="classecss_1_1CommandBuffer" prot="public">ecss::CommandBuffer</innerclass>
+    <innerclass refid="structecss_1_1IdSet" prot="public">ecss::IdSet</innerclass>
+    <innerclass refid="structecss_1_1IdSet_3_01Type_00_01false_01_4" prot="public">ecss::IdSet&lt; Type, false &gt;</innerclass>
+    <innerclass refid="structecss_1_1IdSet_3_01Type_00_01true_01_4" prot="public">ecss::IdSet&lt; Type, true &gt;</innerclass>
+    <innerclass refid="structecss_1_1PinnedComponent" prot="public">ecss::PinnedComponent</innerclass>
+    <innerclass refid="structecss_1_1Ranges" prot="public">ecss::Ranges</innerclass>
+    <innerclass refid="structecss_1_1Read" prot="public">ecss::Read</innerclass>
+    <innerclass refid="classecss_1_1Registry" prot="public">ecss::Registry</innerclass>
+    <innerclass refid="structecss_1_1TypeAccessInfo" prot="public">ecss::TypeAccessInfo</innerclass>
+    <innerclass refid="structecss_1_1Write" prot="public">ecss::Write</innerclass>
+    <innernamespace refid="namespaceecss_1_1detail">ecss::detail</innernamespace>
+    <innernamespace refid="namespaceecss_1_1Memory">ecss::Memory</innernamespace>
+    <innernamespace refid="namespaceecss_1_1Threads">ecss::Threads</innernamespace>
+    <innernamespace refid="namespaceecss_1_1types">ecss::types</innernamespace>
+    <sectiondef kind="typedef">
+      <memberdef kind="typedef" id="Fwd_8h_1a742990a82806a784117c26d411a763df" prot="public" static="no">
+        <type>uint16_t</type>
+        <definition>using ecss::ECSType =  uint16_t</definition>
+        <argsstring></argsstring>
+        <name>ECSType</name>
+        <qualifiedname>ecss::ECSType</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Fwd.h" line="38" column="1" bodyfile="ecss/Fwd.h" bodystart="38" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="Fwd_8h_1a9c110283d18618506796c2abfa5c2816" prot="public" static="no">
+        <type>SectorId</type>
+        <definition>using ecss::EntityId =  SectorId</definition>
+        <argsstring></argsstring>
+        <name>EntityId</name>
+        <qualifiedname>ecss::EntityId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Fwd.h" line="37" column="1" bodyfile="ecss/Fwd.h" bodystart="37" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="Fwd_8h_1a80e7805bdb3d1a51becf031072e8428b" prot="public" static="no">
+        <type>uint32_t</type>
+        <definition>using ecss::SectorId =  uint32_t</definition>
+        <argsstring></argsstring>
+        <name>SectorId</name>
+        <qualifiedname>ecss::SectorId</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Fwd.h" line="36" column="1" bodyfile="ecss/Fwd.h" bodystart="36" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="typedef" id="Types_8h_1a6ea9531caccfc143858f3c78ab93a4e4" prot="public" static="no">
+        <type>void(*)(std::string_view typeName)</type>
+        <definition>using ecss::TrivialityReporter =  void (*)(std::string_view typeName)</definition>
+        <argsstring></argsstring>
+        <name>TrivialityReporter</name>
+        <qualifiedname>ecss::TrivialityReporter</qualifiedname>
+        <briefdescription>
+<para>Receives the name of every component that costs its array the trivial fast paths. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="152" column="1" bodyfile="ecss/Types.h" bodystart="152" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="Fwd_8h_1a9171d6ac1df0a3d45c10667aff2a6b06" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>SectorId</type>
+        <definition>SectorId ecss::INVALID_ID</definition>
+        <argsstring></argsstring>
+        <name>INVALID_ID</name>
+        <qualifiedname>ecss::INVALID_ID</qualifiedname>
+        <initializer>= static_cast&lt;SectorId&gt;(~SectorId{ 0 })</initializer>
+        <briefdescription>
+<para>Reserved id standing for &quot;no sector&quot;. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Fwd.h" line="41" column="20" bodyfile="ecss/Fwd.h" bodystart="41" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="Fwd_8h_1a06dc3b98582fed943a50bc677bb16146" prot="public" static="no" constexpr="yes" mutable="no">
+        <type>uint32_t</type>
+        <definition>uint32_t ecss::INVALID_IDX</definition>
+        <argsstring></argsstring>
+        <name>INVALID_IDX</name>
+        <qualifiedname>ecss::INVALID_IDX</qualifiedname>
+        <initializer>= static_cast&lt;uint32_t&gt;(~uint32_t{ 0 })</initializer>
+        <briefdescription>
+<para>Reserved linear index standing for &quot;not present&quot;. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Fwd.h" line="44" column="20" bodyfile="ecss/Fwd.h" bodystart="44" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="Types_8h_1a6def7994017098df1a1bb757988abe75" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::cpuRelax</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>cpuRelax</name>
+        <qualifiedname>ecss::cpuRelax</qualifiedname>
+        <briefdescription>
+<para>CPU pause / yield hint for short seqlock retry loops. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="18" column="19" bodyfile="ecss/Types.h" bodystart="18" bodyend="32"/>
+      </memberdef>
+      <memberdef kind="function" id="Types_8h_1af07a234faa508e82c6879e59bcca6258" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::setTrivialityReporter</definition>
+        <argsstring>(TrivialityReporter reporter) noexcept</argsstring>
+        <name>setTrivialityReporter</name>
+        <qualifiedname>ecss::setTrivialityReporter</qualifiedname>
+        <param>
+          <type>TrivialityReporter</type>
+          <declname>reporter</declname>
+        </param>
+        <briefdescription>
+<para>Route the triviality report into your own log, or pass nullptr to silence it. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Types.h" line="198" column="13" bodyfile="ecss/Types.h" bodystart="198" bodyend="200"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/Access.h" line="13" column="1"/>
+  </compounddef>
+</doxygen>

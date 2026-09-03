@@ -1,0 +1,559 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Memory::detail::DenseArrays&lt; true &gt;</compoundname>
+    <includes refid="SectorsArray_8h" local="no">SectorsArray.h</includes>
+    <innerclass refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1_1View" prot="public">ecss::Memory::detail::DenseArrays&lt; true &gt;::View</innerclass>
+    <templateparamlist>
+    </templateparamlist>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1abee7b4bfd8455d5ffd000d83706292ce" prot="public" static="no" mutable="yes">
+        <type><ref refid="structecss_1_1Memory_1_1RetireBin" kindref="compound">Memory::RetireBin</ref></type>
+        <definition>Memory::RetireBin ecss::Memory::detail::DenseArrays&lt; true &gt;::bin</definition>
+        <argsstring></argsstring>
+        <name>bin</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::bin</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="400" column="27" bodyfile="ecss/memory/SectorsArray.h" bodystart="400" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a34341ec19aeedcb9275e1cc67fcd5d00" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; SectorId, <ref refid="structecss_1_1Memory_1_1RetireAllocator" kindref="compound">Memory::RetireAllocator</ref>&lt; SectorId &gt; &gt;</type>
+        <definition>std::vector&lt;SectorId, Memory::RetireAllocator&lt;SectorId&gt; &gt; ecss::Memory::detail::DenseArrays&lt; true &gt;::ids</definition>
+        <argsstring></argsstring>
+        <name>ids</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::ids</qualifiedname>
+        <initializer>{ <ref refid="structecss_1_1Memory_1_1RetireAllocator" kindref="compound">Memory::RetireAllocator</ref>&lt;SectorId&gt;{&amp;bin} }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="401" column="13" bodyfile="ecss/memory/SectorsArray.h" bodystart="401" bodyend="401"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a4f60c86c72a7467de7f244289220bb7e" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; uint32_t, <ref refid="structecss_1_1Memory_1_1RetireAllocator" kindref="compound">Memory::RetireAllocator</ref>&lt; uint32_t &gt; &gt;</type>
+        <definition>std::vector&lt;uint32_t, Memory::RetireAllocator&lt;uint32_t&gt; &gt; ecss::Memory::detail::DenseArrays&lt; true &gt;::isAlive</definition>
+        <argsstring></argsstring>
+        <name>isAlive</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::isAlive</qualifiedname>
+        <initializer>{ <ref refid="structecss_1_1Memory_1_1RetireAllocator" kindref="compound">Memory::RetireAllocator</ref>&lt;uint32_t&gt;{&amp;bin} }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="402" column="13" bodyfile="ecss/memory/SectorsArray.h" bodystart="402" bodyend="402"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1ac542542e95602efad2049187c6979b36" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; const uint32_t * &gt;</type>
+        <definition>std::atomic&lt;const uint32_t*&gt; ecss::Memory::detail::DenseArrays&lt; true &gt;::alive_ptr_</definition>
+        <argsstring></argsstring>
+        <name>alive_ptr_</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::alive_ptr_</qualifiedname>
+        <initializer>{nullptr}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="410" column="29" bodyfile="ecss/memory/SectorsArray.h" bodystart="410" bodyend="410"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a2928bd429b0da9cc637e0ba9c2910b2c" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; const SectorId * &gt;</type>
+        <definition>std::atomic&lt;const SectorId*&gt; ecss::Memory::detail::DenseArrays&lt; true &gt;::ids_ptr_</definition>
+        <argsstring></argsstring>
+        <name>ids_ptr_</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::ids_ptr_</qualifiedname>
+        <initializer>{nullptr}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="409" column="29" bodyfile="ecss/memory/SectorsArray.h" bodystart="409" bodyend="409"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1ad50007126a97e7f6ad37b371986bd2bd" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; uint64_t &gt;</type>
+        <definition>std::atomic&lt;uint64_t&gt; ecss::Memory::detail::DenseArrays&lt; true &gt;::seq_</definition>
+        <argsstring></argsstring>
+        <name>seq_</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::seq_</qualifiedname>
+        <initializer>{0}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="408" column="32" bodyfile="ecss/memory/SectorsArray.h" bodystart="408" bodyend="408"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1aca1dbd8ba28380fdfd2807cd08dbb837" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; size_t &gt;</type>
+        <definition>std::atomic&lt;size_t&gt; ecss::Memory::detail::DenseArrays&lt; true &gt;::size_</definition>
+        <argsstring></argsstring>
+        <name>size_</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::size_</qualifiedname>
+        <initializer>{0}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="411" column="38" bodyfile="ecss/memory/SectorsArray.h" bodystart="411" bodyend="411"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1ad58e85b2e73e29bd7ecbe549e208e6fa" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::detail::DenseArrays&lt; true &gt;::clear</definition>
+        <argsstring>(size_t actualSize)</argsstring>
+        <name>clear</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::clear</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>actualSize</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="364" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="364" bodyend="368"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1ae220a1af35467f3417e992d3484d1e42" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::detail::DenseArrays&lt; true &gt;::DenseArrays</definition>
+        <argsstring>()=default</argsstring>
+        <name>DenseArrays</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::DenseArrays</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="229" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a75b1f1d5e5c144c7a1c6c81eedcaa8ac" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::detail::DenseArrays&lt; true &gt;::DenseArrays</definition>
+        <argsstring>(const DenseArrays &amp;other)</argsstring>
+        <name>DenseArrays</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::DenseArrays</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1detail_1_1DenseArrays" kindref="compound">DenseArrays</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="232" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="232" bodyend="237"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a04b74aa9178f88be83f71585a3db50a0" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Memory::detail::DenseArrays&lt; true &gt;::DenseArrays</definition>
+        <argsstring>(DenseArrays &amp;&amp;other) noexcept</argsstring>
+        <name>DenseArrays</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::DenseArrays</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1Memory_1_1detail_1_1DenseArrays" kindref="compound">DenseArrays</ref> &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="250" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="250" bodyend="264"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1af8e0beea3264d4153a03b9931cf0ae8e" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::detail::DenseArrays&lt; true &gt;::drainRetired</definition>
+        <argsstring>()</argsstring>
+        <name>drainRetired</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::drainRetired</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="336" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="336" bodyend="336"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a5102a44620a941d3b38f1fb42d9c1191" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE SectorId &amp;</type>
+        <definition>FORCE_INLINE SectorId &amp; ecss::Memory::detail::DenseArrays&lt; true &gt;::idAt</definition>
+        <argsstring>(size_t idx)</argsstring>
+        <name>idAt</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::idAt</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>idx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="381" column="23" bodyfile="ecss/memory/SectorsArray.h" bodystart="381" bodyend="381"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a1d11dead44634f52a594b157c799565d" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE const SectorId &amp;</type>
+        <definition>FORCE_INLINE const SectorId &amp; ecss::Memory::detail::DenseArrays&lt; true &gt;::idAt</definition>
+        <argsstring>(size_t idx) const</argsstring>
+        <name>idAt</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::idAt</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>idx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="383" column="29" bodyfile="ecss/memory/SectorsArray.h" bodystart="383" bodyend="383"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a29af7f872ce0a77d34103be742b2845a" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE uint32_t &amp;</type>
+        <definition>FORCE_INLINE uint32_t &amp; ecss::Memory::detail::DenseArrays&lt; true &gt;::isAliveAt</definition>
+        <argsstring>(size_t idx)</argsstring>
+        <name>isAliveAt</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::isAliveAt</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>idx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="382" column="23" bodyfile="ecss/memory/SectorsArray.h" bodystart="382" bodyend="382"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1af19fcd86a16ec2ea97bfd2c820f4a848" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE const uint32_t &amp;</type>
+        <definition>FORCE_INLINE const uint32_t &amp; ecss::Memory::detail::DenseArrays&lt; true &gt;::isAliveAt</definition>
+        <argsstring>(size_t idx) const</argsstring>
+        <name>isAliveAt</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::isAliveAt</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>idx</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="384" column="29" bodyfile="ecss/memory/SectorsArray.h" bodystart="384" bodyend="384"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1af467e326ec6168fa117d2e5e46cd1551" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE View</type>
+        <definition>FORCE_INLINE View ecss::Memory::detail::DenseArrays&lt; true &gt;::loadView</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>loadView</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::loadView</qualifiedname>
+        <briefdescription>
+<para>Seqlock snapshot of {ids, isAlive, size}. Hot path (no concurrent writer): 2 x 8B atomic loads (seq) + 3 relaxed loads + 1 compare. On x86-64 all loads compile to plain MOVs and the acquire fence is a no-op. Replaces the previous std::atomic&lt;View&gt; which was mutex-backed (View is 24 bytes, exceeds the 16-byte lock-free boundary on every mainstream platform). Data fields are std::atomic&lt;&gt; with relaxed ordering <ndash/> the seq counter provides all real synchronization; atomics just tell the compiler/TSan these concurrent accesses are intentional (torn reads are detected and retried via the seq comparison). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="293" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="293" bodyend="320"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1ab94d115168c61fe6d6fbfce75c5cfcc5" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="structecss_1_1Memory_1_1detail_1_1DenseArrays" kindref="compound">DenseArrays</ref> &amp;</type>
+        <definition>DenseArrays &amp; ecss::Memory::detail::DenseArrays&lt; true &gt;::operator=</definition>
+        <argsstring>(const DenseArrays &amp;other)</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::operator=</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Memory_1_1detail_1_1DenseArrays" kindref="compound">DenseArrays</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="239" column="13" bodyfile="ecss/memory/SectorsArray.h" bodystart="239" bodyend="247"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a42c524a5a8e25a08952780bf6b44382b" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type><ref refid="structecss_1_1Memory_1_1detail_1_1DenseArrays" kindref="compound">DenseArrays</ref> &amp;</type>
+        <definition>DenseArrays &amp; ecss::Memory::detail::DenseArrays&lt; true &gt;::operator=</definition>
+        <argsstring>(DenseArrays &amp;&amp;other) noexcept</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::operator=</qualifiedname>
+        <param>
+          <type><ref refid="structecss_1_1Memory_1_1detail_1_1DenseArrays" kindref="compound">DenseArrays</ref> &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="266" column="13" bodyfile="ecss/memory/SectorsArray.h" bodystart="266" bodyend="283"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1aa798fccfaf602aae8e2761b55cc151c4" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::detail::DenseArrays&lt; true &gt;::pushBack</definition>
+        <argsstring>(SectorId id, uint32_t alive)</argsstring>
+        <name>pushBack</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::pushBack</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>alive</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="347" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="347" bodyend="350"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a65caeb0563609bf1ba8f1b8ea7e2bf6f" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::detail::DenseArrays&lt; true &gt;::reserve</definition>
+        <argsstring>(size_t newCapacity)</argsstring>
+        <name>reserve</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::reserve</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>newCapacity</declname>
+        </param>
+        <briefdescription>
+<para>Grow the buffers, republishing because they may have moved. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><ref refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a65caeb0563609bf1ba8f1b8ea7e2bf6f" kindref="member">reserve()</ref> changes no element and no size, so it looks like it cannot affect readers <ndash/> but it reallocates, and the old buffers go to the retire bin while the published view still names them. Readers then keep reading memory that is correct only until the next write, and freed once the grace period expires. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="358" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="358" bodyend="362"/>
+        <references refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1aded65dbfa7dcf355872fa06f960477c6" compoundref="SectorsArray_8h" startline="325" endline="334">storeView</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a7edf8de7040a62b9b8916493d06d8f1f" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::detail::DenseArrays&lt; true &gt;::resize</definition>
+        <argsstring>(size_t newSize, size_t actualSize)</argsstring>
+        <name>resize</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::resize</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>newSize</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>actualSize</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="340" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="340" bodyend="344"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a7252f771528675c4b4d948d35b997570" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::detail::DenseArrays&lt; true &gt;::setAliveAt</definition>
+        <argsstring>(size_t idx, uint32_t value)</argsstring>
+        <name>setAliveAt</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::setAliveAt</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>idx</declname>
+        </param>
+        <param>
+          <type>uint32_t</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="396" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="396" bodyend="398"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a39073519c614f44ffa7577278697d337" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::detail::DenseArrays&lt; true &gt;::setGracePeriod</definition>
+        <argsstring>(uint32_t ticks)</argsstring>
+        <name>setGracePeriod</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::setGracePeriod</qualifiedname>
+        <param>
+          <type>uint32_t</type>
+          <declname>ticks</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="338" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="338" bodyend="338"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a165c1ef44e44020beb4413abf31018e2" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::detail::DenseArrays&lt; true &gt;::setIdAt</definition>
+        <argsstring>(size_t idx, SectorId value)</argsstring>
+        <name>setIdAt</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::setIdAt</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>idx</declname>
+        </param>
+        <param>
+          <type>SectorId</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+<para>Publish an id or a liveness word to lock-free readers. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Readers walk these two arrays without any lock, so a writer that assigns to them plainly races even while holding the write lock <ndash/> the lock excludes other writers, not readers. Release stores here pair with the acquire and relaxed loads on the read side. On x86-64 both are a plain MOV; the atomic_ref only constrains the compiler, not the hardware. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="393" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="393" bodyend="395"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1accae80b1f433394189bc637266db788b" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::detail::DenseArrays&lt; true &gt;::shrinkToFit</definition>
+        <argsstring>(size_t actualSize)</argsstring>
+        <name>shrinkToFit</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::shrinkToFit</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>actualSize</declname>
+        </param>
+        <briefdescription>
+<para>Give back spare capacity, republishing because the buffers move. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The hazard <ref refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a65caeb0563609bf1ba8f1b8ea7e2bf6f" kindref="member">reserve()</ref> documents, in the other direction: shrink_to_fit reallocates, the old buffers go to the retire bin, and a view still naming them reads memory that is correct only until the next write and freed once the grace period ends. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="375" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="375" bodyend="379"/>
+        <references refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1aded65dbfa7dcf355872fa06f960477c6" compoundref="SectorsArray_8h" startline="325" endline="334">storeView</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1aded65dbfa7dcf355872fa06f960477c6" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Memory::detail::DenseArrays&lt; true &gt;::storeView</definition>
+        <argsstring>(size_t size)</argsstring>
+        <name>storeView</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::storeView</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>size</declname>
+        </param>
+        <briefdescription>
+<para>Publish a new view. Caller must hold the <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref> write lock so <ref refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1aded65dbfa7dcf355872fa06f960477c6" kindref="member">storeView()</ref> is never called concurrently with itself. <ref refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1af467e326ec6168fa117d2e5e46cd1551" kindref="member">loadView()</ref> is lock-free and may run concurrently with <ref refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1aded65dbfa7dcf355872fa06f960477c6" kindref="member">storeView()</ref>. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="325" column="19" bodyfile="ecss/memory/SectorsArray.h" bodystart="325" bodyend="334"/>
+        <referencedby refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a65caeb0563609bf1ba8f1b8ea7e2bf6f" compoundref="SectorsArray_8h" startline="358" endline="362">reserve</referencedby>
+        <referencedby refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1accae80b1f433394189bc637266db788b" compoundref="SectorsArray_8h" startline="375" endline="379">shrinkToFit</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a601f7977565502dc3569f1aae9e8389f" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE size_t</type>
+        <definition>FORCE_INLINE size_t ecss::Memory::detail::DenseArrays&lt; true &gt;::tickRetired</definition>
+        <argsstring>()</argsstring>
+        <name>tickRetired</name>
+        <qualifiedname>ecss::Memory::detail::DenseArrays&lt; true &gt;::tickRetired</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="337" column="21" bodyfile="ecss/memory/SectorsArray.h" bodystart="337" bodyend="337"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Thread-safe dense arrays with atomic view for lock-free reads. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>ecss::Memory::RetireBin</label>
+        <link refid="structecss_1_1Memory_1_1RetireBin"/>
+      </node>
+      <node id="1">
+        <label>ecss::Memory::detail::DenseArrays&lt; true &gt;</label>
+        <link refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>bin</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="ecss/memory/SectorsArray.h" line="222" column="1" bodyfile="ecss/memory/SectorsArray.h" bodystart="222" bodyend="419"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1ac542542e95602efad2049187c6979b36" prot="private" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>alive_ptr_</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1abee7b4bfd8455d5ffd000d83706292ce" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>bin</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1ad58e85b2e73e29bd7ecbe549e208e6fa" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>clear</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1ae220a1af35467f3417e992d3484d1e42" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>DenseArrays</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a75b1f1d5e5c144c7a1c6c81eedcaa8ac" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>DenseArrays</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a04b74aa9178f88be83f71585a3db50a0" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>DenseArrays</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1af8e0beea3264d4153a03b9931cf0ae8e" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>drainRetired</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a5102a44620a941d3b38f1fb42d9c1191" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>idAt</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a1d11dead44634f52a594b157c799565d" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>idAt</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a34341ec19aeedcb9275e1cc67fcd5d00" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>ids</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a2928bd429b0da9cc637e0ba9c2910b2c" prot="private" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>ids_ptr_</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a4f60c86c72a7467de7f244289220bb7e" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>isAlive</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a29af7f872ce0a77d34103be742b2845a" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>isAliveAt</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1af19fcd86a16ec2ea97bfd2c820f4a848" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>isAliveAt</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1af467e326ec6168fa117d2e5e46cd1551" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>loadView</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1ab94d115168c61fe6d6fbfce75c5cfcc5" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>operator=</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a42c524a5a8e25a08952780bf6b44382b" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>operator=</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1aa798fccfaf602aae8e2761b55cc151c4" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>pushBack</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a65caeb0563609bf1ba8f1b8ea7e2bf6f" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>reserve</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a7edf8de7040a62b9b8916493d06d8f1f" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>resize</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1ad50007126a97e7f6ad37b371986bd2bd" prot="private" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>seq_</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a7252f771528675c4b4d948d35b997570" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>setAliveAt</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a39073519c614f44ffa7577278697d337" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>setGracePeriod</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a165c1ef44e44020beb4413abf31018e2" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>setIdAt</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1accae80b1f433394189bc637266db788b" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>shrinkToFit</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1aca1dbd8ba28380fdfd2807cd08dbb837" prot="private" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>size_</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1aded65dbfa7dcf355872fa06f960477c6" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>storeView</name></member>
+      <member refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1a601f7977565502dc3569f1aae9e8389f" prot="public" virt="non-virtual"><scope>ecss::Memory::detail::DenseArrays&lt; true &gt;</scope><name>tickRetired</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

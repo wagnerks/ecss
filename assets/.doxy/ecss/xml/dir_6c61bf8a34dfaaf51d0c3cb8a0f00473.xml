@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_6c61bf8a34dfaaf51d0c3cb8a0f00473" kind="dir">
+    <compoundname>enum</compoundname>
+    <innerdir refid="dir_77119c9ee9f73a3068ff1c684b7c5138">html</innerdir>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/enum/"/>
+  </compounddef>
+</doxygen>

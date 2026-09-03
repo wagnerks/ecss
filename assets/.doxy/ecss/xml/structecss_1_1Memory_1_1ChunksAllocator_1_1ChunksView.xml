@@ -1,0 +1,65 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Memory_1_1ChunksAllocator_1_1ChunksView" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Memory::ChunksAllocator::ChunksView</compoundname>
+    <includes refid="ChunksAllocator_8h" local="no">ChunksAllocator.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1ChunksAllocator_1_1ChunksView_1aecd8f1f2efe2e514cfeeb5f801faff17" prot="public" static="no" mutable="no">
+        <type>void *const  *</type>
+        <definition>void* const* ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::ChunksView::chunks</definition>
+        <argsstring></argsstring>
+        <name>chunks</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::ChunksView::chunks</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="355" column="12" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="355" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1ChunksAllocator_1_1ChunksView_1a4578f3746b9d712fb74e4143e20b5d97" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::ChunksView::count</definition>
+        <argsstring></argsstring>
+        <name>count</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::ChunksView::count</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="356" column="14" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="356" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Memory_1_1ChunksAllocator_1_1ChunksView_1acdb70637bada34a2fe10fad30c78d924" prot="public" static="no" mutable="no">
+        <type>uint16_t</type>
+        <definition>uint16_t ecss::Memory::ChunksAllocator&lt; ChunkCapacity &gt;::ChunksView::sectorSize</definition>
+        <argsstring></argsstring>
+        <name>sectorSize</name>
+        <qualifiedname>ecss::Memory::ChunksAllocator::ChunksView::sectorSize</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/ChunksAllocator.h" line="357" column="14" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="357" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Consistent {chunk table, count} pair for lock-free readers. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/ChunksAllocator.h" line="354" column="1" bodyfile="ecss/memory/ChunksAllocator.h" bodystart="354" bodyend="358"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1ChunksView_1aecd8f1f2efe2e514cfeeb5f801faff17" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::ChunksView</scope><name>chunks</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1ChunksView_1a4578f3746b9d712fb74e4143e20b5d97" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::ChunksView</scope><name>count</name></member>
+      <member refid="structecss_1_1Memory_1_1ChunksAllocator_1_1ChunksView_1acdb70637bada34a2fe10fad30c78d924" prot="public" virt="non-virtual"><scope>ecss::Memory::ChunksAllocator::ChunksView</scope><name>sectorSize</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

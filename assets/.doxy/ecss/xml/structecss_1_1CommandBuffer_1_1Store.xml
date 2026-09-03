@@ -1,0 +1,215 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1CommandBuffer_1_1Store" kind="struct" language="C++" prot="private" final="yes">
+    <compoundname>ecss::CommandBuffer::Store</compoundname>
+    <basecompoundref prot="public" virt="non-virtual">ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::IStore</basecompoundref>
+    <innerclass refid="structecss_1_1CommandBuffer_1_1Store_1_1Latest" prot="private">ecss::CommandBuffer::Store::Latest</innerclass>
+    <templateparamlist>
+      <param>
+        <type>typename T</type>
+      </param>
+    </templateparamlist>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1CommandBuffer_1_1Store_1a0b2b738140429cc1a3e359f48dae130a" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; std::pair&lt; EntityId, T &gt; &gt;</type>
+        <definition>std::vector&lt;std::pair&lt;EntityId, T&gt; &gt; ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::Store&lt; T &gt;::adds</definition>
+        <argsstring></argsstring>
+        <name>adds</name>
+        <qualifiedname>ecss::CommandBuffer::Store::adds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Adds are held in the shape insertBulk already takes, so the common case can hand them straight over. The sequence numbers sit alongside and are only consulted when the same type was both added and removed in one buffer. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="173" column="13" bodyfile="ecss/CommandBuffer.h" bodystart="173" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1CommandBuffer_1_1Store_1a044ab5cd8e5bae891c20c0c99c628d4b" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; uint64_t &gt;</type>
+        <definition>std::vector&lt;uint64_t&gt; ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::Store&lt; T &gt;::addSeq</definition>
+        <argsstring></argsstring>
+        <name>addSeq</name>
+        <qualifiedname>ecss::CommandBuffer::Store::addSeq</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="174" column="13" bodyfile="ecss/CommandBuffer.h" bodystart="174" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1CommandBuffer_1_1Store_1a1a9bfb04cf9d4ebbd930624152bd1d84" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; EntityId &gt;</type>
+        <definition>std::vector&lt;EntityId&gt; ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::Store&lt; T &gt;::removals</definition>
+        <argsstring></argsstring>
+        <name>removals</name>
+        <qualifiedname>ecss::CommandBuffer::Store::removals</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="175" column="13" bodyfile="ecss/CommandBuffer.h" bodystart="175" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1CommandBuffer_1_1Store_1a3e7f84fb9a7c06af1507208cf975349d" prot="public" static="no" mutable="no">
+        <type>std::vector&lt; uint64_t &gt;</type>
+        <definition>std::vector&lt;uint64_t&gt; ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::Store&lt; T &gt;::removeSeq</definition>
+        <argsstring></argsstring>
+        <name>removeSeq</name>
+        <qualifiedname>ecss::CommandBuffer::Store::removeSeq</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="176" column="13" bodyfile="ecss/CommandBuffer.h" bodystart="176" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="structecss_1_1CommandBuffer_1_1Store_1a25e5ac763899e1012652c77c28b9b082" prot="private" static="no" mutable="no">
+        <type>std::unordered_map&lt; EntityId, Latest &gt;</type>
+        <definition>std::unordered_map&lt;EntityId, Latest&gt; ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::Store&lt; T &gt;::mLatest</definition>
+        <argsstring></argsstring>
+        <name>mLatest</name>
+        <qualifiedname>ecss::CommandBuffer::Store::mLatest</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="243" column="20" bodyfile="ecss/CommandBuffer.h" bodystart="243" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1CommandBuffer_1_1Store_1a48f8035591a914df2a5ce2d557ea78a9" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; std::pair&lt; EntityId, T &gt; &gt;</type>
+        <definition>std::vector&lt;std::pair&lt;EntityId, T&gt; &gt; ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::Store&lt; T &gt;::mLiveAdds</definition>
+        <argsstring></argsstring>
+        <name>mLiveAdds</name>
+        <qualifiedname>ecss::CommandBuffer::Store::mLiveAdds</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="244" column="13" bodyfile="ecss/CommandBuffer.h" bodystart="244" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1CommandBuffer_1_1Store_1adc68b327e70810f342c7801f673003ab" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; EntityId &gt;</type>
+        <definition>std::vector&lt;EntityId&gt; ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::Store&lt; T &gt;::mLiveRemovals</definition>
+        <argsstring></argsstring>
+        <name>mLiveRemovals</name>
+        <qualifiedname>ecss::CommandBuffer::Store::mLiveRemovals</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="245" column="13" bodyfile="ecss/CommandBuffer.h" bodystart="245" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1CommandBuffer_1_1Store_1a7203dc215503ee2f26c9ad8f73ec0076" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::Store&lt; T &gt;::apply</definition>
+        <argsstring>(Reg &amp;registry) override</argsstring>
+        <name>apply</name>
+        <qualifiedname>ecss::CommandBuffer::Store::apply</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Registry" kindref="compound">Reg</ref> &amp;</type>
+          <declname>registry</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="178" column="6" bodyfile="ecss/CommandBuffer.h" bodystart="178" bodyend="205"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1CommandBuffer_1_1Store_1a9e968c7a2fb8e0bc703ac94e9c8541f8" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::Store&lt; T &gt;::clear</definition>
+        <argsstring>() override</argsstring>
+        <name>clear</name>
+        <qualifiedname>ecss::CommandBuffer::Store::clear</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="207" column="6" bodyfile="ecss/CommandBuffer.h" bodystart="207" bodyend="214"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1CommandBuffer_1_1Store_1a1dc77f292522426ef3b46339e6c5143b" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::Store&lt; T &gt;::empty</definition>
+        <argsstring>() const override</argsstring>
+        <name>empty</name>
+        <qualifiedname>ecss::CommandBuffer::Store::empty</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="215" column="6" bodyfile="ecss/CommandBuffer.h" bodystart="215" bodyend="215"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1CommandBuffer_1_1Store_1aa999bf90d1c2576be1e792aa0c1867e7" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::Store&lt; T &gt;::size</definition>
+        <argsstring>() const override</argsstring>
+        <name>size</name>
+        <qualifiedname>ecss::CommandBuffer::Store::size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="216" column="8" bodyfile="ecss/CommandBuffer.h" bodystart="216" bodyend="216"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="structecss_1_1CommandBuffer_1_1Store_1ab5e4e3ba3b6ad4a36ed3ef74bdb198b6" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::Store&lt; T &gt;::resolveByLastRecorded</definition>
+        <argsstring>()</argsstring>
+        <name>resolveByLastRecorded</name>
+        <qualifiedname>ecss::CommandBuffer::Store::resolveByLastRecorded</qualifiedname>
+        <briefdescription>
+<para>Both an add and a removal were recorded for this type: keep, per entity, whichever was recorded last. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="221" column="6" bodyfile="ecss/CommandBuffer.h" bodystart="221" bodyend="240"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/CommandBuffer.h" line="169" column="1" bodyfile="ecss/CommandBuffer.h" bodystart="169" bodyend="246"/>
+    <listofallmembers>
+      <member refid="structecss_1_1CommandBuffer_1_1Store_1a0b2b738140429cc1a3e359f48dae130a" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer::Store</scope><name>adds</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1Store_1a044ab5cd8e5bae891c20c0c99c628d4b" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer::Store</scope><name>addSeq</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1Store_1a7203dc215503ee2f26c9ad8f73ec0076" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer::Store</scope><name>apply</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1Store_1a9e968c7a2fb8e0bc703ac94e9c8541f8" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer::Store</scope><name>clear</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1Store_1a1dc77f292522426ef3b46339e6c5143b" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer::Store</scope><name>empty</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1Store_1a25e5ac763899e1012652c77c28b9b082" prot="private" virt="non-virtual"><scope>ecss::CommandBuffer::Store</scope><name>mLatest</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1Store_1a48f8035591a914df2a5ce2d557ea78a9" prot="private" virt="non-virtual"><scope>ecss::CommandBuffer::Store</scope><name>mLiveAdds</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1Store_1adc68b327e70810f342c7801f673003ab" prot="private" virt="non-virtual"><scope>ecss::CommandBuffer::Store</scope><name>mLiveRemovals</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1Store_1a1a9bfb04cf9d4ebbd930624152bd1d84" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer::Store</scope><name>removals</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1Store_1a3e7f84fb9a7c06af1507208cf975349d" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer::Store</scope><name>removeSeq</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1Store_1ab5e4e3ba3b6ad4a36ed3ef74bdb198b6" prot="private" virt="non-virtual"><scope>ecss::CommandBuffer::Store</scope><name>resolveByLastRecorded</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1Store_1aa999bf90d1c2576be1e792aa0c1867e7" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer::Store</scope><name>size</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1IStore_1a66d26260c94d7e067fd2b54d18e2ae8e" prot="public" virt="virtual"><scope>ecss::CommandBuffer::Store</scope><name>~IStore</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

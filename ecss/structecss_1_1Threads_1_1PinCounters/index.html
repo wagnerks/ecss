@@ -1,0 +1,4395 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://wagnerks.github.io/ecss/ecss/structecss_1_1Threads_1_1PinCounters/">
+      
+      
+        <link rel="prev" href="../namespaceecss_1_1Threads/">
+      
+      
+        <link rel="next" href="../structecss_1_1Threads_1_1PinCounters_1_1WriterIntent/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../img/logo.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>PinCounters - ECSS Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="grey">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#struct-ecssthreadspincounters" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="ECSS Documentation" class="md-header__button md-logo" aria-label="ECSS Documentation" data-md-component="logo">
+      
+  <img src="../../img/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ECSS Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              PinCounters
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="grey"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="grey"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7M9 21v-1h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1m3-17a5 5 0 0 0-5 5c0 2.05 1.23 3.81 3 4.58V16h4v-2.42c1.77-.77 3-2.53 3-4.58a5 5 0 0 0-5-5"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/wagnerks/ecss" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wagnerks/ecss
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../getting_started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../architecture/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Architecture Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../examples/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Examples
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../batching/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Batching & Deferral
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../benchmarks/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Benchmarks
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../annotated/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="ECSS Documentation" class="md-nav__button md-logo" aria-label="ECSS Documentation" data-md-component="logo">
+      
+  <img src="../../img/logo.svg" alt="logo">
+
+    </a>
+    ECSS Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/wagnerks/ecss" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wagnerks/ecss
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../batching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Batching & Deferral
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../annotated/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../namespaceecss/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ecss
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_8_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_8_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ecss
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1AllowNonTrivial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AllowNonTrivial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../classecss_1_1ArraysView/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ArraysView
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_2" id="__nav_8_2_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_8_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ArraysView
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1ArraysView_1_1EndIterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EndIterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1ArraysView_1_1Iterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1CommandBuffer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CommandBuffer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1IdSet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IdSet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1IdSet_3_01Type_00_01false_01_4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IdSet&lt;Type,false&gt;
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1IdSet_3_01Type_00_01true_01_4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IdSet&lt;Type,true&gt;
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../namespaceecss_1_1Memory/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Memory
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_7" id="__nav_8_2_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_8_2_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Memory
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_7_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../structecss_1_1Memory_1_1ChunksAllocator/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ChunksAllocator
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_7_1" id="__nav_8_2_7_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_8_2_7_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_7_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ChunksAllocator
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1ChunksAllocator_1_1ChunksView/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ChunksView
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cursor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1ChunksAllocator_1_1RangesCursor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RangesCursor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1Memory_1_1DenseTypeIdGenerator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DenseTypeIdGenerator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_7_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../structecss_1_1Memory_1_1LayoutData/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LayoutData
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_7_3" id="__nav_8_2_7_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_8_2_7_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_7_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    LayoutData
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1LayoutData_1_1FunctionTable/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FunctionTable
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1PinnedSector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PinnedSector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1RetireAllocator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RetireAllocator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1RetireBin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RetireBin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../namespaceecss_1_1Memory_1_1Sector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_7_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../structecss_1_1Memory_1_1SectorLayoutMeta/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SectorLayoutMeta
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_7_8" id="__nav_8_2_7_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_8_2_7_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_7_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    SectorLayoutMeta
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_7_9" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../classecss_1_1Memory_1_1SectorsArray/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SectorsArray
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_7_9" id="__nav_8_2_7_9_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_8_2_7_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_7_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    SectorsArray
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1Memory_1_1SectorsArray_1_1Iterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IteratorAlive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RangedIterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1SectorsArray_1_1SlotInfo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SlotInfo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1SectorsArray_1_1StructuralEdit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    StructuralEdit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1StructuralHold/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    StructuralHold
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_7_11" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../namespaceecss_1_1Memory_1_1detail/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    detail
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_7_11" id="__nav_8_2_7_11_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_8_2_7_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_7_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    detail
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1DenseArrays/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DenseArrays
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_7_11_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01false_01_4/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DenseArrays&lt;false&gt;
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_7_11_2" id="__nav_8_2_7_11_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_8_2_7_11_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_7_11_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    DenseArrays&lt;false&gt;
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01false_01_4_1_1View/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    View
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_7_11_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DenseArrays&lt;true&gt;
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_7_11_3" id="__nav_8_2_7_11_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_8_2_7_11_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_7_11_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    DenseArrays&lt;true&gt;
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1_1View/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    View
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1SlotInfo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SlotInfo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1SparseMap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SparseMap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1SparseMap_3_01false_01_4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SparseMap&lt;false&gt;
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_7_11_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SparseMap&lt;true&gt;
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_7_11_7" id="__nav_8_2_7_11_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_8_2_7_11_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_7_11_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    SparseMap&lt;true&gt;
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1_1SparseView/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SparseView
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1PinnedComponent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PinnedComponent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Ranges/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ranges
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Read/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_11" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../classecss_1_1Registry/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_11" id="__nav_8_2_11_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_8_2_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Registry
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Registry_1_1ComponentAccess/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ComponentAccess
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_12" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../namespaceecss_1_1Threads/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Threads
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_12" id="__nav_8_2_12_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_8_2_12_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_8_2_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Threads
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_12_1" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="./" class="md-nav__link md-nav__link--active">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PinCounters
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link md-nav__link--active" for="__nav_8_2_12_1" id="__nav_8_2_12_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_8_2_12_1_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_8_2_12_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    PinCounters
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Threads_1_1PinCounters_1_1WriterIntent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    WriterIntent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Threads_1_1SelfWaitDebug/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SelfWaitDebug
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1TypeAccessInfo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TypeAccessInfo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Write/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Write
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_15" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../namespaceecss_1_1detail/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    detail
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_15" id="__nav_8_2_15_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_8_2_15_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_15">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    detail
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_15_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../classecss_1_1detail_1_1AccessGuard/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AccessGuard
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_15_1" id="__nav_8_2_15_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_8_2_15_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_15_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    AccessGuard
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1detail_1_1AccessGuard_1_1Entry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1detail_1_1AccessScope/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AccessScope
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1detail_1_1AccessTracker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AccessTracker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1detail_1_1IdSetLayout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IdSetLayout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1detail_1_1NonTrivialComponent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NonTrivialComponent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_16" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../namespaceecss_1_1types/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    types
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_16" id="__nav_8_2_16_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_8_2_16_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_16">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    types
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1types_1_1EmptyBase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EmptyBase
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1types_1_1OffsetArray/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OffsetArray
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1CommandBuffer_1_1IStore/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IStore
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1CommandBuffer_1_1Store/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Store
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1CommandBuffer_1_1Store_1_1Latest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1IdSet_3_01Type_00_01true_01_4_1_1Table/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Table
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1ChunksAllocator_1_1RangesCursor_1_1SpanInfo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SpanInfo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1RetireBin_1_1RetiredBlock/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RetiredBlock
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Registry_1_1Registered/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registered
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Threads_1_1PinCounters_1_1HoldShard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HoldShard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Threads_1_1PinCounters_1_1PinShard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PinShard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Threads_1_1PinCounters_1_1Table/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Table
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Threads_1_1PinCounters_1_1WaiterScope/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    WaiterScope
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1detail_1_1AccessGuard_1_1Depth/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Depth
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1detail_1_1AccessTracker_1_1State/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../namespacestd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    std
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Classes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public Functions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-static-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public Static Functions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#detailed-description" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detailed Description
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-functions-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public Functions Documentation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Public Functions Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#function-pincounters-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function PinCounters [1/2]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-pincounters-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function PinCounters [2/2]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-acquirehold" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function acquireHold
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-anyhold" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function anyHold
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-anypin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function anyPin
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-canmovesector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function canMoveSector
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-hasanypinnedsector" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function hasAnyPinnedSector
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-hasanypins" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function hasAnyPins
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-isarraylocked" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function isArrayLocked
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-ispinned" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function isPinned
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-operator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function operator=
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-pin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function pin
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-releasehold" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function releaseHold
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-reserve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function reserve
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-unpin" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function unpin
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-waitforwriterstopass" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function waitForWritersToPass
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-waituntilchangeable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function waitUntilChangeable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-waituntilquiescent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function waitUntilQuiescent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-writerswaiting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function writersWaiting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-pincounters" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function ~PinCounters
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-static-functions-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public Static Functions Documentation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Public Static Functions Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#function-addoutstanding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function addOutstanding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-dropoutstanding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function dropOutstanding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-reportstuckwait" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function reportStuckWait
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-threadholdsnothing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function threadHoldsNothing
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-threadoutstanding" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function threadOutstanding
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-waitdeadline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function waitDeadline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-waitordeadline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function waitOrDeadline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-waittimeoutseconds" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function waitTimeoutSeconds
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="struct-ecssthreadspincounters">Struct ecss::Threads::PinCounters<a class="headerlink" href="#struct-ecssthreadspincounters" title="Permanent link">&para;</a></h1>
+<p><a href="../annotated/"><strong>ClassList</strong></a> <strong>&gt;</strong> <a href="../namespaceecss/"><strong>ecss</strong></a> <strong>&gt;</strong> <a href="../namespaceecss_1_1Threads/"><strong>Threads</strong></a> <strong>&gt;</strong> <a href="./"><strong>PinCounters</strong></a></p>
+<p><em>Per-sector pin tracking &amp; synchronization for safe structural mutations.</em> <a href="#detailed-description">More...</a></p>
+<ul>
+<li><code>#include &lt;PinCounters.h&gt;</code></li>
+</ul>
+<h2 id="classes">Classes<a class="headerlink" href="#classes" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Type</th>
+<th style="text-align: left;">Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">struct</td>
+<td style="text-align: left;"><a href="../structecss_1_1Threads_1_1PinCounters_1_1WriterIntent/"><strong>WriterIntent</strong></a> <br><em>RAII announcement that a writer wants the array to go quiet.</em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="public-functions">Public Functions<a class="headerlink" href="#public-functions" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Type</th>
+<th style="text-align: left;">Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: left;"><a href="#function-pincounters-12"><strong>PinCounters</strong></a> () = default<br></td>
+</tr>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: left;"><a href="#function-pincounters-22"><strong>PinCounters</strong></a> (const <a href="./"><strong>PinCounters</strong></a> &amp;) = delete<br></td>
+</tr>
+<tr>
+<td style="text-align: right;">uint32_t</td>
+<td style="text-align: left;"><a href="#function-acquirehold"><strong>acquireHold</strong></a> () noexcept const<br><em>Take a structural hold: no sector may be relocated while one is outstanding.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE bool</td>
+<td style="text-align: left;"><a href="#function-anyhold"><strong>anyHold</strong></a> () noexcept const<br></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE bool</td>
+<td style="text-align: left;"><a href="#function-anypin"><strong>anyPin</strong></a> () noexcept const<br><em>True if any structural hold is outstanding. Sums the shards, so it is deliberately not something to spin on</em>  <em>waitUntilQuiescent samples it once per wait, not in a tight loop. @thread_safety Internally synchronized. Sums the shards, so it is a handful of loads rather than one. Deliberately not something to spin on.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">bool</td>
+<td style="text-align: left;"><a href="#function-canmovesector"><strong>canMoveSector</strong></a> (SectorId sectorId) const<br><em>Exact test: may sector</em> <code>sectorId</code> <em>be destroyed / overwritten in place?</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE bool</td>
+<td style="text-align: left;"><a href="#function-hasanypinnedsector"><strong>hasAnyPinnedSector</strong></a> () noexcept const<br><em>True if any sector on this array carries a pin. Says nothing about holds.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE bool</td>
+<td style="text-align: left;"><a href="#function-hasanypins"><strong>hasAnyPins</strong></a> () noexcept const<br><em>True if any sector is currently pinned (exact).</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE bool</td>
+<td style="text-align: left;"><a href="#function-isarraylocked"><strong>isArrayLocked</strong></a> () const<br><em>Alias of</em> <a href="./#function-hasanypins"><em><strong>hasAnyPins()</strong></em></a> <em>: no sector may be relocated while this is true. @thread_safety Internally synchronized. Alias of</em><a href="./#function-hasanypins"><em><strong>hasAnyPins()</strong></em></a> <em>.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE bool</td>
+<td style="text-align: left;"><a href="#function-ispinned"><strong>isPinned</strong></a> (SectorId id) const<br><em>Test whether a sector presently has a non-zero pin counter. @thread_safety Internally synchronized. One acquire load; true at the moment of the call.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;"><a href="./"><strong>PinCounters</strong></a> &amp;</td>
+<td style="text-align: left;"><a href="#function-operator"><strong>operator=</strong></a> (const <a href="./"><strong>PinCounters</strong></a> &amp;) = delete<br></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-pin"><strong>pin</strong></a> (SectorId id) <br><em>Increment the pin counter for sector id.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-releasehold"><strong>releaseHold</strong></a> (uint32_t shard) noexcept const<br></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-reserve"><strong>reserve</strong></a> (SectorId maxId) <br><em>Pre-allocate counter blocks covering ids up to and including</em> <code>maxId</code> <em>. @thread_safety Internally synchronized. Touches the counter for maxId, which allocates the blocks up to it under the growth mutex. Doing it up front keeps that allocation off the first pin.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-unpin"><strong>unpin</strong></a> (SectorId id) <br><em>Decrement the pin counter for sector id; wakes writers on the last unpin.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-waitforwriterstopass"><strong>waitForWritersToPass</strong></a> () noexcept const<br><em>Block until no writer is waiting on this array.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-waituntilchangeable"><strong>waitUntilChangeable</strong></a> (SectorId sid) const<br><em>Block until sector</em> <code>sid</code> <em>carries no pins.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-waituntilquiescent"><strong>waitUntilQuiescent</strong></a> () const<br><em>Block until no sector at all is pinned.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE bool</td>
+<td style="text-align: left;"><a href="#function-writerswaiting"><strong>writersWaiting</strong></a> () noexcept const<br><em>True while a writer is waiting for pins to drain.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: left;"><a href="#function-pincounters"><strong>~PinCounters</strong></a> () <br></td>
+</tr>
+</tbody>
+</table>
+<h2 id="public-static-functions">Public Static Functions<a class="headerlink" href="#public-static-functions" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Type</th>
+<th style="text-align: left;">Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-addoutstanding"><strong>addOutstanding</strong></a> () noexcept<br><em>@thread_safety Internally synchronized. Thread-local.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-dropoutstanding"><strong>dropOutstanding</strong></a> () noexcept<br><em>@thread_safety Internally synchronized. Thread-local; clamped, see</em> <a href="./#function-threadoutstanding"><em><strong>threadOutstanding()</strong></em></a> <em>.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-reportstuckwait"><strong>reportStuckWait</strong></a> (const char * what) noexcept<br><em>Report a wait that never ended, and stop.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">bool</td>
+<td style="text-align: left;"><a href="#function-threadholdsnothing"><strong>threadHoldsNothing</strong></a> () noexcept<br><em>True when this thread holds no pin and no hold anywhere. @thread_safety Internally synchronized. Thread-local.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">int &amp;</td>
+<td style="text-align: left;"><a href="#function-threadoutstanding"><strong>threadOutstanding</strong></a> () noexcept<br><em>How many pins and holds this thread has outstanding, on any array.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">std::chrono::steady_clock::time_point</td>
+<td style="text-align: left;"><a href="#function-waitdeadline"><strong>waitDeadline</strong></a> (bool &amp; bounded) noexcept<br><em>The deadline a wait starting now should honour.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">bool</td>
+<td style="text-align: left;"><a href="#function-waitordeadline"><strong>waitOrDeadline</strong></a> (const std::atomic&lt; T &gt; &amp; word, T expected, std::chrono::steady_clock::time_point deadline, bool bounded) noexcept<br><em>Wait for</em> <code>word</code> <em>to stop reading</em><code>expected</code> <em>, or give up at the deadline.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">std::atomic&lt; uint32_t &gt; &amp;</td>
+<td style="text-align: left;"><a href="#function-waittimeoutseconds"><strong>waitTimeoutSeconds</strong></a> () noexcept<br><em>How long a structural wait may run before it is treated as a deadlock.</em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="detailed-description">Detailed Description<a class="headerlink" href="#detailed-description" title="Permanent link">&para;</a></h2>
+<p>Two predicates, both exact  neither can ever report "safe" while a pin is live:
+* isPinned(id) / waitUntilChangeable(id): that one sector is not in use. Sufficient before destroying or overwriting that sector <em>in place</em>.
+* <a href="./#function-hasanypins"><strong>hasAnyPins()</strong></a> / <a href="./#function-waituntilquiescent"><strong>waitUntilQuiescent()</strong></a>: no sector is in use at all. Required before <em>relocating</em> sectors (middle-insert shift, defragment, clear, copy, move), because relocation moves sectors the caller never named.</p>
+<p>Why there is no longer a "highest pinned id": The previous design kept maxPinnedSector, recomputed from a hierarchical bit mask over pinned ids, and let a writer proceed when its target id was above it. That value could be under-reported: the bitmask clears a parent bit before re-checking the child word, so a concurrent highestSet() could miss a whole subtree and return a lower id  or -1  while sectors were still pinned, and the writer then relocated or destroyed pinned data. Both predicates below are single atomic loads over counters that were already maintained exactly, so the correct version is also the cheaper one: pin/unpin no longer touch the bitmask (whose ensurePath() took a global unique_lock on every first pin) and no longer walk it to recompute a maximum.</p>
+<p>Invariants:
+* A sector is "pinned" while its counter &gt; 0.
+* the pin shards sum to the number of distinct sectors whose counter &gt; 0.
+* that sum is 0 &lt;=&gt; every per-sector counter is 0.</p>
+<p>Locking: <a href="./#function-pin"><strong>pin()</strong></a>/unpin() take no locks at all. The counter block table grows under a mutex and is published as an immutable snapshot, so lookup is lock-free.</p>
+<p>Ordering: pins are always taken while holding at least the owning array shared lock, and writers test these predicates under its unique lock, so the array mutex supplies the happens-before between "reader pinned" and "writer looked"; the atomics here only need to be individually coherent. <a href="./#function-unpin"><strong>unpin()</strong></a> runs without any lock, which is why the wait primitives use atomic wait/notify. @thread_safety Internally synchronized. Every member is atomic and takes no lock; readers pin and hold without holding the array's mutex at all, which is why writers publish a structural epoch and re-check rather than trusting the lock.</p>
+<p>The wait members are the exception and block by design:
+* waitUntilChangeable(id) waits for one sector's pins.
+* <a href="./#function-waituntilquiescent"><strong>waitUntilQuiescent()</strong></a> waits for every pin and every hold on the array. Neither can be satisfied by the thread that is itself holding what they wait for; debug builds assert on that, release builds hang. </p>
+<p><strong>See also:</strong> SectorsArray </p>
+<h2 id="public-functions-documentation">Public Functions Documentation<a class="headerlink" href="#public-functions-documentation" title="Permanent link">&para;</a></h2>
+<h3 id="function-pincounters-12">function PinCounters [1/2]<a class="headerlink" href="#function-pincounters-12" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">PinCounters</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">default</span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-pincounters-22">function PinCounters [2/2]<a class="headerlink" href="#function-pincounters-22" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">PinCounters</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">PinCounters</span><span class="w"> </span><span class="o">&amp;</span>
+<span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">delete</span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-acquirehold">function acquireHold<a class="headerlink" href="#function-acquirehold" title="Permanent link">&para;</a></h3>
+<p><em>Take a structural hold: no sector may be relocated while one is outstanding.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">acquireHold</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">const</span>
+</code></pre></div>
+
+<p>This is a different question from "is this sector busy". A view needs the array not to be compacted underneath it; it does not care which sector it names. It used to express that by pinning the back sector, so every view on every thread contended on one sector counter. Holds are keyed by thread instead, so they spread: measured 25.7M -&gt; 199M acquire/release pairs per second at four threads.</p>
+<p><strong>Returns:</strong></p>
+<p>the shard to hand back to <a href="./#function-releasehold"><strong>releaseHold()</strong></a>. @thread_safety Internally synchronized. One atomic increment on a per-thread shard, so holders on different threads do not share a cache line. Never waits. </p>
+<hr>
+
+<h3 id="function-anyhold">function anyHold<a class="headerlink" href="#function-anyhold" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">anyHold</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">const</span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-anypin">function anyPin<a class="headerlink" href="#function-anypin" title="Permanent link">&para;</a></h3>
+<p><em>True if any structural hold is outstanding. Sums the shards, so it is deliberately not something to spin on</em>  <em>waitUntilQuiescent samples it once per wait, not in a tight loop. @thread_safety Internally synchronized. Sums the shards, so it is a handful of loads rather than one. Deliberately not something to spin on.</em></p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">anyPin</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">const</span>
+</code></pre></div>
+
+<p>True if any sector on this array carries a pin.</p>
+<p>Inexact by construction, in the safe direction: a pin taken while the loop is midway through can be missed. The structural epoch is what closes that  a writer publishes it before asking, and a pinner re-reads it after pinning and starts over if it moved. anyHold() is inexact the same way, for the same reason. @thread_safety Internally synchronized. One load per shard. </p>
+<hr>
+
+<h3 id="function-canmovesector">function canMoveSector<a class="headerlink" href="#function-canmovesector" title="Permanent link">&para;</a></h3>
+<p><em>Exact test: may sector</em> <code>sectorId</code> <em>be destroyed / overwritten in place?</em></p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">canMoveSector</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">SectorId</span><span class="w"> </span><span class="n">sectorId</span>
+<span class="p">)</span><span class="w"> </span><span class="k">const</span>
+</code></pre></div>
+
+<p><strong>Note:</strong></p>
+<p>Says nothing about <em>other</em> sectors. Anything that relocates sectors must use <a href="./#function-hasanypins"><strong>hasAnyPins()</strong></a> / <a href="./#function-waituntilquiescent"><strong>waitUntilQuiescent()</strong></a> instead. @thread_safety Internally synchronized. One seq_cst load. Meaningful only after the caller has published its structural epoch; before that it is a stale sample. </p>
+<hr>
+
+<h3 id="function-hasanypinnedsector">function hasAnyPinnedSector<a class="headerlink" href="#function-hasanypinnedsector" title="Permanent link">&para;</a></h3>
+<p><em>True if any sector on this array carries a pin. Says nothing about holds.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">hasAnyPinnedSector</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">const</span>
+</code></pre></div>
+
+<p>An empty sum across the pin shards is exactly "every per-sector counter is zero", so a writer that only changes named sectors in place can ask this one question instead of asking about each id it named. Not enough to relocate anything  that needs <a href="./#function-hasanypins"><strong>hasAnyPins()</strong></a>, which counts holds too. @thread_safety Internally synchronized. One seq_cst load. </p>
+<hr>
+
+<h3 id="function-hasanypins">function hasAnyPins<a class="headerlink" href="#function-hasanypins" title="Permanent link">&para;</a></h3>
+<p><em>True if any sector is currently pinned (exact).</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">hasAnyPins</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">const</span>
+</code></pre></div>
+
+<p>The relocation gate: true if anything at all forbids moving sectors. @thread_safety Internally synchronized. One load plus anyHold(). This is the gate for relocating sectors, so it errs by over-reporting and never the other way. </p>
+<hr>
+
+<h3 id="function-isarraylocked">function isArrayLocked<a class="headerlink" href="#function-isarraylocked" title="Permanent link">&para;</a></h3>
+<p><em>Alias of</em> <a href="./#function-hasanypins"><em><strong>hasAnyPins()</strong></em></a> <em>: no sector may be relocated while this is true. @thread_safety Internally synchronized. Alias of</em><a href="./#function-hasanypins"><em><strong>hasAnyPins()</strong></em></a> <em>.</em></p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">isArrayLocked</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-ispinned">function isPinned<a class="headerlink" href="#function-ispinned" title="Permanent link">&para;</a></h3>
+<p><em>Test whether a sector presently has a non-zero pin counter. @thread_safety Internally synchronized. One acquire load; true at the moment of the call.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">isPinned</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">SectorId</span><span class="w"> </span><span class="n">id</span>
+<span class="p">)</span><span class="w"> </span><span class="k">const</span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-operator">function operator=<a class="headerlink" href="#function-operator" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="n">PinCounters</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="k">operator</span><span class="o">=</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">PinCounters</span><span class="w"> </span><span class="o">&amp;</span>
+<span class="p">)</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="k">delete</span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-pin">function pin<a class="headerlink" href="#function-pin" title="Permanent link">&para;</a></h3>
+<p><em>Increment the pin counter for sector id.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">pin</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">SectorId</span><span class="w"> </span><span class="n">id</span>
+<span class="p">)</span><span class="w"> </span>
+</code></pre></div>
+
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>id</code> Sector id (!= INVALID_ID). @thread_safety Internally synchronized. Lock-free: atomic increments, no lock taken and no wait. May grow the counter table on a first touch of a high id, and that growth is itself synchronized. Publishes before it checks, so a writer that bumped its epoch first is always seen. </li>
+</ul>
+<hr>
+
+<h3 id="function-releasehold">function releaseHold<a class="headerlink" href="#function-releasehold" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">releaseHold</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">shard</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">const</span>
+</code></pre></div>
+
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>shard</code> the value returned by <a href="./#function-acquirehold"><strong>acquireHold()</strong></a>; a hold may be released by a different thread than took it, so the shard travels with the holder. @thread_safety Internally synchronized. Atomic decrement plus a generation bump, and a wake only when a waiter has announced itself. May be called from a different thread than took the hold  the shard travels with the holder. </li>
+</ul>
+<hr>
+
+<h3 id="function-reserve">function reserve<a class="headerlink" href="#function-reserve" title="Permanent link">&para;</a></h3>
+<p><em>Pre-allocate counter blocks covering ids up to and including</em> <code>maxId</code> <em>. @thread_safety Internally synchronized. Touches the counter for maxId, which allocates the blocks up to it under the growth mutex. Doing it up front keeps that allocation off the first pin.</em></p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">reserve</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">SectorId</span><span class="w"> </span><span class="n">maxId</span>
+<span class="p">)</span><span class="w"> </span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-unpin">function unpin<a class="headerlink" href="#function-unpin" title="Permanent link">&para;</a></h3>
+<p><em>Decrement the pin counter for sector id; wakes writers on the last unpin.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">unpin</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">SectorId</span><span class="w"> </span><span class="n">id</span>
+<span class="p">)</span><span class="w"> </span>
+</code></pre></div>
+
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>id</code> Sector id. @thread_safety Internally synchronized. Lock-free: atomic decrements, plus a wake for any waiter that announced itself. Skips the wake syscall when provably nobody is blocked  the announce/sample handshake is seq_cst on both sides so a waiter that committed to blocking cannot be missed. </li>
+</ul>
+<hr>
+
+<h3 id="function-waitforwriterstopass">function waitForWritersToPass<a class="headerlink" href="#function-waitforwriterstopass" title="Permanent link">&para;</a></h3>
+<p><em>Block until no writer is waiting on this array.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">waitForWritersToPass</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">const</span>
+</code></pre></div>
+
+<p>The counterpart to the bounded yield: a reader that holds nothing can afford to wait properly, and that is what lets a writer ever reach quiescence when readers are opening views back to back. A thread that already holds a pin or a hold must NOT come here  the writer may be waiting for exactly that. @thread_safety Internally synchronized; blocks until the writers pass. </p>
+<hr>
+
+<h3 id="function-waituntilchangeable">function waitUntilChangeable<a class="headerlink" href="#function-waituntilchangeable" title="Permanent link">&para;</a></h3>
+<p><em>Block until sector</em> <code>sid</code> <em>carries no pins.</em></p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">waitUntilChangeable</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">SectorId</span><span class="w"> </span><span class="n">sid</span>
+<span class="p">)</span><span class="w"> </span><span class="k">const</span>
+</code></pre></div>
+
+<p><strong>Warning:</strong></p>
+<p>Covers only <code>sid</code>. Use <a href="./#function-waituntilquiescent"><strong>waitUntilQuiescent()</strong></a> before relocating sectors. @thread_safety Internally synchronized; blocks on one sector. Returns at once when that sector carries no pins, which is the common case and costs one load. Waits otherwise  and cannot be satisfied by the thread that holds the pin itself. Debug builds assert on that; release builds hang. </p>
+<hr>
+
+<h3 id="function-waituntilquiescent">function waitUntilQuiescent<a class="headerlink" href="#function-waituntilquiescent" title="Permanent link">&para;</a></h3>
+<p><em>Block until no sector at all is pinned.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">waitUntilQuiescent</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">const</span>
+</code></pre></div>
+
+<p><strong>Note:</strong></p>
+<p>Required before any operation that moves sectors between linear indices. @thread_safety Internally synchronized; blocks on the whole array. Waits for every pin and every hold, so a single open view anywhere holds it. From the thread that owns that view it never returns. Debug builds assert; release builds hang. </p>
+<hr>
+
+<h3 id="function-writerswaiting">function writersWaiting<a class="headerlink" href="#function-writerswaiting" title="Permanent link">&para;</a></h3>
+<p><em>True while a writer is waiting for pins to drain.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">writersWaiting</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">const</span>
+</code></pre></div>
+
+<p>Readers consult this and yield a bounded number of times before pinning again. Without it a handful of threads that pin in a loop keep the array permanently non-quiescent and structural writes never run  deferred erases pile up and compaction never happens. The yield is bounded on purpose: a reader may already hold a pin the writer is waiting for, and blocking here would deadlock. @thread_safety Internally synchronized. One relaxed load. A hint for readers to yield, not a gate: it is allowed to be stale in either direction. </p>
+<hr>
+
+<h3 id="function-pincounters">function ~PinCounters<a class="headerlink" href="#function-pincounters" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::~</span><span class="n">PinCounters</span><span class="w"> </span><span class="p">()</span><span class="w"> </span>
+</code></pre></div>
+
+<p>@thread_safety Caller must ensure exclusive access. Frees the counter tables and blocks outright. Nothing may be pinning or holding, and nothing may call get() afterwards. </p>
+<hr>
+<h2 id="public-static-functions-documentation">Public Static Functions Documentation<a class="headerlink" href="#public-static-functions-documentation" title="Permanent link">&para;</a></h2>
+<h3 id="function-addoutstanding">function addOutstanding<a class="headerlink" href="#function-addoutstanding" title="Permanent link">&para;</a></h3>
+<p><em>@thread_safety Internally synchronized. Thread-local.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">addOutstanding</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-dropoutstanding">function dropOutstanding<a class="headerlink" href="#function-dropoutstanding" title="Permanent link">&para;</a></h3>
+<p><em>@thread_safety Internally synchronized. Thread-local; clamped, see</em> <a href="./#function-threadoutstanding"><em><strong>threadOutstanding()</strong></em></a> <em>.</em></p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">dropOutstanding</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-reportstuckwait">function reportStuckWait<a class="headerlink" href="#function-reportstuckwait" title="Permanent link">&para;</a></h3>
+<p><em>Report a wait that never ended, and stop.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">reportStuckWait</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="kt">char</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">what</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>See also:</strong> <a href="./#function-waittimeoutseconds"><strong>waitTimeoutSeconds</strong></a> </p>
+<hr>
+
+<h3 id="function-threadholdsnothing">function threadHoldsNothing<a class="headerlink" href="#function-threadholdsnothing" title="Permanent link">&para;</a></h3>
+<p><em>True when this thread holds no pin and no hold anywhere. @thread_safety Internally synchronized. Thread-local.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">threadHoldsNothing</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-threadoutstanding">function threadOutstanding<a class="headerlink" href="#function-threadoutstanding" title="Permanent link">&para;</a></h3>
+<p><em>How many pins and holds this thread has outstanding, on any array.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">int</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">threadOutstanding</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p>Consulted for one question only  may I block here without waiting for myself  so it is built to err upward. A handle released by a different thread than took it leaves the taker's count high, which costs that thread a chance to block and never the other way round; the release side clamps at zero for the same reason. @thread_safety Internally synchronized. Thread-local: no shared state at all. </p>
+<hr>
+
+<h3 id="function-waitdeadline">function waitDeadline<a class="headerlink" href="#function-waitdeadline" title="Permanent link">&para;</a></h3>
+<p><em>The deadline a wait starting now should honour.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">steady_clock</span><span class="o">::</span><span class="n">time_point</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">waitDeadline</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">bounded</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-waitordeadline">function waitOrDeadline<a class="headerlink" href="#function-waitordeadline" title="Permanent link">&para;</a></h3>
+<p><em>Wait for</em> <code>word</code> <em>to stop reading</em><code>expected</code> <em>, or give up at the deadline.</em></p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">waitOrDeadline</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">word</span><span class="p">,</span>
+<span class="w">    </span><span class="n">T</span><span class="w"> </span><span class="n">expected</span><span class="p">,</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">chrono</span><span class="o">::</span><span class="n">steady_clock</span><span class="o">::</span><span class="n">time_point</span><span class="w"> </span><span class="n">deadline</span><span class="p">,</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">bounded</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Returns:</strong></p>
+<p>false if the deadline passed with the value unchanged.</p>
+<p>std::atomic::wait has no timed form, and the case worth catching is exactly the one where no notify is ever coming  so this spins, then yields, then polls. The spin covers the common handover, which is microseconds; the poll costs one wakeup per millisecond on a wait that was going to be long anyway. </p>
+<hr>
+
+<h3 id="function-waittimeoutseconds">function waitTimeoutSeconds<a class="headerlink" href="#function-waittimeoutseconds" title="Permanent link">&para;</a></h3>
+<p><em>How long a structural wait may run before it is treated as a deadlock.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">atomic</span><span class="o">&lt;</span><span class="w"> </span><span class="kt">uint32_t</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Threads</span><span class="o">::</span><span class="n">PinCounters</span><span class="o">::</span><span class="n">waitTimeoutSeconds</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p>A writer waiting for quiescence cannot be satisfied by the thread that is itself holding a view on the array  it waits for a condition only it could clear. Debug builds assert on that; release builds used to simply stop, with no output and no stack worth reading, which is the least diagnosable failure a library can have.</p>
+<p>So the wait is bounded. Nothing legitimate takes anywhere near this long: the longest honest wait is one frame's worth of open views. Set it to zero to wait forever, which restores the old behaviour. @thread_safety Internally synchronized. One relaxed store; set it at startup. </p>
+<hr>
+
+<hr />
+<p>The documentation for this class was generated from the following file <code>ecss/threads/PinCounters.h</code></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/wagnerks/ecss" target="_blank" rel="noopener" title="ECSS GitHub Repository" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="https://github.com/wagnerks" target="_blank" rel="noopener" title="Me" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "content.code.copy", "content.code.annotate", "header.autohide", "header.social"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

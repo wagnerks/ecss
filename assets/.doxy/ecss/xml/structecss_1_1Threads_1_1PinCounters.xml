@@ -1,0 +1,963 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Threads_1_1PinCounters" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Threads::PinCounters</compoundname>
+    <includes refid="PinCounters_8h" local="no">PinCounters.h</includes>
+    <innerclass refid="structecss_1_1Threads_1_1PinCounters_1_1HoldShard" prot="private">ecss::Threads::PinCounters::HoldShard</innerclass>
+    <innerclass refid="structecss_1_1Threads_1_1PinCounters_1_1PinShard" prot="private">ecss::Threads::PinCounters::PinShard</innerclass>
+    <innerclass refid="structecss_1_1Threads_1_1PinCounters_1_1Table" prot="private">ecss::Threads::PinCounters::Table</innerclass>
+    <innerclass refid="structecss_1_1Threads_1_1PinCounters_1_1WaiterScope" prot="private">ecss::Threads::PinCounters::WaiterScope</innerclass>
+    <innerclass refid="structecss_1_1Threads_1_1PinCounters_1_1WriterIntent" prot="public">ecss::Threads::PinCounters::WriterIntent</innerclass>
+    <sectiondef kind="private-type">
+      <memberdef kind="typedef" id="structecss_1_1Threads_1_1PinCounters_1a841acec3076913f94e2623a520df28d5" prot="private" static="no">
+        <type>std::atomic&lt; uint16_t &gt;</type>
+        <definition>using ecss::Threads::PinCounters::Counter =  std::atomic&lt;uint16_t&gt;</definition>
+        <argsstring></argsstring>
+        <name>Counter</name>
+        <qualifiedname>ecss::Threads::PinCounters::Counter</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="594" column="1" bodyfile="ecss/threads/PinCounters.h" bodystart="594" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1a9e73b737dcf2d99b935a04d3a30ff42e" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Threads::PinCounters::BLOCK</definition>
+        <argsstring></argsstring>
+        <name>BLOCK</name>
+        <qualifiedname>ecss::Threads::PinCounters::BLOCK</qualifiedname>
+        <initializer>= 4096</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="593" column="25" bodyfile="ecss/threads/PinCounters.h" bodystart="593" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1a037c5b600226393fbd7448a0fee0cb32" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Threads::PinCounters::kHoldShards</definition>
+        <argsstring></argsstring>
+        <name>kHoldShards</name>
+        <qualifiedname>ecss::Threads::PinCounters::kHoldShards</qualifiedname>
+        <initializer>= 16</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Sixteen shards carry nearly all of the benefit <ndash/> measured 199M acquire/release pairs per second at four threads against 198M for sixty-four <ndash/> while keeping the writer-side sum at about 4 ns instead of 14 ns. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="599" column="25" bodyfile="ecss/threads/PinCounters.h" bodystart="599" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1ad297684be9b41fdef427ccef82f36eca" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Threads::PinCounters::kPinShards</definition>
+        <argsstring></argsstring>
+        <name>kPinShards</name>
+        <qualifiedname>ecss::Threads::PinCounters::kPinShards</qualifiedname>
+        <initializer>= 16</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Same bargain as kHoldShards, for the pin aggregate. Sixteen because sequential ids <ndash/> which is how they are handed out <ndash/> then land one per shard. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="603" column="25" bodyfile="ecss/threads/PinCounters.h" bodystart="603" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1acb5f252fc1d4a43e5e5d4b4f7d832bc7" prot="private" static="no" mutable="yes">
+        <type>std::vector&lt; Counter * &gt;</type>
+        <definition>std::vector&lt;Counter*&gt; ecss::Threads::PinCounters::mBlocks</definition>
+        <argsstring></argsstring>
+        <name>mBlocks</name>
+        <qualifiedname>ecss::Threads::PinCounters::mBlocks</qualifiedname>
+        <briefdescription>
+<para>Every counter block (freed in dtor). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="702" column="21" bodyfile="ecss/threads/PinCounters.h" bodystart="702" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1a5758a4806d9e371ab59277487085c14f" prot="private" static="no" mutable="yes">
+        <type>std::mutex</type>
+        <definition>std::mutex ecss::Threads::PinCounters::mGrowMtx</definition>
+        <argsstring></argsstring>
+        <name>mGrowMtx</name>
+        <qualifiedname>ecss::Threads::PinCounters::mGrowMtx</qualifiedname>
+        <briefdescription>
+<para>Serializes table growth only. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="700" column="31" bodyfile="ecss/threads/PinCounters.h" bodystart="700" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1a728d8b53947e4a5c19415624e7c6c673" prot="private" static="no" mutable="yes">
+        <type>HoldShard</type>
+        <definition>HoldShard ecss::Threads::PinCounters::mHolds[kHoldShards]</definition>
+        <argsstring>[kHoldShards]</argsstring>
+        <name>mHolds</name>
+        <qualifiedname>ecss::Threads::PinCounters::mHolds</qualifiedname>
+        <initializer>{}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Structural holds, keyed by thread. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="714" column="31" bodyfile="ecss/threads/PinCounters.h" bodystart="714" bodyend="714"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1afabacd3669cd57143ff54389a2388dee" prot="private" static="no" mutable="yes">
+        <type>PinShard</type>
+        <definition>PinShard ecss::Threads::PinCounters::mPinShards[kPinShards]</definition>
+        <argsstring>[kPinShards]</argsstring>
+        <name>mPinShards</name>
+        <qualifiedname>ecss::Threads::PinCounters::mPinShards</qualifiedname>
+        <initializer>{}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Distinct sectors with a non-zero counter, split across shards so that pinning unrelated sectors does not put every thread on one line. Was a single counter, and that made pin/unpin throughput <emphasis>fall</emphasis> as threads were added: 39.8 ns/op on one thread against 89.6 across thirty-two. <simplesect kind="see"><para>bench/MTBench.cpp </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="709" column="31" bodyfile="ecss/threads/PinCounters.h" bodystart="709" bodyend="709"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1a1febc7a99d1a8d52dea94981779a7f48" prot="private" static="no" mutable="yes">
+        <type>std::atomic&lt; uint64_t &gt;</type>
+        <definition>std::atomic&lt;uint64_t&gt; ecss::Threads::PinCounters::mReleaseGeneration</definition>
+        <argsstring></argsstring>
+        <name>mReleaseGeneration</name>
+        <qualifiedname>ecss::Threads::PinCounters::mReleaseGeneration</qualifiedname>
+        <initializer>{ 0 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The one word a waiter sleeps on. Pins and holds are both sharded, so neither has a single counter left to wait on; every release bumps this instead <ndash/> but only while a waiter has announced itself in mWaiters, so the common case touches nothing here. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="718" column="21" bodyfile="ecss/threads/PinCounters.h" bodystart="718" bodyend="718"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1ab760bd4b5a740457e2a28b6a49d4e2de" prot="private" static="no" mutable="yes">
+        <type>std::atomic&lt; Table * &gt;</type>
+        <definition>std::atomic&lt;Table*&gt; ecss::Threads::PinCounters::mTable</definition>
+        <argsstring></argsstring>
+        <name>mTable</name>
+        <qualifiedname>ecss::Threads::PinCounters::mTable</qualifiedname>
+        <initializer>{ nullptr }</initializer>
+        <briefdescription>
+<para>Published block table snapshot. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="699" column="29" bodyfile="ecss/threads/PinCounters.h" bodystart="699" bodyend="699"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1a7fdeea68843c0a525bab0a3008603f7c" prot="private" static="no" mutable="yes">
+        <type>std::vector&lt; Table * &gt;</type>
+        <definition>std::vector&lt;Table*&gt; ecss::Threads::PinCounters::mTables</definition>
+        <argsstring></argsstring>
+        <name>mTables</name>
+        <qualifiedname>ecss::Threads::PinCounters::mTables</qualifiedname>
+        <briefdescription>
+<para>Every table ever published (freed in dtor). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="701" column="23" bodyfile="ecss/threads/PinCounters.h" bodystart="701" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1a34b63c8de9c4b6a609545eac8124a2fa" prot="private" static="no" mutable="yes">
+        <type>std::atomic&lt; uint32_t &gt;</type>
+        <definition>std::atomic&lt;uint32_t&gt; ecss::Threads::PinCounters::mWaiters</definition>
+        <argsstring></argsstring>
+        <name>mWaiters</name>
+        <qualifiedname>ecss::Threads::PinCounters::mWaiters</qualifiedname>
+        <initializer>{ 0 }</initializer>
+        <briefdescription>
+<para>Threads blocked in a wait primitive. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="711" column="29" bodyfile="ecss/threads/PinCounters.h" bodystart="711" bodyend="711"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1a02e70446f1cc54ded2098035c3136591" prot="private" static="no" mutable="yes">
+        <type>std::atomic&lt; uint32_t &gt;</type>
+        <definition>std::atomic&lt;uint32_t&gt; ecss::Threads::PinCounters::mWritersWaiting</definition>
+        <argsstring></argsstring>
+        <name>mWritersWaiting</name>
+        <qualifiedname>ecss::Threads::PinCounters::mWritersWaiting</qualifiedname>
+        <initializer>{ 0 }</initializer>
+        <briefdescription>
+<para>Writers waiting for pins to drain. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="712" column="21" bodyfile="ecss/threads/PinCounters.h" bodystart="712" bodyend="712"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1ac9730ca1314f0d4c7c9be089ea78b7e4" prot="public" static="no" nodiscard="yes" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>uint32_t</type>
+        <definition>uint32_t ecss::Threads::PinCounters::acquireHold</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>acquireHold</name>
+        <qualifiedname>ecss::Threads::PinCounters::acquireHold</qualifiedname>
+        <briefdescription>
+<para>Take a structural hold: no sector may be relocated while one is outstanding. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This is a different question from &quot;is this sector busy&quot;. A view needs the array not to be compacted underneath it; it does not care which sector it names. It used to express that by pinning the back sector, so every view on every thread contended on one sector counter. Holds are keyed by thread instead, so they spread: measured 25.7M -&gt; 199M acquire/release pairs per second at four threads.</para>
+<para><simplesect kind="return"><para>the shard to hand back to <ref refid="structecss_1_1Threads_1_1PinCounters_1a581c57b29026f9ddf5f3add07e94c142" kindref="member">releaseHold()</ref>. @thread_safety Internally synchronized. One atomic increment on a per-thread shard, so holders on different threads do not share a cache line. Never waits. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="341" column="11" bodyfile="ecss/threads/PinCounters.h" bodystart="341" bodyend="349"/>
+        <references refid="structecss_1_1Threads_1_1SelfWaitDebug_1a69aaefcd6e93a916da492920ef6a408d" compoundref="PinCounters_8h" startline="49" endline="49">ecss::Threads::SelfWaitDebug::addHold</references>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1a3de42ca34a90a80246703b7d33743b7c" compoundref="PinCounters_8h" startline="478" endline="478">addOutstanding</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1afca605a27d9904e19861f641ade0077e" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Threads::PinCounters::anyHold</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>anyHold</name>
+        <qualifiedname>ecss::Threads::PinCounters::anyHold</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="398" column="19" bodyfile="ecss/threads/PinCounters.h" bodystart="398" bodyend="403"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a7b6d986bf843e2ef82be64e26efb09f2" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Threads::PinCounters::anyPin</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>anyPin</name>
+        <qualifiedname>ecss::Threads::PinCounters::anyPin</qualifiedname>
+        <briefdescription>
+<para>True if any structural hold is outstanding. Sums the shards, so it is deliberately not something to spin on <ndash/> waitUntilQuiescent samples it once per wait, not in a tight loop. @thread_safety Internally synchronized. Sums the shards, so it is a handful of loads rather than one. Deliberately not something to spin on. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>True if any sector on this array carries a pin.</para>
+<para>Inexact by construction, in the safe direction: a pin taken while the loop is midway through can be missed. The structural epoch is what closes that <ndash/> a writer publishes it before asking, and a pinner re-reads it after pinning and starts over if it moved. anyHold() is inexact the same way, for the same reason. @thread_safety Internally synchronized. One load per shard. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="391" column="19" bodyfile="ecss/threads/PinCounters.h" bodystart="391" bodyend="396"/>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1a5ee17bcc0884acf4871fc60d4e21fae1" compoundref="PinCounters_8h" startline="574" endline="578">hasAnyPinnedSector</referencedby>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1ae30ede1281f89959bb9a750b14c53cf1" compoundref="PinCounters_8h" startline="561" endline="564">hasAnyPins</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1ae51601380bf379dc688768e0985a01b3" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ecss::Threads::PinCounters::canMoveSector</definition>
+        <argsstring>(SectorId sectorId) const</argsstring>
+        <name>canMoveSector</name>
+        <qualifiedname>ecss::Threads::PinCounters::canMoveSector</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>sectorId</declname>
+        </param>
+        <briefdescription>
+<para>Exact test: may sector <computeroutput>sectorId</computeroutput> be destroyed / overwritten in place? </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>Says nothing about <emphasis>other</emphasis> sectors. Anything that relocates sectors must use <ref refid="structecss_1_1Threads_1_1PinCounters_1ae30ede1281f89959bb9a750b14c53cf1" kindref="member">hasAnyPins()</ref> / <ref refid="structecss_1_1Threads_1_1PinCounters_1a21287702ebeba0661295c0aa98fa1217" kindref="member">waitUntilQuiescent()</ref> instead. @thread_safety Internally synchronized. One seq_cst load. Meaningful only after the caller has published its structural epoch; before that it is a stale sample. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="229" column="6" bodyfile="ecss/threads/PinCounters.h" bodystart="229" bodyend="233"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a5ee17bcc0884acf4871fc60d4e21fae1" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Threads::PinCounters::hasAnyPinnedSector</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>hasAnyPinnedSector</name>
+        <qualifiedname>ecss::Threads::PinCounters::hasAnyPinnedSector</qualifiedname>
+        <briefdescription>
+<para>True if any sector on this array carries a pin. Says nothing about holds. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>An empty sum across the pin shards is exactly &quot;every per-sector counter is zero&quot;, so a writer that only changes named sectors in place can ask this one question instead of asking about each id it named. Not enough to relocate anything <ndash/> that needs <ref refid="structecss_1_1Threads_1_1PinCounters_1ae30ede1281f89959bb9a750b14c53cf1" kindref="member">hasAnyPins()</ref>, which counts holds too. @thread_safety Internally synchronized. One seq_cst load. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="574" column="19" bodyfile="ecss/threads/PinCounters.h" bodystart="574" bodyend="578"/>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1a7b6d986bf843e2ef82be64e26efb09f2" compoundref="PinCounters_8h" startline="391" endline="396">anyPin</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1ae30ede1281f89959bb9a750b14c53cf1" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Threads::PinCounters::hasAnyPins</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>hasAnyPins</name>
+        <qualifiedname>ecss::Threads::PinCounters::hasAnyPins</qualifiedname>
+        <briefdescription>
+<para>True if any sector is currently pinned (exact). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The relocation gate: true if anything at all forbids moving sectors. @thread_safety Internally synchronized. One load plus anyHold(). This is the gate for relocating sectors, so it errs by over-reporting and never the other way. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="561" column="19" bodyfile="ecss/threads/PinCounters.h" bodystart="561" bodyend="564"/>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1a7b6d986bf843e2ef82be64e26efb09f2" compoundref="PinCounters_8h" startline="391" endline="396">anyPin</references>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1af15efcafb5deaf4acfcc04fe6f5fbb9f" compoundref="PinCounters_8h" startline="582" endline="584">isArrayLocked</referencedby>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1a21287702ebeba0661295c0aa98fa1217" compoundref="PinCounters_8h" startline="290" endline="328">waitUntilQuiescent</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1af15efcafb5deaf4acfcc04fe6f5fbb9f" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Threads::PinCounters::isArrayLocked</definition>
+        <argsstring>() const</argsstring>
+        <name>isArrayLocked</name>
+        <qualifiedname>ecss::Threads::PinCounters::isArrayLocked</qualifiedname>
+        <briefdescription>
+<para>Alias of <ref refid="structecss_1_1Threads_1_1PinCounters_1ae30ede1281f89959bb9a750b14c53cf1" kindref="member">hasAnyPins()</ref>: no sector may be relocated while this is true. @thread_safety Internally synchronized. Alias of <ref refid="structecss_1_1Threads_1_1PinCounters_1ae30ede1281f89959bb9a750b14c53cf1" kindref="member">hasAnyPins()</ref>. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="582" column="19" bodyfile="ecss/threads/PinCounters.h" bodystart="582" bodyend="584"/>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1ae30ede1281f89959bb9a750b14c53cf1" compoundref="PinCounters_8h" startline="561" endline="564">hasAnyPins</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a2259efb63fba3e36d9fd28201ddbd99e" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Threads::PinCounters::isPinned</definition>
+        <argsstring>(SectorId id) const</argsstring>
+        <name>isPinned</name>
+        <qualifiedname>ecss::Threads::PinCounters::isPinned</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+<para>Test whether a sector presently has a non-zero pin counter. @thread_safety Internally synchronized. One acquire load; true at the moment of the call. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="553" column="19" bodyfile="ecss/threads/PinCounters.h" bodystart="553" bodyend="555"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1ac9de4b1150b063f1bb61a3e70251310a" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="structecss_1_1Threads_1_1PinCounters" kindref="compound">PinCounters</ref> &amp;</type>
+        <definition>PinCounters &amp; ecss::Threads::PinCounters::operator=</definition>
+        <argsstring>(const PinCounters &amp;)=delete</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Threads::PinCounters::operator=</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Threads_1_1PinCounters" kindref="compound">PinCounters</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="133" column="13"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a208ebcdcd2ca03b8d8773e13a54f9145" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Threads::PinCounters::pin</definition>
+        <argsstring>(SectorId id)</argsstring>
+        <name>pin</name>
+        <qualifiedname>ecss::Threads::PinCounters::pin</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+<para>Increment the pin counter for sector id. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sector id (!= INVALID_ID). @thread_safety Internally synchronized. Lock-free: atomic increments, no lock taken and no wait. May grow the counter table on a first touch of a high id, and that growth is itself synchronized. Publishes before it checks, so a writer that bumped its epoch first is always seen. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="150" column="6" bodyfile="ecss/threads/PinCounters.h" bodystart="150" bodyend="177"/>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1a3de42ca34a90a80246703b7d33743b7c" compoundref="PinCounters_8h" startline="478" endline="478">addOutstanding</references>
+        <references refid="structecss_1_1Threads_1_1SelfWaitDebug_1a1b65dd26e0e5ec6b825af6410bd7054c" compoundref="PinCounters_8h" startline="59" endline="59">ecss::Threads::SelfWaitDebug::addPin</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1aff149ab40d9cb5e9d1455e66d80fbc22" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Threads::PinCounters::PinCounters</definition>
+        <argsstring>()=default</argsstring>
+        <name>PinCounters</name>
+        <qualifiedname>ecss::Threads::PinCounters::PinCounters</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="131" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a0e75526ee9c727e1e53e551cd03d986d" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Threads::PinCounters::PinCounters</definition>
+        <argsstring>(const PinCounters &amp;)=delete</argsstring>
+        <name>PinCounters</name>
+        <qualifiedname>ecss::Threads::PinCounters::PinCounters</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Threads_1_1PinCounters" kindref="compound">PinCounters</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="132" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a581c57b29026f9ddf5f3add07e94c142" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Threads::PinCounters::releaseHold</definition>
+        <argsstring>(uint32_t shard) const noexcept</argsstring>
+        <name>releaseHold</name>
+        <qualifiedname>ecss::Threads::PinCounters::releaseHold</qualifiedname>
+        <param>
+          <type>uint32_t</type>
+          <declname>shard</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>shard</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>the value returned by <ref refid="structecss_1_1Threads_1_1PinCounters_1ac9730ca1314f0d4c7c9be089ea78b7e4" kindref="member">acquireHold()</ref>; a hold may be released by a different thread than took it, so the shard travels with the holder. @thread_safety Internally synchronized. Atomic decrement plus a generation bump, and a wake only when a waiter has announced itself. May be called from a different thread than took the hold <ndash/> the shard travels with the holder. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="356" column="6" bodyfile="ecss/threads/PinCounters.h" bodystart="356" bodyend="377"/>
+        <references refid="structecss_1_1Threads_1_1SelfWaitDebug_1a625d9837eaaba98b408f62a8fdd147bc" compoundref="PinCounters_8h" startline="52" endline="56">ecss::Threads::SelfWaitDebug::dropHold</references>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1a3122b34ceaaa0329962ece8e46306256" compoundref="PinCounters_8h" startline="481" endline="484">dropOutstanding</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a50b388fb72efa7c83f76336245ba9a22" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Threads::PinCounters::reserve</definition>
+        <argsstring>(SectorId maxId)</argsstring>
+        <name>reserve</name>
+        <qualifiedname>ecss::Threads::PinCounters::reserve</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>maxId</declname>
+        </param>
+        <briefdescription>
+<para>Pre-allocate counter blocks covering ids up to and including <computeroutput>maxId</computeroutput>. @thread_safety Internally synchronized. Touches the counter for maxId, which allocates the blocks up to it under the growth mutex. Doing it up front keeps that allocation off the first pin. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="590" column="6" bodyfile="ecss/threads/PinCounters.h" bodystart="590" bodyend="590"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a6620f6dcb62fee772a18bc142092cbf4" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Threads::PinCounters::unpin</definition>
+        <argsstring>(SectorId id)</argsstring>
+        <name>unpin</name>
+        <qualifiedname>ecss::Threads::PinCounters::unpin</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+<para>Decrement the pin counter for sector id; wakes writers on the last unpin. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>id</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Sector id. @thread_safety Internally synchronized. Lock-free: atomic decrements, plus a wake for any waiter that announced itself. Skips the wake syscall when provably nobody is blocked <ndash/> the announce/sample handshake is seq_cst on both sides so a waiter that committed to blocking cannot be missed. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="187" column="6" bodyfile="ecss/threads/PinCounters.h" bodystart="187" bodyend="220"/>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1a3122b34ceaaa0329962ece8e46306256" compoundref="PinCounters_8h" startline="481" endline="484">dropOutstanding</references>
+        <references refid="structecss_1_1Threads_1_1SelfWaitDebug_1a208b01e10723a0405aa09fefef9ab338" compoundref="PinCounters_8h" startline="62" endline="66">ecss::Threads::SelfWaitDebug::dropPin</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1ac0bc2f3306fb86ef12ef11564831b3b0" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Threads::PinCounters::waitForWritersToPass</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>waitForWritersToPass</name>
+        <qualifiedname>ecss::Threads::PinCounters::waitForWritersToPass</qualifiedname>
+        <briefdescription>
+<para>Block until no writer is waiting on this array. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The counterpart to the bounded yield: a reader that holds nothing can afford to wait properly, and that is what lets a writer ever reach quiescence when readers are opening views back to back. A thread that already holds a pin or a hold must NOT come here <ndash/> the writer may be waiting for exactly that. @thread_safety Internally synchronized; blocks until the writers pass. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="497" column="6" bodyfile="ecss/threads/PinCounters.h" bodystart="497" bodyend="518"/>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1a700244c85a78051cbe08db2ada0c75e7" compoundref="PinCounters_8h" startline="448" endline="459">reportStuckWait</references>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1aa13b21b484229acd740bc8f40c5eafc3" compoundref="PinCounters_8h" startline="462" endline="466">waitDeadline</references>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1a16e2066b464ff3ef5221018d7a2df427" compoundref="PinCounters_8h" startline="429" endline="445">waitOrDeadline</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1ac3ecfec4cb6a38ab34bad4fbf7fc2b29" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Threads::PinCounters::waitUntilChangeable</definition>
+        <argsstring>(SectorId sid) const</argsstring>
+        <name>waitUntilChangeable</name>
+        <qualifiedname>ecss::Threads::PinCounters::waitUntilChangeable</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>sid</declname>
+        </param>
+        <briefdescription>
+<para>Block until sector <computeroutput>sid</computeroutput> carries no pins. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="warning"><para>Covers only <computeroutput>sid</computeroutput>. Use <ref refid="structecss_1_1Threads_1_1PinCounters_1a21287702ebeba0661295c0aa98fa1217" kindref="member">waitUntilQuiescent()</ref> before relocating sectors. @thread_safety Internally synchronized; blocks on one sector. Returns at once when that sector carries no pins, which is the common case and costs one load. Waits otherwise <ndash/> and cannot be satisfied by the thread that holds the pin itself. Debug builds assert on that; release builds hang. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="243" column="6" bodyfile="ecss/threads/PinCounters.h" bodystart="243" bodyend="281"/>
+        <references refid="structecss_1_1Threads_1_1SelfWaitDebug_1a50722a158b5ac7938dbe7ecc114999a5" compoundref="PinCounters_8h" startline="80" endline="82">ecss::Threads::SelfWaitDebug::holdsPinOn</references>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1a700244c85a78051cbe08db2ada0c75e7" compoundref="PinCounters_8h" startline="448" endline="459">reportStuckWait</references>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1aa13b21b484229acd740bc8f40c5eafc3" compoundref="PinCounters_8h" startline="462" endline="466">waitDeadline</references>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1a16e2066b464ff3ef5221018d7a2df427" compoundref="PinCounters_8h" startline="429" endline="445">waitOrDeadline</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a21287702ebeba0661295c0aa98fa1217" prot="public" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Threads::PinCounters::waitUntilQuiescent</definition>
+        <argsstring>() const</argsstring>
+        <name>waitUntilQuiescent</name>
+        <qualifiedname>ecss::Threads::PinCounters::waitUntilQuiescent</qualifiedname>
+        <briefdescription>
+<para>Block until no sector at all is pinned. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>Required before any operation that moves sectors between linear indices. @thread_safety Internally synchronized; blocks on the whole array. Waits for every pin and every hold, so a single open view anywhere holds it. From the thread that owns that view it never returns. Debug builds assert; release builds hang. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="290" column="6" bodyfile="ecss/threads/PinCounters.h" bodystart="290" bodyend="328"/>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1ae30ede1281f89959bb9a750b14c53cf1" compoundref="PinCounters_8h" startline="561" endline="564">hasAnyPins</references>
+        <references refid="structecss_1_1Threads_1_1SelfWaitDebug_1aea118b54ffd84d49c8737ba26b12e8e9" compoundref="PinCounters_8h" startline="71" endline="76">ecss::Threads::SelfWaitDebug::holdsAnythingOn</references>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1a700244c85a78051cbe08db2ada0c75e7" compoundref="PinCounters_8h" startline="448" endline="459">reportStuckWait</references>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1aa13b21b484229acd740bc8f40c5eafc3" compoundref="PinCounters_8h" startline="462" endline="466">waitDeadline</references>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1a16e2066b464ff3ef5221018d7a2df427" compoundref="PinCounters_8h" startline="429" endline="445">waitOrDeadline</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a9518762218786b52af24ce82088cbc44" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Threads::PinCounters::writersWaiting</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>writersWaiting</name>
+        <qualifiedname>ecss::Threads::PinCounters::writersWaiting</qualifiedname>
+        <briefdescription>
+<para>True while a writer is waiting for pins to drain. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Readers consult this and yield a bounded number of times before pinning again. Without it a handful of threads that pin in a loop keep the array permanently non-quiescent and structural writes never run <ndash/> deferred erases pile up and compaction never happens. The yield is bounded on purpose: a reader may already hold a pin the writer is waiting for, and blocking here would deadlock. @thread_safety Internally synchronized. One relaxed load. A hint for readers to yield, not a gate: it is allowed to be stale in either direction. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="529" column="19" bodyfile="ecss/threads/PinCounters.h" bodystart="529" bodyend="531"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a4c6976447fc084f39c8367a86cfeb5b1" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Threads::PinCounters::~PinCounters</definition>
+        <argsstring>()</argsstring>
+        <name>~PinCounters</name>
+        <qualifiedname>ecss::Threads::PinCounters::~PinCounters</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Caller must ensure exclusive access. Frees the counter tables and blocks outright. Nothing may be pinning or holding, and nothing may call get() afterwards. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="137" column="1" bodyfile="ecss/threads/PinCounters.h" bodystart="137" bodyend="140"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a3de42ca34a90a80246703b7d33743b7c" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ecss::Threads::PinCounters::addOutstanding</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>addOutstanding</name>
+        <qualifiedname>ecss::Threads::PinCounters::addOutstanding</qualifiedname>
+        <briefdescription>
+<para>@thread_safety Internally synchronized. Thread-local. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="478" column="13" bodyfile="ecss/threads/PinCounters.h" bodystart="478" bodyend="478"/>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1a0849ab0f86f11f6fe7fe914de26eaacb" compoundref="PinCounters_8h" startline="475" endline="475">threadOutstanding</references>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1ac9730ca1314f0d4c7c9be089ea78b7e4" compoundref="PinCounters_8h" startline="341" endline="349">acquireHold</referencedby>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1a208ebcdcd2ca03b8d8773e13a54f9145" compoundref="PinCounters_8h" startline="150" endline="177">pin</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a3122b34ceaaa0329962ece8e46306256" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ecss::Threads::PinCounters::dropOutstanding</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>dropOutstanding</name>
+        <qualifiedname>ecss::Threads::PinCounters::dropOutstanding</qualifiedname>
+        <briefdescription>
+<para>@thread_safety Internally synchronized. Thread-local; clamped, see <ref refid="structecss_1_1Threads_1_1PinCounters_1a0849ab0f86f11f6fe7fe914de26eaacb" kindref="member">threadOutstanding()</ref>. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="481" column="13" bodyfile="ecss/threads/PinCounters.h" bodystart="481" bodyend="484"/>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1a0849ab0f86f11f6fe7fe914de26eaacb" compoundref="PinCounters_8h" startline="475" endline="475">threadOutstanding</references>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1a581c57b29026f9ddf5f3add07e94c142" compoundref="PinCounters_8h" startline="356" endline="377">releaseHold</referencedby>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1a6620f6dcb62fee772a18bc142092cbf4" compoundref="PinCounters_8h" startline="187" endline="220">unpin</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a700244c85a78051cbe08db2ada0c75e7" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ecss::Threads::PinCounters::reportStuckWait</definition>
+        <argsstring>(const char *what) noexcept</argsstring>
+        <name>reportStuckWait</name>
+        <qualifiedname>ecss::Threads::PinCounters::reportStuckWait</qualifiedname>
+        <param>
+          <type>const char *</type>
+          <declname>what</declname>
+        </param>
+        <briefdescription>
+<para>Report a wait that never ended, and stop. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="see"><para><ref refid="structecss_1_1Threads_1_1PinCounters_1ac162229f92f455f6f4abb91bec7c21cc" kindref="member">waitTimeoutSeconds</ref> </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="448" column="14" bodyfile="ecss/threads/PinCounters.h" bodystart="448" bodyend="459"/>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1ac162229f92f455f6f4abb91bec7c21cc" compoundref="PinCounters_8h" startline="416" endline="419">waitTimeoutSeconds</references>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1ac0bc2f3306fb86ef12ef11564831b3b0" compoundref="PinCounters_8h" startline="497" endline="518">waitForWritersToPass</referencedby>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1ac3ecfec4cb6a38ab34bad4fbf7fc2b29" compoundref="PinCounters_8h" startline="243" endline="281">waitUntilChangeable</referencedby>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1a21287702ebeba0661295c0aa98fa1217" compoundref="PinCounters_8h" startline="290" endline="328">waitUntilQuiescent</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1ac6547ae127ecf32049c721035b27c69b" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>static bool ecss::Threads::PinCounters::threadHoldsNothing</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>threadHoldsNothing</name>
+        <qualifiedname>ecss::Threads::PinCounters::threadHoldsNothing</qualifiedname>
+        <briefdescription>
+<para>True when this thread holds no pin and no hold anywhere. @thread_safety Internally synchronized. Thread-local. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="488" column="13" bodyfile="ecss/threads/PinCounters.h" bodystart="488" bodyend="488"/>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1a0849ab0f86f11f6fe7fe914de26eaacb" compoundref="PinCounters_8h" startline="475" endline="475">threadOutstanding</references>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a0849ab0f86f11f6fe7fe914de26eaacb" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>int &amp;</type>
+        <definition>static int &amp; ecss::Threads::PinCounters::threadOutstanding</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>threadOutstanding</name>
+        <qualifiedname>ecss::Threads::PinCounters::threadOutstanding</qualifiedname>
+        <briefdescription>
+<para>How many pins and holds this thread has outstanding, on any array. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Consulted for one question only <ndash/> may I block here without waiting for myself <ndash/> so it is built to err upward. A handle released by a different thread than took it leaves the taker&apos;s count high, which costs that thread a chance to block and never the other way round; the release side clamps at zero for the same reason. @thread_safety Internally synchronized. Thread-local: no shared state at all. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="475" column="12" bodyfile="ecss/threads/PinCounters.h" bodystart="475" bodyend="475"/>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1a3de42ca34a90a80246703b7d33743b7c" compoundref="PinCounters_8h" startline="478" endline="478">addOutstanding</referencedby>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1a3122b34ceaaa0329962ece8e46306256" compoundref="PinCounters_8h" startline="481" endline="484">dropOutstanding</referencedby>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1ac6547ae127ecf32049c721035b27c69b" compoundref="PinCounters_8h" startline="488" endline="488">threadHoldsNothing</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1aa13b21b484229acd740bc8f40c5eafc3" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>std::chrono::steady_clock::time_point</type>
+        <definition>static std::chrono::steady_clock::time_point ecss::Threads::PinCounters::waitDeadline</definition>
+        <argsstring>(bool &amp;bounded) noexcept</argsstring>
+        <name>waitDeadline</name>
+        <qualifiedname>ecss::Threads::PinCounters::waitDeadline</qualifiedname>
+        <param>
+          <type>bool &amp;</type>
+          <declname>bounded</declname>
+        </param>
+        <briefdescription>
+<para>The deadline a wait starting now should honour. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="462" column="46" bodyfile="ecss/threads/PinCounters.h" bodystart="462" bodyend="466"/>
+        <references refid="structecss_1_1Threads_1_1PinCounters_1ac162229f92f455f6f4abb91bec7c21cc" compoundref="PinCounters_8h" startline="416" endline="419">waitTimeoutSeconds</references>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1ac0bc2f3306fb86ef12ef11564831b3b0" compoundref="PinCounters_8h" startline="497" endline="518">waitForWritersToPass</referencedby>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1ac3ecfec4cb6a38ab34bad4fbf7fc2b29" compoundref="PinCounters_8h" startline="243" endline="281">waitUntilChangeable</referencedby>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1a21287702ebeba0661295c0aa98fa1217" compoundref="PinCounters_8h" startline="290" endline="328">waitUntilQuiescent</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a16e2066b464ff3ef5221018d7a2df427" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+        </templateparamlist>
+        <type>bool</type>
+        <definition>static bool ecss::Threads::PinCounters::waitOrDeadline</definition>
+        <argsstring>(const std::atomic&lt; T &gt; &amp;word, T expected, std::chrono::steady_clock::time_point deadline, bool bounded) noexcept</argsstring>
+        <name>waitOrDeadline</name>
+        <qualifiedname>ecss::Threads::PinCounters::waitOrDeadline</qualifiedname>
+        <param>
+          <type>const std::atomic&lt; T &gt; &amp;</type>
+          <declname>word</declname>
+        </param>
+        <param>
+          <type>T</type>
+          <declname>expected</declname>
+        </param>
+        <param>
+          <type>std::chrono::steady_clock::time_point</type>
+          <declname>deadline</declname>
+        </param>
+        <param>
+          <type>bool</type>
+          <declname>bounded</declname>
+        </param>
+        <briefdescription>
+<para>Wait for <computeroutput>word</computeroutput> to stop reading <computeroutput>expected</computeroutput>, or give up at the deadline. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>false if the deadline passed with the value unchanged.</para>
+</simplesect>
+std::atomic::wait has no timed form, and the case worth catching is exactly the one where no notify is ever coming <ndash/> so this spins, then yields, then polls. The spin covers the common handover, which is microseconds; the poll costs one wakeup per millisecond on a wait that was going to be long anyway. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="429" column="13" bodyfile="ecss/threads/PinCounters.h" bodystart="429" bodyend="445"/>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1ac0bc2f3306fb86ef12ef11564831b3b0" compoundref="PinCounters_8h" startline="497" endline="518">waitForWritersToPass</referencedby>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1ac3ecfec4cb6a38ab34bad4fbf7fc2b29" compoundref="PinCounters_8h" startline="243" endline="281">waitUntilChangeable</referencedby>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1a21287702ebeba0661295c0aa98fa1217" compoundref="PinCounters_8h" startline="290" endline="328">waitUntilQuiescent</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1ac162229f92f455f6f4abb91bec7c21cc" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>std::atomic&lt; uint32_t &gt; &amp;</type>
+        <definition>static std::atomic&lt; uint32_t &gt; &amp; ecss::Threads::PinCounters::waitTimeoutSeconds</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>waitTimeoutSeconds</name>
+        <qualifiedname>ecss::Threads::PinCounters::waitTimeoutSeconds</qualifiedname>
+        <briefdescription>
+<para>How long a structural wait may run before it is treated as a deadlock. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>A writer waiting for quiescence cannot be satisfied by the thread that is itself holding a view on the array <ndash/> it waits for a condition only it could clear. Debug builds assert on that; release builds used to simply stop, with no output and no stack worth reading, which is the least diagnosable failure a library can have.</para>
+<para>So the wait is bounded. Nothing legitimate takes anywhere near this long: the longest honest wait is one frame&apos;s worth of open views. Set it to zero to wait forever, which restores the old behaviour. @thread_safety Internally synchronized. One relaxed store; set it at startup. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="416" column="20" bodyfile="ecss/threads/PinCounters.h" bodystart="416" bodyend="419"/>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1a700244c85a78051cbe08db2ada0c75e7" compoundref="PinCounters_8h" startline="448" endline="459">reportStuckWait</referencedby>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1aa13b21b484229acd740bc8f40c5eafc3" compoundref="PinCounters_8h" startline="462" endline="466">waitDeadline</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1ad05d018ddb219ff609e437a065e58dd0" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>FORCE_INLINE Counter &amp;</type>
+        <definition>FORCE_INLINE Counter &amp; ecss::Threads::PinCounters::get</definition>
+        <argsstring>(SectorId id) const</argsstring>
+        <name>get</name>
+        <qualifiedname>ecss::Threads::PinCounters::get</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+<para>Lock-free counter lookup; falls back to the growth path for new blocks. @thread_safety Internally synchronized. Lock-free on the warm path: one acquire load of the published table. A first touch of an id past the end goes through grow(), which takes the growth mutex. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="651" column="22" bodyfile="ecss/threads/PinCounters.h" bodystart="651" bodyend="657"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a09f2f144fe8cc9b491ffd6d520214a8b" prot="private" static="no" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>Counter *</type>
+        <definition>Counter * ecss::Threads::PinCounters::grow</definition>
+        <argsstring>(size_t blockIndex) const</argsstring>
+        <name>grow</name>
+        <qualifiedname>ecss::Threads::PinCounters::grow</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>blockIndex</declname>
+        </param>
+        <briefdescription>
+<para>Allocate the missing blocks and publish a fresh (immutable) table. @thread_safety Internally synchronized. Takes the growth mutex and publishes a fresh, immutable table. Superseded tables are kept, not freed, so a reader holding a pointer into the old one stays valid until the counters are destroyed. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="663" column="9" bodyfile="ecss/threads/PinCounters.h" bodystart="663" bodyend="691"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1ad57e0cfc9b400a9240b1cb34e53a7d3e" prot="private" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE PinShard &amp;</type>
+        <definition>FORCE_INLINE PinShard &amp; ecss::Threads::PinCounters::pinShardFor</definition>
+        <argsstring>(SectorId id) const noexcept</argsstring>
+        <name>pinShardFor</name>
+        <qualifiedname>ecss::Threads::PinCounters::pinShardFor</qualifiedname>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+<para>The shard a sector&apos;s pin is counted in. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Keyed by id, not by thread, and that is not interchangeable here: the increment and the decrement for one sector have to land on the same shard, and a pin taken on one thread can be released from another. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="613" column="23" bodyfile="ecss/threads/PinCounters.h" bodystart="613" bodyend="615"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-func">
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1a84b8d894f4c314802bfd5c749b9b32f6" prot="private" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>static size_t ecss::Threads::PinCounters::holdShard</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>holdShard</name>
+        <qualifiedname>ecss::Threads::PinCounters::holdShard</qualifiedname>
+        <briefdescription>
+<para>Stable per-thread shard index, so holds from different threads rarely share a cache line. @thread_safety Internally synchronized. Derived from the calling thread&apos;s identity; no shared state is read. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="623" column="15" bodyfile="ecss/threads/PinCounters.h" bodystart="623" bodyend="627"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Per-sector pin tracking &amp; synchronization for safe structural mutations. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Two predicates, both exact <ndash/> neither can ever report &quot;safe&quot; while a pin is live:<itemizedlist>
+<listitem><para>isPinned(id) / waitUntilChangeable(id): that one sector is not in use. Sufficient before destroying or overwriting that sector <emphasis>in place</emphasis>.</para>
+</listitem><listitem><para><ref refid="structecss_1_1Threads_1_1PinCounters_1ae30ede1281f89959bb9a750b14c53cf1" kindref="member">hasAnyPins()</ref> / <ref refid="structecss_1_1Threads_1_1PinCounters_1a21287702ebeba0661295c0aa98fa1217" kindref="member">waitUntilQuiescent()</ref>: no sector is in use at all. Required before <emphasis>relocating</emphasis> sectors (middle-insert shift, defragment, clear, copy, move), because relocation moves sectors the caller never named.</para>
+</listitem></itemizedlist>
+</para>
+<para>Why there is no longer a &quot;highest pinned id&quot;: The previous design kept maxPinnedSector, recomputed from a hierarchical bit mask over pinned ids, and let a writer proceed when its target id was above it. That value could be under-reported: the bitmask clears a parent bit before re-checking the child word, so a concurrent highestSet() could miss a whole subtree and return a lower id <ndash/> or -1 <ndash/> while sectors were still pinned, and the writer then relocated or destroyed pinned data. Both predicates below are single atomic loads over counters that were already maintained exactly, so the correct version is also the cheaper one: pin/unpin no longer touch the bitmask (whose ensurePath() took a global unique_lock on every first pin) and no longer walk it to recompute a maximum.</para>
+<para>Invariants:<itemizedlist>
+<listitem><para>A sector is &quot;pinned&quot; while its counter &gt; 0.</para>
+</listitem><listitem><para>the pin shards sum to the number of distinct sectors whose counter &gt; 0.</para>
+</listitem><listitem><para>that sum is 0 &lt;=&gt; every per-sector counter is 0.</para>
+</listitem></itemizedlist>
+</para>
+<para>Locking: <ref refid="structecss_1_1Threads_1_1PinCounters_1a208ebcdcd2ca03b8d8773e13a54f9145" kindref="member">pin()</ref>/unpin() take no locks at all. The counter block table grows under a mutex and is published as an immutable snapshot, so lookup is lock-free.</para>
+<para>Ordering: pins are always taken while holding at least the owning array shared lock, and writers test these predicates under its unique lock, so the array mutex supplies the happens-before between &quot;reader pinned&quot; and &quot;writer looked&quot;; the atomics here only need to be individually coherent. <ref refid="structecss_1_1Threads_1_1PinCounters_1a6620f6dcb62fee772a18bc142092cbf4" kindref="member">unpin()</ref> runs without any lock, which is why the wait primitives use atomic wait/notify. @thread_safety Internally synchronized. Every member is atomic and takes no lock; readers pin and hold without holding the array&apos;s mutex at all, which is why writers publish a structural epoch and re-check rather than trusting the lock.</para>
+<para>The wait members are the exception and block by design:<itemizedlist>
+<listitem><para>waitUntilChangeable(id) waits for one sector&apos;s pins.</para>
+</listitem><listitem><para><ref refid="structecss_1_1Threads_1_1PinCounters_1a21287702ebeba0661295c0aa98fa1217" kindref="member">waitUntilQuiescent()</ref> waits for every pin and every hold on the array. Neither can be satisfied by the thread that is itself holding what they wait for; debug builds assert on that, release builds hang. <simplesect kind="see"><para>SectorsArray </para>
+</simplesect>
+</para>
+</listitem></itemizedlist>
+</para>
+    </detaileddescription>
+    <location file="ecss/threads/PinCounters.h" line="130" column="1" bodyfile="ecss/threads/PinCounters.h" bodystart="130" bodyend="719"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1ac9730ca1314f0d4c7c9be089ea78b7e4" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>acquireHold</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a3de42ca34a90a80246703b7d33743b7c" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>addOutstanding</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1afca605a27d9904e19861f641ade0077e" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>anyHold</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a7b6d986bf843e2ef82be64e26efb09f2" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>anyPin</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a9e73b737dcf2d99b935a04d3a30ff42e" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>BLOCK</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1ae51601380bf379dc688768e0985a01b3" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>canMoveSector</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a841acec3076913f94e2623a520df28d5" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>Counter</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a3122b34ceaaa0329962ece8e46306256" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>dropOutstanding</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1ad05d018ddb219ff609e437a065e58dd0" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>get</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a09f2f144fe8cc9b491ffd6d520214a8b" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>grow</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a5ee17bcc0884acf4871fc60d4e21fae1" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>hasAnyPinnedSector</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1ae30ede1281f89959bb9a750b14c53cf1" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>hasAnyPins</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a84b8d894f4c314802bfd5c749b9b32f6" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>holdShard</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1af15efcafb5deaf4acfcc04fe6f5fbb9f" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>isArrayLocked</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a2259efb63fba3e36d9fd28201ddbd99e" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>isPinned</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a037c5b600226393fbd7448a0fee0cb32" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>kHoldShards</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1ad297684be9b41fdef427ccef82f36eca" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>kPinShards</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1acb5f252fc1d4a43e5e5d4b4f7d832bc7" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>mBlocks</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a5758a4806d9e371ab59277487085c14f" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>mGrowMtx</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a728d8b53947e4a5c19415624e7c6c673" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>mHolds</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1afabacd3669cd57143ff54389a2388dee" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>mPinShards</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a1febc7a99d1a8d52dea94981779a7f48" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>mReleaseGeneration</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1ab760bd4b5a740457e2a28b6a49d4e2de" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>mTable</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a7fdeea68843c0a525bab0a3008603f7c" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>mTables</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a34b63c8de9c4b6a609545eac8124a2fa" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>mWaiters</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a02e70446f1cc54ded2098035c3136591" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>mWritersWaiting</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1ac9de4b1150b063f1bb61a3e70251310a" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>operator=</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a208ebcdcd2ca03b8d8773e13a54f9145" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>pin</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1aff149ab40d9cb5e9d1455e66d80fbc22" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>PinCounters</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a0e75526ee9c727e1e53e551cd03d986d" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>PinCounters</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1ad57e0cfc9b400a9240b1cb34e53a7d3e" prot="private" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>pinShardFor</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a581c57b29026f9ddf5f3add07e94c142" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>releaseHold</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a700244c85a78051cbe08db2ada0c75e7" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>reportStuckWait</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a50b388fb72efa7c83f76336245ba9a22" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>reserve</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1ac6547ae127ecf32049c721035b27c69b" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>threadHoldsNothing</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a0849ab0f86f11f6fe7fe914de26eaacb" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>threadOutstanding</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a6620f6dcb62fee772a18bc142092cbf4" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>unpin</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1aa13b21b484229acd740bc8f40c5eafc3" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>waitDeadline</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1ac0bc2f3306fb86ef12ef11564831b3b0" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>waitForWritersToPass</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a16e2066b464ff3ef5221018d7a2df427" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>waitOrDeadline</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1ac162229f92f455f6f4abb91bec7c21cc" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>waitTimeoutSeconds</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1ac3ecfec4cb6a38ab34bad4fbf7fc2b29" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>waitUntilChangeable</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a21287702ebeba0661295c0aa98fa1217" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>waitUntilQuiescent</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a9518762218786b52af24ce82088cbc44" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>writersWaiting</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1a4c6976447fc084f39c8367a86cfeb5b1" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters</scope><name>~PinCounters</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

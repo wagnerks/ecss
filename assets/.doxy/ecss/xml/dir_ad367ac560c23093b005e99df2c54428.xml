@@ -1,0 +1,22 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_ad367ac560c23093b005e99df2c54428" kind="dir">
+    <compoundname>html</compoundname>
+    <innerfile refid="mux_2html_2annotated_8html">mux/html/annotated.html</innerfile>
+    <innerfile refid="mux_2html_2classes_8html">mux/html/classes.html</innerfile>
+    <innerfile refid="classmux____using____with-members_8html">classmux__using__with-members.html</innerfile>
+    <innerfile refid="classmux____using____with_8html">classmux__using__with.html</innerfile>
+    <innerfile refid="classmux____using____with__1__1behavior_8html">classmux__using__with_1_1behavior.html</innerfile>
+    <innerfile refid="examples_2mux_2html_2doxygen__crawl_8html">examples/mux/html/doxygen_crawl.html</innerfile>
+    <innerfile refid="mux_2html_2files_8html">mux/html/files.html</innerfile>
+    <innerfile refid="mux_2html_2functions_8html">mux/html/functions.html</innerfile>
+    <innerfile refid="mux_2html_2functions__vars_8html">mux/html/functions_vars.html</innerfile>
+    <innerfile refid="examples_2mux_2html_2index_8html">examples/mux/html/index.html</innerfile>
+    <innerfile refid="mux__8vhdl_8html">mux_8vhdl.html</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/mux/html/"/>
+  </compounddef>
+</doxygen>

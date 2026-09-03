@@ -1,0 +1,2274 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="classecss_1_1Registry" kind="class" language="C++" prot="public">
+    <compoundname>ecss::Registry</compoundname>
+    <includes refid="Registry_8h" local="no">Registry.h</includes>
+    <innerclass refid="structecss_1_1Registry_1_1ComponentAccess" prot="public">ecss::Registry::ComponentAccess</innerclass>
+    <innerclass refid="structecss_1_1Registry_1_1Registered" prot="private">ecss::Registry::Registered</innerclass>
+    <templateparamlist>
+      <param>
+        <type>bool</type>
+        <declname>ThreadSafe</declname>
+        <defname>ThreadSafe</defname>
+        <defval>true</defval>
+      </param>
+      <param>
+        <type>typename Allocator</type>
+        <defval><ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">Memory::ChunksAllocator</ref>&lt;8192&gt;</defval>
+      </param>
+    </templateparamlist>
+    <sectiondef kind="friend">
+      <memberdef kind="friend" id="classecss_1_1Registry_1a1b2f86668583ca29a0af93ded6e63417" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+          </param>
+          <param>
+            <type>typename Alloc</type>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>Ranged</declname>
+            <defname>Ranged</defname>
+          </param>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>typename ...</type>
+            <declname>ComponentTypes</declname>
+            <defname>ComponentTypes</defname>
+          </param>
+        </templateparamlist>
+        <type>class</type>
+        <definition>friend class ArraysView</definition>
+        <argsstring></argsstring>
+        <name>ArraysView</name>
+        <qualifiedname>ecss::Registry::ArraysView</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1ArraysView" kindref="compound">ArraysView</ref></type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="194" column="14" bodyfile="ecss/Registry.h" bodystart="194" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="friend" id="classecss_1_1Registry_1ab3dbf328fd8ace0a2b9e18ae85fd16eb" prot="private" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+          </param>
+          <param>
+            <type>typename Alloc</type>
+          </param>
+        </templateparamlist>
+        <type>class</type>
+        <definition>friend class Registry</definition>
+        <argsstring></argsstring>
+        <name>Registry</name>
+        <qualifiedname>ecss::Registry::Registry</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Registry" kindref="compound">Registry</ref></type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="197" column="14" bodyfile="ecss/Registry.h" bodystart="197" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="classecss_1_1Registry_1a6839f4966b6a8ca7eede34bad0da33d2" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Registry&lt; ThreadSafe, Allocator &gt;::kRotationStride</definition>
+        <argsstring></argsstring>
+        <name>kRotationStride</name>
+        <qualifiedname>ecss::Registry::kRotationStride</qualifiedname>
+        <initializer>= 4</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1477" column="25" bodyfile="ecss/Registry.h" bodystart="1477" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classecss_1_1Registry_1a0605cb94cfe2090fdb9194ce1058133c" prot="private" static="no" mutable="yes">
+        <type>std::conditional_t&lt; ThreadSafe, std::shared_mutex, Dummy &gt;</type>
+        <definition>std::conditional_t&lt;ThreadSafe, std::shared_mutex, Dummy&gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::componentsArrayMapMutex</definition>
+        <argsstring></argsstring>
+        <name>componentsArrayMapMutex</name>
+        <qualifiedname>ecss::Registry::componentsArrayMapMutex</qualifiedname>
+        <briefdescription>
+<para>Protects component arrays map/list (ThreadSafe build). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1639" column="28" bodyfile="ecss/Registry.h" bodystart="1639" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Registry_1ada14b6de0e3723b5a107a75c85a7c90e" prot="private" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ecss::Registry&lt; ThreadSafe, Allocator &gt;::mAutoMaintenance</definition>
+        <argsstring></argsstring>
+        <name>mAutoMaintenance</name>
+        <qualifiedname>ecss::Registry::mAutoMaintenance</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Whether opening a view maintains its arrays. <ref refid="structecss_1_1Read" kindref="compound">Read</ref> on every view and written by <ref refid="classecss_1_1Registry_1a96ab3950fc89eca2957adc22c96505b3" kindref="member">setAutoMaintenance()</ref>, so the thread-safe build has to order it <ndash/> a bare bool written while views are being opened is a data race. Plain storage with atomic_ref on top rather than an atomic member, so Registry&lt;false&gt; carries no atomic at all; the same shape Sector::setAlive uses for the liveness word. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1607" column="6" bodyfile="ecss/Registry.h" bodystart="1607" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Registry_1a405fe8afaef3e0470a45c80907f0584d" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Memory::SectorsArray</ref>&lt; ThreadSafe, Allocator &gt; * &gt;</type>
+        <definition>std::vector&lt;Memory::SectorsArray&lt;ThreadSafe, Allocator&gt;*&gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::mComponentsArrays</definition>
+        <argsstring></argsstring>
+        <name>mComponentsArrays</name>
+        <qualifiedname>ecss::Registry::mComponentsArrays</qualifiedname>
+        <briefdescription>
+<para>Flat list of all unique sectors arrays for iteration/maintenance. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1631" column="13" bodyfile="ecss/Registry.h" bodystart="1631" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Registry_1a14287dc54e3d19cb887c843025f718cf" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Memory::SectorsArray</ref>&lt; ThreadSafe, Allocator &gt; * &gt;</type>
+        <definition>std::vector&lt;Memory::SectorsArray&lt;ThreadSafe, Allocator&gt;*&gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::mComponentsArraysMap</definition>
+        <argsstring></argsstring>
+        <name>mComponentsArraysMap</name>
+        <qualifiedname>ecss::Registry::mComponentsArraysMap</qualifiedname>
+        <briefdescription>
+<para>Mapping: component type id -&gt; sectors array (may group several component types). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1628" column="13" bodyfile="ecss/Registry.h" bodystart="1628" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Registry_1a8a337943944df60862a94900cdb3d4b6" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; const <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">Memory::LayoutData</ref> * &gt;</type>
+        <definition>std::vector&lt;const Memory::LayoutData*&gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::mComponentsLayoutsMap</definition>
+        <argsstring></argsstring>
+        <name>mComponentsLayoutsMap</name>
+        <qualifiedname>ecss::Registry::mComponentsLayoutsMap</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Per component type, the LayoutData record and the layout it came from. Written only while registering, then copied into each published snapshot. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1567" column="19" bodyfile="ecss/Registry.h" bodystart="1567" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Registry_1a0ca72062bc135b10eda1ca6c464056e3" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; const <ref refid="structecss_1_1Memory_1_1SectorLayoutMeta" kindref="compound">Memory::SectorLayoutMeta</ref> * &gt;</type>
+        <definition>std::vector&lt;const Memory::SectorLayoutMeta*&gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::mComponentsMetaMap</definition>
+        <argsstring></argsstring>
+        <name>mComponentsMetaMap</name>
+        <qualifiedname>ecss::Registry::mComponentsMetaMap</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1568" column="13" bodyfile="ecss/Registry.h" bodystart="1568" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Registry_1a9d7f3c910816aae503840c58ed8b7f0e" prot="private" static="no" mutable="no">
+        <type><ref refid="structecss_1_1IdSet" kindref="compound">IdSet</ref>&lt; EntityId, ThreadSafe &gt;</type>
+        <definition>IdSet&lt;EntityId, ThreadSafe&gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::mEntities</definition>
+        <argsstring></argsstring>
+        <name>mEntities</name>
+        <qualifiedname>ecss::Registry::mEntities</qualifiedname>
+        <briefdescription>
+<para>Live entity ids, one bit each. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>This used to be a <ref refid="structecss_1_1Ranges" kindref="compound">Ranges&lt;EntityId&gt;</ref> interval list. Entities die in arbitrary order, and every erase inside a run split it <ndash/> a vector insert over an interval array that grew towards N/2 entries, so destroying half of N entities was O(N^2) (measured 166 ms at N=200k, 1084 ms at N=400k, against 0.14 / 0.32 ms here). <ref refid="structecss_1_1Ranges" kindref="compound">Ranges</ref> is still the right shape for the view range filters; it was the wrong one for a set that fragments by design. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1625" column="7" bodyfile="ecss/Registry.h" bodystart="1625" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Registry_1a8889dc0d38bd63d8390e1420b04e60a9" prot="private" static="no" mutable="yes">
+        <type>std::conditional_t&lt; ThreadSafe, std::shared_mutex, Dummy &gt;</type>
+        <definition>std::conditional_t&lt;ThreadSafe, std::shared_mutex, Dummy&gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::mEntitiesMutex</definition>
+        <argsstring></argsstring>
+        <name>mEntitiesMutex</name>
+        <qualifiedname>ecss::Registry::mEntitiesMutex</qualifiedname>
+        <briefdescription>
+<para>Protects entities container (ThreadSafe build). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1638" column="28" bodyfile="ecss/Registry.h" bodystart="1638" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Registry_1a363aa1315ceae5a83fe882ae9c87e0ee" prot="private" static="no" mutable="yes">
+        <type>std::atomic&lt; size_t &gt;</type>
+        <definition>std::atomic&lt;size_t&gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::mMaintainCursor</definition>
+        <argsstring></argsstring>
+        <name>mMaintainCursor</name>
+        <qualifiedname>ecss::Registry::mMaintainCursor</qualifiedname>
+        <initializer>{ 0 }</initializer>
+        <briefdescription>
+<para>Which array gets the spare maintenance slot next. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="see"><para>maintainOneInRotation </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1610" column="21" bodyfile="ecss/Registry.h" bodystart="1610" bodyend="1610"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Registry_1af60c3c018c191b4c5753a6fee7097b4b" prot="private" static="no" mutable="yes">
+        <type><ref refid="structecss_1_1Memory_1_1RetireBin" kindref="compound">Memory::RetireBin</ref></type>
+        <definition>Memory::RetireBin ecss::Registry&lt; ThreadSafe, Allocator &gt;::mNodeBin</definition>
+        <argsstring></argsstring>
+        <name>mNodeBin</name>
+        <qualifiedname>ecss::Registry::mNodeBin</qualifiedname>
+        <briefdescription>
+<para>Superseded snapshots, freed once no reader can still be inside one. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="see"><para><ref refid="classecss_1_1Registry_1a9dd1c0306ae008c24d14858160cce10e" kindref="member">tick()</ref> </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1614" column="27" bodyfile="ecss/Registry.h" bodystart="1614" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Registry_1a16ab742d64f3f3fa473b9102caf65e2b" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; bool &gt;</type>
+        <definition>std::atomic&lt;bool&gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::mPendingEntityClear</definition>
+        <argsstring></argsstring>
+        <name>mPendingEntityClear</name>
+        <qualifiedname>ecss::Registry::mPendingEntityClear</qualifiedname>
+        <initializer>{ false }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Raised by <ref refid="classecss_1_1Registry_1ab77169716298449f214ea193ea18f2b4" kindref="member">clearAsync()</ref>, lowered by the <ref refid="classecss_1_1Registry_1a36e817256447e5081267ae4e048a9cbb" kindref="member">update()</ref> that finds every array&apos;s own deferred clear finished. One atomic read per <ref refid="classecss_1_1Registry_1a36e817256447e5081267ae4e048a9cbb" kindref="member">update()</ref>, not per element, so it is not worth hiding behind ThreadSafe the way the per-iteration flags are. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1637" column="13" bodyfile="ecss/Registry.h" bodystart="1637" bodyend="1637"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Registry_1a6c00273e802284ba7f301de3ee121175" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; Registered * &gt;</type>
+        <definition>std::atomic&lt;Registered*&gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::mRegistered</definition>
+        <argsstring></argsstring>
+        <name>mRegistered</name>
+        <qualifiedname>ecss::Registry::mRegistered</qualifiedname>
+        <initializer>{ nullptr }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Published snapshot (lock-free reads). </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1612" column="13" bodyfile="ecss/Registry.h" bodystart="1612" bodyend="1612"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Registry_1a689284aad3051ac8f5ee363166a6104e" prot="private" static="no" mutable="no">
+        <type>std::atomic&lt; uint32_t &gt;</type>
+        <definition>std::atomic&lt;uint32_t&gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::mRetireGracePeriod</definition>
+        <argsstring></argsstring>
+        <name>mRetireGracePeriod</name>
+        <qualifiedname>ecss::Registry::mRetireGracePeriod</qualifiedname>
+        <initializer>{ Memory::RetireBin::DEFAULT_GRACE_PERIOD }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>The grace period asked for by <ref refid="classecss_1_1Registry_1aa3babd920a5247cc435e11125d2c8234" kindref="member">setRetireGracePeriod()</ref>, so that an array registered after the call gets it too. Atomic because registration happens on any thread. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1600" column="13" bodyfile="ecss/Registry.h" bodystart="1600" bodyend="1600"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Registry_1a128b3b4164f4d5bec5341a4534273a26" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; std::unique_ptr&lt; std::shared_mutex &gt; &gt;</type>
+        <definition>std::vector&lt;std::unique_ptr&lt;std::shared_mutex&gt; &gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::mTypeMutexes</definition>
+        <argsstring></argsstring>
+        <name>mTypeMutexes</name>
+        <qualifiedname>ecss::Registry::mTypeMutexes</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>One reader-writer lock per component type, for <ref refid="classecss_1_1Registry_1ae23c06277a9312194290f2827647d1f2" kindref="member">access()</ref>. Held in unique_ptrs because a guard keeps a pointer while another thread may be growing the vector. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1572" column="13" bodyfile="ecss/Registry.h" bodystart="1572" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1Registry_1a603c62cd31cf977ec79d4d45690ca85e" prot="private" static="no" mutable="yes">
+        <type>std::shared_mutex</type>
+        <definition>std::shared_mutex ecss::Registry&lt; ThreadSafe, Allocator &gt;::mTypeMutexesGrowth</definition>
+        <argsstring></argsstring>
+        <name>mTypeMutexesGrowth</name>
+        <qualifiedname>ecss::Registry::mTypeMutexesGrowth</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1573" column="27" bodyfile="ecss/Registry.h" bodystart="1573" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classecss_1_1Registry_1a00b5a1a0fcae643fb6fa8630cb252f35" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE ECSType</type>
+        <definition>static FORCE_INLINE ECSType ecss::Registry&lt; ThreadSafe, Allocator &gt;::componentTypeId</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>componentTypeId</name>
+        <qualifiedname>ecss::Registry::componentTypeId</qualifiedname>
+        <briefdescription>
+<para>Get a stable numeric type id for component T. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. @thread_safety Internally synchronized. The id is assigned once, by whichever thread asks first, and never changes afterwards. Ids come from one process-wide counter, so two registries agree on the number for a type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="208" column="29" bodyfile="ecss/Registry.h" bodystart="208" bodyend="208"/>
+        <referencedby refid="classecss_1_1Registry_1ae23c06277a9312194290f2827647d1f2" compoundref="Registry_8h" startline="793" endline="803">ecss::Registry&lt; ThreadSafe, Allocator &gt;::access</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" compoundref="Registry_8h" startline="1079" endline="1095">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a0b791b8a35b75c4b6a336270fc8555e3" compoundref="Registry_8h" startline="1137" endline="1152">ecss::Registry&lt; ThreadSafe, Allocator &gt;::lookupComponentAccess</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a73283188a0b6dd4217de0c1426d45b88" compoundref="Registry_8h" startline="245" endline="273">ecss::Registry&lt; ThreadSafe, Allocator &gt;::warnIfGroupingIgnored</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classecss_1_1Registry_1ae23c06277a9312194290f2827647d1f2" prot="public" static="no" nodiscard="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename...</type>
+            <declname>Claims</declname>
+            <defname>Claims</defname>
+          </param>
+        </templateparamlist>
+        <type><ref refid="classecss_1_1detail_1_1AccessGuard" kindref="compound">detail::AccessGuard</ref></type>
+        <definition>detail::AccessGuard ecss::Registry&lt; ThreadSafe, Allocator &gt;::access</definition>
+        <argsstring>()</argsstring>
+        <name>access</name>
+        <qualifiedname>ecss::Registry::access</qualifiedname>
+        <briefdescription>
+<para>Watch for two threads touching one component type at once (debug builds). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The container keeps an array&apos;s <emphasis>shape</emphasis> safe on its own: it will not be relocated under an iterator, and a pinned sector will not move or die. A component&apos;s <emphasis>value</emphasis> is a different matter <ndash/> guarding that would mean locking or pinning per element, which costs more than the lock-free read paths save. So a system reading Position while another writes it is a race the container cannot see.</para>
+<para>With this on, it is seen: the first overlap aborts and names the type and the two threads. A view counts as reading its component types for as long as it lives, and a mutator as writing one for the duration of the call; re-entering from the same thread is fine, since a system routinely reads what it just wrote.</para>
+<para>Worth leaving on for the whole of development. It compiles to nothing when NDEBUG is set, so there is nothing to turn off before shipping.</para>
+<para>Claim component types for the length of a system, so two of them cannot touch the same type at once.</para>
+<para><programlisting><codeline><highlight class="keyword">auto</highlight><highlight class="normal"><sp/><ref refid="classecss_1_1Registry_1ae23c06277a9312194290f2827647d1f2" kindref="member">access</ref><sp/>=<sp/>reg.access&lt;Read&lt;Position&gt;,<sp/>Write&lt;Velocity&gt;&gt;();</highlight></codeline>
+<codeline><highlight class="normal"></highlight><highlight class="keywordflow">for</highlight><highlight class="normal"><sp/>(</highlight><highlight class="keyword">auto</highlight><highlight class="normal"><sp/>[e,<sp/>p,<sp/>v]<sp/>:<sp/>reg.view&lt;Position,<sp/>Velocity&gt;())<sp/>{</highlight></codeline>
+<codeline><highlight class="normal"><sp/><sp/><sp/><sp/>v-&gt;dx<sp/>+=<sp/>p-&gt;x;<sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/><sp/></highlight><highlight class="comment">//<sp/>inside,<sp/>everything<sp/>runs<sp/>at<sp/>full<sp/>speed<sp/>as<sp/>before</highlight><highlight class="normal"></highlight></codeline>
+<codeline><highlight class="normal">}</highlight></codeline>
+</programlisting></para>
+<para>The container keeps an array&apos;s shape safe by itself; it does not keep a component&apos;s value stable while another thread writes it, and guarding that per element would cost more than the lock-free read paths save. This puts the guarantee at the granularity systems actually work at <ndash/> a whole component type <ndash/> so it is paid once per system rather than once per element. A reader-writer lock per type: 29.5 ns for one, 84.8 for three, against 27 ns to pin a single component <ndash/> and pinning would have to happen per element rather than per system.</para>
+<para>Name every type the system touches in one call. Taking them one at a time lets two systems claim the same pair in opposite orders and stop; asked for together, they are sorted by type id so every caller agrees on the order.</para>
+<para>Nesting from the same thread is fine and does nothing. Asking to write a type this thread already reads is refused in debug rather than upgraded, since there is no atomic upgrade and doing it in two steps brings the deadlock back.</para>
+<para>Nothing forces its use: a system that knows it is the only one touching a type can skip it and lose nothing. <ref refid="classecss_1_1Registry_1a7a0d407a24807d73897aa089351f4066" kindref="member">setAccessTracking()</ref> is what finds the ones that were wrong to skip. @thread_safety Internally synchronized; blocks by design. This is the one entry point whose whole job is to wait: it takes a reader-writer lock per component type and holds it until the guard dies. Name every type the system touches in one call <ndash/> claiming them one at a time is how two systems deadlock. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="793" column="22" bodyfile="ecss/Registry.h" bodystart="793" bodyend="803"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a8a603f0b45d65870c22cb5be1f41061f" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+          <param>
+            <type>class ...</type>
+            <declname>Args</declname>
+            <defname>Args</defname>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE T *</type>
+        <definition>FORCE_INLINE T * ecss::Registry&lt; ThreadSafe, Allocator &gt;::addComponent</definition>
+        <argsstring>(EntityId entity, Args &amp;&amp;... args) noexcept</argsstring>
+        <name>addComponent</name>
+        <qualifiedname>ecss::Registry::addComponent</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entity</declname>
+        </param>
+        <param>
+          <type>Args &amp;&amp;...</type>
+          <declname>args</declname>
+        </param>
+        <briefdescription>
+<para>Add or overwrite a component T for an entity. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>Args</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Constructor argument types for T. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Entity id (also used logically as sector id). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>args</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Construction / assignment arguments. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Pointer to the stored component. </para>
+</simplesect>
+<simplesect kind="note"><para>Overwrites existing component instance (destructive assign semantics inside sector).</para>
+</simplesect>
+Add or overwrite component T on an entity. <simplesect kind="warning"><para>Illegal while this thread holds a view or a pin on T&apos;s array, unless the id is above every id already stored: any other position shifts existing sectors, which would invalidate the live iterator. Debug builds assert; release builds hang. See the SectorsArray class documentation. </para>
+</simplesect>
+<simplesect kind="note"><para>Adding M components with ids that are not ascending costs O(M*N) this way. Use <ref refid="classecss_1_1Registry_1a4cb56c44ad178c9dcde751c61521c8a7" kindref="member">insertBulk()</ref> or <ref refid="classecss_1_1Registry_1a27a26a67d985539cfda27259612df57e" kindref="member">addComponents()</ref> for a batch <ndash/> they merge in one pass. @thread_safety Internally synchronized; blocks. An id above everything already stored appends and waits for nothing. An id that lands in the middle has to shift the sectors after it, so it waits for the whole array to carry no pins and no open views <ndash/> including a view this thread has open, which deadlocks. Feed ids in ascending order, or use <ref refid="classecss_1_1Registry_1a4cb56c44ad178c9dcde751c61521c8a7" kindref="member">insertBulk()</ref>, to stay on the fast path.</para>
+</simplesect>
+To add from inside a loop over a view, record into an <ref refid="classecss_1_1CommandBuffer" kindref="compound">ecss::CommandBuffer</ref> and apply it once the loop is done. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="527" column="16" bodyfile="ecss/Registry.h" bodystart="527" bodyend="530"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a27a26a67d985539cfda27259612df57e" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+          <param>
+            <type>typename Func</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::addComponents</definition>
+        <argsstring>(Func &amp;&amp;func)</argsstring>
+        <name>addComponents</name>
+        <qualifiedname>ecss::Registry::addComponents</qualifiedname>
+        <param>
+          <type>Func &amp;&amp;</type>
+          <declname>func</declname>
+        </param>
+        <briefdescription>
+<para>Bulk add components from a generator, inserted as one batch. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>Func</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Callable returning std::pair&lt;EntityId,T&gt;. Return {INVALID_ID, {}} to stop. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>func</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Generator invoked repeatedly until it signals the end. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>Ids may be emitted in any order. The batch is collected, then merged in a single pass under one write lock. @thread_safety Internally synchronized; blocks in the thread-safe build. Same contract as <ref refid="classecss_1_1Registry_1a8a603f0b45d65870c22cb5be1f41061f" kindref="member">addComponent()</ref>: an ascending run appends, anything landing in the middle waits for the array to carry no pins and no open views. Not applicable in the plain build, which has neither. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="545" column="6" bodyfile="ecss/Registry.h" bodystart="545" bodyend="564"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1ac5cbd002e5901b74ef56ec49642daeeb" prot="public" static="no" nodiscard="yes" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ecss::Registry&lt; ThreadSafe, Allocator &gt;::autoMaintenance</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>autoMaintenance</name>
+        <qualifiedname>ecss::Registry::autoMaintenance</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>Whether views maintain the arrays they open. </para>
+</simplesect>
+<simplesect kind="see"><para><ref refid="classecss_1_1Registry_1a96ab3950fc89eca2957adc22c96505b3" kindref="member">setAutoMaintenance</ref> @thread_safety Internally synchronized. One relaxed load in the thread-safe build, a plain one otherwise. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="820" column="7" bodyfile="ecss/Registry.h" bodystart="820" bodyend="820"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a9d8a3ef446c1f520f97e8bd3e6536522" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::clear</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>clear</name>
+        <qualifiedname>ecss::Registry::clear</qualifiedname>
+        <briefdescription>
+<para>Clear all component arrays and remove all entities. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>Does not shrink capacity. </para>
+</simplesect>
+<simplesect kind="post"><para>contains(id)==false for any previously allocated entity. @thread_safety Internally synchronized; blocks on every array. Each one waits until it carries no pins and no open views. A view open on another thread holds this up for as long as it lives; a view open on this thread deadlocks.</para>
+</simplesect>
+<ref refid="classecss_1_1Registry_1ab77169716298449f214ea193ea18f2b4" kindref="member">clearAsync()</ref> is the deferred form, safe to call from anywhere. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="904" column="6" bodyfile="ecss/Registry.h" bodystart="904" bodyend="924"/>
+        <referencedby refid="classecss_1_1Registry_1ab77169716298449f214ea193ea18f2b4" compoundref="Registry_8h" startline="943" endline="952">ecss::Registry&lt; ThreadSafe, Allocator &gt;::clearAsync</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1ab77169716298449f214ea193ea18f2b4" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::clearAsync</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>clearAsync</name>
+        <qualifiedname>ecss::Registry::clearAsync</qualifiedname>
+        <briefdescription>
+<para>Ask every array to clear itself at the next safe point, instead of now. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The deferred counterpart to <ref refid="classecss_1_1Registry_1a9d8a3ef446c1f520f97e8bd3e6536522" kindref="member">clear()</ref>. Records the wish and returns, so unlike <ref refid="classecss_1_1Registry_1a9d8a3ef446c1f520f97e8bd3e6536522" kindref="member">clear()</ref> it is safe to call from anywhere, including from inside a loop over a view. Each array performs it the first time <ref refid="classecss_1_1Registry_1a36e817256447e5081267ae4e048a9cbb" kindref="member">update()</ref> finds it free.</para>
+<para>Entity ids are held until the components are actually gone, and released by the <ref refid="classecss_1_1Registry_1a36e817256447e5081267ae4e048a9cbb" kindref="member">update()</ref> that finds every array done. Releasing them at once would be cheap and wrong: <ref refid="classecss_1_1Registry_1a3af483bdef9856965a6c91bd5369232c" kindref="member">takeEntity()</ref> would hand one straight back while the sector naming it is still alive, and the new entity would read the old one&apos;s components as its own. So <ref refid="classecss_1_1Registry_1acaec1a969d49954ab12dee4266bb6d4c" kindref="member">contains()</ref> keeps reporting them until the clear has really happened.</para>
+<para><simplesect kind="note"><para>Asked for, not promised. </para>
+</simplesect>
+<simplesect kind="see"><para><ref refid="classecss_1_1Registry_1a9d8a3ef446c1f520f97e8bd3e6536522" kindref="member">clear()</ref>, <ref refid="classecss_1_1Registry_1a36e817256447e5081267ae4e048a9cbb" kindref="member">update()</ref> @thread_safety Internally synchronized. One relaxed store per array plus the id set; nothing is waited for. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="943" column="6" bodyfile="ecss/Registry.h" bodystart="943" bodyend="952"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1acaec1a969d49954ab12dee4266bb6d4c" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Registry&lt; ThreadSafe, Allocator &gt;::contains</definition>
+        <argsstring>(EntityId entityId) const noexcept</argsstring>
+        <name>contains</name>
+        <qualifiedname>ecss::Registry::contains</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entityId</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>True if registry currently owns entityId. </para>
+</simplesect>
+<simplesect kind="return"><para>True if the registry currently owns entityId. Lock-free: a single load. @thread_safety Internally synchronized. Lock-free read of the id set. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1160" column="19" bodyfile="ecss/Registry.h" bodystart="1160" bodyend="1160"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a14808ef611a3854e97bed88d54a237e9" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::defragment</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>defragment</name>
+        <qualifiedname>ecss::Registry::defragment</qualifiedname>
+        <briefdescription>
+<para>Defragment all arrays (compacts fragmented dead slots). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="note"><para>Can be expensive if many arrays are large; schedule during low frame-load moments. @thread_safety Internally synchronized; blocks on every array. Compaction moves sectors, so each array waits until it carries no pins and no open views. <ref refid="classecss_1_1Registry_1a36e817256447e5081267ae4e048a9cbb" kindref="member">update()</ref> is the deferred form: it skips busy arrays and picks them up next time, which makes it safe to call from inside a loop over a view. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="962" column="6" bodyfile="ecss/Registry.h" bodystart="962" bodyend="974"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1ada5cbe54f287be41cda40fa0bc783c71" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Registry&lt; ThreadSafe, Allocator &gt;::defragment</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>defragment</name>
+        <qualifiedname>ecss::Registry::defragment</qualifiedname>
+        <briefdescription>
+<para>Defragment the container for component T (if it exists). @thread_safety Internally synchronized; blocks. Waits until this one array carries no pins and no open views. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="see"><para><ref refid="classecss_1_1Registry_1a14808ef611a3854e97bed88d54a237e9" kindref="member">defragment()</ref> </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1296" column="19" bodyfile="ecss/Registry.h" bodystart="1296" bodyend="1296"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a40e500f0b85b8185251ac13f3977a5fa" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyComponent</definition>
+        <argsstring>(EntityId entity) noexcept</argsstring>
+        <name>destroyComponent</name>
+        <qualifiedname>ecss::Registry::destroyComponent</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entity</declname>
+        </param>
+        <briefdescription>
+<para>Destroy component T for a single entity (does nothing if not present). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Entity id. @complexity O(1). @thread_safety Internally synchronized; blocks, but only on this one sector. It waits for that entity&apos;s sector to carry no pins; pins on other entities and views over the array do not delay it. Holding a pin to the component being destroyed, on this thread, deadlocks. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="601" column="6" bodyfile="ecss/Registry.h" bodystart="601" bodyend="634"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1ace81965843c6f3b518508670707e7148" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyComponent</definition>
+        <argsstring>(std::vector&lt; EntityId &gt; &amp;entities) noexcept</argsstring>
+        <name>destroyComponent</name>
+        <qualifiedname>ecss::Registry::destroyComponent</qualifiedname>
+        <param>
+          <type>std::vector&lt; EntityId &gt; &amp;</type>
+          <declname>entities</declname>
+        </param>
+        <briefdescription>
+<para>Destroy component T for a batch of entities. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entities</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Entity id list (will be sorted and truncated to valid sector capacity). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>Modifies the input vector (sorting, trimming out-of-range ids). </para>
+</simplesect>
+<simplesect kind="warning"><para>Pins are waited if thread-safe; call outside tight critical paths if possible. @thread_safety Internally synchronized; blocks, but only on the named sectors. Waits for each listed entity to carry no pins; unrelated entities and open views do not delay it. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="647" column="6" bodyfile="ecss/Registry.h" bodystart="647" bodyend="693"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a13215b01a606362fc3ddc0f12c6cfa64" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyEntities</definition>
+        <argsstring>(std::vector&lt; EntityId &gt; &amp;entities) noexcept</argsstring>
+        <name>destroyEntities</name>
+        <qualifiedname>ecss::Registry::destroyEntities</qualifiedname>
+        <param>
+          <type>std::vector&lt; EntityId &gt; &amp;</type>
+          <declname>entities</declname>
+        </param>
+        <briefdescription>
+<para>Destroy a batch of entities and all their components (sequential per-array). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entities</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>List of entities (not modified). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>Safe to call while other threads query (ThreadSafe=true). </para>
+</simplesect>
+<simplesect kind="warning"><para>No parallelization here to avoid thread lifetime complexity.</para>
+</simplesect>
+Destroy a batch of entities across every registered array. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entities</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Ids to destroy. Sorted ascending is the cheap case; any other order is sorted in place first, since destroyInArray binary-searches this range to trim ids past each array&apos;s sparse map. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>Far cheaper than a loop of <ref refid="classecss_1_1Registry_1a0db69a9b59211fb25f64fa34d6d8b11c" kindref="member">destroyEntity()</ref>: one lock and one pass per array rather than per entity <ndash/> 14.3 ns per entity against 74.4. @thread_safety Internally synchronized; blocks, but only on the named entities&apos; sectors. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1231" column="6" bodyfile="ecss/Registry.h" bodystart="1231" bodyend="1290"/>
+        <referencedby refid="classecss_1_1CommandBuffer_1af1967f0eb5a56b4434a25144eabf0ff9" compoundref="CommandBuffer_8h" startline="115" endline="124">ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::apply</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a0db69a9b59211fb25f64fa34d6d8b11c" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyEntity</definition>
+        <argsstring>(EntityId entityId) noexcept</argsstring>
+        <name>destroyEntity</name>
+        <qualifiedname>ecss::Registry::destroyEntity</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entityId</declname>
+        </param>
+        <briefdescription>
+<para>Destroy a single entity and all of its components. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entityId</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Entity to remove (ignored if not owned). @complexity O(A) with A = number of component arrays. @thread_safety Internally synchronized; blocks, but only on this entity&apos;s sectors. Each array holding the entity is asked to destroy in place, which waits for that one sector to carry no pins. Arrays that do not hold it are skipped without taking their lock. A pin this thread holds on the entity deadlocks. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1204" column="6" bodyfile="ecss/Registry.h" bodystart="1204" bodyend="1216"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a9cd7516a14881bee276ea7d9ae0a0b83" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename...</type>
+            <declname>Components</declname>
+            <defname>Components</defname>
+          </param>
+          <param>
+            <type>typename Func</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::forEachAsync</definition>
+        <argsstring>(const std::vector&lt; EntityId &gt; &amp;entities, Func &amp;&amp;func) noexcept</argsstring>
+        <name>forEachAsync</name>
+        <qualifiedname>ecss::Registry::forEachAsync</qualifiedname>
+        <param>
+          <type>const std::vector&lt; EntityId &gt; &amp;</type>
+          <declname>entities</declname>
+        </param>
+        <param>
+          <type>Func &amp;&amp;</type>
+          <declname>func</declname>
+        </param>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+<para>Apply a function to each entity in a list, pinning the requested component types. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>Components</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component types to pin. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>Func</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Callable signature: void(EntityId, Components*...). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entities</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Entity ids to process. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>func</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Function invoked per entity. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>Skips entities missing any main pinned component (pointer passed may be nullptr for non-main).</para>
+</simplesect>
+<simplesect kind="warning"><para>Despite the name, this starts no threads. It is a loop over the list on the calling thread, pinning each entity&apos;s components in turn. The name and this contract described workers with a view each, which was never what it did. To spread the work, slice the list yourself and call this from each thread <ndash/> which is safe, and is what the pinning is for. @thread_safety Internally synchronized. Pins each entity&apos;s components for the length of one call to func. The usual rule applies inside func: no structural change to an array being iterated. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="873" column="13" bodyfile="ecss/Registry.h" bodystart="873" bodyend="878"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a86940b59ff68e644d2403540b25f0a3e" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE std::vector&lt; EntityId &gt;</type>
+        <definition>FORCE_INLINE std::vector&lt; EntityId &gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::getAllEntities</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>getAllEntities</name>
+        <qualifiedname>ecss::Registry::getAllEntities</qualifiedname>
+        <briefdescription>
+<para>Snapshot all entity ids (copy). @thread_safety Internally synchronized. Snapshot: correct when taken, stale as soon as another thread takes or destroys an id. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1183" column="26" bodyfile="ecss/Registry.h" bodystart="1183" bodyend="1193"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1ad6cd39bd1c6e9a9a2e6b63bb3946f18b" prot="public" static="no" nodiscard="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE <ref refid="structecss_1_1Registry_1_1ComponentAccess" kindref="compound">ComponentAccess</ref></type>
+        <definition>FORCE_INLINE ComponentAccess ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentAccess</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>getComponentAccess</name>
+        <qualifiedname>ecss::Registry::getComponentAccess</qualifiedname>
+        <briefdescription>
+<para>Resolve T&apos;s array and layout in a single lookup. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The layout was resolved when the array was registered, so the per-call scan over the layout&apos;s type tokens disappears <ndash/> that scan is why a query against a grouped array grew more expensive the more component types the group held.</para>
+<para>The cached record is checked, not assumed: <ref refid="classecss_1_1Registry_1ac5878c751c1d073fd9911a01a4f67e16" kindref="member">Registry::insert</ref> can still repoint an array at a different layout, and the recorded one would then describe the wrong sector shape. Comparing the layout the array reports now against the one this entry was built from costs a single load and compare <ndash/> measured at 0.2-0.35 ns against a 2-6 ns saving <ndash/> and turns a stale entry into a slow path rather than a wrong answer. @thread_safety Internally synchronized. Registers the array on first use, which publishes a new snapshot; the old one is retired, not freed, so a concurrent reader walking it is safe. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1122" column="31" bodyfile="ecss/Registry.h" bodystart="1122" bodyend="1131"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" prot="public" static="no" nodiscard="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+        </templateparamlist>
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Memory::SectorsArray</ref>&lt; ThreadSafe, Allocator &gt; *</type>
+        <definition>Memory::SectorsArray&lt; ThreadSafe, Allocator &gt; * ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>getComponentContainer</name>
+        <qualifiedname>ecss::Registry::getComponentContainer</qualifiedname>
+        <briefdescription>
+<para>Get (or lazily create) the sectors container for component T. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>Pointer to container holding (possibly grouped) T. </para>
+</simplesect>
+<simplesect kind="note"><para>Will implicitly register a single-type array if not pre-registered. @thread_safety Internally synchronized. Returns the array, and the array outlives every call on this registry, so the pointer stays valid. What you then call on it carries its own contract <ndash/> see SectorsArray. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1079" column="23" bodyfile="ecss/Registry.h" bodystart="1079" bodyend="1095"/>
+        <referencedby refid="classecss_1_1Registry_1a8a603f0b45d65870c22cb5be1f41061f" compoundref="Registry_8h" startline="527" endline="530">ecss::Registry&lt; ThreadSafe, Allocator &gt;::addComponent</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a27a26a67d985539cfda27259612df57e" compoundref="Registry_8h" startline="545" endline="564">ecss::Registry&lt; ThreadSafe, Allocator &gt;::addComponents</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" compoundref="Registry_8h" startline="1079" endline="1095">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</referencedby>
+        <referencedby refid="classecss_1_1Registry_1ac5878c751c1d073fd9911a01a4f67e16" compoundref="Registry_8h" startline="708" endline="708">ecss::Registry&lt; ThreadSafe, Allocator &gt;::insert</referencedby>
+        <referencedby refid="classecss_1_1Registry_1ad7c04cce4b6c9d6b5e7fa1c33ec84b6f" compoundref="Registry_8h" startline="714" endline="714">ecss::Registry&lt; ThreadSafe, Allocator &gt;::insert</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a4cb56c44ad178c9dcde751c61521c8a7" compoundref="Registry_8h" startline="585" endline="588">ecss::Registry&lt; ThreadSafe, Allocator &gt;::insertBulk</referencedby>
+        <referencedby refid="classecss_1_1Registry_1abc89274e98252fb7a35d5a1417a9a854" compoundref="Registry_8h" startline="491" endline="498">ecss::Registry&lt; ThreadSafe, Allocator &gt;::pinComponent</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a19d6acc056a40ddaac5bc4e01a9ab284" compoundref="Registry_8h" startline="892" endline="892">ecss::Registry&lt; ThreadSafe, Allocator &gt;::reserve</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a7009c07793d9a4521915c010241a0aa8" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Registry&lt; ThreadSafe, Allocator &gt;::hasComponent</definition>
+        <argsstring>(EntityId entity) noexcept</argsstring>
+        <name>hasComponent</name>
+        <qualifiedname>ecss::Registry::hasComponent</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entity</declname>
+        </param>
+        <briefdescription>
+<para>Check if an entity has a live component T. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Entity id. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para>True if the component exists and is alive; false otherwise. @complexity O(1). @thread_safety Internally synchronized. Lock-free once the type is registered: the slot lookup and the liveness word both come from published snapshots. The very first call for a type is not <ndash/> <ref refid="classecss_1_1Registry_1ad6cd39bd1c6e9a9a2e6b63bb3946f18b" kindref="member">getComponentAccess()</ref> registers the array under a unique lock <ndash/> so touch each type once at startup if that matters. Tells you the component exists, not that its value is stable: another thread may be writing it. </para>
+</simplesect>
+<simplesect kind="see"><para><ref refid="classecss_1_1Registry_1ae23c06277a9312194290f2827647d1f2" kindref="member">access()</ref> </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="452" column="19" bodyfile="ecss/Registry.h" bodystart="452" bodyend="476"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1ac5878c751c1d073fd9911a01a4f67e16" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+          </param>
+          <param>
+            <type>typename Alloc</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Registry&lt; ThreadSafe, Allocator &gt;::insert</definition>
+        <argsstring>(const Memory::SectorsArray&lt; TS, Alloc &gt; &amp;array) noexcept</argsstring>
+        <name>insert</name>
+        <qualifiedname>ecss::Registry::insert</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Memory::SectorsArray</ref>&lt; TS, Alloc &gt; &amp;</type>
+          <declname>array</declname>
+        </param>
+        <briefdescription>
+<para>Copy-in an externally built sectors array for component T. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="warning"><para>The source must have been built over the same component types in the same order as T&apos;s registered array. [A, B] and [B, A] are different layouts, and so are [A] and [A, B]. A mismatch leaves this registry unchanged (and asserts in debug) rather than repointing the array at a foreign layout: the sector size and the liveness bits would no longer describe the bytes, and the registry would still route B to a different array anyway. @thread_safety Internally synchronized; blocks. Replaces the whole array, so it waits until the destination carries no pins and no open views. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="708" column="19" bodyfile="ecss/Registry.h" bodystart="708" bodyend="708"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1ad7c04cce4b6c9d6b5e7fa1c33ec84b6f" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>bool</type>
+            <declname>TS</declname>
+            <defname>TS</defname>
+          </param>
+          <param>
+            <type>typename Alloc</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Registry&lt; ThreadSafe, Allocator &gt;::insert</definition>
+        <argsstring>(Memory::SectorsArray&lt; TS, Alloc &gt; &amp;&amp;array) noexcept</argsstring>
+        <name>insert</name>
+        <qualifiedname>ecss::Registry::insert</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Memory::SectorsArray</ref>&lt; TS, Alloc &gt; &amp;&amp;</type>
+          <declname>array</declname>
+        </param>
+        <briefdescription>
+<para>Move-in an externally built sectors array for component T. @thread_safety Internally synchronized; blocks. Replaces the whole array, so it waits until the destination carries no pins and no open views. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="714" column="19" bodyfile="ecss/Registry.h" bodystart="714" bodyend="714"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a4cb56c44ad178c9dcde751c61521c8a7" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+          <param>
+            <type>class It</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::insertBulk</definition>
+        <argsstring>(It first, It last)</argsstring>
+        <name>insertBulk</name>
+        <qualifiedname>ecss::Registry::insertBulk</qualifiedname>
+        <param>
+          <type>It</type>
+          <declname>first</declname>
+        </param>
+        <param>
+          <type>It</type>
+          <declname>last</declname>
+        </param>
+        <briefdescription>
+<para>Bulk insert of component T for a batch of (entity, value) pairs. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>It</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Iterator over pair-like {EntityId, T}. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>first</parametername>
+<parametername>last</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Range of pairs. Ids may be in any order and may fall anywhere in the range already stored; an id already present is overwritten. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>Amortizes per-element overhead (existence check, insert-position search, view publish) and, in the TS build, the write lock and pin wait across the whole range. Prefer this to a loop of <ref refid="classecss_1_1Registry_1a8a603f0b45d65870c22cb5be1f41061f" kindref="member">addComponent()</ref> whenever the ids are not ascending: the loop costs O(M*N), this sorts once and merges in a single pass. @thread_safety Internally synchronized; blocks. A batch entirely above what is stored is appended and waits for nothing. Otherwise the batch is merged, which moves existing sectors, and that waits for the array to carry no pins and no open views <ndash/> from a thread holding a view on this array, a deadlock.</para>
+</simplesect>
+To add from inside a loop over a view, record into an <ref refid="classecss_1_1CommandBuffer" kindref="compound">ecss::CommandBuffer</ref> and apply it once the loop is done. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="585" column="6" bodyfile="ecss/Registry.h" bodystart="585" bodyend="588"/>
+        <referencedby refid="classecss_1_1Registry_1a27a26a67d985539cfda27259612df57e" compoundref="Registry_8h" startline="545" endline="564">ecss::Registry&lt; ThreadSafe, Allocator &gt;::addComponents</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a4cb56c44ad178c9dcde751c61521c8a7" compoundref="Registry_8h" startline="585" endline="588">ecss::Registry&lt; ThreadSafe, Allocator &gt;::insertBulk</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a0b791b8a35b75c4b6a336270fc8555e3" prot="public" static="no" nodiscard="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE <ref refid="structecss_1_1Registry_1_1ComponentAccess" kindref="compound">ComponentAccess</ref></type>
+        <definition>FORCE_INLINE ComponentAccess ecss::Registry&lt; ThreadSafe, Allocator &gt;::lookupComponentAccess</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>lookupComponentAccess</name>
+        <qualifiedname>ecss::Registry::lookupComponentAccess</qualifiedname>
+        <briefdescription>
+<para>One snapshot load; empty if T has no array yet. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="see"><para><ref refid="classecss_1_1Registry_1ad6cd39bd1c6e9a9a2e6b63bb3946f18b" kindref="member">getComponentAccess</ref> @thread_safety Internally synchronized. Lock-free; returns a null <ref refid="classecss_1_1Registry_1ae23c06277a9312194290f2827647d1f2" kindref="member">access</ref> if the type has not been registered rather than registering it. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1137" column="31" bodyfile="ecss/Registry.h" bodystart="1137" bodyend="1152"/>
+        <referencedby refid="classecss_1_1Registry_1ad6cd39bd1c6e9a9a2e6b63bb3946f18b" compoundref="Registry_8h" startline="1122" endline="1131">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentAccess</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a7009c07793d9a4521915c010241a0aa8" compoundref="Registry_8h" startline="452" endline="476">ecss::Registry&lt; ThreadSafe, Allocator &gt;::hasComponent</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a105a07f1fc04e3cd73ec60538454ddbc" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> &amp;</type>
+        <definition>Registry &amp; ecss::Registry&lt; ThreadSafe, Allocator &gt;::operator=</definition>
+        <argsstring>(const Registry &amp;other) noexcept=delete</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Registry::operator=</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+<para><ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> instances cannot be copy-assigned. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="279" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a0578284d3720b564e643a45370ab58e8" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> &amp;</type>
+        <definition>Registry &amp; ecss::Registry&lt; ThreadSafe, Allocator &gt;::operator=</definition>
+        <argsstring>(Registry &amp;&amp;other) noexcept=delete</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::Registry::operator=</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+<para><ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> instances cannot be move-assigned. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="283" column="10"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1abc89274e98252fb7a35d5a1417a9a854" prot="public" static="no" nodiscard="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class T</type>
+          </param>
+        </templateparamlist>
+        <type><ref refid="structecss_1_1PinnedComponent" kindref="compound">PinnedComponent</ref>&lt; T &gt;</type>
+        <definition>PinnedComponent&lt; T &gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::pinComponent</definition>
+        <argsstring>(EntityId entity) noexcept</argsstring>
+        <name>pinComponent</name>
+        <qualifiedname>ecss::Registry::pinComponent</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entity</declname>
+        </param>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+<para>Pin component T for an entity (thread-safe build only). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>T</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Entity id. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><ref refid="structecss_1_1PinnedComponent" kindref="compound">PinnedComponent&lt;T&gt;</ref> (empty if component missing). </para>
+</simplesect>
+<simplesect kind="note"><para>The returned object must not outlive concurrent modification epochs. @thread_safety Internally synchronized. The pin is the point: while it is held, that one sector will not be moved, destroyed or reused, so the pointer stays good. It also delays anything that needs that sector <ndash/> destroyComponent and destroyEntity for the same entity wait for it, and holding a pin while destroying what it points at deadlocks. Keep it short. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="491" column="18" bodyfile="ecss/Registry.h" bodystart="491" bodyend="498"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a9fe1b9e3505b3aeb8d0b55110c6088c1" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename...</type>
+            <declname>ComponentTypes</declname>
+            <defname>ComponentTypes</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::registerArray</definition>
+        <argsstring>(uint32_t capacity=0, Allocator allocator={}) noexcept</argsstring>
+        <name>registerArray</name>
+        <qualifiedname>ecss::Registry::registerArray</qualifiedname>
+        <param>
+          <type>uint32_t</type>
+          <declname>capacity</declname>
+          <defval>0</defval>
+        </param>
+        <param>
+          <type>Allocator</type>
+          <declname>allocator</declname>
+          <defval>{}</defval>
+        </param>
+        <briefdescription>
+<para>Explicitly register (group) component types into a shared sectors array. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>ComponentTypes</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component types to co-locate. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>capacity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Initial reserve (optional). </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>allocator</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Allocator instance to move. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>All types must either all be new or already co-grouped; partial mixes assert. </para>
+</simplesect>
+<simplesect kind="warning"><para>Call before first implicit access to any of the grouped types. @thread_safety Internally synchronized. Publishes a new array snapshot; the superseded one is retired rather than freed, so a reader still walking it is safe. Grouping decides the memory layout, so do it at startup, before anything stores a component of these types. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="989" column="6" bodyfile="ecss/Registry.h" bodystart="989" bodyend="1067"/>
+        <referencedby refid="classecss_1_1Registry_1ad6cd39bd1c6e9a9a2e6b63bb3946f18b" compoundref="Registry_8h" startline="1122" endline="1131">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentAccess</referencedby>
+        <referencedby refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" compoundref="Registry_8h" startline="1079" endline="1095">ecss::Registry&lt; ThreadSafe, Allocator &gt;::getComponentContainer</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a3a82f7f928037e3712cc6e3bf7c65c9b" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Registry&lt; ThreadSafe, Allocator &gt;::Registry</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>Registry</name>
+        <qualifiedname>ecss::Registry::Registry</qualifiedname>
+        <briefdescription>
+<para>Default construct an empty registry (no arrays allocated until first use). @thread_safety Internally synchronized, vacuously: nothing can name the object until the constructor returns, so there is nothing to race with. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="289" column="1" bodyfile="ecss/Registry.h" bodystart="289" bodyend="294"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a655b516f4a3eb2e810e7de55921f9b03" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Registry&lt; ThreadSafe, Allocator &gt;::Registry</definition>
+        <argsstring>(const Registry &amp;other) noexcept=delete</argsstring>
+        <name>Registry</name>
+        <qualifiedname>ecss::Registry::Registry</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> &amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+<para><ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> instances cannot be copied; they uniquely own their arrays and entity ids. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="277" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a65fa5a531f5192c7552e62da0547950f" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Registry&lt; ThreadSafe, Allocator &gt;::Registry</definition>
+        <argsstring>(Registry &amp;&amp;other) noexcept=delete</argsstring>
+        <name>Registry</name>
+        <qualifiedname>ecss::Registry::Registry</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> &amp;&amp;</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+<para><ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> instances cannot be moved because views and handles may refer to their address. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="281" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a19d6acc056a40ddaac5bc4e01a9ab284" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class...</type>
+            <declname>Components</declname>
+            <defname>Components</defname>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Registry&lt; ThreadSafe, Allocator &gt;::reserve</definition>
+        <argsstring>(uint32_t newCapacity) noexcept</argsstring>
+        <name>reserve</name>
+        <qualifiedname>ecss::Registry::reserve</qualifiedname>
+        <param>
+          <type>uint32_t</type>
+          <declname>newCapacity</declname>
+        </param>
+        <briefdescription>
+<para>Reserve capacity (in sectors array units) for each listed component type. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>Components</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component types to reserve for. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>newCapacity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Target capacity (implementation may round up). @thread_safety Internally synchronized. Takes each array&apos;s write lock to grow it, which is brief, and does not wait for pins or views: growth adds chunks and moves no sector. Worth doing before the threads start, to keep it off the frame. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="892" column="19" bodyfile="ecss/Registry.h" bodystart="892" bodyend="892"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a7a0d407a24807d73897aa089351f4066" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::setAccessTracking</definition>
+        <argsstring>(bool enabled) noexcept</argsstring>
+        <name>setAccessTracking</name>
+        <qualifiedname>ecss::Registry::setAccessTracking</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>enabled</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. One relaxed store to a process-wide atomic flag, so calling it while threads run is not a race <ndash/> but it is still a startup switch: turning tracking on late cannot show the overlaps that already happened. Compiled out entirely when NDEBUG is set. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="809" column="6" bodyfile="ecss/Registry.h" bodystart="809" bodyend="815"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a96ab3950fc89eca2957adc22c96505b3" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::setAutoMaintenance</definition>
+        <argsstring>(bool enabled) noexcept</argsstring>
+        <name>setAutoMaintenance</name>
+        <qualifiedname>ecss::Registry::setAutoMaintenance</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>enabled</declname>
+        </param>
+        <briefdescription>
+<para>Let views carry out the maintenance <ref refid="classecss_1_1Registry_1a36e817256447e5081267ae4e048a9cbb" kindref="member">update()</ref> does, for the arrays they touch. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>With this on there is no call to place in the frame: opening a view first gives its arrays the pass <ref refid="classecss_1_1Registry_1a36e817256447e5081267ae4e048a9cbb" kindref="member">update()</ref> would have given them <ndash/> retire the memory whose grace period has run out, apply deferred erases, and compact if the array asked for it and is free at that moment. A busy array is skipped, exactly as in <ref refid="classecss_1_1Registry_1a36e817256447e5081267ae4e048a9cbb" kindref="member">update()</ref>, so this never blocks and never changes what iteration sees.</para>
+<para>Compaction is done where it pays: right before the iteration that benefits from it. The total work is the same either way <ndash/> an array wants compacting once, and once done it stops asking <ndash/> so this moves the cost rather than adding it.</para>
+<para>Off by default: opening a view is a read, and doing structural work inside one should be asked for rather than assumed. Set it once at startup, before other threads exist. <ref refid="classecss_1_1Registry_1a36e817256447e5081267ae4e048a9cbb" kindref="member">update()</ref> keeps working and stays the way to control when the work lands. @thread_safety Internally synchronized. One relaxed store in the thread-safe build, a plain one otherwise. Still worth doing at startup: flipping it mid-frame changes what opening a view does, so two threads can disagree about whether their views maintain. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="738" column="6" bodyfile="ecss/Registry.h" bodystart="738" bodyend="738"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a7051790a8a6d2d2d492a239d6d4a7f41" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Registry&lt; ThreadSafe, Allocator &gt;::setDefragmentThreshold</definition>
+        <argsstring>(float threshold)</argsstring>
+        <name>setDefragmentThreshold</name>
+        <qualifiedname>ecss::Registry::setDefragmentThreshold</qualifiedname>
+        <param>
+          <type>float</type>
+          <declname>threshold</declname>
+        </param>
+        <briefdescription>
+<para>Set defragment threshold for component T container. @thread_safety Internally synchronized. One relaxed store; it changes when compaction is requested, never compaction itself. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1302" column="19" bodyfile="ecss/Registry.h" bodystart="1302" bodyend="1302"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1aa3babd920a5247cc435e11125d2c8234" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::setRetireGracePeriod</definition>
+        <argsstring>(uint32_t ticks) noexcept</argsstring>
+        <name>setRetireGracePeriod</name>
+        <qualifiedname>ecss::Registry::setRetireGracePeriod</qualifiedname>
+        <param>
+          <type>uint32_t</type>
+          <declname>ticks</declname>
+        </param>
+        <briefdescription>
+<para>Set the grace period (in ticks) before retired memory is freed. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Higher values = safer but more memory usage. Lower values = less memory but risk of use-after-free if iterators live long.</para>
+<para>Default is 3 ticks, which is safe for typical game loops where iterators don&apos;t survive across frames.</para>
+<para><simplesect kind="note"><para>The non-thread-safe build fixes this at zero and ignores the setter.</para>
+</simplesect>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ticks</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Number of <ref refid="classecss_1_1Registry_1a9dd1c0306ae008c24d14858160cce10e" kindref="member">tick()</ref> calls before memory is freed @thread_safety Internally synchronized. The period each bin holds is an atomic, and a block captures its own countdown when it is retired, so lowering the period never shortens the life of something already queued. Zero is the one value that would be unsafe here and it is refused: see below. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="414" column="6" bodyfile="ecss/Registry.h" bodystart="414" bodyend="435"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a1e66ed99c1e1cea313f7a9fb523a7a74" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Registry&lt; ThreadSafe, Allocator &gt;::takeEntities</definition>
+        <argsstring>(size_t count, std::vector&lt; EntityId &gt; &amp;out) noexcept</argsstring>
+        <name>takeEntities</name>
+        <qualifiedname>ecss::Registry::takeEntities</qualifiedname>
+        <param>
+          <type>size_t</type>
+          <declname>count</declname>
+        </param>
+        <param>
+          <type>std::vector&lt; EntityId &gt; &amp;</type>
+          <declname>out</declname>
+        </param>
+        <briefdescription>
+<para>Allocate <computeroutput>count</computeroutput> entity ids in one pass, appending them to <computeroutput>out</computeroutput>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Prefer this to a loop of <ref refid="classecss_1_1Registry_1a3af483bdef9856965a6c91bd5369232c" kindref="member">takeEntity()</ref> when streaming a region in: the bitmap is walked once instead of once per id, and in the thread-safe build a free word of 64 ids is claimed with a single atomic. @thread_safety Internally synchronized. Lock-free, and claims a whole word of ids per atomic operation rather than one at a time. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1176" column="19" bodyfile="ecss/Registry.h" bodystart="1176" bodyend="1178"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a3af483bdef9856965a6c91bd5369232c" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE EntityId</type>
+        <definition>FORCE_INLINE EntityId ecss::Registry&lt; ThreadSafe, Allocator &gt;::takeEntity</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>takeEntity</name>
+        <qualifiedname>ecss::Registry::takeEntity</qualifiedname>
+        <briefdescription>
+<para>Allocate (take) a new entity id. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Allocate (take) a new entity id. <simplesect kind="note"><para>Lock-free in the thread-safe build: the id bitmap claims a bit with a CAS. Serialising this on the registry mutex cost ~560x per-op latency at 32 threads. @thread_safety Internally synchronized. Lock-free claim out of the id set. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1167" column="23" bodyfile="ecss/Registry.h" bodystart="1167" bodyend="1167"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a9dd1c0306ae008c24d14858160cce10e" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ecss::Registry&lt; ThreadSafe, Allocator &gt;::tick</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>tick</name>
+        <qualifiedname>ecss::Registry::tick</qualifiedname>
+        <briefdescription>
+<para>Process one tick of the grace period for retired memory. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Call this once per frame/update cycle. Memory blocks that have waited the full grace period (default 3 ticks) will be freed.</para>
+<para>This is safe to call while iterators may be active in other threads - only sufficiently old memory (older than grace period) will be freed.</para>
+<para><simplesect kind="note"><para>In non-thread-safe mode memory is freed as it is released, so this is a no-op returning zero. It stays callable in both modes.</para>
+</simplesect>
+<simplesect kind="return"><para>Total number of memory blocks freed across all arrays @thread_safety Internally synchronized. Advances the grace-period counters and frees what has expired; takes each bin&apos;s mutex only when it has something in it, and never waits for a reader. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="388" column="8" bodyfile="ecss/Registry.h" bodystart="388" bodyend="395"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a36e817256447e5081267ae4e048a9cbb" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::update</definition>
+        <argsstring>(bool withDefragment=true) noexcept</argsstring>
+        <name>update</name>
+        <qualifiedname>ecss::Registry::update</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>withDefragment</declname>
+          <defval>true</defval>
+        </param>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+<para>Maintenance pass (thread-safe build): process deferred erases, free retired memory, and optionally defragment. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Safe to call from anywhere, including from inside a loop over a view: nothing here waits. Deferred erases only destroy components in place, and compaction is attempted rather than awaited <ndash/> an array that something is iterating right now is left for the next call. Calling it more than once a frame is harmless; calling it at a quiet point simply means more of the work lands on the first try.</para>
+<para>To compact regardless of who is iterating, and to wait for them, call SectorsArray::defragment() on the array directly. <parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>withDefragment</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, arrays that exceed thresholds may compact themselves. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="note"><para>Recommended to call once per frame at a stable synchronization point. </para>
+</simplesect>
+<simplesect kind="note"><para>Automatically frees retired memory that has passed the grace period (default 3 ticks). @thread_safety Internally synchronized. Nothing here waits, so this is the one maintenance entry point that is safe to call from inside a loop over a view. <ref refid="classecss_1_1Registry_1a9d8a3ef446c1f520f97e8bd3e6536522" kindref="member">clear()</ref>, <ref refid="classecss_1_1Registry_1a14808ef611a3854e97bed88d54a237e9" kindref="member">defragment()</ref> and the array&apos;s own <ref refid="classecss_1_1Registry_1a14808ef611a3854e97bed88d54a237e9" kindref="member">defragment()</ref> are not. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="332" column="6" bodyfile="ecss/Registry.h" bodystart="332" bodyend="354"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a1cfb377e6205f3565d59a5ae34bf4139" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::update</definition>
+        <argsstring>(bool withDefragment=true) noexcept</argsstring>
+        <name>update</name>
+        <qualifiedname>ecss::Registry::update</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>withDefragment</declname>
+          <defval>true</defval>
+        </param>
+    <requiresclause>(!ThreadSafe)    </requiresclause>
+        <briefdescription>
+<para>Maintenance pass (non-thread-safe build): optionally defragment arrays immediately. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>withDefragment</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, compacts arrays that request it. @thread_safety Not applicable (single-threaded build). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="361" column="6" bodyfile="ecss/Registry.h" bodystart="361" bodyend="369"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a9e5e54a8233e370ccfa8585538bf7ab7" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename...</type>
+            <declname>Components</declname>
+            <defname>Components</defname>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE auto</type>
+        <definition>FORCE_INLINE auto ecss::Registry&lt; ThreadSafe, Allocator &gt;::view</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>view</name>
+        <qualifiedname>ecss::Registry::view</qualifiedname>
+        <briefdescription>
+<para>Create a full-range iterable view over all entities with the main component. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>Components</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component types to access; first drives iteration. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><ref refid="classecss_1_1ArraysView" kindref="compound">ArraysView</ref> instance (full range). @thread_safety Internally synchronized. Any number of threads may iterate at once. The view holds the arrays it names for as long as it lives, which is what keeps sectors from moving underneath it <ndash/> and equally what makes <ref refid="classecss_1_1Registry_1a9d8a3ef446c1f520f97e8bd3e6536522" kindref="member">clear()</ref>, <ref refid="classecss_1_1Registry_1a14808ef611a3854e97bed88d54a237e9" kindref="member">defragment()</ref> and a middle insert wait. Keep views short, and do not open one around a structural change to the same array. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="850" column="19" bodyfile="ecss/Registry.h" bodystart="850" bodyend="853"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a30d293e02020ac1750e2d18a97827ca2" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename...</type>
+            <declname>Components</declname>
+            <defname>Components</defname>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE auto</type>
+        <definition>FORCE_INLINE auto ecss::Registry&lt; ThreadSafe, Allocator &gt;::view</definition>
+        <argsstring>(const Ranges&lt; EntityId &gt; &amp;ranges) noexcept</argsstring>
+        <name>view</name>
+        <qualifiedname>ecss::Registry::view</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Ranges" kindref="compound">Ranges</ref>&lt; EntityId &gt; &amp;</type>
+          <declname>ranges</declname>
+        </param>
+        <briefdescription>
+<para>Create an iterable view limited to given entity ranges. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>Components</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component types to fetch; first drives iteration order. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>ranges</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Half-open entity ranges. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+<simplesect kind="return"><para><ref refid="classecss_1_1ArraysView" kindref="compound">ArraysView</ref> instance (ranged iteration). @thread_safety Internally synchronized. Any number of threads may iterate at once. The view holds the arrays it names for as long as it lives, which is what keeps sectors from moving underneath it <ndash/> and equally what makes <ref refid="classecss_1_1Registry_1a9d8a3ef446c1f520f97e8bd3e6536522" kindref="member">clear()</ref>, <ref refid="classecss_1_1Registry_1a14808ef611a3854e97bed88d54a237e9" kindref="member">defragment()</ref> and a middle insert wait. Keep views short, and do not open one around a structural change to the same array. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="834" column="19" bodyfile="ecss/Registry.h" bodystart="834" bodyend="837"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a73283188a0b6dd4217de0c1426d45b88" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class...</type>
+            <declname>ComponentTypes</declname>
+            <defname>ComponentTypes</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::warnIfGroupingIgnored</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>warnIfGroupingIgnored</name>
+        <qualifiedname>ecss::Registry::warnIfGroupingIgnored</qualifiedname>
+        <briefdescription>
+<para>Say so when <ref refid="classecss_1_1Registry_1a9fe1b9e3505b3aeb8d0b55110c6088c1" kindref="member">registerArray()</ref> was asked to group types that are already apart. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Registering the same group twice is genuinely idempotent and should say nothing. Asking to group types that already live in separate arrays is a different thing: a component&apos;s layout is fixed when its array is created, so the request cannot be honoured and never will be. It used to return without a word, which meant a <ref refid="classecss_1_1Registry_1a9fe1b9e3505b3aeb8d0b55110c6088c1" kindref="member">registerArray()</ref> written one line too late <ndash/> after the <ref refid="classecss_1_1Registry_1a8a603f0b45d65870c22cb5be1f41061f" kindref="member">addComponent()</ref> that registered the type implicitly <ndash/> looked exactly like one that worked.</para>
+<para>Define ECSS_NO_GROUPING_WARNINGS to silence it. @thread_safety Caller must ensure exclusive access. Reads the live map, so it belongs under componentsArrayMapMutex in the thread-safe build. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="245" column="6" bodyfile="ecss/Registry.h" bodystart="245" bodyend="273"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1afbd477361cfd817cc05d22d39e118d5c" prot="public" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class...</type>
+            <declname>ComponentTypes</declname>
+            <defname>ComponentTypes</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::warnPartialGrouping</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>warnPartialGrouping</name>
+        <qualifiedname>ecss::Registry::warnPartialGrouping</qualifiedname>
+        <briefdescription>
+<para>Say so when only some of the named types already have arrays. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The assert beside this one is compiled out of a release build, which left the call returning in silence there <ndash/> the same way the already-grouped case did, and just as misleading. <simplesect kind="see"><para><ref refid="classecss_1_1Registry_1a73283188a0b6dd4217de0c1426d45b88" kindref="member">warnIfGroupingIgnored</ref> @thread_safety Caller must ensure exclusive <ref refid="classecss_1_1Registry_1ae23c06277a9312194290f2827647d1f2" kindref="member">access</ref>. Reads the live map. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="217" column="6" bodyfile="ecss/Registry.h" bodystart="217" bodyend="230"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1af1477f4a2c13ec18861b0daf40ce5a16" prot="public" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Registry&lt; ThreadSafe, Allocator &gt;::~Registry</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>~Registry</name>
+        <qualifiedname>ecss::Registry::~Registry</qualifiedname>
+        <briefdescription>
+<para>Destroys all component arrays (each SectorsArray is deleted). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized; blocks. Deleting an array clears it, and clearing waits until that array carries no pins and no open views, so a view open on another thread stalls this destructor for as long as it lives <ndash/> in-flight readers are waited for, not run over.</para>
+<para>That is a synchronization guarantee, not a lifetime one. Nothing may <emphasis>start</emphasis> using the registry once destruction has begun; the waiting covers the readers already inside, and cannot cover the ones that arrive afterwards. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="307" column="1" bodyfile="ecss/Registry.h" bodystart="307" bodyend="312"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classecss_1_1Registry_1afe9d928750c6982494ea21b9993ca270" prot="private" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroySector</definition>
+        <argsstring>(EntityId entityId) noexcept</argsstring>
+        <name>destroySector</name>
+        <qualifiedname>ecss::Registry::destroySector</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entityId</declname>
+        </param>
+        <briefdescription>
+<para>Destroy a single entity across all arrays (internal helper). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entityId</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Entity id. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1309" column="6" bodyfile="ecss/Registry.h" bodystart="1309" bodyend="1349"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a9063e751aa51e675df19142fe7f2b82d" prot="private" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE bool</type>
+        <definition>FORCE_INLINE bool ecss::Registry&lt; ThreadSafe, Allocator &gt;::loadAutoMaintenance</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>loadAutoMaintenance</name>
+        <qualifiedname>ecss::Registry::loadAutoMaintenance</qualifiedname>
+        <briefdescription>
+<para><ref refid="structecss_1_1Read" kindref="compound">Read</ref> the auto-maintenance flag with whatever ordering this build needs. @thread_safety Internally synchronized. Relaxed, so it compiles to a plain load. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1577" column="19" bodyfile="ecss/Registry.h" bodystart="1577" bodyend="1585"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1afd7903459ada960f65ea8f9a16b49277" prot="private" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::maintainArray</definition>
+        <argsstring>(Memory::SectorsArray&lt; ThreadSafe, Allocator &gt; *array) noexcept</argsstring>
+        <name>maintainArray</name>
+        <qualifiedname>ecss::Registry::maintainArray</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Memory::SectorsArray</ref>&lt; ThreadSafe, Allocator &gt; *</type>
+          <declname>array</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1479" column="6" bodyfile="ecss/Registry.h" bodystart="1479" bodyend="1497"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a11bf4d8828ab73731cb85aeaab9c8b78" prot="private" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::maintainArrayFor</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>maintainArrayFor</name>
+        <qualifiedname>ecss::Registry::maintainArrayFor</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1445" column="6" bodyfile="ecss/Registry.h" bodystart="1445" bodyend="1447"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a7838ce52d813def8cbd5d15e382566a7" prot="private" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename...</type>
+            <declname>Components</declname>
+            <defname>Components</defname>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Registry&lt; ThreadSafe, Allocator &gt;::maintainFor</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>maintainFor</name>
+        <qualifiedname>ecss::Registry::maintainFor</qualifiedname>
+        <briefdescription>
+<para>Give the arrays a view is about to open the pass <ref refid="classecss_1_1Registry_1a36e817256447e5081267ae4e048a9cbb" kindref="member">update()</ref> would have given them. Nothing here waits: an array someone is iterating is left alone. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1438" column="19" bodyfile="ecss/Registry.h" bodystart="1438" bodyend="1442"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a9437642ba1f06e49b0c90a422765c149" prot="private" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::maintainOneInRotation</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>maintainOneInRotation</name>
+        <qualifiedname>ecss::Registry::maintainOneInRotation</qualifiedname>
+        <briefdescription>
+<para>Also give one array nobody is looking at its turn. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Without this, auto maintenance would only ever reach arrays that get iterated: a component type that is only ever looked up by id would keep its dead sectors forever. One extra array per view creation is enough <ndash/> an idle one costs two lock-free loads to skip.</para>
+<para>Retired buffers are not part of this and are freed only by <ref refid="classecss_1_1Registry_1a36e817256447e5081267ae4e048a9cbb" kindref="member">update()</ref>. Their grace period measures how long a reader might still be walking one, so spending a tick of it per view would collapse the window under exactly the load it exists to survive. Auto maintenance moves the erase and compaction pass off the frame; it does not remove the <ref refid="classecss_1_1Registry_1a36e817256447e5081267ae4e048a9cbb" kindref="member">update()</ref> call. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1461" column="6" bodyfile="ecss/Registry.h" bodystart="1461" bodyend="1475"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1aa2d28cef7b437f43616e0661962ca652" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::publishRegistered</definition>
+        <argsstring>()</argsstring>
+        <name>publishRegistered</name>
+        <qualifiedname>ecss::Registry::publishRegistered</qualifiedname>
+        <briefdescription>
+<para>Publish a fresh snapshot. Caller holds componentsArrayMapMutex (TS build). </para>
+        </briefdescription>
+        <detaileddescription>
+<para>The node and its four arrays are one allocation, so retiring a superseded snapshot is a single free and the arrays a reader walks sit next to the node it loaded.</para>
+<para>Superseded nodes go to a retire bin rather than being kept until the registry dies. A lock-free reader may still be inside one, which is exactly what the grace period is for <ndash/> the same mechanism the arrays already use for their own buffers. Keeping every node instead made a registry&apos;s snapshot memory quadratic in the number of component types registered: one node per <ref refid="classecss_1_1Registry_1a9fe1b9e3505b3aeb8d0b55110c6088c1" kindref="member">registerArray()</ref>, each sized by the type count, which reached 4.4 MB at 400 types. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1510" column="6" bodyfile="ecss/Registry.h" bodystart="1510" bodyend="1551"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a8123ed31249b92834f33759fba04c157" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class...</type>
+            <declname>ComponentTypes</declname>
+            <defname>ComponentTypes</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::recordLayouts</definition>
+        <argsstring>(Memory::SectorsArray&lt; ThreadSafe, Allocator &gt; *array)</argsstring>
+        <name>recordLayouts</name>
+        <qualifiedname>ecss::Registry::recordLayouts</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Memory::SectorsArray</ref>&lt; ThreadSafe, Allocator &gt; *</type>
+          <declname>array</declname>
+        </param>
+        <briefdescription>
+<para>Note where each component&apos;s layout record lives, while the pack is still a compile-time list. Caller holds componentsArrayMapMutex (TS build). </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1423" column="6" bodyfile="ecss/Registry.h" bodystart="1423" bodyend="1433"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a31dd4cf8f8675bc977d242ce0cebc93b" prot="private" static="no" const="yes" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>std::pair&lt; <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Memory::SectorsArray</ref>&lt; ThreadSafe, Allocator &gt; *const *, <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Memory::SectorsArray</ref>&lt; ThreadSafe, Allocator &gt; *const * &gt;</type>
+        <definition>std::pair&lt; Memory::SectorsArray&lt; ThreadSafe, Allocator &gt; *const  *, Memory::SectorsArray&lt; ThreadSafe, Allocator &gt; *const  * &gt; ecss::Registry&lt; ThreadSafe, Allocator &gt;::registeredArrays</definition>
+        <argsstring>() const noexcept</argsstring>
+        <name>registeredArrays</name>
+        <qualifiedname>ecss::Registry::registeredArrays</qualifiedname>
+        <briefdescription>
+<para>Lock-free view over the registered arrays, for maintenance walks. Returns {begin, end}; empty when nothing has been registered yet. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1556" column="1" bodyfile="ecss/Registry.h" bodystart="1556" bodyend="1561"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1ab2fe6d06117a260194af1b02f5833e9a" prot="private" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::Registry&lt; ThreadSafe, Allocator &gt;::storeAutoMaintenance</definition>
+        <argsstring>(bool value) noexcept</argsstring>
+        <name>storeAutoMaintenance</name>
+        <qualifiedname>ecss::Registry::storeAutoMaintenance</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>value</declname>
+        </param>
+        <briefdescription>
+<para><ref refid="structecss_1_1Write" kindref="compound">Write</ref> it with the matching ordering. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="see"><para>loadAutoMaintenance @thread_safety Internally synchronized. Relaxed, so it compiles to a plain store. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1589" column="19" bodyfile="ecss/Registry.h" bodystart="1589" bodyend="1596"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a049849440f59f983c2a059ba62f70862" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::shared_mutex &amp;</type>
+        <definition>std::shared_mutex &amp; ecss::Registry&lt; ThreadSafe, Allocator &gt;::typeMutex</definition>
+        <argsstring>(ECSType type)</argsstring>
+        <name>typeMutex</name>
+        <qualifiedname>ecss::Registry::typeMutex</qualifiedname>
+        <param>
+          <type>ECSType</type>
+          <declname>type</declname>
+        </param>
+        <briefdescription>
+<para>The reader-writer lock guarding one component type&apos;s values. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="see"><para><ref refid="classecss_1_1Registry_1ae23c06277a9312194290f2827647d1f2" kindref="member">access()</ref></para>
+</simplesect>
+Allocated one at a time and never moved, so a guard can hold a pointer across the growth another thread&apos;s first claim on a new type causes. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1409" column="19" bodyfile="ecss/Registry.h" bodystart="1409" bodyend="1418"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1Registry_1a8ec149cb891e73609e6bc19dc4e608b6" prot="private" static="no" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>class...</type>
+            <declname>Ts</declname>
+            <defname>Ts</defname>
+          </param>
+          <param>
+            <type>class F</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::Registry&lt; ThreadSafe, Allocator &gt;::withPinned</definition>
+        <argsstring>(EntityId entity, F &amp;&amp;f) noexcept</argsstring>
+        <name>withPinned</name>
+        <qualifiedname>ecss::Registry::withPinned</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entity</declname>
+        </param>
+        <param>
+          <type>F &amp;&amp;</type>
+          <declname>f</declname>
+        </param>
+    <requiresclause>(ThreadSafe)    </requiresclause>
+        <briefdescription>
+<para>Utility: pin multiple components and invoke f(entity, comps...). </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>Ts</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Component types to pin. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>F</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Functor type. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1357" column="6" bodyfile="ecss/Registry.h" bodystart="1357" bodyend="1360"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-func">
+      <memberdef kind="function" id="classecss_1_1Registry_1a7afb698ae3b2ce07be82d8040489cb04" prot="private" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ecss::Registry&lt; ThreadSafe, Allocator &gt;::prepareEntities</definition>
+        <argsstring>(std::vector&lt; EntityId &gt; &amp;entities, size_t sparseCapacity)</argsstring>
+        <name>prepareEntities</name>
+        <qualifiedname>ecss::Registry::prepareEntities</qualifiedname>
+        <param>
+          <type>std::vector&lt; EntityId &gt; &amp;</type>
+          <declname>entities</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>sparseCapacity</declname>
+        </param>
+        <briefdescription>
+<para>Internal helper: ensure entities vector is sorted &amp; clamped to valid capacity. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>entities</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>[in/out] Vector of entity ids. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>sparseCapacity</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Max valid sector index (exclusive). </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1367" column="13" bodyfile="ecss/Registry.h" bodystart="1367" bodyend="1387"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Central ECS registry that owns component sector arrays, entities and iteration utilities. </para>
+    </briefdescription>
+    <detaileddescription>
+<para><parameterlist kind="templateparam"><parameteritem>
+<parameternamelist>
+<parametername>ThreadSafe</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>If true, operations use internal locks / pin counters for safe concurrent access. </para>
+</parameterdescription>
+</parameteritem>
+<parameteritem>
+<parameternamelist>
+<parametername>Allocator</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>Allocator used by SectorsArray (defaults to chunked allocator).</para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+Responsibilities:<itemizedlist>
+<listitem><para>Entity lifecycle (allocate / erase ids).</para>
+</listitem><listitem><para>Lazily create or explicitly register component arrays (can group types).</para>
+</listitem><listitem><para>Component add / overwrite / remove (single or batch).</para>
+</listitem><listitem><para>Bulk entity destruction with all their components.</para>
+</listitem><listitem><para>Iteration via <ref refid="classecss_1_1ArraysView" kindref="compound">ArraysView</ref> over one or more component types.</para>
+</listitem></itemizedlist>
+</para>
+<para>Thread safety. Every public member carries an @thread_safety line. It answers one question <ndash/> may two threads call this on the same object at once <ndash/> with one of three answers, and adds &quot;; blocks&quot; when the call waits:</para>
+<para><itemizedlist>
+<listitem><para>&quot;Internally synchronized.&quot; Call it from any number of threads at once.</para>
+</listitem><listitem><para>&quot;Thread-confined.&quot; The object belongs to one thread and holds no lock, exactly as a std::vector does. Do not add a mutex around it <ndash/> give each thread its own. Views, pins, access guards and command buffers are all this.</para>
+</listitem><listitem><para>&quot;Caller must ensure exclusive access.&quot; A <emphasis>shared</emphasis> object with no synchronization of its own. Here you do have to supply the ordering: a lock, or a place in the frame where nothing else is running. Setup switches and raw lock accessors live here.</para>
+</listitem></itemizedlist>
+</para>
+<para>The difference matters because the fix is opposite. The first says stop sharing it; the second says guard it.</para>
+<para><itemizedlist>
+<listitem><para>&quot;Not applicable (single-threaded build).&quot; Only exists when ThreadSafe == false.</para>
+</listitem></itemizedlist>
+</para>
+<para>&quot;; blocks&quot; is separate from all three, because waiting and being callable concurrently are different questions <ndash/> a destructor waits for in-flight readers and still must not race with new ones. It means one specific thing: the call waits for a pin, a hold or a view to be released, which is state a <emphasis>reader</emphasis> controls. That is the wait worth warning about, because a caller can be the reader it is waiting for. Ordinary contention for a mutex between writers is not marked <ndash/> almost every synchronized call has some, and flagging it would say nothing. Where it appears, what is waited for is named. Two widths:<itemizedlist>
+<listitem><para>one sector <ndash/> waits until that entity&apos;s sector carries no pins. Only a pin on that same entity delays it.</para>
+</listitem><listitem><para>the whole array <ndash/> waits until the array carries no pins <emphasis>and</emphasis> no open views. Every <ref refid="classecss_1_1ArraysView" kindref="compound">ArraysView</ref> holds one for as long as it lives, so anything in this group cannot finish while a view on that array is open. From the thread that opened the view it is a deadlock; from another thread it finishes when the view closes, and a thread iterating in a tight loop can hold it off indefinitely. Nothing here is enforced at compile time. Debug builds assert on the same-thread case; release builds simply block.</para>
+</listitem></itemizedlist>
+</para>
+<para>All of the above is about the <emphasis>shape</emphasis> of an array. A component&apos;s <emphasis>value</emphasis> is a separate question the container does not answer: reading one while another thread writes it is the caller&apos;s to arrange. <simplesect kind="see"><para><ref refid="classecss_1_1Registry_1ae23c06277a9312194290f2827647d1f2" kindref="member">access()</ref>, <ref refid="classecss_1_1Registry_1a7a0d407a24807d73897aa089351f4066" kindref="member">setAccessTracking()</ref></para>
+</simplesect>
+Performance notes:<itemizedlist>
+<listitem><para>Component insertion is O(1) amortized (sector-based).</para>
+</listitem><listitem><para>hasComponent is O(1) (sector lookup + bit test).</para>
+</listitem><listitem><para>destroyEntities (sequential version here) visits each array =&gt; O(A * log N) for sorting per array prep.</para>
+</listitem></itemizedlist>
+</para>
+<para><simplesect kind="warning"><para>Entity ids are reused; do not cache them beyond system boundaries without validation. </para>
+</simplesect>
+<simplesect kind="note"><para>Use <ref refid="classecss_1_1Registry_1a19d6acc056a40ddaac5bc4e01a9ab284" kindref="member">reserve&lt;Components...&gt;()</ref> to pre-allocate sector capacity and reduce reallocations. </para>
+</simplesect>
+</para>
+    </detaileddescription>
+    <location file="ecss/Registry.h" line="192" column="1" bodyfile="ecss/Registry.h" bodystart="192" bodyend="1640"/>
+    <listofallmembers>
+      <member refid="classecss_1_1Registry_1ae23c06277a9312194290f2827647d1f2" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>access</name></member>
+      <member refid="classecss_1_1Registry_1a8a603f0b45d65870c22cb5be1f41061f" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>addComponent</name></member>
+      <member refid="classecss_1_1Registry_1a27a26a67d985539cfda27259612df57e" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>addComponents</name></member>
+      <member refid="classecss_1_1Registry_1ac5cbd002e5901b74ef56ec49642daeeb" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>autoMaintenance</name></member>
+      <member refid="classecss_1_1Registry_1a9d8a3ef446c1f520f97e8bd3e6536522" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>clear</name></member>
+      <member refid="classecss_1_1Registry_1ab77169716298449f214ea193ea18f2b4" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>clearAsync</name></member>
+      <member refid="classecss_1_1Registry_1a0605cb94cfe2090fdb9194ce1058133c" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>componentsArrayMapMutex</name></member>
+      <member refid="classecss_1_1Registry_1a00b5a1a0fcae643fb6fa8630cb252f35" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>componentTypeId</name></member>
+      <member refid="classecss_1_1Registry_1acaec1a969d49954ab12dee4266bb6d4c" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>contains</name></member>
+      <member refid="classecss_1_1Registry_1a14808ef611a3854e97bed88d54a237e9" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>defragment</name></member>
+      <member refid="classecss_1_1Registry_1ada5cbe54f287be41cda40fa0bc783c71" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>defragment</name></member>
+      <member refid="classecss_1_1Registry_1a40e500f0b85b8185251ac13f3977a5fa" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>destroyComponent</name></member>
+      <member refid="classecss_1_1Registry_1ace81965843c6f3b518508670707e7148" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>destroyComponent</name></member>
+      <member refid="classecss_1_1Registry_1a13215b01a606362fc3ddc0f12c6cfa64" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>destroyEntities</name></member>
+      <member refid="classecss_1_1Registry_1a0db69a9b59211fb25f64fa34d6d8b11c" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>destroyEntity</name></member>
+      <member refid="classecss_1_1Registry_1afe9d928750c6982494ea21b9993ca270" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>destroySector</name></member>
+      <member refid="classecss_1_1Registry_1a9cd7516a14881bee276ea7d9ae0a0b83" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>forEachAsync</name></member>
+      <member refid="classecss_1_1Registry_1a86940b59ff68e644d2403540b25f0a3e" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>getAllEntities</name></member>
+      <member refid="classecss_1_1Registry_1ad6cd39bd1c6e9a9a2e6b63bb3946f18b" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>getComponentAccess</name></member>
+      <member refid="classecss_1_1Registry_1a8012d3a4d95f3220c7ed755b2306ba26" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>getComponentContainer</name></member>
+      <member refid="classecss_1_1Registry_1a7009c07793d9a4521915c010241a0aa8" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>hasComponent</name></member>
+      <member refid="classecss_1_1Registry_1ac5878c751c1d073fd9911a01a4f67e16" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>insert</name></member>
+      <member refid="classecss_1_1Registry_1ad7c04cce4b6c9d6b5e7fa1c33ec84b6f" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>insert</name></member>
+      <member refid="classecss_1_1Registry_1a4cb56c44ad178c9dcde751c61521c8a7" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>insertBulk</name></member>
+      <member refid="classecss_1_1Registry_1a6839f4966b6a8ca7eede34bad0da33d2" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>kRotationStride</name></member>
+      <member refid="classecss_1_1Registry_1a9063e751aa51e675df19142fe7f2b82d" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>loadAutoMaintenance</name></member>
+      <member refid="classecss_1_1Registry_1a0b791b8a35b75c4b6a336270fc8555e3" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>lookupComponentAccess</name></member>
+      <member refid="classecss_1_1Registry_1afd7903459ada960f65ea8f9a16b49277" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>maintainArray</name></member>
+      <member refid="classecss_1_1Registry_1a11bf4d8828ab73731cb85aeaab9c8b78" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>maintainArrayFor</name></member>
+      <member refid="classecss_1_1Registry_1a7838ce52d813def8cbd5d15e382566a7" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>maintainFor</name></member>
+      <member refid="classecss_1_1Registry_1a9437642ba1f06e49b0c90a422765c149" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>maintainOneInRotation</name></member>
+      <member refid="classecss_1_1Registry_1ada14b6de0e3723b5a107a75c85a7c90e" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>mAutoMaintenance</name></member>
+      <member refid="classecss_1_1Registry_1a405fe8afaef3e0470a45c80907f0584d" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>mComponentsArrays</name></member>
+      <member refid="classecss_1_1Registry_1a14287dc54e3d19cb887c843025f718cf" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>mComponentsArraysMap</name></member>
+      <member refid="classecss_1_1Registry_1a8a337943944df60862a94900cdb3d4b6" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>mComponentsLayoutsMap</name></member>
+      <member refid="classecss_1_1Registry_1a0ca72062bc135b10eda1ca6c464056e3" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>mComponentsMetaMap</name></member>
+      <member refid="classecss_1_1Registry_1a9d7f3c910816aae503840c58ed8b7f0e" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>mEntities</name></member>
+      <member refid="classecss_1_1Registry_1a8889dc0d38bd63d8390e1420b04e60a9" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>mEntitiesMutex</name></member>
+      <member refid="classecss_1_1Registry_1a363aa1315ceae5a83fe882ae9c87e0ee" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>mMaintainCursor</name></member>
+      <member refid="classecss_1_1Registry_1af60c3c018c191b4c5753a6fee7097b4b" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>mNodeBin</name></member>
+      <member refid="classecss_1_1Registry_1a16ab742d64f3f3fa473b9102caf65e2b" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>mPendingEntityClear</name></member>
+      <member refid="classecss_1_1Registry_1a6c00273e802284ba7f301de3ee121175" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>mRegistered</name></member>
+      <member refid="classecss_1_1Registry_1a689284aad3051ac8f5ee363166a6104e" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>mRetireGracePeriod</name></member>
+      <member refid="classecss_1_1Registry_1a128b3b4164f4d5bec5341a4534273a26" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>mTypeMutexes</name></member>
+      <member refid="classecss_1_1Registry_1a603c62cd31cf977ec79d4d45690ca85e" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>mTypeMutexesGrowth</name></member>
+      <member refid="classecss_1_1Registry_1a105a07f1fc04e3cd73ec60538454ddbc" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>operator=</name></member>
+      <member refid="classecss_1_1Registry_1a0578284d3720b564e643a45370ab58e8" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>operator=</name></member>
+      <member refid="classecss_1_1Registry_1abc89274e98252fb7a35d5a1417a9a854" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>pinComponent</name></member>
+      <member refid="classecss_1_1Registry_1a7afb698ae3b2ce07be82d8040489cb04" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>prepareEntities</name></member>
+      <member refid="classecss_1_1Registry_1aa2d28cef7b437f43616e0661962ca652" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>publishRegistered</name></member>
+      <member refid="classecss_1_1Registry_1a8123ed31249b92834f33759fba04c157" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>recordLayouts</name></member>
+      <member refid="classecss_1_1Registry_1a9fe1b9e3505b3aeb8d0b55110c6088c1" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>registerArray</name></member>
+      <member refid="classecss_1_1Registry_1a31dd4cf8f8675bc977d242ce0cebc93b" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>registeredArrays</name></member>
+      <member refid="classecss_1_1Registry_1a655b516f4a3eb2e810e7de55921f9b03" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>Registry</name></member>
+      <member refid="classecss_1_1Registry_1a65fa5a531f5192c7552e62da0547950f" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>Registry</name></member>
+      <member refid="classecss_1_1Registry_1a3a82f7f928037e3712cc6e3bf7c65c9b" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>Registry</name></member>
+      <member refid="classecss_1_1Registry_1a19d6acc056a40ddaac5bc4e01a9ab284" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>reserve</name></member>
+      <member refid="classecss_1_1Registry_1a7a0d407a24807d73897aa089351f4066" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>setAccessTracking</name></member>
+      <member refid="classecss_1_1Registry_1a96ab3950fc89eca2957adc22c96505b3" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>setAutoMaintenance</name></member>
+      <member refid="classecss_1_1Registry_1a7051790a8a6d2d2d492a239d6d4a7f41" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>setDefragmentThreshold</name></member>
+      <member refid="classecss_1_1Registry_1aa3babd920a5247cc435e11125d2c8234" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>setRetireGracePeriod</name></member>
+      <member refid="classecss_1_1Registry_1ab2fe6d06117a260194af1b02f5833e9a" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>storeAutoMaintenance</name></member>
+      <member refid="classecss_1_1Registry_1a1e66ed99c1e1cea313f7a9fb523a7a74" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>takeEntities</name></member>
+      <member refid="classecss_1_1Registry_1a3af483bdef9856965a6c91bd5369232c" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>takeEntity</name></member>
+      <member refid="classecss_1_1Registry_1a9dd1c0306ae008c24d14858160cce10e" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>tick</name></member>
+      <member refid="classecss_1_1Registry_1a049849440f59f983c2a059ba62f70862" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>typeMutex</name></member>
+      <member refid="classecss_1_1Registry_1a36e817256447e5081267ae4e048a9cbb" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>update</name></member>
+      <member refid="classecss_1_1Registry_1a1cfb377e6205f3565d59a5ae34bf4139" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>update</name></member>
+      <member refid="classecss_1_1Registry_1a30d293e02020ac1750e2d18a97827ca2" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>view</name></member>
+      <member refid="classecss_1_1Registry_1a9e5e54a8233e370ccfa8585538bf7ab7" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>view</name></member>
+      <member refid="classecss_1_1Registry_1a73283188a0b6dd4217de0c1426d45b88" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>warnIfGroupingIgnored</name></member>
+      <member refid="classecss_1_1Registry_1afbd477361cfd817cc05d22d39e118d5c" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>warnPartialGrouping</name></member>
+      <member refid="classecss_1_1Registry_1a8ec149cb891e73609e6bc19dc4e608b6" prot="private" virt="non-virtual"><scope>ecss::Registry</scope><name>withPinned</name></member>
+      <member refid="classecss_1_1Registry_1af1477f4a2c13ec18861b0daf40ce5a16" prot="public" virt="non-virtual"><scope>ecss::Registry</scope><name>~Registry</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

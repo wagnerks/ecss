@@ -1,0 +1,79 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1CommandBuffer_1_1Store_1_1Latest" kind="struct" language="C++" prot="private">
+    <compoundname>ecss::CommandBuffer::Store::Latest</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1CommandBuffer_1_1Store_1_1Latest_1af03c2943705cb34aea22013794dfeefb" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::Store&lt; T &gt;::Latest::index</definition>
+        <argsstring></argsstring>
+        <name>index</name>
+        <qualifiedname>ecss::CommandBuffer::Store::Latest::index</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="242" column="57" bodyfile="ecss/CommandBuffer.h" bodystart="242" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1CommandBuffer_1_1Store_1_1Latest_1abf3a6ef7c59f0513f522d2efa320e2e7" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::Store&lt; T &gt;::Latest::isAdd</definition>
+        <argsstring></argsstring>
+        <name>isAdd</name>
+        <qualifiedname>ecss::CommandBuffer::Store::Latest::isAdd</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="242" column="43" bodyfile="ecss/CommandBuffer.h" bodystart="242" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1CommandBuffer_1_1Store_1_1Latest_1a02526b0efcbd5b72fd0fac70d0ea6cac" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::Store&lt; T &gt;::Latest::seen</definition>
+        <argsstring></argsstring>
+        <name>seen</name>
+        <qualifiedname>ecss::CommandBuffer::Store::Latest::seen</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="242" column="18" bodyfile="ecss/CommandBuffer.h" bodystart="242" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1CommandBuffer_1_1Store_1_1Latest_1a4a1245a7b31b234269711d2dc42ee49e" prot="public" static="no" mutable="no">
+        <type>uint64_t</type>
+        <definition>uint64_t ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::Store&lt; T &gt;::Latest::seq</definition>
+        <argsstring></argsstring>
+        <name>seq</name>
+        <qualifiedname>ecss::CommandBuffer::Store::Latest::seq</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="242" column="33" bodyfile="ecss/CommandBuffer.h" bodystart="242" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/CommandBuffer.h" line="242" column="1" bodyfile="ecss/CommandBuffer.h" bodystart="242" bodyend="242"/>
+    <listofallmembers>
+      <member refid="structecss_1_1CommandBuffer_1_1Store_1_1Latest_1af03c2943705cb34aea22013794dfeefb" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer::Store::Latest</scope><name>index</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1Store_1_1Latest_1abf3a6ef7c59f0513f522d2efa320e2e7" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer::Store::Latest</scope><name>isAdd</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1Store_1_1Latest_1a02526b0efcbd5b72fd0fac70d0ea6cac" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer::Store::Latest</scope><name>seen</name></member>
+      <member refid="structecss_1_1CommandBuffer_1_1Store_1_1Latest_1a4a1245a7b31b234269711d2dc42ee49e" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer::Store::Latest</scope><name>seq</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

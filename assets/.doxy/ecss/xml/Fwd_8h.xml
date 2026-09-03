@@ -1,0 +1,182 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="Fwd_8h" kind="file" language="C++">
+    <compoundname>Fwd.h</compoundname>
+    <includes local="no">cstdint</includes>
+    <includedby refid="Access_8h" local="no">Access.h</includedby>
+    <includedby refid="AccessTracker_8h" local="no">AccessTracker.h</includedby>
+    <includedby refid="Ranges_8h" local="no">Ranges.h</includedby>
+    <includedby refid="Reflection_8h" local="no">Reflection.h</includedby>
+    <includedby refid="Types_8h" local="no">Types.h</includedby>
+    <incdepgraph>
+      <node id="1">
+        <label>Fwd.h</label>
+        <link refid="Fwd_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+      </node>
+      <node id="2">
+        <label>cstdint</label>
+      </node>
+    </incdepgraph>
+    <invincdepgraph>
+      <node id="2">
+        <label>Access.h</label>
+        <link refid="Access_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="5">
+        <label>AccessTracker.h</label>
+        <link refid="AccessTracker_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="4">
+        <label>CommandBuffer.h</label>
+        <link refid="CommandBuffer_8h_source"/>
+      </node>
+      <node id="1">
+        <label>Fwd.h</label>
+        <link refid="Fwd_8h"/>
+        <childnode refid="2" relation="include">
+        </childnode>
+        <childnode refid="5" relation="include">
+        </childnode>
+        <childnode refid="6" relation="include">
+        </childnode>
+        <childnode refid="9" relation="include">
+        </childnode>
+        <childnode refid="10" relation="include">
+        </childnode>
+      </node>
+      <node id="11">
+        <label>IdSet.h</label>
+        <link refid="IdSet_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="6">
+        <label>Ranges.h</label>
+        <link refid="Ranges_8h_source"/>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+      </node>
+      <node id="3">
+        <label>Registry.h</label>
+        <link refid="Registry_8h_source"/>
+        <childnode refid="4" relation="include">
+        </childnode>
+      </node>
+      <node id="10">
+        <label>Types.h</label>
+        <link refid="Types_8h_source"/>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="11" relation="include">
+        </childnode>
+        <childnode refid="12" relation="include">
+        </childnode>
+        <childnode refid="13" relation="include">
+        </childnode>
+      </node>
+      <node id="7">
+        <label>ChunksAllocator.h</label>
+        <link refid="ChunksAllocator_8h_source"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+      </node>
+      <node id="9">
+        <label>Reflection.h</label>
+        <link refid="Reflection_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="14">
+        <label>Sector.h</label>
+        <link refid="Sector_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+        <childnode refid="8" relation="include">
+        </childnode>
+      </node>
+      <node id="13">
+        <label>SectorLayoutMeta.h</label>
+        <link refid="SectorLayoutMeta_8h_source"/>
+        <childnode refid="7" relation="include">
+        </childnode>
+        <childnode refid="14" relation="include">
+        </childnode>
+      </node>
+      <node id="8">
+        <label>SectorsArray.h</label>
+        <link refid="SectorsArray_8h_source"/>
+        <childnode refid="3" relation="include">
+        </childnode>
+      </node>
+      <node id="12">
+        <label>PinCounters.h</label>
+        <link refid="PinCounters_8h_source"/>
+        <childnode refid="8" relation="include">
+        </childnode>
+      </node>
+    </invincdepgraph>
+    <innernamespace refid="namespaceecss">ecss</innernamespace>
+    <sectiondef kind="define">
+      <memberdef kind="define" id="Fwd_8h_1ac032d233a8ebfcd82fd49d0824eefb18" prot="public" static="no">
+        <name>FORCE_INLINE</name>
+        <initializer>inline</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Fwd.h" line="31" column="16" bodyfile="ecss/Fwd.h" bodystart="31" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>The id types, and nothing that costs anything to include. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Most headers that name something from ecss name only an id: a component recording which entity owns it, a system interface taking a list of entities to process, a renderer keying a cache. None of them touch a Registry, and none of them should pay for one.</para>
+<para><ref refid="Types_8h_source" kindref="compound">Types.h</ref> cannot be that header. It carries the sector offset arithmetic, which wants &lt;array&gt; and &lt;tuple&gt;, and the seqlock helpers, which want &lt;atomic&gt; and (on MSVC) &lt;intrin.h&gt;. That came to 55k preprocessed lines for a caller that wanted a uint32_t.</para>
+<para>Include this when an id is all that is needed; <ref refid="Types_8h_source" kindref="compound">Types.h</ref> pulls it in, so everything that already includes <ref refid="Types_8h_source" kindref="compound">Types.h</ref> is unaffected. </para>
+    </detaileddescription>
+    <programlisting>
+<codeline lineno="1"><highlight class="preprocessor">#pragma<sp/>once</highlight><highlight class="preprocessor"></highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="17"><highlight class="normal"></highlight></codeline>
+<codeline lineno="18"><highlight class="normal"></highlight><highlight class="preprocessor">#include<sp/>&lt;cstdint&gt;</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="19"><highlight class="normal"></highlight></codeline>
+<codeline lineno="20"><highlight class="normal"></highlight><highlight class="comment">//<sp/>Definable<sp/>from<sp/>the<sp/>build<sp/>so<sp/>it<sp/>can<sp/>be<sp/>turned<sp/>down<sp/>to<sp/>a<sp/>plain<sp/>inline.<sp/>Forced<sp/>inlining<sp/>is</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="21"><highlight class="normal"></highlight><highlight class="comment">//<sp/>what<sp/>makes<sp/>the<sp/>hot<sp/>paths<sp/>hot,<sp/>but<sp/>it<sp/>also<sp/>means<sp/>a<sp/>caller&apos;s<sp/>function<sp/>grows<sp/>by<sp/>everything</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="22"><highlight class="normal"></highlight><highlight class="comment">//<sp/>it<sp/>touches,<sp/>and<sp/>MSVC&apos;s<sp/>optimiser<sp/>is<sp/>superlinear<sp/>in<sp/>function<sp/>size<sp/>--<sp/>a<sp/>translation<sp/>unit</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="23"><highlight class="normal"></highlight><highlight class="comment">//<sp/>that<sp/>concentrated<sp/>64<sp/>component<sp/>operations<sp/>in<sp/>one<sp/>function<sp/>spent<sp/>9<sp/>of<sp/>its<sp/>11<sp/>seconds<sp/>in</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="24"><highlight class="normal"></highlight><highlight class="comment">//<sp/>the<sp/>back<sp/>end.<sp/>Overriding<sp/>is<sp/>the<sp/>way<sp/>to<sp/>find<sp/>out<sp/>whether<sp/>that<sp/>is<sp/>what<sp/>a<sp/>slow<sp/>TU<sp/>is<sp/>hitting.</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="25"><highlight class="normal"></highlight><highlight class="preprocessor">#ifndef<sp/>FORCE_INLINE</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="26"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>if<sp/>defined(_MSC_VER)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="27"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/><sp/><sp/>define<sp/>FORCE_INLINE<sp/>__forceinline</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="28"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>elif<sp/>defined(__GNUC__)<sp/>||<sp/>defined(__clang__)</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="29"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/><sp/><sp/>define<sp/>FORCE_INLINE<sp/>inline<sp/>__attribute__((always_inline))</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="30"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>else</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="31"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/><sp/><sp/>define<sp/>FORCE_INLINE<sp/>inline</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="32"><highlight class="normal"></highlight><highlight class="preprocessor">#<sp/><sp/>endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="33"><highlight class="normal"></highlight><highlight class="preprocessor">#endif</highlight><highlight class="normal"></highlight></codeline>
+<codeline lineno="34"><highlight class="normal"></highlight></codeline>
+<codeline lineno="35"><highlight class="normal"></highlight><highlight class="keyword">namespace<sp/></highlight><highlight class="normal">ecss<sp/>{</highlight></codeline>
+<codeline lineno="36"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">using<sp/></highlight><highlight class="normal">SectorId<sp/>=<sp/>uint32_t;</highlight></codeline>
+<codeline lineno="37"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">using<sp/></highlight><highlight class="normal">EntityId<sp/>=<sp/>SectorId;</highlight></codeline>
+<codeline lineno="38"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">using<sp/></highlight><highlight class="normal">ECSType<sp/>=<sp/>uint16_t;</highlight></codeline>
+<codeline lineno="39"><highlight class="normal"></highlight></codeline>
+<codeline lineno="41"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/>SectorId<sp/>INVALID_ID<sp/>=<sp/></highlight><highlight class="keyword">static_cast&lt;</highlight><highlight class="normal">SectorId</highlight><highlight class="keyword">&gt;</highlight><highlight class="normal">(~SectorId{<sp/>0<sp/>});</highlight></codeline>
+<codeline lineno="42"><highlight class="normal"></highlight></codeline>
+<codeline lineno="44"><highlight class="normal"><sp/><sp/><sp/><sp/></highlight><highlight class="keyword">constexpr</highlight><highlight class="normal"><sp/>uint32_t<sp/>INVALID_IDX<sp/>=<sp/></highlight><highlight class="keyword">static_cast&lt;</highlight><highlight class="normal">uint32_t</highlight><highlight class="keyword">&gt;</highlight><highlight class="normal">(~uint32_t{<sp/>0<sp/>});</highlight></codeline>
+<codeline lineno="45"><highlight class="normal">}</highlight></codeline>
+    </programlisting>
+    <location file="ecss/Fwd.h"/>
+  </compounddef>
+</doxygen>

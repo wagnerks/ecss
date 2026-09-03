@@ -1,0 +1,48 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="examples_2jdstyle_2html_2doxygen__crawl_8html" kind="file" language="C++">
+    <compoundname>examples/jdstyle/html/doxygen_crawl.html</compoundname>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <programlisting>
+<codeline><highlight class="normal">&lt;!DOCTYPE<sp/>html<sp/>PUBLIC<sp/>&quot;-//W3C//DTD<sp/>XHTML<sp/>1.0<sp/>Transitional//EN&quot;<sp/>&quot;https://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;html<sp/>xmlns=&quot;http://www.w3.org/1999/xhtml&quot;<sp/>lang=&quot;en-US&quot;&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;head&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;title&gt;Validator<sp/>/<sp/>crawler<sp/>helper&lt;/title&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;meta<sp/>http-equiv=&quot;Content-Type&quot;<sp/>content=&quot;text/xhtml;charset=UTF-8&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;meta<sp/>http-equiv=&quot;X-UA-Compatible&quot;<sp/>content=&quot;IE=11&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;meta<sp/>name=&quot;generator&quot;<sp/>content=&quot;Doxygen<sp/>1.14.0&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;meta<sp/>name=&quot;viewport&quot;<sp/>content=&quot;width=device-width,<sp/>initial-scale=1&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/head&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;body&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;annotated.html&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;class_javadoc___test-members.html&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;class_javadoc___test.html&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;class_javadoc___test.html#a0c472683ed25ff096e8a9edfb18d550c&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;class_javadoc___test.html#a17313327932ae97596b0a455ba8342cc&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;class_javadoc___test.html#a44a516fbc3a4865e2dcae34649c9df6a&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;class_javadoc___test.html#a60016cd15a4ed82bbc35be79a0a6a6b5&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;class_javadoc___test.html#abcb36df9d8af3e69290c239ba483d6df&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;class_javadoc___test.html#ac2b39cabbe80957ae3e8bc2bd4e887f6&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;class_javadoc___test.html#ace81a523a4eef44501a841a6d338832b&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;class_javadoc___test.html#ae37fd1cbf1af522674cbd33873b786a6&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;class_javadoc___test.html#ae37fd1cbf1af522674cbd33873b786a6a5954e696a652f442d7255af4e0d35d61&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;class_javadoc___test.html#ae37fd1cbf1af522674cbd33873b786a6a90f0d8d4f07a79342261fb1c191af72b&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;class_javadoc___test.html#ae37fd1cbf1af522674cbd33873b786a6ab4a4dc16e1050c9604cf5c46a51e5a8e&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;class_javadoc___test.html#afcc11e097968fb44080b82b75032e40b&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;classes.html&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;doxygen_crawl.html&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;functions.html&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;functions_enum.html&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;functions_eval.html&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;functions_func.html&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;functions_vars.html&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;a<sp/>href=&quot;index.html&quot;/&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/body&gt;</highlight></codeline>
+<codeline><highlight class="normal">&lt;/html&gt;</highlight></codeline>
+    </programlisting>
+    <location file="doxygen-1.14.0/html/examples/jdstyle/html/doxygen_crawl.html"/>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,82 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1detail_1_1AccessGuard_1_1Entry" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::detail::AccessGuard::Entry</compoundname>
+    <includes refid="Access_8h" local="no">Access.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1detail_1_1AccessGuard_1_1Entry_1a628a2a3da3cd7100e1a47592692de955" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ecss::detail::AccessGuard::Entry::acquired</definition>
+        <argsstring></argsstring>
+        <name>acquired</name>
+        <qualifiedname>ecss::detail::AccessGuard::Entry::acquired</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+<para>false when this thread already held it </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="55" column="6" bodyfile="ecss/Access.h" bodystart="55" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1detail_1_1AccessGuard_1_1Entry_1a3e134743c84f1f3015bc239a14665843" prot="public" static="no" mutable="no">
+        <type>std::shared_mutex *</type>
+        <definition>std::shared_mutex* ecss::detail::AccessGuard::Entry::mutex</definition>
+        <argsstring></argsstring>
+        <name>mutex</name>
+        <qualifiedname>ecss::detail::AccessGuard::Entry::mutex</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="52" column="19" bodyfile="ecss/Access.h" bodystart="52" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1detail_1_1AccessGuard_1_1Entry_1afc48472f3da4ef21cd5bb7877715e350" prot="public" static="no" mutable="no">
+        <type>ECSType</type>
+        <definition>ECSType ecss::detail::AccessGuard::Entry::type</definition>
+        <argsstring></argsstring>
+        <name>type</name>
+        <qualifiedname>ecss::detail::AccessGuard::Entry::type</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="53" column="9" bodyfile="ecss/Access.h" bodystart="53" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1detail_1_1AccessGuard_1_1Entry_1ac6c13244a763433ec2d724945e6df827" prot="public" static="no" mutable="no">
+        <type>bool</type>
+        <definition>bool ecss::detail::AccessGuard::Entry::writes</definition>
+        <argsstring></argsstring>
+        <name>writes</name>
+        <qualifiedname>ecss::detail::AccessGuard::Entry::writes</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="54" column="6" bodyfile="ecss/Access.h" bodystart="54" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>One component type&apos;s claim: which lock, and whether for writing. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/Access.h" line="51" column="1" bodyfile="ecss/Access.h" bodystart="51" bodyend="56"/>
+    <listofallmembers>
+      <member refid="structecss_1_1detail_1_1AccessGuard_1_1Entry_1a628a2a3da3cd7100e1a47592692de955" prot="public" virt="non-virtual"><scope>ecss::detail::AccessGuard::Entry</scope><name>acquired</name></member>
+      <member refid="structecss_1_1detail_1_1AccessGuard_1_1Entry_1a3e134743c84f1f3015bc239a14665843" prot="public" virt="non-virtual"><scope>ecss::detail::AccessGuard::Entry</scope><name>mutex</name></member>
+      <member refid="structecss_1_1detail_1_1AccessGuard_1_1Entry_1afc48472f3da4ef21cd5bb7877715e350" prot="public" virt="non-virtual"><scope>ecss::detail::AccessGuard::Entry</scope><name>type</name></member>
+      <member refid="structecss_1_1detail_1_1AccessGuard_1_1Entry_1ac6c13244a763433ec2d724945e6df827" prot="public" virt="non-virtual"><scope>ecss::detail::AccessGuard::Entry</scope><name>writes</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

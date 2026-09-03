@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_a2a8ba002db70f2f1f5a4403c068e8c8" kind="dir">
+    <compoundname>pyexample</compoundname>
+    <innerdir refid="dir_23da204c45b718d15aebf94ee9a5f5b8">html</innerdir>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/pyexample/"/>
+  </compounddef>
+</doxygen>

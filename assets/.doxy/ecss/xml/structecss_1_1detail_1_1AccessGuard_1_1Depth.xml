@@ -1,0 +1,63 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1detail_1_1AccessGuard_1_1Depth" kind="struct" language="C++" prot="private">
+    <compoundname>ecss::detail::AccessGuard::Depth</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1detail_1_1AccessGuard_1_1Depth_1aed9994926e7fe576c8e3c46841bec5c4" prot="public" static="no" mutable="no">
+        <type>const void *</type>
+        <definition>const void* ecss::detail::AccessGuard::Depth::mutex</definition>
+        <argsstring></argsstring>
+        <name>mutex</name>
+        <qualifiedname>ecss::detail::AccessGuard::Depth::mutex</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="136" column="23" bodyfile="ecss/Access.h" bodystart="136" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1detail_1_1AccessGuard_1_1Depth_1a95a10ec287bc3f7b07259b9969995609" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ecss::detail::AccessGuard::Depth::reads</definition>
+        <argsstring></argsstring>
+        <name>reads</name>
+        <qualifiedname>ecss::detail::AccessGuard::Depth::reads</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="136" column="34" bodyfile="ecss/Access.h" bodystart="136" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1detail_1_1AccessGuard_1_1Depth_1ae34349a855f94a2d466f57a3acc1b934" prot="public" static="no" mutable="no">
+        <type>int</type>
+        <definition>int ecss::detail::AccessGuard::Depth::writes</definition>
+        <argsstring></argsstring>
+        <name>writes</name>
+        <qualifiedname>ecss::detail::AccessGuard::Depth::writes</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="136" column="45" bodyfile="ecss/Access.h" bodystart="136" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/Access.h" line="136" column="1" bodyfile="ecss/Access.h" bodystart="136" bodyend="136"/>
+    <listofallmembers>
+      <member refid="structecss_1_1detail_1_1AccessGuard_1_1Depth_1aed9994926e7fe576c8e3c46841bec5c4" prot="public" virt="non-virtual"><scope>ecss::detail::AccessGuard::Depth</scope><name>mutex</name></member>
+      <member refid="structecss_1_1detail_1_1AccessGuard_1_1Depth_1a95a10ec287bc3f7b07259b9969995609" prot="public" virt="non-virtual"><scope>ecss::detail::AccessGuard::Depth</scope><name>reads</name></member>
+      <member refid="structecss_1_1detail_1_1AccessGuard_1_1Depth_1ae34349a855f94a2d466f57a3acc1b934" prot="public" virt="non-virtual"><scope>ecss::detail::AccessGuard::Depth</scope><name>writes</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,58 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Read" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Read</compoundname>
+    <includes refid="Access_8h" local="no">Access.h</includes>
+    <templateparamlist>
+      <param>
+        <type>typename T</type>
+      </param>
+    </templateparamlist>
+    <sectiondef kind="public-type">
+      <memberdef kind="typedef" id="structecss_1_1Read_1ae2ff0ca4b1822ee964db238736a47e95" prot="public" static="no">
+        <type>T</type>
+        <definition>using ecss::Read&lt; T &gt;::Component =  T</definition>
+        <argsstring></argsstring>
+        <name>Component</name>
+        <qualifiedname>ecss::Read::Component</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="15" column="23" bodyfile="ecss/Access.h" bodystart="15" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-attrib">
+      <memberdef kind="variable" id="structecss_1_1Read_1ab1793e967b656f6740ea70373c84db74" prot="public" static="yes" constexpr="yes" mutable="no">
+        <type>bool</type>
+        <definition>bool ecss::Read&lt; T &gt;::kWrites</definition>
+        <argsstring></argsstring>
+        <name>kWrites</name>
+        <qualifiedname>ecss::Read::kWrites</qualifiedname>
+        <initializer>= false</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="15" column="52" bodyfile="ecss/Access.h" bodystart="15" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Claim a component type for reading. </para>
+    </briefdescription>
+    <detaileddescription>
+<para><simplesect kind="see"><para><ref refid="classecss_1_1Registry_1ae23c06277a9312194290f2827647d1f2" kindref="member">Registry::access</ref> </para>
+</simplesect>
+</para>
+    </detaileddescription>
+    <location file="ecss/Access.h" line="15" column="12" bodyfile="ecss/Access.h" bodystart="15" bodyend="15"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Read_1ae2ff0ca4b1822ee964db238736a47e95" prot="public" virt="non-virtual"><scope>ecss::Read</scope><name>Component</name></member>
+      <member refid="structecss_1_1Read_1ab1793e967b656f6740ea70373c84db74" prot="public" virt="non-virtual"><scope>ecss::Read</scope><name>kWrites</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

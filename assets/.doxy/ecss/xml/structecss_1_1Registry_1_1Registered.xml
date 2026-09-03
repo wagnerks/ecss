@@ -1,0 +1,140 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Registry_1_1Registered" kind="struct" language="C++" prot="private">
+    <compoundname>ecss::Registry::Registered</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Registry_1_1Registered_1a188ca90f9f5a79349dbcd2d0ed2181c1" prot="public" static="no" mutable="no">
+        <type>const <ref refid="structecss_1_1Memory_1_1LayoutData" kindref="compound">Memory::LayoutData</ref> **</type>
+        <definition>const Memory::LayoutData** ecss::Registry&lt; ThreadSafe, Allocator &gt;::Registered::layout</definition>
+        <argsstring></argsstring>
+        <name>layout</name>
+        <qualifiedname>ecss::Registry::Registered::layout</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Per component type, the layout record and the layout it was resolved against. Kept in this snapshot rather than a cache beside it so one acquire load still answers everything, and so they cannot disagree about which registration they belong to. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1399" column="26" bodyfile="ecss/Registry.h" bodystart="1399" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Registry_1_1Registered_1aa1c73d992e834fc679a044fcf1f1c3e2" prot="public" static="no" mutable="no">
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Memory::SectorsArray</ref>&lt; ThreadSafe, Allocator &gt; **</type>
+        <definition>Memory::SectorsArray&lt;ThreadSafe, Allocator&gt;** ecss::Registry&lt; ThreadSafe, Allocator &gt;::Registered::list</definition>
+        <argsstring></argsstring>
+        <name>list</name>
+        <qualifiedname>ecss::Registry::Registered::list</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1402" column="22" bodyfile="ecss/Registry.h" bodystart="1402" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Registry_1_1Registered_1a22f14180199ba96cbfac5595bd204b50" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Registry&lt; ThreadSafe, Allocator &gt;::Registered::listCount</definition>
+        <argsstring></argsstring>
+        <name>listCount</name>
+        <qualifiedname>ecss::Registry::Registered::listCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1401" column="8" bodyfile="ecss/Registry.h" bodystart="1401" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Registry_1_1Registered_1a17838480b63c4218810bd6fba41a60e5" prot="public" static="no" mutable="no">
+        <type><ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">Memory::SectorsArray</ref>&lt; ThreadSafe, Allocator &gt; **</type>
+        <definition>Memory::SectorsArray&lt;ThreadSafe, Allocator&gt;** ecss::Registry&lt; ThreadSafe, Allocator &gt;::Registered::map</definition>
+        <argsstring></argsstring>
+        <name>map</name>
+        <qualifiedname>ecss::Registry::Registered::map</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1394" column="22" bodyfile="ecss/Registry.h" bodystart="1394" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Registry_1_1Registered_1aad6a4c80a0ba5924660807661e841c9d" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Registry&lt; ThreadSafe, Allocator &gt;::Registered::mapCount</definition>
+        <argsstring></argsstring>
+        <name>mapCount</name>
+        <qualifiedname>ecss::Registry::Registered::mapCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1393" column="8" bodyfile="ecss/Registry.h" bodystart="1393" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Registry_1_1Registered_1a25d2164148ff5beef8ab539a865dc14a" prot="public" static="no" mutable="no">
+        <type>const <ref refid="structecss_1_1Memory_1_1SectorLayoutMeta" kindref="compound">Memory::SectorLayoutMeta</ref> **</type>
+        <definition>const Memory::SectorLayoutMeta** ecss::Registry&lt; ThreadSafe, Allocator &gt;::Registered::meta</definition>
+        <argsstring></argsstring>
+        <name>meta</name>
+        <qualifiedname>ecss::Registry::Registered::meta</qualifiedname>
+        <initializer>= nullptr</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Registry.h" line="1400" column="32" bodyfile="ecss/Registry.h" bodystart="1400" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Immutable snapshot of the registered arrays, published on registration. <computeroutput>map</computeroutput> is indexed by componentTypeId; <computeroutput>list</computeroutput> is the de-duplicated array list. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="3">
+        <label>ecss::Memory::LayoutData</label>
+        <link refid="structecss_1_1Memory_1_1LayoutData"/>
+      </node>
+      <node id="4">
+        <label>ecss::Memory::SectorLayoutMeta</label>
+        <link refid="structecss_1_1Memory_1_1SectorLayoutMeta"/>
+      </node>
+      <node id="2">
+        <label>ecss::Memory::SectorsArray&lt; ThreadSafe, Allocator &gt;</label>
+        <link refid="classecss_1_1Memory_1_1SectorsArray"/>
+      </node>
+      <node id="1">
+        <label>ecss::Registry&lt; ThreadSafe, Allocator &gt;::Registered</label>
+        <childnode refid="2" relation="usage">
+          <edgelabel>list</edgelabel>
+          <edgelabel>map</edgelabel>
+        </childnode>
+        <childnode refid="3" relation="usage">
+          <edgelabel>layout</edgelabel>
+        </childnode>
+        <childnode refid="4" relation="usage">
+          <edgelabel>meta</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="ecss/Registry.h" line="1392" column="1" bodyfile="ecss/Registry.h" bodystart="1392" bodyend="1403"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Registry_1_1Registered_1a188ca90f9f5a79349dbcd2d0ed2181c1" prot="public" virt="non-virtual"><scope>ecss::Registry::Registered</scope><name>layout</name></member>
+      <member refid="structecss_1_1Registry_1_1Registered_1aa1c73d992e834fc679a044fcf1f1c3e2" prot="public" virt="non-virtual"><scope>ecss::Registry::Registered</scope><name>list</name></member>
+      <member refid="structecss_1_1Registry_1_1Registered_1a22f14180199ba96cbfac5595bd204b50" prot="public" virt="non-virtual"><scope>ecss::Registry::Registered</scope><name>listCount</name></member>
+      <member refid="structecss_1_1Registry_1_1Registered_1a17838480b63c4218810bd6fba41a60e5" prot="public" virt="non-virtual"><scope>ecss::Registry::Registered</scope><name>map</name></member>
+      <member refid="structecss_1_1Registry_1_1Registered_1aad6a4c80a0ba5924660807661e841c9d" prot="public" virt="non-virtual"><scope>ecss::Registry::Registered</scope><name>mapCount</name></member>
+      <member refid="structecss_1_1Registry_1_1Registered_1a25d2164148ff5beef8ab539a865dc14a" prot="public" virt="non-virtual"><scope>ecss::Registry::Registered</scope><name>meta</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,21 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1detail_1_1NonTrivialComponent" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::detail::NonTrivialComponent</compoundname>
+    <includes refid="Types_8h" local="no">Types.h</includes>
+    <templateparamlist>
+      <param>
+        <type>class T</type>
+      </param>
+    </templateparamlist>
+    <briefdescription>
+<para>Instantiated for nothing but its own deprecation warning. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>A class template rather than a function: MSVC prints one C4996 per distinct specialization and names it (<computeroutput><ref refid="structecss_1_1detail_1_1NonTrivialComponent" kindref="compound">NonTrivialComponent</ref>&lt;MeshComponent&gt;</computeroutput>), while a deprecated <emphasis>function</emphasis> template collapses to a single warning per source line, so a translation unit registering ten components would only ever confess to the first. </para>
+    </detaileddescription>
+    <location file="ecss/Types.h" line="212" column="1" bodyfile="ecss/Types.h" bodystart="217" bodyend="217"/>
+    <listofallmembers>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

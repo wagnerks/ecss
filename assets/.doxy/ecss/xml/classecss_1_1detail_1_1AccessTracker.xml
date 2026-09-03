@@ -1,0 +1,225 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="classecss_1_1detail_1_1AccessTracker" kind="class" language="C++" prot="public">
+    <compoundname>ecss::detail::AccessTracker</compoundname>
+    <includes refid="AccessTracker_8h" local="no">AccessTracker.h</includes>
+    <innerclass refid="structecss_1_1detail_1_1AccessTracker_1_1State" prot="private">ecss::detail::AccessTracker::State</innerclass>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessTracker_1abeefdd4619c01bab597ef943dc4bde79" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ecss::detail::AccessTracker::beginRead</definition>
+        <argsstring>(ECSType type, const char *name)</argsstring>
+        <name>beginRead</name>
+        <qualifiedname>ecss::detail::AccessTracker::beginRead</qualifiedname>
+        <param>
+          <type>ECSType</type>
+          <declname>type</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. Takes the per-type mutex. Checks the enabled flag first, so leaving tracking off costs one load. Compiled out under NDEBUG. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="59" column="13" bodyfile="ecss/AccessTracker.h" bodystart="59" bodyend="67"/>
+        <references refid="classecss_1_1detail_1_1AccessTracker_1a1494f1344359d1983dd0eb2be632f374" compoundref="AccessTracker_8h" startline="50" endline="50">enabled</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessTracker_1ae180d5b172eb9bcf7430345b843276e3" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ecss::detail::AccessTracker::beginWrite</definition>
+        <argsstring>(ECSType type, const char *name)</argsstring>
+        <name>beginWrite</name>
+        <qualifiedname>ecss::detail::AccessTracker::beginWrite</qualifiedname>
+        <param>
+          <type>ECSType</type>
+          <declname>type</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>name</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. Takes the per-type mutex. Checks the enabled flag first, so leaving tracking off costs one load. Compiled out under NDEBUG. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="81" column="13" bodyfile="ecss/AccessTracker.h" bodystart="81" bodyend="94"/>
+        <references refid="classecss_1_1detail_1_1AccessTracker_1a1494f1344359d1983dd0eb2be632f374" compoundref="AccessTracker_8h" startline="50" endline="50">enabled</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessTracker_1a1494f1344359d1983dd0eb2be632f374" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>static bool ecss::detail::AccessTracker::enabled</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>enabled</name>
+        <qualifiedname>ecss::detail::AccessTracker::enabled</qualifiedname>
+        <briefdescription>
+<para>Whether conflicts are watched for. Off until a <ref refid="classecss_1_1Registry" kindref="compound">Registry</ref> turns it on. @thread_safety Internally synchronized. One relaxed load, which is a plain move on every architecture that matters. Atomic rather than a bare bool because every tracked call reads it while <ref refid="classecss_1_1detail_1_1AccessTracker_1a037b0eabe2f872c70f5ecefe2e48a597" kindref="member">setEnabled()</ref> may be writing, and a torn read there would be a data race in the tool meant to find them. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="50" column="13" bodyfile="ecss/AccessTracker.h" bodystart="50" bodyend="50"/>
+        <referencedby refid="classecss_1_1detail_1_1AccessTracker_1abeefdd4619c01bab597ef943dc4bde79" compoundref="AccessTracker_8h" startline="59" endline="67">beginRead</referencedby>
+        <referencedby refid="classecss_1_1detail_1_1AccessTracker_1ae180d5b172eb9bcf7430345b843276e3" compoundref="AccessTracker_8h" startline="81" endline="94">beginWrite</referencedby>
+        <referencedby refid="classecss_1_1detail_1_1AccessTracker_1a7a2a6a21a911f9ddad7f0d20a9ab3ddb" compoundref="AccessTracker_8h" startline="71" endline="77">endRead</referencedby>
+        <referencedby refid="classecss_1_1detail_1_1AccessTracker_1a9fc357cf304794d043fb7dc50fdc8b03" compoundref="AccessTracker_8h" startline="98" endline="103">endWrite</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessTracker_1a7a2a6a21a911f9ddad7f0d20a9ab3ddb" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ecss::detail::AccessTracker::endRead</definition>
+        <argsstring>(ECSType type)</argsstring>
+        <name>endRead</name>
+        <qualifiedname>ecss::detail::AccessTracker::endRead</qualifiedname>
+        <param>
+          <type>ECSType</type>
+          <declname>type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. Takes the per-type mutex. Checks the enabled flag first, so leaving tracking off costs one load. Compiled out under NDEBUG. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="71" column="13" bodyfile="ecss/AccessTracker.h" bodystart="71" bodyend="77"/>
+        <references refid="classecss_1_1detail_1_1AccessTracker_1a1494f1344359d1983dd0eb2be632f374" compoundref="AccessTracker_8h" startline="50" endline="50">enabled</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessTracker_1a9fc357cf304794d043fb7dc50fdc8b03" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ecss::detail::AccessTracker::endWrite</definition>
+        <argsstring>(ECSType type)</argsstring>
+        <name>endWrite</name>
+        <qualifiedname>ecss::detail::AccessTracker::endWrite</qualifiedname>
+        <param>
+          <type>ECSType</type>
+          <declname>type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. Takes the per-type mutex. Checks the enabled flag first, so leaving tracking off costs one load. Compiled out under NDEBUG. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="98" column="13" bodyfile="ecss/AccessTracker.h" bodystart="98" bodyend="103"/>
+        <references refid="classecss_1_1detail_1_1AccessTracker_1a1494f1344359d1983dd0eb2be632f374" compoundref="AccessTracker_8h" startline="50" endline="50">enabled</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessTracker_1a037b0eabe2f872c70f5ecefe2e48a597" prot="public" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ecss::detail::AccessTracker::setEnabled</definition>
+        <argsstring>(bool on) noexcept</argsstring>
+        <name>setEnabled</name>
+        <qualifiedname>ecss::detail::AccessTracker::setEnabled</qualifiedname>
+        <param>
+          <type>bool</type>
+          <declname>on</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. One relaxed store. Still meant for startup: turning tracking on once threads are running cannot show the overlaps that already happened. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="55" column="13" bodyfile="ecss/AccessTracker.h" bodystart="55" bodyend="55"/>
+        <referencedby refid="classecss_1_1Registry_1a7a0d407a24807d73897aa089351f4066" compoundref="Registry_8h" startline="809" endline="815">ecss::Registry&lt; ThreadSafe, Allocator &gt;::setAccessTracking</referencedby>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-func">
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessTracker_1a89696a913b8dd9d7679ad78504552b32" prot="private" static="yes" const="no" explicit="no" inline="yes" noexcept="yes" virt="non-virtual">
+        <type>std::atomic&lt; bool &gt; &amp;</type>
+        <definition>static std::atomic&lt; bool &gt; &amp; ecss::detail::AccessTracker::flag</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>flag</name>
+        <qualifiedname>ecss::detail::AccessTracker::flag</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="113" column="20" bodyfile="ecss/AccessTracker.h" bodystart="113" bodyend="116"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessTracker_1a4dfbd726054139f6028e7d205bdfda64" prot="private" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ecss::detail::AccessTracker::report</definition>
+        <argsstring>(const char *name, const char *mine, const char *theirs, std::thread::id other)</argsstring>
+        <name>report</name>
+        <qualifiedname>ecss::detail::AccessTracker::report</qualifiedname>
+        <param>
+          <type>const char *</type>
+          <declname>name</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>mine</declname>
+        </param>
+        <param>
+          <type>const char *</type>
+          <declname>theirs</declname>
+        </param>
+        <param>
+          <type>std::thread::id</type>
+          <declname>other</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="137" column="14" bodyfile="ecss/AccessTracker.h" bodystart="137" bodyend="151"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessTracker_1a0062247987a06c332d6d66b01893d33f" prot="private" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>State &amp;</type>
+        <definition>static State &amp; ecss::detail::AccessTracker::stateFor</definition>
+        <argsstring>(ECSType type)</argsstring>
+        <name>stateFor</name>
+        <qualifiedname>ecss::detail::AccessTracker::stateFor</qualifiedname>
+        <param>
+          <type>ECSType</type>
+          <declname>type</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>One record per component type, for the life of the process. Types are numbered from a single counter, so a plain map keyed by that number is enough and never rehashes under a reader. @thread_safety Internally synchronized. Takes the table mutex. The map is keyed by a dense type id and lives for the process, so entries are never removed. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/AccessTracker.h" line="130" column="14" bodyfile="ecss/AccessTracker.h" bodystart="130" bodyend="135"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Debug-only detector for two threads touching one component type at once. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The container guarantees <emphasis>structure</emphasis>: an array will not be relocated under an iterator, and a pinned sector will not move or die. It does not guarantee that a component&apos;s <emphasis>value</emphasis> is stable while another thread writes it <ndash/> doing so would mean locking or pinning per element, which costs more than everything the lock-free read paths save.</para>
+<para>That leaves a gap the compiler cannot see: a system reading Position while another writes it is a race, and worse, it is a scheduling bug <ndash/> the frame&apos;s result depends on which thread won, so making the memory safe would not make the answer right. This finds it and names it, at the point it happens, instead of leaving it to a sanitizer run or to a bug report about numbers that flicker.</para>
+<para>A view is a read scope for as long as it lives; a mutator is a write scope for the duration of its call. Re-entering from the same thread is fine and expected <ndash/> a system routinely reads what it just wrote.</para>
+<para>Compiled out entirely when NDEBUG is set: the whole point is to be free in the build that ships. <simplesect kind="see"><para><ref refid="classecss_1_1Registry_1a7a0d407a24807d73897aa089351f4066" kindref="member">Registry::setAccessTracking</ref> @thread_safety Internally synchronized. Every entry point takes the per-type mutex, and the flag is read before anything else, so leaving it off costs a load. <ref refid="classecss_1_1detail_1_1AccessTracker_1a1494f1344359d1983dd0eb2be632f374" kindref="member">enabled()</ref> is the exception: set it once at startup, not while threads run. The whole class compiles to nothing when NDEBUG is set. </para>
+</simplesect>
+</para>
+    </detaileddescription>
+    <location file="ecss/AccessTracker.h" line="42" column="1" bodyfile="ecss/AccessTracker.h" bodystart="42" bodyend="153"/>
+    <listofallmembers>
+      <member refid="classecss_1_1detail_1_1AccessTracker_1abeefdd4619c01bab597ef943dc4bde79" prot="public" virt="non-virtual"><scope>ecss::detail::AccessTracker</scope><name>beginRead</name></member>
+      <member refid="classecss_1_1detail_1_1AccessTracker_1ae180d5b172eb9bcf7430345b843276e3" prot="public" virt="non-virtual"><scope>ecss::detail::AccessTracker</scope><name>beginWrite</name></member>
+      <member refid="classecss_1_1detail_1_1AccessTracker_1a1494f1344359d1983dd0eb2be632f374" prot="public" virt="non-virtual"><scope>ecss::detail::AccessTracker</scope><name>enabled</name></member>
+      <member refid="classecss_1_1detail_1_1AccessTracker_1a7a2a6a21a911f9ddad7f0d20a9ab3ddb" prot="public" virt="non-virtual"><scope>ecss::detail::AccessTracker</scope><name>endRead</name></member>
+      <member refid="classecss_1_1detail_1_1AccessTracker_1a9fc357cf304794d043fb7dc50fdc8b03" prot="public" virt="non-virtual"><scope>ecss::detail::AccessTracker</scope><name>endWrite</name></member>
+      <member refid="classecss_1_1detail_1_1AccessTracker_1a89696a913b8dd9d7679ad78504552b32" prot="private" virt="non-virtual"><scope>ecss::detail::AccessTracker</scope><name>flag</name></member>
+      <member refid="classecss_1_1detail_1_1AccessTracker_1a4dfbd726054139f6028e7d205bdfda64" prot="private" virt="non-virtual"><scope>ecss::detail::AccessTracker</scope><name>report</name></member>
+      <member refid="classecss_1_1detail_1_1AccessTracker_1a037b0eabe2f872c70f5ecefe2e48a597" prot="public" virt="non-virtual"><scope>ecss::detail::AccessTracker</scope><name>setEnabled</name></member>
+      <member refid="classecss_1_1detail_1_1AccessTracker_1a0062247987a06c332d6d66b01893d33f" prot="private" virt="non-virtual"><scope>ecss::detail::AccessTracker</scope><name>stateFor</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

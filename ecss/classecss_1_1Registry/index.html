@@ -1,0 +1,5059 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+      
+      
+        <link rel="canonical" href="https://wagnerks.github.io/ecss/ecss/classecss_1_1Registry/">
+      
+      
+        <link rel="prev" href="../structecss_1_1Read/">
+      
+      
+        <link rel="next" href="../structecss_1_1Registry_1_1ComponentAccess/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../img/logo.svg">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.7">
+    
+    
+      
+        <title>Registry - ECSS Documentation</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.ec1eaa64.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../stylesheets/extra.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="grey">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#class-ecssregistry" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+<header class="md-header" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="ECSS Documentation" class="md-header__button md-logo" aria-label="ECSS Documentation" data-md-component="logo">
+      
+  <img src="../../img/logo.svg" alt="logo">
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            ECSS Documentation
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Registry
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="custom" data-md-color-accent="grey"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 2.38 1.19 4.47 3 5.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26c1.81-1.27 3-3.36 3-5.74a7 7 0 0 0-7-7M9 21a1 1 0 0 0 1 1h4a1 1 0 0 0 1-1v-1H9z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="custom" data-md-color-accent="grey"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 1 7 7c0 2.38-1.19 4.47-3 5.74V17a1 1 0 0 1-1 1H9a1 1 0 0 1-1-1v-2.26C6.19 13.47 5 11.38 5 9a7 7 0 0 1 7-7M9 21v-1h6v1a1 1 0 0 1-1 1h-4a1 1 0 0 1-1-1m3-17a5 5 0 0 0-5 5c0 2.05 1.23 3.81 3 4.58V16h4v-2.42c1.77-.77 3-2.53 3-4.58a5 5 0 0 0-5-5"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/wagnerks/ecss" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wagnerks/ecss
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+            
+<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
+  <div class="md-grid">
+    <ul class="md-tabs__list">
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../.." class="md-tabs__link">
+        
+  
+  
+    
+  
+  Home
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../getting_started/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Getting Started
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../architecture/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Architecture Overview
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../examples/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Examples
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../batching/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Batching & Deferral
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../benchmarks/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  Benchmarks
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+  
+    <li class="md-tabs__item">
+      <a href="../../faq/" class="md-tabs__link">
+        
+  
+  
+    
+  
+  FAQ
+
+      </a>
+    </li>
+  
+
+      
+        
+  
+  
+  
+    
+  
+  
+    
+    
+      <li class="md-tabs__item md-tabs__item--active">
+        <a href="../annotated/" class="md-tabs__link">
+          
+  
+  
+  API Reference
+
+        </a>
+      </li>
+    
+  
+
+      
+    </ul>
+  </div>
+</nav>
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+  
+
+
+<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="ECSS Documentation" class="md-nav__button md-logo" aria-label="ECSS Documentation" data-md-component="logo">
+      
+  <img src="../../img/logo.svg" alt="logo">
+
+    </a>
+    ECSS Documentation
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/wagnerks/ecss" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+  </div>
+  <div class="md-source__repository">
+    wagnerks/ecss
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../getting_started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../examples/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Examples
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../batching/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Batching & Deferral
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../benchmarks/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Benchmarks
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../faq/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FAQ
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_8" id="__nav_8_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_8_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    API Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../annotated/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../namespaceecss/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ecss
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2" id="__nav_8_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_8_2_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_8_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ecss
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1AllowNonTrivial/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AllowNonTrivial
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../classecss_1_1ArraysView/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ArraysView
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_2" id="__nav_8_2_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_8_2_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ArraysView
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1ArraysView_1_1EndIterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EndIterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1ArraysView_1_1Iterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1CommandBuffer/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    CommandBuffer
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1IdSet/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IdSet
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1IdSet_3_01Type_00_01false_01_4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IdSet&lt;Type,false&gt;
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1IdSet_3_01Type_00_01true_01_4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IdSet&lt;Type,true&gt;
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../namespaceecss_1_1Memory/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Memory
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_7" id="__nav_8_2_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_8_2_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Memory
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_7_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../structecss_1_1Memory_1_1ChunksAllocator/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ChunksAllocator
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_7_1" id="__nav_8_2_7_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_8_2_7_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_7_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ChunksAllocator
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1ChunksAllocator_1_1ChunksView/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ChunksView
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1ChunksAllocator_1_1Cursor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Cursor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1ChunksAllocator_1_1RangesCursor/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RangesCursor
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1Memory_1_1DenseTypeIdGenerator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DenseTypeIdGenerator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_7_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../structecss_1_1Memory_1_1LayoutData/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    LayoutData
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_7_3" id="__nav_8_2_7_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_8_2_7_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_7_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    LayoutData
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1LayoutData_1_1FunctionTable/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    FunctionTable
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1PinnedSector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PinnedSector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1RetireAllocator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RetireAllocator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1RetireBin/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RetireBin
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../namespaceecss_1_1Memory_1_1Sector/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Sector
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_7_8" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../structecss_1_1Memory_1_1SectorLayoutMeta/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SectorLayoutMeta
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_7_8" id="__nav_8_2_7_8_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_8_2_7_8_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_7_8">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    SectorLayoutMeta
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1Memory_1_1SectorLayoutMeta_1_1Iterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_7_9" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../classecss_1_1Memory_1_1SectorsArray/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SectorsArray
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_7_9" id="__nav_8_2_7_9_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_8_2_7_9_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_7_9">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    SectorsArray
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1Memory_1_1SectorsArray_1_1Iterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Iterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1Memory_1_1SectorsArray_1_1IteratorAlive/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IteratorAlive
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1Memory_1_1SectorsArray_1_1RangedIterator/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RangedIterator
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1SectorsArray_1_1SlotInfo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SlotInfo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1SectorsArray_1_1StructuralEdit/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    StructuralEdit
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1StructuralHold/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    StructuralHold
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_7_11" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../namespaceecss_1_1Memory_1_1detail/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    detail
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_7_11" id="__nav_8_2_7_11_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_8_2_7_11_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_7_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    detail
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1DenseArrays/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DenseArrays
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_7_11_2" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01false_01_4/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DenseArrays&lt;false&gt;
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_7_11_2" id="__nav_8_2_7_11_2_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_8_2_7_11_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_7_11_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    DenseArrays&lt;false&gt;
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01false_01_4_1_1View/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    View
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_7_11_3" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    DenseArrays&lt;true&gt;
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_7_11_3" id="__nav_8_2_7_11_3_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_8_2_7_11_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_7_11_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    DenseArrays&lt;true&gt;
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4_1_1View/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    View
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1SlotInfo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SlotInfo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1SparseMap/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SparseMap
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1SparseMap_3_01false_01_4/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SparseMap&lt;false&gt;
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_7_11_7" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SparseMap&lt;true&gt;
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_7_11_7" id="__nav_8_2_7_11_7_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="5" aria-labelledby="__nav_8_2_7_11_7_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_7_11_7">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    SparseMap&lt;true&gt;
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4_1_1SparseView/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SparseView
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1PinnedComponent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PinnedComponent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Ranges/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Ranges
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Read/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Read
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_11" checked>
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="./" class="md-nav__link md-nav__link--active">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registry
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link md-nav__link--active" for="__nav_8_2_11" id="__nav_8_2_11_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_8_2_11_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_8_2_11">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Registry
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Registry_1_1ComponentAccess/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ComponentAccess
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_12" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../namespaceecss_1_1Threads/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Threads
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_12" id="__nav_8_2_12_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_8_2_12_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_12">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Threads
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_12_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../structecss_1_1Threads_1_1PinCounters/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PinCounters
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_12_1" id="__nav_8_2_12_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_8_2_12_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_12_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    PinCounters
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Threads_1_1PinCounters_1_1WriterIntent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    WriterIntent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Threads_1_1SelfWaitDebug/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SelfWaitDebug
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1TypeAccessInfo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    TypeAccessInfo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Write/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Write
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_15" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../namespaceecss_1_1detail/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    detail
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_15" id="__nav_8_2_15_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_8_2_15_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_15">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    detail
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_15_1" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../classecss_1_1detail_1_1AccessGuard/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AccessGuard
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_15_1" id="__nav_8_2_15_1_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="4" aria-labelledby="__nav_8_2_15_1_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_15_1">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    AccessGuard
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1detail_1_1AccessGuard_1_1Entry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Entry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1detail_1_1AccessScope/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AccessScope
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../classecss_1_1detail_1_1AccessTracker/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    AccessTracker
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1detail_1_1IdSetLayout/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IdSetLayout
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1detail_1_1NonTrivialComponent/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    NonTrivialComponent
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_8_2_16" >
+        
+          
+          <div class="md-nav__link md-nav__container">
+            <a href="../namespaceecss_1_1types/" class="md-nav__link ">
+              
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    types
+  
+
+    
+  </span>
+  
+  
+
+            </a>
+            
+              
+              <label class="md-nav__link " for="__nav_8_2_16" id="__nav_8_2_16_label" tabindex="0">
+                <span class="md-nav__icon md-icon"></span>
+              </label>
+            
+          </div>
+        
+        <nav class="md-nav" data-md-level="3" aria-labelledby="__nav_8_2_16_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_8_2_16">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    types
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1types_1_1EmptyBase/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    EmptyBase
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1types_1_1OffsetArray/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    OffsetArray
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1CommandBuffer_1_1IStore/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    IStore
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1CommandBuffer_1_1Store/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Store
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1CommandBuffer_1_1Store_1_1Latest/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Latest
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1IdSet_3_01Type_00_01true_01_4_1_1Table/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Table
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1ChunksAllocator_1_1RangesCursor_1_1SpanInfo/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SpanInfo
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Memory_1_1RetireBin_1_1RetiredBlock/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    RetiredBlock
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Registry_1_1Registered/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Registered
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Threads_1_1PinCounters_1_1HoldShard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    HoldShard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Threads_1_1PinCounters_1_1PinShard/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    PinShard
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Threads_1_1PinCounters_1_1Table/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Table
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1Threads_1_1PinCounters_1_1WaiterScope/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    WaiterScope
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1detail_1_1AccessGuard_1_1Depth/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Depth
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../structecss_1_1detail_1_1AccessTracker_1_1State/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    State
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../namespacestd/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    std
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#classes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Classes
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public Functions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-static-functions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public Static Functions
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#detailed-description" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Detailed Description
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-functions-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public Functions Documentation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Public Functions Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#function-registry-24" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function Registry [2/4]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-registry-34" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function Registry [3/4]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-registry-44" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function Registry [4/4]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-access" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function access
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-addcomponent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function addComponent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-addcomponents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function addComponents
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-automaintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function autoMaintenance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-clear" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function clear
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-clearasync" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function clearAsync
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-contains" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function contains
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-defragment-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function defragment [1/2]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-defragment-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function defragment [2/2]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-destroycomponent-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function destroyComponent [1/2]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-destroycomponent-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function destroyComponent [2/2]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-destroyentities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function destroyEntities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-destroyentity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function destroyEntity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-foreachasync" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function forEachAsync
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-getallentities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function getAllEntities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-getcomponentaccess" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function getComponentAccess
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-getcomponentcontainer" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function getComponentContainer
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-hascomponent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function hasComponent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-insert-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function insert [1/2]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-insert-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function insert [2/2]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-insertbulk" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function insertBulk
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-lookupcomponentaccess" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function lookupComponentAccess
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-operator" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function operator=
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-operator_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function operator=
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-pincomponent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function pinComponent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-registerarray" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function registerArray
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-reserve" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function reserve
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-setaccesstracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function setAccessTracking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-setautomaintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function setAutoMaintenance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-setdefragmentthreshold" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function setDefragmentThreshold
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-setretiregraceperiod" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function setRetireGracePeriod
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-takeentities" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function takeEntities
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-takeentity" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function takeEntity
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-tick" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function tick
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-update-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function update [1/2]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-update-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function update [2/2]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-view-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function view [1/2]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-view-22" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function view [2/2]
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-warnifgroupingignored" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function warnIfGroupingIgnored
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-warnpartialgrouping" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function warnPartialGrouping
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#function-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function ~Registry
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#public-static-functions-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Public Static Functions Documentation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Public Static Functions Documentation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#function-componenttypeid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        function componentTypeId
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="class-ecssregistry">Class ecss::Registry<a class="headerlink" href="#class-ecssregistry" title="Permanent link">&para;</a></h1>
+<p><strong>template &lt;bool ThreadSafe, typename Allocator&gt;</strong></p>
+<p><a href="../annotated/"><strong>ClassList</strong></a> <strong>&gt;</strong> <a href="../namespaceecss/"><strong>ecss</strong></a> <strong>&gt;</strong> <a href="./"><strong>Registry</strong></a></p>
+<p><em>Central ECS registry that owns component sector arrays, entities and iteration utilities.</em> <a href="#detailed-description">More...</a></p>
+<ul>
+<li><code>#include &lt;Registry.h&gt;</code></li>
+</ul>
+<h2 id="classes">Classes<a class="headerlink" href="#classes" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Type</th>
+<th style="text-align: left;">Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">struct</td>
+<td style="text-align: left;"><a href="../structecss_1_1Registry_1_1ComponentAccess/"><strong>ComponentAccess</strong></a> <br><em>The array holding T together with T's layout record, from one snapshot load.</em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="public-functions">Public Functions<a class="headerlink" href="#public-functions" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Type</th>
+<th style="text-align: left;">Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: left;"><a href="#function-registry-24"><strong>Registry</strong></a> () noexcept<br><em>Default construct an empty registry (no arrays allocated until first use). @thread_safety Internally synchronized, vacuously: nothing can name the object until the constructor returns, so there is nothing to race with.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: left;"><a href="#function-registry-34"><strong>Registry</strong></a> (const <a href="./"><strong>Registry</strong></a> &amp; other) noexcept<br><a href="./"><em><strong>Registry</strong></em></a> <em>instances cannot be copied; they uniquely own their arrays and entity ids.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: left;"><a href="#function-registry-44"><strong>Registry</strong></a> (<a href="./"><strong>Registry</strong></a> &amp;&amp; other) noexcept<br><a href="./"><em><strong>Registry</strong></em></a> <em>instances cannot be moved because views and handles may refer to their address.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;"><a href="../classecss_1_1detail_1_1AccessGuard/"><strong>detail::AccessGuard</strong></a></td>
+<td style="text-align: left;"><a href="#function-access"><strong>access</strong></a> () <br><em>Watch for two threads touching one component type at once (debug builds).</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE T *</td>
+<td style="text-align: left;"><a href="#function-addcomponent"><strong>addComponent</strong></a> (EntityId entity, Args &amp;&amp;... args) noexcept<br><em>Add or overwrite a component T for an entity.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-addcomponents"><strong>addComponents</strong></a> (Func &amp;&amp; func) <br><em>Bulk add components from a generator, inserted as one batch.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">bool</td>
+<td style="text-align: left;"><a href="#function-automaintenance"><strong>autoMaintenance</strong></a> () noexcept const<br></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-clear"><strong>clear</strong></a> () noexcept<br><em>Clear all component arrays and remove all entities.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-clearasync"><strong>clearAsync</strong></a> () noexcept<br><em>Ask every array to clear itself at the next safe point, instead of now.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE bool</td>
+<td style="text-align: left;"><a href="#function-contains"><strong>contains</strong></a> (EntityId entityId) noexcept const<br></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-defragment-12"><strong>defragment</strong></a> () noexcept<br><em>Defragment all arrays (compacts fragmented dead slots).</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE void</td>
+<td style="text-align: left;"><a href="#function-defragment-22"><strong>defragment</strong></a> () noexcept<br><em>Defragment the container for component T (if it exists). @thread_safety Internally synchronized; blocks. Waits until this one array carries no pins and no open views.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-destroycomponent-12"><strong>destroyComponent</strong></a> (EntityId entity) noexcept<br><em>Destroy component T for a single entity (does nothing if not present).</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-destroycomponent-22"><strong>destroyComponent</strong></a> (std::vector&lt; EntityId &gt; &amp; entities) noexcept<br><em>Destroy component T for a batch of entities.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-destroyentities"><strong>destroyEntities</strong></a> (std::vector&lt; EntityId &gt; &amp; entities) noexcept<br><em>Destroy a batch of entities and all their components (sequential per-array).</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-destroyentity"><strong>destroyEntity</strong></a> (EntityId entityId) noexcept<br><em>Destroy a single entity and all of its components.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-foreachasync"><strong>forEachAsync</strong></a> (const std::vector&lt; EntityId &gt; &amp; entities, Func &amp;&amp; func) noexcept<br><em>Apply a function to each entity in a list, pinning the requested component types.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE std::vector&lt; EntityId &gt;</td>
+<td style="text-align: left;"><a href="#function-getallentities"><strong>getAllEntities</strong></a> () noexcept const<br><em>Snapshot all entity ids (copy). @thread_safety Internally synchronized. Snapshot: correct when taken, stale as soon as another thread takes or destroys an id.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE <a href="../structecss_1_1Registry_1_1ComponentAccess/"><strong>ComponentAccess</strong></a></td>
+<td style="text-align: left;"><a href="#function-getcomponentaccess"><strong>getComponentAccess</strong></a> () noexcept<br><em>Resolve T's array and layout in a single lookup.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;"><a href="../classecss_1_1Memory_1_1SectorsArray/"><strong>Memory::SectorsArray</strong></a>&lt; ThreadSafe, Allocator &gt; *</td>
+<td style="text-align: left;"><a href="#function-getcomponentcontainer"><strong>getComponentContainer</strong></a> () noexcept<br><em>Get (or lazily create) the sectors container for component T.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE bool</td>
+<td style="text-align: left;"><a href="#function-hascomponent"><strong>hasComponent</strong></a> (EntityId entity) noexcept<br><em>Check if an entity has a live component T.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE void</td>
+<td style="text-align: left;"><a href="#function-insert-12"><strong>insert</strong></a> (const <a href="../classecss_1_1Memory_1_1SectorsArray/"><strong>Memory::SectorsArray</strong></a>&lt; TS, Alloc &gt; &amp; array) noexcept<br><em>Copy-in an externally built sectors array for component T.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE void</td>
+<td style="text-align: left;"><a href="#function-insert-22"><strong>insert</strong></a> (<a href="../classecss_1_1Memory_1_1SectorsArray/"><strong>Memory::SectorsArray</strong></a>&lt; TS, Alloc &gt; &amp;&amp; array) noexcept<br><em>Move-in an externally built sectors array for component T. @thread_safety Internally synchronized; blocks. Replaces the whole array, so it waits until the destination carries no pins and no open views.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-insertbulk"><strong>insertBulk</strong></a> (It first, It last) <br><em>Bulk insert of component T for a batch of (entity, value) pairs.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE <a href="../structecss_1_1Registry_1_1ComponentAccess/"><strong>ComponentAccess</strong></a></td>
+<td style="text-align: left;"><a href="#function-lookupcomponentaccess"><strong>lookupComponentAccess</strong></a> () noexcept<br><em>One snapshot load; empty if T has no array yet.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;"><a href="./"><strong>Registry</strong></a> &amp;</td>
+<td style="text-align: left;"><a href="#function-operator"><strong>operator=</strong></a> (const <a href="./"><strong>Registry</strong></a> &amp; other) noexcept<br><a href="./"><em><strong>Registry</strong></em></a> <em>instances cannot be copy-assigned.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;"><a href="./"><strong>Registry</strong></a> &amp;</td>
+<td style="text-align: left;"><a href="#function-operator_1"><strong>operator=</strong></a> (<a href="./"><strong>Registry</strong></a> &amp;&amp; other) noexcept<br><a href="./"><em><strong>Registry</strong></em></a> <em>instances cannot be move-assigned.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;"><a href="../structecss_1_1PinnedComponent/"><strong>PinnedComponent</strong></a>&lt; T &gt;</td>
+<td style="text-align: left;"><a href="#function-pincomponent"><strong>pinComponent</strong></a> (EntityId entity) noexcept<br><em>Pin component T for an entity (thread-safe build only).</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-registerarray"><strong>registerArray</strong></a> (uint32_t capacity=0, Allocator allocator={}) noexcept<br><em>Explicitly register (group) component types into a shared sectors array.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE void</td>
+<td style="text-align: left;"><a href="#function-reserve"><strong>reserve</strong></a> (uint32_t newCapacity) noexcept<br><em>Reserve capacity (in sectors array units) for each listed component type.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-setaccesstracking"><strong>setAccessTracking</strong></a> (bool enabled) noexcept<br></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-setautomaintenance"><strong>setAutoMaintenance</strong></a> (bool enabled) noexcept<br><em>Let views carry out the maintenance</em> <a href="./#function-update-12"><em><strong>update()</strong></em></a> <em>does, for the arrays they touch.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE void</td>
+<td style="text-align: left;"><a href="#function-setdefragmentthreshold"><strong>setDefragmentThreshold</strong></a> (float threshold) <br><em>Set defragment threshold for component T container. @thread_safety Internally synchronized. One relaxed store; it changes when compaction is requested, never compaction itself.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-setretiregraceperiod"><strong>setRetireGracePeriod</strong></a> (uint32_t ticks) noexcept<br><em>Set the grace period (in ticks) before retired memory is freed.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE void</td>
+<td style="text-align: left;"><a href="#function-takeentities"><strong>takeEntities</strong></a> (size_t count, std::vector&lt; EntityId &gt; &amp; out) noexcept<br><em>Allocate</em> <code>count</code> <em>entity ids in one pass, appending them to</em><code>out</code> <em>.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE EntityId</td>
+<td style="text-align: left;"><a href="#function-takeentity"><strong>takeEntity</strong></a> () noexcept<br><em>Allocate (take) a new entity id.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">size_t</td>
+<td style="text-align: left;"><a href="#function-tick"><strong>tick</strong></a> () noexcept<br><em>Process one tick of the grace period for retired memory.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-update-12"><strong>update</strong></a> (bool withDefragment=true) noexcept<br><em>Maintenance pass (thread-safe build): process deferred erases, free retired memory, and optionally defragment.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-update-22"><strong>update</strong></a> (bool withDefragment=true) noexcept<br><em>Maintenance pass (non-thread-safe build): optionally defragment arrays immediately.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE auto</td>
+<td style="text-align: left;"><a href="#function-view-12"><strong>view</strong></a> () noexcept<br><em>Create a full-range iterable view over all entities with the main component.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">FORCE_INLINE auto</td>
+<td style="text-align: left;"><a href="#function-view-22"><strong>view</strong></a> (const <a href="../structecss_1_1Ranges/"><strong>Ranges</strong></a>&lt; EntityId &gt; &amp; ranges) noexcept<br><em>Create an iterable view limited to given entity ranges.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-warnifgroupingignored"><strong>warnIfGroupingIgnored</strong></a> () noexcept const<br><em>Say so when</em> <a href="./#function-registerarray"><em><strong>registerArray()</strong></em></a> <em>was asked to group types that are already apart.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;">void</td>
+<td style="text-align: left;"><a href="#function-warnpartialgrouping"><strong>warnPartialGrouping</strong></a> () noexcept const<br><em>Say so when only some of the named types already have arrays.</em></td>
+</tr>
+<tr>
+<td style="text-align: right;"></td>
+<td style="text-align: left;"><a href="#function-registry"><strong>~Registry</strong></a> () noexcept<br><em>Destroys all component arrays (each SectorsArray is deleted).</em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="public-static-functions">Public Static Functions<a class="headerlink" href="#public-static-functions" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th style="text-align: right;">Type</th>
+<th style="text-align: left;">Name</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: right;">FORCE_INLINE ECSType</td>
+<td style="text-align: left;"><a href="#function-componenttypeid"><strong>componentTypeId</strong></a> () noexcept<br><em>Get a stable numeric type id for component T.</em></td>
+</tr>
+</tbody>
+</table>
+<h2 id="detailed-description">Detailed Description<a class="headerlink" href="#detailed-description" title="Permanent link">&para;</a></h2>
+<p><strong>Template parameters:</strong></p>
+<ul>
+<li><code>ThreadSafe</code> If true, operations use internal locks / pin counters for safe concurrent access. </li>
+<li><code>Allocator</code> Allocator used by SectorsArray (defaults to chunked allocator).</li>
+</ul>
+<p>Responsibilities:
+* Entity lifecycle (allocate / erase ids).
+* Lazily create or explicitly register component arrays (can group types).
+* Component add / overwrite / remove (single or batch).
+* Bulk entity destruction with all their components.
+* Iteration via <a href="../classecss_1_1ArraysView/"><strong>ArraysView</strong></a> over one or more component types.</p>
+<p>Thread safety. Every public member carries an @thread_safety line. It answers one question  may two threads call this on the same object at once  with one of three answers, and adds "; blocks" when the call waits:</p>
+<ul>
+<li>"Internally synchronized." Call it from any number of threads at once.</li>
+<li>"Thread-confined." The object belongs to one thread and holds no lock, exactly as a std::vector does. Do not add a mutex around it  give each thread its own. Views, pins, access guards and command buffers are all this.</li>
+<li>"Caller must ensure exclusive access." A <em>shared</em> object with no synchronization of its own. Here you do have to supply the ordering: a lock, or a place in the frame where nothing else is running. Setup switches and raw lock accessors live here.</li>
+</ul>
+<p>The difference matters because the fix is opposite. The first says stop sharing it; the second says guard it.</p>
+<ul>
+<li>"Not applicable (single-threaded build)." Only exists when ThreadSafe == false.</li>
+</ul>
+<p>"; blocks" is separate from all three, because waiting and being callable concurrently are different questions  a destructor waits for in-flight readers and still must not race with new ones. It means one specific thing: the call waits for a pin, a hold or a view to be released, which is state a <em>reader</em> controls. That is the wait worth warning about, because a caller can be the reader it is waiting for. Ordinary contention for a mutex between writers is not marked  almost every synchronized call has some, and flagging it would say nothing. Where it appears, what is waited for is named. Two widths:
+* one sector  waits until that entity's sector carries no pins. Only a pin on that same entity delays it.
+* the whole array  waits until the array carries no pins <em>and</em> no open views. Every <a href="../classecss_1_1ArraysView/"><strong>ArraysView</strong></a> holds one for as long as it lives, so anything in this group cannot finish while a view on that array is open. From the thread that opened the view it is a deadlock; from another thread it finishes when the view closes, and a thread iterating in a tight loop can hold it off indefinitely. Nothing here is enforced at compile time. Debug builds assert on the same-thread case; release builds simply block.</p>
+<p>All of the above is about the <em>shape</em> of an array. A component's <em>value</em> is a separate question the container does not answer: reading one while another thread writes it is the caller's to arrange. </p>
+<p><strong>See also:</strong> <a href="./#function-access"><strong>access()</strong></a>, <a href="./#function-setaccesstracking"><strong>setAccessTracking()</strong></a>
+Performance notes:
+* Component insertion is O(1) amortized (sector-based).
+* hasComponent is O(1) (sector lookup + bit test).
+* destroyEntities (sequential version here) visits each array =&gt; O(A * log N) for sorting per array prep.</p>
+<p><strong>Warning:</strong></p>
+<p>Entity ids are reused; do not cache them beyond system boundaries without validation. </p>
+<p><strong>Note:</strong></p>
+<p>Use <a href="./#function-reserve"><strong>reserve&lt;Components...&gt;()</strong></a> to pre-allocate sector capacity and reduce reallocations. </p>
+<h2 id="public-functions-documentation">Public Functions Documentation<a class="headerlink" href="#public-functions-documentation" title="Permanent link">&para;</a></h2>
+<h3 id="function-registry-24">function Registry [2/4]<a class="headerlink" href="#function-registry-24" title="Permanent link">&para;</a></h3>
+<p><em>Default construct an empty registry (no arrays allocated until first use). @thread_safety Internally synchronized, vacuously: nothing can name the object until the constructor returns, so there is nothing to race with.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">Registry</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-registry-34">function Registry [3/4]<a class="headerlink" href="#function-registry-34" title="Permanent link">&para;</a></h3>
+<p><a href="./"><em><strong>Registry</strong></em></a> <em>instances cannot be copied; they uniquely own their arrays and entity ids.</em></p>
+<div class="codehilite"><pre><span></span><code><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">Registry</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">Registry</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">other</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-registry-44">function Registry [4/4]<a class="headerlink" href="#function-registry-44" title="Permanent link">&para;</a></h3>
+<p><a href="./"><em><strong>Registry</strong></em></a> <em>instances cannot be moved because views and handles may refer to their address.</em></p>
+<div class="codehilite"><pre><span></span><code><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">Registry</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">Registry</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">other</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-access">function access<a class="headerlink" href="#function-access" title="Permanent link">&para;</a></h3>
+<p><em>Watch for two threads touching one component type at once (debug builds).</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="p">...</span><span class="w"> </span><span class="n">Claims</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="n">detail</span><span class="o">::</span><span class="n">AccessGuard</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">access</span><span class="w"> </span><span class="p">()</span><span class="w"> </span>
+</code></pre></div>
+
+<p>The container keeps an array's <em>shape</em> safe on its own: it will not be relocated under an iterator, and a pinned sector will not move or die. A component's <em>value</em> is a different matter  guarding that would mean locking or pinning per element, which costs more than the lock-free read paths save. So a system reading Position while another writes it is a race the container cannot see.</p>
+<p>With this on, it is seen: the first overlap aborts and names the type and the two threads. A view counts as reading its component types for as long as it lives, and a mutator as writing one for the duration of the call; re-entering from the same thread is fine, since a system routinely reads what it just wrote.</p>
+<p>Worth leaving on for the whole of development. It compiles to nothing when NDEBUG is set, so there is nothing to turn off before shipping.</p>
+<p>Claim component types for the length of a system, so two of them cannot touch the same type at once.</p>
+<div class="codehilite"><pre><span></span><code><span class="k">auto</span><span class="w"> </span><span class="n">access</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="n">reg</span><span class="p">.</span><span class="n">access</span><span class="o">&lt;</span><span class="n">Read</span><span class="o">&lt;</span><span class="n">Position</span><span class="o">&gt;</span><span class="p">,</span><span class="w"> </span><span class="n">Write</span><span class="o">&lt;</span><span class="n">Velocity</span><span class="o">&gt;&gt;</span><span class="p">();</span>
+<span class="k">for</span><span class="w"> </span><span class="p">(</span><span class="k">auto</span><span class="w"> </span><span class="p">[</span><span class="n">e</span><span class="p">,</span><span class="w"> </span><span class="n">p</span><span class="p">,</span><span class="w"> </span><span class="n">v</span><span class="p">]</span><span class="w"> </span><span class="o">:</span><span class="w"> </span><span class="n">reg</span><span class="p">.</span><span class="n">view</span><span class="o">&lt;</span><span class="n">Position</span><span class="p">,</span><span class="w"> </span><span class="n">Velocity</span><span class="o">&gt;</span><span class="p">())</span><span class="w"> </span><span class="p">{</span>
+<span class="w">    </span><span class="n">v</span><span class="o">-&gt;</span><span class="n">dx</span><span class="w"> </span><span class="o">+=</span><span class="w"> </span><span class="n">p</span><span class="o">-&gt;</span><span class="n">x</span><span class="p">;</span><span class="w">          </span><span class="c1">// inside, everything runs at full speed as before</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>The container keeps an array's shape safe by itself; it does not keep a component's value stable while another thread writes it, and guarding that per element would cost more than the lock-free read paths save. This puts the guarantee at the granularity systems actually work at  a whole component type  so it is paid once per system rather than once per element. A reader-writer lock per type: 29.5 ns for one, 84.8 for three, against 27 ns to pin a single component  and pinning would have to happen per element rather than per system.</p>
+<p>Name every type the system touches in one call. Taking them one at a time lets two systems claim the same pair in opposite orders and stop; asked for together, they are sorted by type id so every caller agrees on the order.</p>
+<p>Nesting from the same thread is fine and does nothing. Asking to write a type this thread already reads is refused in debug rather than upgraded, since there is no atomic upgrade and doing it in two steps brings the deadlock back.</p>
+<p>Nothing forces its use: a system that knows it is the only one touching a type can skip it and lose nothing. <a href="./#function-setaccesstracking"><strong>setAccessTracking()</strong></a> is what finds the ones that were wrong to skip. @thread_safety Internally synchronized; blocks by design. This is the one entry point whose whole job is to wait: it takes a reader-writer lock per component type and holds it until the guard dies. Name every type the system touches in one call  claiming them one at a time is how two systems deadlock. </p>
+<hr>
+
+<h3 id="function-addcomponent">function addComponent<a class="headerlink" href="#function-addcomponent" title="Permanent link">&para;</a></h3>
+<p><em>Add or overwrite a component T for an entity.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="p">,</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="p">...</span><span class="w"> </span><span class="n">Args</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">addComponent</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">EntityId</span><span class="w"> </span><span class="n">entity</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Args</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="p">...</span><span class="w"> </span><span class="n">args</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Template parameters:</strong></p>
+<ul>
+<li><code>T</code> Component type. </li>
+<li><code>Args</code> Constructor argument types for T. </li>
+</ul>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>entity</code> Entity id (also used logically as sector id). </li>
+<li><code>args</code> Construction / assignment arguments. </li>
+</ul>
+<p><strong>Returns:</strong></p>
+<p>Pointer to the stored component. </p>
+<p><strong>Note:</strong></p>
+<p>Overwrites existing component instance (destructive assign semantics inside sector).</p>
+<p>Add or overwrite component T on an entity. </p>
+<p><strong>Warning:</strong></p>
+<p>Illegal while this thread holds a view or a pin on T's array, unless the id is above every id already stored: any other position shifts existing sectors, which would invalidate the live iterator. Debug builds assert; release builds hang. See the SectorsArray class documentation. </p>
+<p><strong>Note:</strong></p>
+<p>Adding M components with ids that are not ascending costs O(M*N) this way. Use <a href="./#function-insertbulk"><strong>insertBulk()</strong></a> or <a href="./#function-addcomponents"><strong>addComponents()</strong></a> for a batch  they merge in one pass. @thread_safety Internally synchronized; blocks. An id above everything already stored appends and waits for nothing. An id that lands in the middle has to shift the sectors after it, so it waits for the whole array to carry no pins and no open views  including a view this thread has open, which deadlocks. Feed ids in ascending order, or use <a href="./#function-insertbulk"><strong>insertBulk()</strong></a>, to stay on the fast path.</p>
+<p>To add from inside a loop over a view, record into an <a href="../classecss_1_1CommandBuffer/"><strong>ecss::CommandBuffer</strong></a> and apply it once the loop is done. </p>
+<hr>
+
+<h3 id="function-addcomponents">function addComponents<a class="headerlink" href="#function-addcomponents" title="Permanent link">&para;</a></h3>
+<p><em>Bulk add components from a generator, inserted as one batch.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Func</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">addComponents</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">Func</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">func</span>
+<span class="p">)</span><span class="w"> </span>
+</code></pre></div>
+
+<p><strong>Template parameters:</strong></p>
+<ul>
+<li><code>T</code> Component type. </li>
+<li><code>Func</code> Callable returning std::pair&lt;EntityId,T&gt;. Return {INVALID_ID, {}} to stop. </li>
+</ul>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>func</code> Generator invoked repeatedly until it signals the end. </li>
+</ul>
+<p><strong>Note:</strong></p>
+<p>Ids may be emitted in any order. The batch is collected, then merged in a single pass under one write lock. @thread_safety Internally synchronized; blocks in the thread-safe build. Same contract as <a href="./#function-addcomponent"><strong>addComponent()</strong></a>: an ascending run appends, anything landing in the middle waits for the array to carry no pins and no open views. Not applicable in the plain build, which has neither. </p>
+<hr>
+
+<h3 id="function-automaintenance">function autoMaintenance<a class="headerlink" href="#function-automaintenance" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">autoMaintenance</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">const</span>
+</code></pre></div>
+
+<p><strong>Returns:</strong></p>
+<p>Whether views maintain the arrays they open. </p>
+<p><strong>See also:</strong> <a href="./#function-setautomaintenance"><strong>setAutoMaintenance</strong></a> @thread_safety Internally synchronized. One relaxed load in the thread-safe build, a plain one otherwise. </p>
+<hr>
+
+<h3 id="function-clear">function clear<a class="headerlink" href="#function-clear" title="Permanent link">&para;</a></h3>
+<p><em>Clear all component arrays and remove all entities.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">clear</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Note:</strong></p>
+<p>Does not shrink capacity. </p>
+<p><strong>Postcondition:</strong></p>
+<p>contains(id)==false for any previously allocated entity. @thread_safety Internally synchronized; blocks on every array. Each one waits until it carries no pins and no open views. A view open on another thread holds this up for as long as it lives; a view open on this thread deadlocks.</p>
+<p><a href="./#function-clearasync"><strong>clearAsync()</strong></a> is the deferred form, safe to call from anywhere. </p>
+<hr>
+
+<h3 id="function-clearasync">function clearAsync<a class="headerlink" href="#function-clearasync" title="Permanent link">&para;</a></h3>
+<p><em>Ask every array to clear itself at the next safe point, instead of now.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">clearAsync</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p>The deferred counterpart to <a href="./#function-clear"><strong>clear()</strong></a>. Records the wish and returns, so unlike <a href="./#function-clear"><strong>clear()</strong></a> it is safe to call from anywhere, including from inside a loop over a view. Each array performs it the first time <a href="./#function-update-12"><strong>update()</strong></a> finds it free.</p>
+<p>Entity ids are held until the components are actually gone, and released by the <a href="./#function-update-12"><strong>update()</strong></a> that finds every array done. Releasing them at once would be cheap and wrong: <a href="./#function-takeentity"><strong>takeEntity()</strong></a> would hand one straight back while the sector naming it is still alive, and the new entity would read the old one's components as its own. So <a href="./#function-contains"><strong>contains()</strong></a> keeps reporting them until the clear has really happened.</p>
+<p><strong>Note:</strong></p>
+<p>Asked for, not promised. </p>
+<p><strong>See also:</strong> <a href="./#function-clear"><strong>clear()</strong></a>, <a href="./#function-update-12"><strong>update()</strong></a> @thread_safety Internally synchronized. One relaxed store per array plus the id set; nothing is waited for. </p>
+<hr>
+
+<h3 id="function-contains">function contains<a class="headerlink" href="#function-contains" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">contains</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">EntityId</span><span class="w"> </span><span class="n">entityId</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">const</span>
+</code></pre></div>
+
+<p><strong>Returns:</strong></p>
+<p>True if registry currently owns entityId. </p>
+<p><strong>Returns:</strong></p>
+<p>True if the registry currently owns entityId. Lock-free: a single load. @thread_safety Internally synchronized. Lock-free read of the id set. </p>
+<hr>
+
+<h3 id="function-defragment-12">function defragment [1/2]<a class="headerlink" href="#function-defragment-12" title="Permanent link">&para;</a></h3>
+<p><em>Defragment all arrays (compacts fragmented dead slots).</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">defragment</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Note:</strong></p>
+<p>Can be expensive if many arrays are large; schedule during low frame-load moments. @thread_safety Internally synchronized; blocks on every array. Compaction moves sectors, so each array waits until it carries no pins and no open views. <a href="./#function-update-12"><strong>update()</strong></a> is the deferred form: it skips busy arrays and picks them up next time, which makes it safe to call from inside a loop over a view. </p>
+<hr>
+
+<h3 id="function-defragment-22">function defragment [2/2]<a class="headerlink" href="#function-defragment-22" title="Permanent link">&para;</a></h3>
+<p><em>Defragment the container for component T (if it exists). @thread_safety Internally synchronized; blocks. Waits until this one array carries no pins and no open views.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">defragment</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>See also:</strong> <a href="./#function-defragment-12"><strong>defragment()</strong></a> </p>
+<hr>
+
+<h3 id="function-destroycomponent-12">function destroyComponent [1/2]<a class="headerlink" href="#function-destroycomponent-12" title="Permanent link">&para;</a></h3>
+<p><em>Destroy component T for a single entity (does nothing if not present).</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">destroyComponent</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">EntityId</span><span class="w"> </span><span class="n">entity</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Template parameters:</strong></p>
+<ul>
+<li><code>T</code> Component type. </li>
+</ul>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>entity</code> Entity id. @complexity O(1). @thread_safety Internally synchronized; blocks, but only on this one sector. It waits for that entity's sector to carry no pins; pins on other entities and views over the array do not delay it. Holding a pin to the component being destroyed, on this thread, deadlocks. </li>
+</ul>
+<hr>
+
+<h3 id="function-destroycomponent-22">function destroyComponent [2/2]<a class="headerlink" href="#function-destroycomponent-22" title="Permanent link">&para;</a></h3>
+<p><em>Destroy component T for a batch of entities.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">destroyComponent</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="w"> </span><span class="n">EntityId</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">entities</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Template parameters:</strong></p>
+<ul>
+<li><code>T</code> Component type. </li>
+</ul>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>entities</code> Entity id list (will be sorted and truncated to valid sector capacity). </li>
+</ul>
+<p><strong>Note:</strong></p>
+<p>Modifies the input vector (sorting, trimming out-of-range ids). </p>
+<p><strong>Warning:</strong></p>
+<p>Pins are waited if thread-safe; call outside tight critical paths if possible. @thread_safety Internally synchronized; blocks, but only on the named sectors. Waits for each listed entity to carry no pins; unrelated entities and open views do not delay it. </p>
+<hr>
+
+<h3 id="function-destroyentities">function destroyEntities<a class="headerlink" href="#function-destroyentities" title="Permanent link">&para;</a></h3>
+<p><em>Destroy a batch of entities and all their components (sequential per-array).</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">destroyEntities</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="w"> </span><span class="n">EntityId</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">entities</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>entities</code> List of entities (not modified). </li>
+</ul>
+<p><strong>Note:</strong></p>
+<p>Safe to call while other threads query (ThreadSafe=true). </p>
+<p><strong>Warning:</strong></p>
+<p>No parallelization here to avoid thread lifetime complexity.</p>
+<p>Destroy a batch of entities across every registered array. </p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>entities</code> Ids to destroy. Sorted ascending is the cheap case; any other order is sorted in place first, since destroyInArray binary-searches this range to trim ids past each array's sparse map. </li>
+</ul>
+<p><strong>Note:</strong></p>
+<p>Far cheaper than a loop of <a href="./#function-destroyentity"><strong>destroyEntity()</strong></a>: one lock and one pass per array rather than per entity  14.3 ns per entity against 74.4. @thread_safety Internally synchronized; blocks, but only on the named entities' sectors. </p>
+<hr>
+
+<h3 id="function-destroyentity">function destroyEntity<a class="headerlink" href="#function-destroyentity" title="Permanent link">&para;</a></h3>
+<p><em>Destroy a single entity and all of its components.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">destroyEntity</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">EntityId</span><span class="w"> </span><span class="n">entityId</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>entityId</code> Entity to remove (ignored if not owned). @complexity O(A) with A = number of component arrays. @thread_safety Internally synchronized; blocks, but only on this entity's sectors. Each array holding the entity is asked to destroy in place, which waits for that one sector to carry no pins. Arrays that do not hold it are skipped without taking their lock. A pin this thread holds on the entity deadlocks. </li>
+</ul>
+<hr>
+
+<h3 id="function-foreachasync">function forEachAsync<a class="headerlink" href="#function-foreachasync" title="Permanent link">&para;</a></h3>
+<p><em>Apply a function to each entity in a list, pinning the requested component types.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="p">...</span><span class="w"> </span><span class="n">Components</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Func</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">forEachAsync</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="w"> </span><span class="n">EntityId</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">entities</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Func</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">func</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Template parameters:</strong></p>
+<ul>
+<li><code>Components</code> Component types to pin. </li>
+<li><code>Func</code> Callable signature: void(EntityId, Components*...). </li>
+</ul>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>entities</code> Entity ids to process. </li>
+<li><code>func</code> Function invoked per entity. </li>
+</ul>
+<p><strong>Note:</strong></p>
+<p>Skips entities missing any main pinned component (pointer passed may be nullptr for non-main).</p>
+<p><strong>Warning:</strong></p>
+<p>Despite the name, this starts no threads. It is a loop over the list on the calling thread, pinning each entity's components in turn. The name and this contract described workers with a view each, which was never what it did. To spread the work, slice the list yourself and call this from each thread  which is safe, and is what the pinning is for. @thread_safety Internally synchronized. Pins each entity's components for the length of one call to func. The usual rule applies inside func: no structural change to an array being iterated. </p>
+<hr>
+
+<h3 id="function-getallentities">function getAllEntities<a class="headerlink" href="#function-getallentities" title="Permanent link">&para;</a></h3>
+<p><em>Snapshot all entity ids (copy). @thread_safety Internally synchronized. Snapshot: correct when taken, stale as soon as another thread takes or destroys an id.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="w"> </span><span class="n">EntityId</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">getAllEntities</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">const</span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-getcomponentaccess">function getComponentAccess<a class="headerlink" href="#function-getcomponentaccess" title="Permanent link">&para;</a></h3>
+<p><em>Resolve T's array and layout in a single lookup.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="n">ComponentAccess</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">getComponentAccess</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p>The layout was resolved when the array was registered, so the per-call scan over the layout's type tokens disappears  that scan is why a query against a grouped array grew more expensive the more component types the group held.</p>
+<p>The cached record is checked, not assumed: <a href="./#function-insert-12"><strong>Registry::insert</strong></a> can still repoint an array at a different layout, and the recorded one would then describe the wrong sector shape. Comparing the layout the array reports now against the one this entry was built from costs a single load and compare  measured at 0.2-0.35 ns against a 2-6 ns saving  and turns a stale entry into a slow path rather than a wrong answer. @thread_safety Internally synchronized. Registers the array on first use, which publishes a new snapshot; the old one is retired, not freed, so a concurrent reader walking it is safe. </p>
+<hr>
+
+<h3 id="function-getcomponentcontainer">function getComponentContainer<a class="headerlink" href="#function-getcomponentcontainer" title="Permanent link">&para;</a></h3>
+<p><em>Get (or lazily create) the sectors container for component T.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="n">Memory</span><span class="o">::</span><span class="n">SectorsArray</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">ThreadSafe</span><span class="p">,</span><span class="w"> </span><span class="n">Allocator</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="o">*</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">getComponentContainer</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Template parameters:</strong></p>
+<ul>
+<li><code>T</code> Component type. </li>
+</ul>
+<p><strong>Returns:</strong></p>
+<p>Pointer to container holding (possibly grouped) T. </p>
+<p><strong>Note:</strong></p>
+<p>Will implicitly register a single-type array if not pre-registered. @thread_safety Internally synchronized. Returns the array, and the array outlives every call on this registry, so the pointer stays valid. What you then call on it carries its own contract  see SectorsArray. </p>
+<hr>
+
+<h3 id="function-hascomponent">function hasComponent<a class="headerlink" href="#function-hascomponent" title="Permanent link">&para;</a></h3>
+<p><em>Check if an entity has a live component T.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">hasComponent</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">EntityId</span><span class="w"> </span><span class="n">entity</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Template parameters:</strong></p>
+<ul>
+<li><code>T</code> Component type. </li>
+</ul>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>entity</code> Entity id. </li>
+</ul>
+<p><strong>Returns:</strong></p>
+<p>True if the component exists and is alive; false otherwise. @complexity O(1). @thread_safety Internally synchronized. Lock-free once the type is registered: the slot lookup and the liveness word both come from published snapshots. The very first call for a type is not  <a href="./#function-getcomponentaccess"><strong>getComponentAccess()</strong></a> registers the array under a unique lock  so touch each type once at startup if that matters. Tells you the component exists, not that its value is stable: another thread may be writing it. </p>
+<p><strong>See also:</strong> <a href="./#function-access"><strong>access()</strong></a> </p>
+<hr>
+
+<h3 id="function-insert-12">function insert [1/2]<a class="headerlink" href="#function-insert-12" title="Permanent link">&para;</a></h3>
+<p><em>Copy-in an externally built sectors array for component T.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">TS</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Alloc</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">insert</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">Memory</span><span class="o">::</span><span class="n">SectorsArray</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">TS</span><span class="p">,</span><span class="w"> </span><span class="n">Alloc</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">array</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Warning:</strong></p>
+<p>The source must have been built over the same component types in the same order as T's registered array. [A, B] and [B, A] are different layouts, and so are [A] and [A, B]. A mismatch leaves this registry unchanged (and asserts in debug) rather than repointing the array at a foreign layout: the sector size and the liveness bits would no longer describe the bytes, and the registry would still route B to a different array anyway. @thread_safety Internally synchronized; blocks. Replaces the whole array, so it waits until the destination carries no pins and no open views. </p>
+<hr>
+
+<h3 id="function-insert-22">function insert [2/2]<a class="headerlink" href="#function-insert-22" title="Permanent link">&para;</a></h3>
+<p><em>Move-in an externally built sectors array for component T. @thread_safety Internally synchronized; blocks. Replaces the whole array, so it waits until the destination carries no pins and no open views.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="p">,</span><span class="w"> </span><span class="kt">bool</span><span class="w"> </span><span class="n">TS</span><span class="p">,</span><span class="w"> </span><span class="k">typename</span><span class="w"> </span><span class="nc">Alloc</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">insert</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">Memory</span><span class="o">::</span><span class="n">SectorsArray</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">TS</span><span class="p">,</span><span class="w"> </span><span class="n">Alloc</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">array</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-insertbulk">function insertBulk<a class="headerlink" href="#function-insertbulk" title="Permanent link">&para;</a></h3>
+<p><em>Bulk insert of component T for a batch of (entity, value) pairs.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="p">,</span><span class="w"> </span><span class="k">class</span><span class="w"> </span><span class="nc">It</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">insertBulk</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">It</span><span class="w"> </span><span class="n">first</span><span class="p">,</span>
+<span class="w">    </span><span class="n">It</span><span class="w"> </span><span class="n">last</span>
+<span class="p">)</span><span class="w"> </span>
+</code></pre></div>
+
+<p><strong>Template parameters:</strong></p>
+<ul>
+<li><code>T</code> Component type. </li>
+<li><code>It</code> Iterator over pair-like {EntityId, T}. </li>
+</ul>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>first</code> Range of pairs. Ids may be in any order and may fall anywhere in the range already stored; an id already present is overwritten. </li>
+</ul>
+<p><strong>Note:</strong></p>
+<p>Amortizes per-element overhead (existence check, insert-position search, view publish) and, in the TS build, the write lock and pin wait across the whole range. Prefer this to a loop of <a href="./#function-addcomponent"><strong>addComponent()</strong></a> whenever the ids are not ascending: the loop costs O(M*N), this sorts once and merges in a single pass. @thread_safety Internally synchronized; blocks. A batch entirely above what is stored is appended and waits for nothing. Otherwise the batch is merged, which moves existing sectors, and that waits for the array to carry no pins and no open views  from a thread holding a view on this array, a deadlock.</p>
+<p>To add from inside a loop over a view, record into an <a href="../classecss_1_1CommandBuffer/"><strong>ecss::CommandBuffer</strong></a> and apply it once the loop is done. </p>
+<hr>
+
+<h3 id="function-lookupcomponentaccess">function lookupComponentAccess<a class="headerlink" href="#function-lookupcomponentaccess" title="Permanent link">&para;</a></h3>
+<p><em>One snapshot load; empty if T has no array yet.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="n">ComponentAccess</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">lookupComponentAccess</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>See also:</strong> <a href="./#function-getcomponentaccess"><strong>getComponentAccess</strong></a> @thread_safety Internally synchronized. Lock-free; returns a null <a href="./#function-access"><strong>access</strong></a> if the type has not been registered rather than registering it. </p>
+<hr>
+
+<h3 id="function-operator">function operator=<a class="headerlink" href="#function-operator" title="Permanent link">&para;</a></h3>
+<p><a href="./"><em><strong>Registry</strong></em></a> <em>instances cannot be copy-assigned.</em></p>
+<div class="codehilite"><pre><span></span><code><span class="n">Registry</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="k">operator</span><span class="o">=</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">Registry</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">other</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-operator_1">function operator=<a class="headerlink" href="#function-operator_1" title="Permanent link">&para;</a></h3>
+<p><a href="./"><em><strong>Registry</strong></em></a> <em>instances cannot be move-assigned.</em></p>
+<div class="codehilite"><pre><span></span><code><span class="n">Registry</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="k">operator</span><span class="o">=</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">Registry</span><span class="w"> </span><span class="o">&amp;&amp;</span><span class="w"> </span><span class="n">other</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-pincomponent">function pinComponent<a class="headerlink" href="#function-pincomponent" title="Permanent link">&para;</a></h3>
+<p><em>Pin component T for an entity (thread-safe build only).</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="n">PinnedComponent</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">T</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">pinComponent</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="n">EntityId</span><span class="w"> </span><span class="n">entity</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Template parameters:</strong></p>
+<ul>
+<li><code>T</code> Component type. </li>
+</ul>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>entity</code> Entity id. </li>
+</ul>
+<p><strong>Returns:</strong></p>
+<p><a href="../structecss_1_1PinnedComponent/"><strong>PinnedComponent&lt;T&gt;</strong></a> (empty if component missing). </p>
+<p><strong>Note:</strong></p>
+<p>The returned object must not outlive concurrent modification epochs. @thread_safety Internally synchronized. The pin is the point: while it is held, that one sector will not be moved, destroyed or reused, so the pointer stays good. It also delays anything that needs that sector  destroyComponent and destroyEntity for the same entity wait for it, and holding a pin while destroying what it points at deadlocks. Keep it short. </p>
+<hr>
+
+<h3 id="function-registerarray">function registerArray<a class="headerlink" href="#function-registerarray" title="Permanent link">&para;</a></h3>
+<p><em>Explicitly register (group) component types into a shared sectors array.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="p">...</span><span class="w"> </span><span class="n">ComponentTypes</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">registerArray</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">capacity</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+<span class="w">    </span><span class="n">Allocator</span><span class="w"> </span><span class="n">allocator</span><span class="o">=</span><span class="p">{}</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Template parameters:</strong></p>
+<ul>
+<li><code>ComponentTypes</code> Component types to co-locate. </li>
+</ul>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>capacity</code> Initial reserve (optional). </li>
+<li><code>allocator</code> Allocator instance to move. </li>
+</ul>
+<p><strong>Note:</strong></p>
+<p>All types must either all be new or already co-grouped; partial mixes assert. </p>
+<p><strong>Warning:</strong></p>
+<p>Call before first implicit access to any of the grouped types. @thread_safety Internally synchronized. Publishes a new array snapshot; the superseded one is retired rather than freed, so a reader still walking it is safe. Grouping decides the memory layout, so do it at startup, before anything stores a component of these types. </p>
+<hr>
+
+<h3 id="function-reserve">function reserve<a class="headerlink" href="#function-reserve" title="Permanent link">&para;</a></h3>
+<p><em>Reserve capacity (in sectors array units) for each listed component type.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="p">...</span><span class="w"> </span><span class="n">Components</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">reserve</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">newCapacity</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Template parameters:</strong></p>
+<ul>
+<li><code>Components</code> Component types to reserve for. </li>
+</ul>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>newCapacity</code> Target capacity (implementation may round up). @thread_safety Internally synchronized. Takes each array's write lock to grow it, which is brief, and does not wait for pins or views: growth adds chunks and moves no sector. Worth doing before the threads start, to keep it off the frame. </li>
+</ul>
+<hr>
+
+<h3 id="function-setaccesstracking">function setAccessTracking<a class="headerlink" href="#function-setaccesstracking" title="Permanent link">&para;</a></h3>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">setAccessTracking</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">enabled</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p>@thread_safety Internally synchronized. One relaxed store to a process-wide atomic flag, so calling it while threads run is not a race  but it is still a startup switch: turning tracking on late cannot show the overlaps that already happened. Compiled out entirely when NDEBUG is set. </p>
+<hr>
+
+<h3 id="function-setautomaintenance">function setAutoMaintenance<a class="headerlink" href="#function-setautomaintenance" title="Permanent link">&para;</a></h3>
+<p><em>Let views carry out the maintenance</em> <a href="./#function-update-12"><em><strong>update()</strong></em></a> <em>does, for the arrays they touch.</em></p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">setAutoMaintenance</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">enabled</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p>With this on there is no call to place in the frame: opening a view first gives its arrays the pass <a href="./#function-update-12"><strong>update()</strong></a> would have given them  retire the memory whose grace period has run out, apply deferred erases, and compact if the array asked for it and is free at that moment. A busy array is skipped, exactly as in <a href="./#function-update-12"><strong>update()</strong></a>, so this never blocks and never changes what iteration sees.</p>
+<p>Compaction is done where it pays: right before the iteration that benefits from it. The total work is the same either way  an array wants compacting once, and once done it stops asking  so this moves the cost rather than adding it.</p>
+<p>Off by default: opening a view is a read, and doing structural work inside one should be asked for rather than assumed. Set it once at startup, before other threads exist. <a href="./#function-update-12"><strong>update()</strong></a> keeps working and stays the way to control when the work lands. @thread_safety Internally synchronized. One relaxed store in the thread-safe build, a plain one otherwise. Still worth doing at startup: flipping it mid-frame changes what opening a view does, so two threads can disagree about whether their views maintain. </p>
+<hr>
+
+<h3 id="function-setdefragmentthreshold">function setDefragmentThreshold<a class="headerlink" href="#function-setdefragmentthreshold" title="Permanent link">&para;</a></h3>
+<p><em>Set defragment threshold for component T container. @thread_safety Internally synchronized. One relaxed store; it changes when compaction is requested, never compaction itself.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">setDefragmentThreshold</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="kt">float</span><span class="w"> </span><span class="n">threshold</span>
+<span class="p">)</span><span class="w"> </span>
+</code></pre></div>
+
+<hr>
+
+<h3 id="function-setretiregraceperiod">function setRetireGracePeriod<a class="headerlink" href="#function-setretiregraceperiod" title="Permanent link">&para;</a></h3>
+<p><em>Set the grace period (in ticks) before retired memory is freed.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">setRetireGracePeriod</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="kt">uint32_t</span><span class="w"> </span><span class="n">ticks</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p>Higher values = safer but more memory usage. Lower values = less memory but risk of use-after-free if iterators live long.</p>
+<p>Default is 3 ticks, which is safe for typical game loops where iterators don't survive across frames.</p>
+<p><strong>Note:</strong></p>
+<p>The non-thread-safe build fixes this at zero and ignores the setter.</p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>ticks</code> Number of <a href="./#function-tick"><strong>tick()</strong></a> calls before memory is freed @thread_safety Internally synchronized. The period each bin holds is an atomic, and a block captures its own countdown when it is retired, so lowering the period never shortens the life of something already queued. Zero is the one value that would be unsafe here and it is refused: see below. </li>
+</ul>
+<hr>
+
+<h3 id="function-takeentities">function takeEntities<a class="headerlink" href="#function-takeentities" title="Permanent link">&para;</a></h3>
+<p><em>Allocate</em> <code>count</code> <em>entity ids in one pass, appending them to</em><code>out</code> <em>.</em></p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">takeEntities</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="kt">size_t</span><span class="w"> </span><span class="n">count</span><span class="p">,</span>
+<span class="w">    </span><span class="n">std</span><span class="o">::</span><span class="n">vector</span><span class="o">&lt;</span><span class="w"> </span><span class="n">EntityId</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">out</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p>Prefer this to a loop of <a href="./#function-takeentity"><strong>takeEntity()</strong></a> when streaming a region in: the bitmap is walked once instead of once per id, and in the thread-safe build a free word of 64 ids is claimed with a single atomic. @thread_safety Internally synchronized. Lock-free, and claims a whole word of ids per atomic operation rather than one at a time. </p>
+<hr>
+
+<h3 id="function-takeentity">function takeEntity<a class="headerlink" href="#function-takeentity" title="Permanent link">&para;</a></h3>
+<p><em>Allocate (take) a new entity id.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="n">EntityId</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">takeEntity</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p>Allocate (take) a new entity id. </p>
+<p><strong>Note:</strong></p>
+<p>Lock-free in the thread-safe build: the id bitmap claims a bit with a CAS. Serialising this on the registry mutex cost ~560x per-op latency at 32 threads. @thread_safety Internally synchronized. Lock-free claim out of the id set. </p>
+<hr>
+
+<h3 id="function-tick">function tick<a class="headerlink" href="#function-tick" title="Permanent link">&para;</a></h3>
+<p><em>Process one tick of the grace period for retired memory.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">size_t</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">tick</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p>Call this once per frame/update cycle. Memory blocks that have waited the full grace period (default 3 ticks) will be freed.</p>
+<p>This is safe to call while iterators may be active in other threads - only sufficiently old memory (older than grace period) will be freed.</p>
+<p><strong>Note:</strong></p>
+<p>In non-thread-safe mode memory is freed as it is released, so this is a no-op returning zero. It stays callable in both modes.</p>
+<p><strong>Returns:</strong></p>
+<p>Total number of memory blocks freed across all arrays @thread_safety Internally synchronized. Advances the grace-period counters and frees what has expired; takes each bin's mutex only when it has something in it, and never waits for a reader. </p>
+<hr>
+
+<h3 id="function-update-12">function update [1/2]<a class="headerlink" href="#function-update-12" title="Permanent link">&para;</a></h3>
+<p><em>Maintenance pass (thread-safe build): process deferred erases, free retired memory, and optionally defragment.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">update</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">withDefragment</span><span class="o">=</span><span class="nb">true</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p>Safe to call from anywhere, including from inside a loop over a view: nothing here waits. Deferred erases only destroy components in place, and compaction is attempted rather than awaited  an array that something is iterating right now is left for the next call. Calling it more than once a frame is harmless; calling it at a quiet point simply means more of the work lands on the first try.</p>
+<p>To compact regardless of who is iterating, and to wait for them, call SectorsArray::defragment() on the array directly. </p>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>withDefragment</code> If true, arrays that exceed thresholds may compact themselves. </li>
+</ul>
+<p><strong>Note:</strong></p>
+<p>Recommended to call once per frame at a stable synchronization point. </p>
+<p><strong>Note:</strong></p>
+<p>Automatically frees retired memory that has passed the grace period (default 3 ticks). @thread_safety Internally synchronized. Nothing here waits, so this is the one maintenance entry point that is safe to call from inside a loop over a view. <a href="./#function-clear"><strong>clear()</strong></a>, <a href="./#function-defragment-12"><strong>defragment()</strong></a> and the array's own <a href="./#function-defragment-12"><strong>defragment()</strong></a> are not. </p>
+<hr>
+
+<h3 id="function-update-22">function update [2/2]<a class="headerlink" href="#function-update-22" title="Permanent link">&para;</a></h3>
+<p><em>Maintenance pass (non-thread-safe build): optionally defragment arrays immediately.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">update</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="kt">bool</span><span class="w"> </span><span class="n">withDefragment</span><span class="o">=</span><span class="nb">true</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>withDefragment</code> If true, compacts arrays that request it. @thread_safety Not applicable (single-threaded build). </li>
+</ul>
+<hr>
+
+<h3 id="function-view-12">function view [1/2]<a class="headerlink" href="#function-view-12" title="Permanent link">&para;</a></h3>
+<p><em>Create a full-range iterable view over all entities with the main component.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="p">...</span><span class="w"> </span><span class="n">Components</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">view</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Template parameters:</strong></p>
+<ul>
+<li><code>Components</code> Component types to access; first drives iteration. </li>
+</ul>
+<p><strong>Returns:</strong></p>
+<p><a href="../classecss_1_1ArraysView/"><strong>ArraysView</strong></a> instance (full range). @thread_safety Internally synchronized. Any number of threads may iterate at once. The view holds the arrays it names for as long as it lives, which is what keeps sectors from moving underneath it  and equally what makes <a href="./#function-clear"><strong>clear()</strong></a>, <a href="./#function-defragment-12"><strong>defragment()</strong></a> and a middle insert wait. Keep views short, and do not open one around a structural change to the same array. </p>
+<hr>
+
+<h3 id="function-view-22">function view [2/2]<a class="headerlink" href="#function-view-22" title="Permanent link">&para;</a></h3>
+<p><em>Create an iterable view limited to given entity ranges.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="p">...</span><span class="w"> </span><span class="n">Components</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="k">auto</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">view</span><span class="w"> </span><span class="p">(</span>
+<span class="w">    </span><span class="k">const</span><span class="w"> </span><span class="n">Ranges</span><span class="w"> </span><span class="o">&lt;</span><span class="w"> </span><span class="n">EntityId</span><span class="w"> </span><span class="o">&gt;</span><span class="w"> </span><span class="o">&amp;</span><span class="w"> </span><span class="n">ranges</span>
+<span class="p">)</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Template parameters:</strong></p>
+<ul>
+<li><code>Components</code> Component types to fetch; first drives iteration order. </li>
+</ul>
+<p><strong>Parameters:</strong></p>
+<ul>
+<li><code>ranges</code> Half-open entity ranges. </li>
+</ul>
+<p><strong>Returns:</strong></p>
+<p><a href="../classecss_1_1ArraysView/"><strong>ArraysView</strong></a> instance (ranged iteration). @thread_safety Internally synchronized. Any number of threads may iterate at once. The view holds the arrays it names for as long as it lives, which is what keeps sectors from moving underneath it  and equally what makes <a href="./#function-clear"><strong>clear()</strong></a>, <a href="./#function-defragment-12"><strong>defragment()</strong></a> and a middle insert wait. Keep views short, and do not open one around a structural change to the same array. </p>
+<hr>
+
+<h3 id="function-warnifgroupingignored">function warnIfGroupingIgnored<a class="headerlink" href="#function-warnifgroupingignored" title="Permanent link">&para;</a></h3>
+<p><em>Say so when</em> <a href="./#function-registerarray"><em><strong>registerArray()</strong></em></a> <em>was asked to group types that are already apart.</em></p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="p">...</span><span class="w"> </span><span class="n">ComponentTypes</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">warnIfGroupingIgnored</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">const</span>
+</code></pre></div>
+
+<p>Registering the same group twice is genuinely idempotent and should say nothing. Asking to group types that already live in separate arrays is a different thing: a component's layout is fixed when its array is created, so the request cannot be honoured and never will be. It used to return without a word, which meant a <a href="./#function-registerarray"><strong>registerArray()</strong></a> written one line too late  after the <a href="./#function-addcomponent"><strong>addComponent()</strong></a> that registered the type implicitly  looked exactly like one that worked.</p>
+<p>Define ECSS_NO_GROUPING_WARNINGS to silence it. @thread_safety Caller must ensure exclusive access. Reads the live map, so it belongs under componentsArrayMapMutex in the thread-safe build. </p>
+<hr>
+
+<h3 id="function-warnpartialgrouping">function warnPartialGrouping<a class="headerlink" href="#function-warnpartialgrouping" title="Permanent link">&para;</a></h3>
+<p><em>Say so when only some of the named types already have arrays.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">class</span><span class="p">...</span><span class="w"> </span><span class="n">ComponentTypes</span><span class="o">&gt;</span>
+<span class="kr">inline</span><span class="w"> </span><span class="kt">void</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">warnPartialGrouping</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span><span class="w"> </span><span class="k">const</span>
+</code></pre></div>
+
+<p>The assert beside this one is compiled out of a release build, which left the call returning in silence there  the same way the already-grouped case did, and just as misleading. </p>
+<p><strong>See also:</strong> <a href="./#function-warnifgroupingignored"><strong>warnIfGroupingIgnored</strong></a> @thread_safety Caller must ensure exclusive <a href="./#function-access"><strong>access</strong></a>. Reads the live map. </p>
+<hr>
+
+<h3 id="function-registry">function ~Registry<a class="headerlink" href="#function-registry" title="Permanent link">&para;</a></h3>
+<p><em>Destroys all component arrays (each SectorsArray is deleted).</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="kr">inline</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::~</span><span class="n">Registry</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p>@thread_safety Internally synchronized; blocks. Deleting an array clears it, and clearing waits until that array carries no pins and no open views, so a view open on another thread stalls this destructor for as long as it lives  in-flight readers are waited for, not run over.</p>
+<p>That is a synchronization guarantee, not a lifetime one. Nothing may <em>start</em> using the registry once destruction has begun; the waiting covers the readers already inside, and cannot cover the ones that arrive afterwards. </p>
+<hr>
+<h2 id="public-static-functions-documentation">Public Static Functions Documentation<a class="headerlink" href="#public-static-functions-documentation" title="Permanent link">&para;</a></h2>
+<h3 id="function-componenttypeid">function componentTypeId<a class="headerlink" href="#function-componenttypeid" title="Permanent link">&para;</a></h3>
+<p><em>Get a stable numeric type id for component T.</em> </p>
+<div class="codehilite"><pre><span></span><code><span class="k">template</span><span class="o">&lt;</span><span class="k">typename</span><span class="w"> </span><span class="nc">T</span><span class="o">&gt;</span>
+<span class="k">static</span><span class="w"> </span><span class="kr">inline</span><span class="w"> </span><span class="n">FORCE_INLINE</span><span class="w"> </span><span class="n">ECSType</span><span class="w"> </span><span class="n">ecss</span><span class="o">::</span><span class="n">Registry</span><span class="o">::</span><span class="n">componentTypeId</span><span class="w"> </span><span class="p">()</span><span class="w"> </span><span class="k">noexcept</span>
+</code></pre></div>
+
+<p><strong>Template parameters:</strong></p>
+<ul>
+<li><code>T</code> Component type. @thread_safety Internally synchronized. The id is assigned once, by whichever thread asks first, and never changes afterwards. Ids come from one process-wide counter, so two registries agree on the number for a type. </li>
+</ul>
+<hr>
+
+<hr />
+<p>The documentation for this class was generated from the following file <code>ecss/Registry.h</code></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+        
+<div class="md-social">
+  
+    
+    
+    
+    
+    <a href="https://github.com/wagnerks/ecss" target="_blank" rel="noopener" title="ECSS GitHub Repository" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+    
+    
+    
+    
+    <a href="https://github.com/wagnerks" target="_blank" rel="noopener" title="Me" class="md-social__link">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M173.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6m-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3m44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9M252.8 8C114.1 8 8 113.3 8 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C436.2 457.8 504 362.9 504 252 504 113.3 391.5 8 252.8 8M105.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1m-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7m32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1m-11.4-14.7c-1.6 1-1.6 3.6 0 5.9s4.3 3.3 5.6 2.3c1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2"/></svg>
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["navigation.tabs", "content.code.copy", "content.code.annotate", "header.autohide", "header.social"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.d7400e89.min.js"></script>
+      
+    
+  </body>
+</html>

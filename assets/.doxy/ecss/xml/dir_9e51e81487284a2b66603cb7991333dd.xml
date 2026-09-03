@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_9e51e81487284a2b66603cb7991333dd" kind="dir">
+    <compoundname>jdstyle</compoundname>
+    <innerdir refid="dir_54a6b09928303b2033b0bbcf7cd1e991">html</innerdir>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/jdstyle/"/>
+  </compounddef>
+</doxygen>

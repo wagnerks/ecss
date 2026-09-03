@@ -1,0 +1,284 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="classecss_1_1detail_1_1AccessGuard" kind="class" language="C++" prot="public" final="yes">
+    <compoundname>ecss::detail::AccessGuard</compoundname>
+    <includes refid="Access_8h" local="no">Access.h</includes>
+    <innerclass refid="structecss_1_1detail_1_1AccessGuard_1_1Depth" prot="private">ecss::detail::AccessGuard::Depth</innerclass>
+    <innerclass refid="structecss_1_1detail_1_1AccessGuard_1_1Entry" prot="public">ecss::detail::AccessGuard::Entry</innerclass>
+    <sectiondef kind="private-static-attrib">
+      <memberdef kind="variable" id="classecss_1_1detail_1_1AccessGuard_1afe96f83a1044f689c4c8e6029e4fd33d" prot="private" static="yes" constexpr="yes" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::detail::AccessGuard::kMaxClaims</definition>
+        <argsstring></argsstring>
+        <name>kMaxClaims</name>
+        <qualifiedname>ecss::detail::AccessGuard::kMaxClaims</qualifiedname>
+        <initializer>= 8</initializer>
+        <briefdescription>
+<para>Inline, because a system naming a few types should not touch the heap to say so. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="172" column="25" bodyfile="ecss/Access.h" bodystart="172" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classecss_1_1detail_1_1AccessGuard_1a0ab8149f4043d72a73bcab50e1f37b61" prot="private" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::detail::AccessGuard::mCount</definition>
+        <argsstring></argsstring>
+        <name>mCount</name>
+        <qualifiedname>ecss::detail::AccessGuard::mCount</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="174" column="8" bodyfile="ecss/Access.h" bodystart="174" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1detail_1_1AccessGuard_1a615ead2bed0ca1ad34586b71913bf562" prot="private" static="no" mutable="no">
+        <type>std::array&lt; <ref refid="structecss_1_1detail_1_1AccessGuard_1_1Entry" kindref="compound">Entry</ref>, kMaxClaims &gt;</type>
+        <definition>std::array&lt;Entry, kMaxClaims&gt; ecss::detail::AccessGuard::mEntries</definition>
+        <argsstring></argsstring>
+        <name>mEntries</name>
+        <qualifiedname>ecss::detail::AccessGuard::mEntries</qualifiedname>
+        <initializer>{}</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="173" column="12" bodyfile="ecss/Access.h" bodystart="173" bodyend="173"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessGuard_1a64bc675a99f85b1a0982beefd5fff63e" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::detail::AccessGuard::AccessGuard</definition>
+        <argsstring>()=default</argsstring>
+        <name>AccessGuard</name>
+        <qualifiedname>ecss::detail::AccessGuard::AccessGuard</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Thread-confined. The guard belongs to the thread that made it and cannot leave it: see the deleted move below. An empty one holds nothing and releases nothing. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="61" column="1"/>
+        <referencedby refid="classecss_1_1detail_1_1AccessGuard_1a3a500d6f7e856a63e8513d9269638f57">AccessGuard</referencedby>
+        <referencedby refid="classecss_1_1detail_1_1AccessGuard_1a728e5170d2705f5fec67a8c5d1d0ea45">AccessGuard</referencedby>
+        <referencedby refid="classecss_1_1detail_1_1AccessGuard_1a2ef70e934ac9d53d048d25919341f013">operator=</referencedby>
+        <referencedby refid="classecss_1_1detail_1_1AccessGuard_1a6aef6786a0708a589d210eed4842a907">operator=</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessGuard_1a3a500d6f7e856a63e8513d9269638f57" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::detail::AccessGuard::AccessGuard</definition>
+        <argsstring>(AccessGuard &amp;&amp;)=delete</argsstring>
+        <name>AccessGuard</name>
+        <qualifiedname>ecss::detail::AccessGuard::AccessGuard</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1detail_1_1AccessGuard" kindref="compound">AccessGuard</ref> &amp;&amp;</type>
+        </param>
+        <briefdescription>
+<para>Moving is forbidden because a guard must be released on its acquiring thread. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="121" column="1"/>
+        <references refid="classecss_1_1detail_1_1AccessGuard_1a64bc675a99f85b1a0982beefd5fff63e">AccessGuard</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessGuard_1a728e5170d2705f5fec67a8c5d1d0ea45" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::detail::AccessGuard::AccessGuard</definition>
+        <argsstring>(const AccessGuard &amp;)=delete</argsstring>
+        <name>AccessGuard</name>
+        <qualifiedname>ecss::detail::AccessGuard::AccessGuard</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1detail_1_1AccessGuard" kindref="compound">AccessGuard</ref> &amp;</type>
+        </param>
+        <briefdescription>
+<para>A guard has unique ownership of its component-type claims. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="125" column="1"/>
+        <references refid="classecss_1_1detail_1_1AccessGuard_1a64bc675a99f85b1a0982beefd5fff63e">AccessGuard</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessGuard_1a1a9d312b942cde537128f8e20d8d6a5c" prot="public" static="no" const="no" explicit="yes" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>size_t</type>
+            <declname>N</declname>
+            <defname>N</defname>
+          </param>
+        </templateparamlist>
+        <type></type>
+        <definition>ecss::detail::AccessGuard::AccessGuard</definition>
+        <argsstring>(std::array&lt; Entry, N &gt; claims)</argsstring>
+        <name>AccessGuard</name>
+        <qualifiedname>ecss::detail::AccessGuard::AccessGuard</qualifiedname>
+        <param>
+          <type>std::array&lt; <ref refid="structecss_1_1detail_1_1AccessGuard_1_1Entry" kindref="compound">Entry</ref>, N &gt;</type>
+          <declname>claims</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><parameterlist kind="param"><parameteritem>
+<parameternamelist>
+<parametername>claims</parametername>
+</parameternamelist>
+<parameterdescription>
+<para>one entry per component type, in any order. @thread_safety Internally synchronized; blocks by design. Waits for each claimed type&apos;s reader-writer lock. Claims are sorted by type id before any is taken, so two systems naming the same pair cannot take them in opposite orders. </para>
+</parameterdescription>
+</parameteritem>
+</parameterlist>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="68" column="10" bodyfile="ecss/Access.h" bodystart="68" bodyend="105"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessGuard_1a2ef70e934ac9d53d048d25919341f013" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classecss_1_1detail_1_1AccessGuard" kindref="compound">AccessGuard</ref> &amp;</type>
+        <definition>AccessGuard &amp; ecss::detail::AccessGuard::operator=</definition>
+        <argsstring>(AccessGuard &amp;&amp;)=delete</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::detail::AccessGuard::operator=</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1detail_1_1AccessGuard" kindref="compound">AccessGuard</ref> &amp;&amp;</type>
+        </param>
+        <briefdescription>
+<para>Move assignment is forbidden for the same thread-affinity reason. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="123" column="13"/>
+        <references refid="classecss_1_1detail_1_1AccessGuard_1a64bc675a99f85b1a0982beefd5fff63e">AccessGuard</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessGuard_1a6aef6786a0708a589d210eed4842a907" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classecss_1_1detail_1_1AccessGuard" kindref="compound">AccessGuard</ref> &amp;</type>
+        <definition>AccessGuard &amp; ecss::detail::AccessGuard::operator=</definition>
+        <argsstring>(const AccessGuard &amp;)=delete</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::detail::AccessGuard::operator=</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1detail_1_1AccessGuard" kindref="compound">AccessGuard</ref> &amp;</type>
+        </param>
+        <briefdescription>
+<para>Copy assignment is forbidden; claims cannot have two owners. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="127" column="13"/>
+        <references refid="classecss_1_1detail_1_1AccessGuard_1a64bc675a99f85b1a0982beefd5fff63e">AccessGuard</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessGuard_1a37c07904a267a6bbdf1c5b63b4514d3e" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::detail::AccessGuard::~AccessGuard</definition>
+        <argsstring>()</argsstring>
+        <name>~AccessGuard</name>
+        <qualifiedname>ecss::detail::AccessGuard::~AccessGuard</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. Runs on the thread that took the claims <ndash/> the guard is neither movable nor copyable, so it cannot be anywhere else. Releases every lock it actually took, in reverse order, so a nested guard never frees what an outer one still needs. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="133" column="1" bodyfile="ecss/Access.h" bodystart="133" bodyend="133"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-static-func">
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessGuard_1a9039008bd43d6b3275a907b0d60fbfd9" prot="private" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>Depth &amp;</type>
+        <definition>static Depth &amp; ecss::detail::AccessGuard::depthFor</definition>
+        <argsstring>(const void *mutex)</argsstring>
+        <name>depthFor</name>
+        <qualifiedname>ecss::detail::AccessGuard::depthFor</qualifiedname>
+        <param>
+          <type>const void *</type>
+          <declname>mutex</declname>
+        </param>
+        <briefdescription>
+<para>@thread_safety Internally synchronized. Reads and appends to the calling thread&apos;s own list. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="149" column="14" bodyfile="ecss/Access.h" bodystart="149" bodyend="154"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessGuard_1aff04ad053b8884a22b6fec81dc73e7c0" prot="private" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>std::vector&lt; Depth &gt; &amp;</type>
+        <definition>static std::vector&lt; Depth &gt; &amp; ecss::detail::AccessGuard::heldByThisThread</definition>
+        <argsstring>()</argsstring>
+        <name>heldByThisThread</name>
+        <qualifiedname>ecss::detail::AccessGuard::heldByThisThread</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>Keyed by the mutex rather than the type id, so two registries holding the same component type stay separate. A flat vector rather than a map: a thread holds a handful of claims at once, and a linear scan over that beats a tree walk plus the node allocation a map wants on every first claim. @thread_safety Internally synchronized. Thread-local: each thread sees only its own list. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="143" column="20" bodyfile="ecss/Access.h" bodystart="143" bodyend="146"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classecss_1_1detail_1_1AccessGuard_1a9871e13c60e1d3e28f5652fb4dff8801" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::detail::AccessGuard::release</definition>
+        <argsstring>()</argsstring>
+        <name>release</name>
+        <qualifiedname>ecss::detail::AccessGuard::release</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Thread-confined. Called only by the destructor, on the thread that took the claims. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/Access.h" line="158" column="6" bodyfile="ecss/Access.h" bodystart="158" bodyend="169"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Reader-writer lock per component type, held for the length of a system. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>The container keeps an array&apos;s shape safe on its own, but not a component&apos;s value: guarding that per element would cost more than the lock-free read paths save. This puts the guarantee where systems actually work <ndash/> a whole component type at a time <ndash/> so it is paid once per system per frame rather than once per element. 29.5 ns for one type, 84.8 for three; fifty systems naming three apiece come to 4.2 us in a frame, which is 0.03% of one at sixty a second.</para>
+<para>Claims are taken in one call on purpose. Acquiring them one at a time lets two systems take the same pair in opposite orders and stop, so the guard sorts them by type id and locks in that order; every caller therefore agrees on the sequence.</para>
+<para>Re-entering from the same thread is allowed and does nothing, because std::shared_mutex is not recursive and a second shared acquire deadlocks against a waiting writer. Asking to write a type this thread already holds for reading is refused rather than quietly upgraded: there is no atomic upgrade, and doing it in two steps is where the deadlock would come back. @thread_safety Internally synchronized; blocks by design. Blocking is the point: it holds a reader-writer lock per component type until it dies. The guard object itself belongs to one thread and is neither movable nor copyable.</para>
+<para>Name every type a system touches in one call. Taking claims one at a time is how two systems deadlock on the same pair in opposite orders; asked for together they are sorted by type id, so every caller agrees on the order. </para>
+    </detaileddescription>
+    <location file="ecss/Access.h" line="48" column="1" bodyfile="ecss/Access.h" bodystart="48" bodyend="175"/>
+    <listofallmembers>
+      <member refid="classecss_1_1detail_1_1AccessGuard_1a64bc675a99f85b1a0982beefd5fff63e" prot="public" virt="non-virtual"><scope>ecss::detail::AccessGuard</scope><name>AccessGuard</name></member>
+      <member refid="classecss_1_1detail_1_1AccessGuard_1a1a9d312b942cde537128f8e20d8d6a5c" prot="public" virt="non-virtual"><scope>ecss::detail::AccessGuard</scope><name>AccessGuard</name></member>
+      <member refid="classecss_1_1detail_1_1AccessGuard_1a3a500d6f7e856a63e8513d9269638f57" prot="public" virt="non-virtual"><scope>ecss::detail::AccessGuard</scope><name>AccessGuard</name></member>
+      <member refid="classecss_1_1detail_1_1AccessGuard_1a728e5170d2705f5fec67a8c5d1d0ea45" prot="public" virt="non-virtual"><scope>ecss::detail::AccessGuard</scope><name>AccessGuard</name></member>
+      <member refid="classecss_1_1detail_1_1AccessGuard_1a9039008bd43d6b3275a907b0d60fbfd9" prot="private" virt="non-virtual"><scope>ecss::detail::AccessGuard</scope><name>depthFor</name></member>
+      <member refid="classecss_1_1detail_1_1AccessGuard_1aff04ad053b8884a22b6fec81dc73e7c0" prot="private" virt="non-virtual"><scope>ecss::detail::AccessGuard</scope><name>heldByThisThread</name></member>
+      <member refid="classecss_1_1detail_1_1AccessGuard_1afe96f83a1044f689c4c8e6029e4fd33d" prot="private" virt="non-virtual"><scope>ecss::detail::AccessGuard</scope><name>kMaxClaims</name></member>
+      <member refid="classecss_1_1detail_1_1AccessGuard_1a0ab8149f4043d72a73bcab50e1f37b61" prot="private" virt="non-virtual"><scope>ecss::detail::AccessGuard</scope><name>mCount</name></member>
+      <member refid="classecss_1_1detail_1_1AccessGuard_1a615ead2bed0ca1ad34586b71913bf562" prot="private" virt="non-virtual"><scope>ecss::detail::AccessGuard</scope><name>mEntries</name></member>
+      <member refid="classecss_1_1detail_1_1AccessGuard_1a2ef70e934ac9d53d048d25919341f013" prot="public" virt="non-virtual"><scope>ecss::detail::AccessGuard</scope><name>operator=</name></member>
+      <member refid="classecss_1_1detail_1_1AccessGuard_1a6aef6786a0708a589d210eed4842a907" prot="public" virt="non-virtual"><scope>ecss::detail::AccessGuard</scope><name>operator=</name></member>
+      <member refid="classecss_1_1detail_1_1AccessGuard_1a9871e13c60e1d3e28f5652fb4dff8801" prot="private" virt="non-virtual"><scope>ecss::detail::AccessGuard</scope><name>release</name></member>
+      <member refid="classecss_1_1detail_1_1AccessGuard_1a37c07904a267a6bbdf1c5b63b4514d3e" prot="public" virt="non-virtual"><scope>ecss::detail::AccessGuard</scope><name>~AccessGuard</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

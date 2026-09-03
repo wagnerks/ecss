@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_f138beb9fc579a951d60d52791a7afcb" kind="dir">
+    <compoundname>structcmd</compoundname>
+    <innerdir refid="dir_0a11f3cdc8251bbe9cb1931e4a0f54d7">html</innerdir>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/structcmd/"/>
+  </compounddef>
+</doxygen>

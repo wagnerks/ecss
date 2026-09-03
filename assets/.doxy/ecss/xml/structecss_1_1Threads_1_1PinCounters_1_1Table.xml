@@ -1,0 +1,46 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Threads_1_1PinCounters_1_1Table" kind="struct" language="C++" prot="private">
+    <compoundname>ecss::Threads::PinCounters::Table</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1_1Table_1a3e13d46917b2974f016c6b3d212efd70" prot="public" static="no" mutable="no">
+        <type>Counter **</type>
+        <definition>Counter** ecss::Threads::PinCounters::Table::blocks</definition>
+        <argsstring></argsstring>
+        <name>blocks</name>
+        <qualifiedname>ecss::Threads::PinCounters::Table::blocks</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="632" column="9" bodyfile="ecss/threads/PinCounters.h" bodystart="632" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1_1Table_1a10cfd64b9bac406a56cb46135569ca94" prot="public" static="no" mutable="no">
+        <type>size_t</type>
+        <definition>size_t ecss::Threads::PinCounters::Table::count</definition>
+        <argsstring></argsstring>
+        <name>count</name>
+        <qualifiedname>ecss::Threads::PinCounters::Table::count</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="631" column="11" bodyfile="ecss/threads/PinCounters.h" bodystart="631" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Immutable published snapshot of the block pointer array. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/threads/PinCounters.h" line="630" column="1" bodyfile="ecss/threads/PinCounters.h" bodystart="630" bodyend="633"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1_1Table_1a3e13d46917b2974f016c6b3d212efd70" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters::Table</scope><name>blocks</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1_1Table_1a10cfd64b9bac406a56cb46135569ca94" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters::Table</scope><name>count</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

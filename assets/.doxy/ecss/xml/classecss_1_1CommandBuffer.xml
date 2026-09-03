@@ -1,0 +1,400 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="classecss_1_1CommandBuffer" kind="class" language="C++" prot="public" final="yes">
+    <compoundname>ecss::CommandBuffer</compoundname>
+    <includes refid="CommandBuffer_8h" local="no">CommandBuffer.h</includes>
+    <innerclass refid="structecss_1_1CommandBuffer_1_1IStore" prot="private">ecss::CommandBuffer::IStore</innerclass>
+    <innerclass refid="structecss_1_1CommandBuffer_1_1Store" prot="private">ecss::CommandBuffer::Store</innerclass>
+    <templateparamlist>
+      <param>
+        <type>bool</type>
+        <declname>ThreadSafe</declname>
+        <defname>ThreadSafe</defname>
+        <defval>true</defval>
+      </param>
+      <param>
+        <type>typename Allocator</type>
+        <defval><ref refid="structecss_1_1Memory_1_1ChunksAllocator" kindref="compound">Memory::ChunksAllocator</ref>&lt;8192&gt;</defval>
+      </param>
+    </templateparamlist>
+    <sectiondef kind="private-type">
+      <memberdef kind="typedef" id="classecss_1_1CommandBuffer_1a29289cec97ac8e23ff6e8b2becda8564" prot="private" static="no">
+        <type><ref refid="classecss_1_1Registry" kindref="compound">Registry</ref>&lt; ThreadSafe, Allocator &gt;</type>
+        <definition>using ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::Reg =  Registry&lt;ThreadSafe, Allocator&gt;</definition>
+        <argsstring></argsstring>
+        <name>Reg</name>
+        <qualifiedname>ecss::CommandBuffer::Reg</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="53" column="1" bodyfile="ecss/CommandBuffer.h" bodystart="53" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-attrib">
+      <memberdef kind="variable" id="classecss_1_1CommandBuffer_1aebfd196e927071a22d7b4f72524f0b24" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; EntityId &gt;</type>
+        <definition>std::vector&lt;EntityId&gt; ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::mDestroyed</definition>
+        <argsstring></argsstring>
+        <name>mDestroyed</name>
+        <qualifiedname>ecss::CommandBuffer::mDestroyed</qualifiedname>
+        <briefdescription>
+<para>Entities to destroy outright. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="257" column="13" bodyfile="ecss/CommandBuffer.h" bodystart="257" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1CommandBuffer_1a0055cf8c93982c63b8986e9af927df4f" prot="private" static="no" mutable="no">
+        <type>uint64_t</type>
+        <definition>uint64_t ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::mSeq</definition>
+        <argsstring></argsstring>
+        <name>mSeq</name>
+        <qualifiedname>ecss::CommandBuffer::mSeq</qualifiedname>
+        <initializer>= 0</initializer>
+        <briefdescription>
+<para>Records the order operations arrived in. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="258" column="10" bodyfile="ecss/CommandBuffer.h" bodystart="258" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="classecss_1_1CommandBuffer_1a585102481bde8a7b2bf73c6a9bf8634c" prot="private" static="no" mutable="no">
+        <type>std::vector&lt; std::unique_ptr&lt; IStore &gt; &gt;</type>
+        <definition>std::vector&lt;std::unique_ptr&lt;IStore&gt; &gt; ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::mStores</definition>
+        <argsstring></argsstring>
+        <name>mStores</name>
+        <qualifiedname>ecss::CommandBuffer::mStores</qualifiedname>
+        <briefdescription>
+<para>One bucket per component type id. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="256" column="13" bodyfile="ecss/CommandBuffer.h" bodystart="256" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="classecss_1_1CommandBuffer_1a1e63c7fdd8ccc1d124f41ed70a4f836b" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+          <param>
+            <type>typename...</type>
+            <declname>Args</declname>
+            <defname>Args</defname>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::addComponent</definition>
+        <argsstring>(EntityId entity, Args &amp;&amp;... args)</argsstring>
+        <name>addComponent</name>
+        <qualifiedname>ecss::CommandBuffer::addComponent</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entity</declname>
+        </param>
+        <param>
+          <type>Args &amp;&amp;...</type>
+          <declname>args</declname>
+        </param>
+        <briefdescription>
+<para>Record &quot;give @p entity a T&quot;, to be applied by <ref refid="classecss_1_1CommandBuffer_1af1967f0eb5a56b4434a25144eabf0ff9" kindref="member">apply()</ref>. Recording the same entity twice for one type keeps the later value, matching what a pair of immediate addComponent calls would have left behind. @thread_safety Thread-confined. One buffer belongs to one thread; nothing in it takes a lock. Give each recording thread its own. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="78" column="6" bodyfile="ecss/CommandBuffer.h" bodystart="78" bodyend="82"/>
+        <references refid="classecss_1_1CommandBuffer_1a1e63c7fdd8ccc1d124f41ed70a4f836b" compoundref="CommandBuffer_8h" startline="78" endline="82">ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::addComponent</references>
+        <referencedby refid="classecss_1_1CommandBuffer_1a1e63c7fdd8ccc1d124f41ed70a4f836b" compoundref="CommandBuffer_8h" startline="78" endline="82">ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::addComponent</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1CommandBuffer_1af1967f0eb5a56b4434a25144eabf0ff9" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::apply</definition>
+        <argsstring>(Reg &amp;registry)</argsstring>
+        <name>apply</name>
+        <qualifiedname>ecss::CommandBuffer::apply</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1Registry" kindref="compound">Reg</ref> &amp;</type>
+          <declname>registry</declname>
+        </param>
+        <briefdescription>
+<para>Apply everything recorded, then empty the buffer. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>For any one entity and component type the last thing recorded wins, so removing a component and adding it back in the same frame leaves it present, and the reverse leaves it absent <ndash/> the same answer the immediate calls would have given in that order. Batching is kept: the surviving adds and removals still go out as one call per type.</para>
+<para>Entity destruction is applied after all of it and is terminal, so an entity both written to and destroyed in the same frame ends up destroyed regardless of the order the two were recorded in. Recording anything against an entity already destroyed in this buffer is a caller error <ndash/> its id may already belong to something else. @thread_safety Thread-confined; blocks. This is the call that touches the registry: it inserts and destroys, so it takes on the contract of those operations. Apply at a point where nothing is iterating the arrays it writes to <ndash/> that is the whole reason to record into a buffer first. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="115" column="6" bodyfile="ecss/CommandBuffer.h" bodystart="115" bodyend="124"/>
+        <references refid="classecss_1_1Registry_1a13215b01a606362fc3ddc0f12c6cfa64" compoundref="Registry_8h" startline="1231" endline="1290">ecss::Registry&lt; ThreadSafe, Allocator &gt;::destroyEntities</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1CommandBuffer_1aa1cde48621ea48b07f6989dba35289c5" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::clear</definition>
+        <argsstring>()</argsstring>
+        <name>clear</name>
+        <qualifiedname>ecss::CommandBuffer::clear</qualifiedname>
+        <briefdescription>
+<para>Drop everything recorded without applying it. @thread_safety Thread-confined. One buffer belongs to one thread; nothing in it takes a lock. Give each recording thread its own. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="129" column="6" bodyfile="ecss/CommandBuffer.h" bodystart="129" bodyend="134"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1CommandBuffer_1a22eb4ba4ba5c8804665d1a23efd76333" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::CommandBuffer</definition>
+        <argsstring>()=default</argsstring>
+        <name>CommandBuffer</name>
+        <qualifiedname>ecss::CommandBuffer::CommandBuffer</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Thread-confined. One buffer belongs to one thread; nothing in it takes a lock. Give each recording thread its own. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="58" column="1"/>
+        <referencedby refid="classecss_1_1CommandBuffer_1a05cc7dd4cb7c95cbe8321a9e2201f61e">ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::CommandBuffer</referencedby>
+        <referencedby refid="classecss_1_1CommandBuffer_1a1b3d171fc5a21aaafb4647ef35844626">ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::CommandBuffer</referencedby>
+        <referencedby refid="classecss_1_1CommandBuffer_1aba5fc2cf6f57bce043520ca72dfeab6c">ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::operator=</referencedby>
+        <referencedby refid="classecss_1_1CommandBuffer_1aca1bb46c507337b3feaaa5ad8eacc9fc">ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::operator=</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1CommandBuffer_1a05cc7dd4cb7c95cbe8321a9e2201f61e" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::CommandBuffer</definition>
+        <argsstring>(CommandBuffer &amp;&amp;) noexcept=default</argsstring>
+        <name>CommandBuffer</name>
+        <qualifiedname>ecss::CommandBuffer::CommandBuffer</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1CommandBuffer" kindref="compound">CommandBuffer</ref> &amp;&amp;</type>
+        </param>
+        <briefdescription>
+<para>Transfer all recorded operations to another buffer. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="post"><para>The destination has the source&apos;s former observable state. </para>
+</simplesect>
+<simplesect kind="note"><para>The moved-from buffer remains valid but its state is unspecified. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="66" column="1"/>
+        <references refid="classecss_1_1CommandBuffer_1a22eb4ba4ba5c8804665d1a23efd76333">ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::CommandBuffer</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1CommandBuffer_1a1b3d171fc5a21aaafb4647ef35844626" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::CommandBuffer</definition>
+        <argsstring>(const CommandBuffer &amp;)=delete</argsstring>
+        <name>CommandBuffer</name>
+        <qualifiedname>ecss::CommandBuffer::CommandBuffer</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1CommandBuffer" kindref="compound">CommandBuffer</ref> &amp;</type>
+        </param>
+        <briefdescription>
+<para>Copying is forbidden; recorded operations have one owning buffer. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="60" column="1"/>
+        <references refid="classecss_1_1CommandBuffer_1a22eb4ba4ba5c8804665d1a23efd76333">ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::CommandBuffer</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1CommandBuffer_1a6838512958073b81d3b74e74aff1fc6d" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>void</type>
+        <definition>void ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::destroyComponent</definition>
+        <argsstring>(EntityId entity)</argsstring>
+        <name>destroyComponent</name>
+        <qualifiedname>ecss::CommandBuffer::destroyComponent</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entity</declname>
+        </param>
+        <briefdescription>
+<para>Record &quot;take T away from @p entity&quot;. @thread_safety Thread-confined. One buffer belongs to one thread; nothing in it takes a lock. Give each recording thread its own. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="88" column="6" bodyfile="ecss/CommandBuffer.h" bodystart="88" bodyend="92"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1CommandBuffer_1a1ba7ddf329199f2b21d0cbaa871921fa" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>void ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::destroyEntity</definition>
+        <argsstring>(EntityId entity)</argsstring>
+        <name>destroyEntity</name>
+        <qualifiedname>ecss::CommandBuffer::destroyEntity</qualifiedname>
+        <param>
+          <type>EntityId</type>
+          <declname>entity</declname>
+        </param>
+        <briefdescription>
+<para>Record &quot;destroy @p entity&quot;, across every component type it has. @thread_safety Thread-confined. One buffer belongs to one thread; nothing in it takes a lock. Give each recording thread its own. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="97" column="6" bodyfile="ecss/CommandBuffer.h" bodystart="97" bodyend="97"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1CommandBuffer_1aa2e26c4dcb51dd3c9030565e1f553746" prot="public" static="no" nodiscard="yes" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>bool ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::empty</definition>
+        <argsstring>() const</argsstring>
+        <name>empty</name>
+        <qualifiedname>ecss::CommandBuffer::empty</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>True when nothing is waiting to be applied. @thread_safety Thread-confined. One buffer belongs to one thread; nothing in it takes a lock. Give each recording thread its own. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="139" column="7" bodyfile="ecss/CommandBuffer.h" bodystart="139" bodyend="145"/>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1CommandBuffer_1aba5fc2cf6f57bce043520ca72dfeab6c" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type><ref refid="classecss_1_1CommandBuffer" kindref="compound">CommandBuffer</ref> &amp;</type>
+        <definition>CommandBuffer &amp; ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::operator=</definition>
+        <argsstring>(CommandBuffer &amp;&amp;) noexcept=default</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::CommandBuffer::operator=</qualifiedname>
+        <param>
+          <type><ref refid="classecss_1_1CommandBuffer" kindref="compound">CommandBuffer</ref> &amp;&amp;</type>
+        </param>
+        <briefdescription>
+<para>Replace this buffer with the recorded operations owned by <computeroutput>other</computeroutput>. </para>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="post"><para>The destination has <computeroutput>other&apos;s</computeroutput> former observable state. </para>
+</simplesect>
+<simplesect kind="note"><para>The moved-from buffer remains valid but its state is unspecified. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="70" column="15"/>
+        <references refid="classecss_1_1CommandBuffer_1a22eb4ba4ba5c8804665d1a23efd76333">ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::CommandBuffer</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1CommandBuffer_1aca1bb46c507337b3feaaa5ad8eacc9fc" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type><ref refid="classecss_1_1CommandBuffer" kindref="compound">CommandBuffer</ref> &amp;</type>
+        <definition>CommandBuffer &amp; ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::operator=</definition>
+        <argsstring>(const CommandBuffer &amp;)=delete</argsstring>
+        <name>operator=</name>
+        <qualifiedname>ecss::CommandBuffer::operator=</qualifiedname>
+        <param>
+          <type>const <ref refid="classecss_1_1CommandBuffer" kindref="compound">CommandBuffer</ref> &amp;</type>
+        </param>
+        <briefdescription>
+<para>Copy assignment is forbidden; recorded operations have one owning buffer. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="62" column="15"/>
+        <references refid="classecss_1_1CommandBuffer_1a22eb4ba4ba5c8804665d1a23efd76333">ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::CommandBuffer</references>
+      </memberdef>
+      <memberdef kind="function" id="classecss_1_1CommandBuffer_1aa7f389e5c6ff6207bbf1be94ef2820be" prot="public" static="no" nodiscard="yes" const="yes" explicit="no" inline="yes" virt="non-virtual">
+        <type>size_t</type>
+        <definition>size_t ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::size</definition>
+        <argsstring>() const</argsstring>
+        <name>size</name>
+        <qualifiedname>ecss::CommandBuffer::size</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>How many changes are recorded, for sizing a flush or for diagnostics. @thread_safety Thread-confined. One buffer belongs to one thread; nothing in it takes a lock. Give each recording thread its own. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="150" column="9" bodyfile="ecss/CommandBuffer.h" bodystart="150" bodyend="156"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="private-func">
+      <memberdef kind="function" id="classecss_1_1CommandBuffer_1ac216d8898459303cdb5608874bfc0504" prot="private" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>typename T</type>
+          </param>
+        </templateparamlist>
+        <type>Store&lt; T &gt; &amp;</type>
+        <definition>Store&lt; T &gt; &amp; ecss::CommandBuffer&lt; ThreadSafe, Allocator &gt;::store</definition>
+        <argsstring>()</argsstring>
+        <name>store</name>
+        <qualifiedname>ecss::CommandBuffer::store</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/CommandBuffer.h" line="249" column="7" bodyfile="ecss/CommandBuffer.h" bodystart="249" bodyend="254"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Records structural changes and applies them together at a chosen point. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Adding or removing a component, or destroying an entity, changes the shape of an array rather than the value of a component. Those are the only operations the thread-safe build charges for <ndash/> component values are written straight through the iterator and cost the same either way <ndash/> and they are the only ones that are illegal while iterating the array they touch. Both problems come from the same place, and both go away if the change is recorded now and applied later:</para>
+<para><itemizedlist>
+<listitem><para>one lock and one pass per component type instead of per call, and one sorted merge instead of a shift per insert;</para>
+</listitem><listitem><para>nothing is applied while a view is open, so the structural change cannot invalidate an iterator, and a thread cannot end up waiting for a hold only it could release.</para>
+</listitem></itemizedlist>
+</para>
+<para>It is not free, and not always a win. Adding a component to 200000 entities, ns per add: <verbatim>                   immediate    recorded + applied
+</verbatim> ascending ids, plain 7.3 18.8 ascending ids, TS 37.1 21.2 shuffled ids, plain 62563.7 73.9 shuffled ids, TS 101611.1 89.7</para>
+<para>Against an append in the non-thread-safe build the buffer loses: that path is already a push and recording costs more than doing it. It wins wherever the immediate call would pay for either per-call synchronisation or a middle insert, which is every other row <ndash/> and ids arriving in ascending order is the exception in gameplay code, not the rule.</para>
+<para>Deferral is explicit: the buffer is a separate object with its own verbs, so it is never a surprise that a recorded change is not visible until <ref refid="classecss_1_1CommandBuffer_1af1967f0eb5a56b4434a25144eabf0ff9" kindref="member">apply()</ref>. <ref refid="classecss_1_1Registry" kindref="compound">Registry</ref>&apos;s own addComponent/destroyEntity still take effect immediately.</para>
+<para><simplesect kind="note"><para>Ids come from the registry, not the buffer, so an entity created for a recorded add is usable as an id right away <ndash/> see <ref refid="classecss_1_1Registry_1a1e66ed99c1e1cea313f7a9fb523a7a74" kindref="member">Registry::takeEntities</ref>.</para>
+</simplesect>
+@thread_safety One buffer belongs to one thread. Give each recording thread its own and apply them one after another; the buffer itself takes no locks. </para>
+    </detaileddescription>
+    <location file="ecss/CommandBuffer.h" line="52" column="1" bodyfile="ecss/CommandBuffer.h" bodystart="52" bodyend="259"/>
+    <listofallmembers>
+      <member refid="classecss_1_1CommandBuffer_1a1e63c7fdd8ccc1d124f41ed70a4f836b" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer</scope><name>addComponent</name></member>
+      <member refid="classecss_1_1CommandBuffer_1af1967f0eb5a56b4434a25144eabf0ff9" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer</scope><name>apply</name></member>
+      <member refid="classecss_1_1CommandBuffer_1aa1cde48621ea48b07f6989dba35289c5" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer</scope><name>clear</name></member>
+      <member refid="classecss_1_1CommandBuffer_1a22eb4ba4ba5c8804665d1a23efd76333" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer</scope><name>CommandBuffer</name></member>
+      <member refid="classecss_1_1CommandBuffer_1a1b3d171fc5a21aaafb4647ef35844626" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer</scope><name>CommandBuffer</name></member>
+      <member refid="classecss_1_1CommandBuffer_1a05cc7dd4cb7c95cbe8321a9e2201f61e" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer</scope><name>CommandBuffer</name></member>
+      <member refid="classecss_1_1CommandBuffer_1a6838512958073b81d3b74e74aff1fc6d" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer</scope><name>destroyComponent</name></member>
+      <member refid="classecss_1_1CommandBuffer_1a1ba7ddf329199f2b21d0cbaa871921fa" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer</scope><name>destroyEntity</name></member>
+      <member refid="classecss_1_1CommandBuffer_1aa2e26c4dcb51dd3c9030565e1f553746" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer</scope><name>empty</name></member>
+      <member refid="classecss_1_1CommandBuffer_1aebfd196e927071a22d7b4f72524f0b24" prot="private" virt="non-virtual"><scope>ecss::CommandBuffer</scope><name>mDestroyed</name></member>
+      <member refid="classecss_1_1CommandBuffer_1a0055cf8c93982c63b8986e9af927df4f" prot="private" virt="non-virtual"><scope>ecss::CommandBuffer</scope><name>mSeq</name></member>
+      <member refid="classecss_1_1CommandBuffer_1a585102481bde8a7b2bf73c6a9bf8634c" prot="private" virt="non-virtual"><scope>ecss::CommandBuffer</scope><name>mStores</name></member>
+      <member refid="classecss_1_1CommandBuffer_1aca1bb46c507337b3feaaa5ad8eacc9fc" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer</scope><name>operator=</name></member>
+      <member refid="classecss_1_1CommandBuffer_1aba5fc2cf6f57bce043520ca72dfeab6c" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer</scope><name>operator=</name></member>
+      <member refid="classecss_1_1CommandBuffer_1a29289cec97ac8e23ff6e8b2becda8564" prot="private" virt="non-virtual"><scope>ecss::CommandBuffer</scope><name>Reg</name></member>
+      <member refid="classecss_1_1CommandBuffer_1aa7f389e5c6ff6207bbf1be94ef2820be" prot="public" virt="non-virtual"><scope>ecss::CommandBuffer</scope><name>size</name></member>
+      <member refid="classecss_1_1CommandBuffer_1ac216d8898459303cdb5608874bfc0504" prot="private" virt="non-virtual"><scope>ecss::CommandBuffer</scope><name>store</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Threads_1_1PinCounters_1_1WriterIntent" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Threads::PinCounters::WriterIntent</compoundname>
+    <includes refid="PinCounters_8h" local="no">PinCounters.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1_1WriterIntent_1a281346d841b0d90d0e37037698d272fa" prot="public" static="no" mutable="no">
+        <type>const <ref refid="structecss_1_1Threads_1_1PinCounters" kindref="compound">PinCounters</ref> &amp;</type>
+        <definition>const PinCounters&amp; ecss::Threads::PinCounters::WriterIntent::pins</definition>
+        <argsstring></argsstring>
+        <name>pins</name>
+        <qualifiedname>ecss::Threads::PinCounters::WriterIntent::pins</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="548" column="19" bodyfile="ecss/threads/PinCounters.h" bodystart="548" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-func">
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1_1WriterIntent_1aed31db221b95cd00c104d7d7a2952c2a" prot="public" static="no" const="no" explicit="yes" inline="yes" noexcept="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Threads::PinCounters::WriterIntent::WriterIntent</definition>
+        <argsstring>(const PinCounters &amp;p) noexcept</argsstring>
+        <name>WriterIntent</name>
+        <qualifiedname>ecss::Threads::PinCounters::WriterIntent::WriterIntent</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Threads_1_1PinCounters" kindref="compound">PinCounters</ref> &amp;</type>
+          <declname>p</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. Two relaxed increments over its lifetime. Announces that a writer is waiting so readers back off; never waits itself. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="537" column="10" bodyfile="ecss/threads/PinCounters.h" bodystart="537" bodyend="541"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1_1WriterIntent_1a747b37a093170082d96b917130515496" prot="public" static="no" const="no" explicit="no" inline="no" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Threads::PinCounters::WriterIntent::WriterIntent</definition>
+        <argsstring>(const WriterIntent &amp;)=delete</argsstring>
+        <name>WriterIntent</name>
+        <qualifiedname>ecss::Threads::PinCounters::WriterIntent::WriterIntent</qualifiedname>
+        <param>
+          <type>const <ref refid="structecss_1_1Threads_1_1PinCounters_1_1WriterIntent" kindref="compound">WriterIntent</ref> &amp;</type>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="547" column="1"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1PinCounters_1_1WriterIntent_1a6fbf494774a4c680b5ef0f1a7d4ac99c" prot="public" static="no" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type></type>
+        <definition>ecss::Threads::PinCounters::WriterIntent::~WriterIntent</definition>
+        <argsstring>()</argsstring>
+        <name>~WriterIntent</name>
+        <qualifiedname>ecss::Threads::PinCounters::WriterIntent::~WriterIntent</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="542" column="1" bodyfile="ecss/threads/PinCounters.h" bodystart="542" bodyend="546"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>RAII announcement that a writer wants the array to go quiet. </para>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <collaborationgraph>
+      <node id="2">
+        <label>ecss::Threads::PinCounters</label>
+        <link refid="structecss_1_1Threads_1_1PinCounters"/>
+      </node>
+      <node id="1">
+        <label>ecss::Threads::PinCounters::WriterIntent</label>
+        <link refid="structecss_1_1Threads_1_1PinCounters_1_1WriterIntent"/>
+        <childnode refid="2" relation="usage">
+          <edgelabel>pins</edgelabel>
+        </childnode>
+      </node>
+    </collaborationgraph>
+    <location file="ecss/threads/PinCounters.h" line="534" column="1" bodyfile="ecss/threads/PinCounters.h" bodystart="534" bodyend="549"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1_1WriterIntent_1a281346d841b0d90d0e37037698d272fa" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters::WriterIntent</scope><name>pins</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1_1WriterIntent_1aed31db221b95cd00c104d7d7a2952c2a" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters::WriterIntent</scope><name>WriterIntent</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1_1WriterIntent_1a747b37a093170082d96b917130515496" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters::WriterIntent</scope><name>WriterIntent</name></member>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1_1WriterIntent_1a6fbf494774a4c680b5ef0f1a7d4ac99c" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters::WriterIntent</scope><name>~WriterIntent</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

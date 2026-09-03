@@ -1,0 +1,24 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_8400fc686cf1eec637c6139505ac43d7" kind="dir">
+    <compoundname>examples</compoundname>
+    <innerfile refid="afterdoc_8h">afterdoc.h</innerfile>
+    <innerfile refid="class_8h">class.h</innerfile>
+    <innerfile refid="define_8h">define.h</innerfile>
+    <innerfile refid="diagrams__a_8h">diagrams_a.h</innerfile>
+    <innerfile refid="diagrams__b_8h">diagrams_b.h</innerfile>
+    <innerfile refid="diagrams__c_8h">diagrams_c.h</innerfile>
+    <innerfile refid="diagrams__d_8h">diagrams_d.h</innerfile>
+    <innerfile refid="diagrams__e_8h">diagrams_e.h</innerfile>
+    <innerfile refid="enum_8h">enum.h</innerfile>
+    <innerfile refid="file_8h">file.h</innerfile>
+    <innerfile refid="func_8h">func.h</innerfile>
+    <innerfile refid="javadoc-banner_8h">javadoc-banner.h</innerfile>
+    <innerfile refid="structcmd_8h">structcmd.h</innerfile>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/examples/"/>
+  </compounddef>
+</doxygen>

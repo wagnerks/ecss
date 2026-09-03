@@ -1,0 +1,118 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="namespaceecss_1_1Memory_1_1detail" kind="namespace" language="C++">
+    <compoundname>ecss::Memory::detail</compoundname>
+    <innerclass refid="structecss_1_1Memory_1_1detail_1_1DenseArrays" prot="public">ecss::Memory::detail::DenseArrays</innerclass>
+    <innerclass refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01false_01_4" prot="public">ecss::Memory::detail::DenseArrays&lt; false &gt;</innerclass>
+    <innerclass refid="structecss_1_1Memory_1_1detail_1_1DenseArrays_3_01true_01_4" prot="public">ecss::Memory::detail::DenseArrays&lt; true &gt;</innerclass>
+    <innerclass refid="structecss_1_1Memory_1_1detail_1_1SlotInfo" prot="public">ecss::Memory::detail::SlotInfo</innerclass>
+    <innerclass refid="structecss_1_1Memory_1_1detail_1_1SparseMap" prot="public">ecss::Memory::detail::SparseMap</innerclass>
+    <innerclass refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01false_01_4" prot="public">ecss::Memory::detail::SparseMap&lt; false &gt;</innerclass>
+    <innerclass refid="structecss_1_1Memory_1_1detail_1_1SparseMap_3_01true_01_4" prot="public">ecss::Memory::detail::SparseMap&lt; true &gt;</innerclass>
+    <sectiondef kind="var">
+      <memberdef kind="variable" id="SectorsArray_8h_1a1757b9a0f62efe45ba76168d04b7ffdf" prot="public" static="no" constexpr="yes" mutable="no">
+        <type><ref refid="structecss_1_1Memory_1_1detail_1_1SlotInfo" kindref="compound">SlotInfo</ref></type>
+        <definition>SlotInfo ecss::Memory::detail::INVALID_SLOT</definition>
+        <argsstring></argsstring>
+        <name>INVALID_SLOT</name>
+        <qualifiedname>ecss::Memory::detail::INVALID_SLOT</qualifiedname>
+        <initializer>{ nullptr, INVALID_IDX }</initializer>
+        <briefdescription>
+<para>Invalid slot info constant. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="71" column="27" bodyfile="ecss/memory/SectorsArray.h" bodystart="71" bodyend="71"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="func">
+      <memberdef kind="function" id="SectorsArray_8h_1a6def7994017098df1a1bb757988abe75" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <type>FORCE_INLINE void</type>
+        <definition>FORCE_INLINE void ecss::cpuRelax</definition>
+        <argsstring>() noexcept</argsstring>
+        <name>cpuRelax</name>
+        <qualifiedname>ecss::Memory::detail::cpuRelax</qualifiedname>
+        <briefdescription>
+<para>CPU pause / yield hint for short seqlock retry loops. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="73" column="1" bodyfile="ecss/Types.h" bodystart="18" bodyend="32"/>
+      </memberdef>
+      <memberdef kind="function" id="SectorsArray_8h_1ad99aee0287ae90050c83c1d2dd9838bb" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>ThreadSafe</declname>
+            <defname>ThreadSafe</defname>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE uint32_t</type>
+        <definition>FORCE_INLINE uint32_t ecss::Memory::detail::loadAliveAcquire</definition>
+        <argsstring>(const uint32_t *p, size_t i) noexcept</argsstring>
+        <name>loadAliveAcquire</name>
+        <qualifiedname>ecss::Memory::detail::loadAliveAcquire</qualifiedname>
+        <param>
+          <type>const uint32_t *</type>
+          <declname>p</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>i</declname>
+        </param>
+        <briefdescription>
+<para>Acquire load of an alive-bit word, pairing with the release fetch_or in <ref refid="namespaceecss_1_1Memory_1_1Sector_1a26358a3fb6eceaa40f97bcf3384d8321" kindref="member">Sector::markAlive&lt;true&gt;</ref>: a reader seeing a set bit is guaranteed the component bytes written before it. x86-64: plain MOV. ARM64: LDAR instead of LDR. </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="98" column="23" bodyfile="ecss/memory/SectorsArray.h" bodystart="98" bodyend="105"/>
+      </memberdef>
+      <memberdef kind="function" id="SectorsArray_8h_1a80279ffd69b387cfb561702a2ee6ab3a" prot="public" static="no" const="no" explicit="no" inline="no" noexcept="yes" virt="non-virtual">
+        <templateparamlist>
+          <param>
+            <type>bool</type>
+            <declname>ThreadSafe</declname>
+            <defname>ThreadSafe</defname>
+          </param>
+          <param>
+            <type>class T</type>
+          </param>
+        </templateparamlist>
+        <type>FORCE_INLINE T</type>
+        <definition>FORCE_INLINE T ecss::Memory::detail::loadRelaxed</definition>
+        <argsstring>(const T *p, size_t i) noexcept</argsstring>
+        <name>loadRelaxed</name>
+        <qualifiedname>ecss::Memory::detail::loadRelaxed</qualifiedname>
+        <param>
+          <type>const T *</type>
+          <declname>p</declname>
+        </param>
+        <param>
+          <type>size_t</type>
+          <declname>i</declname>
+        </param>
+        <briefdescription>
+<para>Relaxed load of a word a lock-free reader may catch mid-write. </para>
+        </briefdescription>
+        <detaileddescription>
+<para>Compiles to a plain MOV on x86-64 and a plain LDR on ARM64 <ndash/> identical codegen to a raw read. It exists to satisfy the memory model where the word is concurrently written by <ref refid="namespaceecss_1_1Memory_1_1Sector_1a26358a3fb6eceaa40f97bcf3384d8321" kindref="member">Sector::markAlive&lt;true&gt;</ref>/markNotAlive&lt;true&gt;, and, in the single-threaded build, to stop the vectoriser from reordering the surrounding scan.</para>
+<para>Parameterised on ThreadSafe alone rather than living in <ref refid="classecss_1_1Memory_1_1SectorsArray" kindref="compound">SectorsArray</ref>, so that code which needs the load without naming an allocator can share the one definition. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/memory/SectorsArray.h" line="85" column="16" bodyfile="ecss/memory/SectorsArray.h" bodystart="85" bodyend="92"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/memory/SectorsArray.h" line="57" column="1"/>
+  </compounddef>
+</doxygen>

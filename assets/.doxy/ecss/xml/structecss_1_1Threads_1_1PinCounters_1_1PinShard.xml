@@ -1,0 +1,31 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Threads_1_1PinCounters_1_1PinShard" kind="struct" language="C++" prot="private">
+    <compoundname>ecss::Threads::PinCounters::PinShard</compoundname>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1PinCounters_1_1PinShard_1a1bfdaa06b357b0a991f345fcb793a99f" prot="public" static="no" mutable="no">
+        <type>std::atomic&lt; uint32_t &gt;</type>
+        <definition>std::atomic&lt;uint32_t&gt; ecss::Threads::PinCounters::PinShard::count</definition>
+        <argsstring></argsstring>
+        <name>count</name>
+        <qualifiedname>ecss::Threads::PinCounters::PinShard::count</qualifiedname>
+        <initializer>{ 0 }</initializer>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="606" column="34" bodyfile="ecss/threads/PinCounters.h" bodystart="606" bodyend="606"/>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="ecss/threads/PinCounters.h" line="606" column="1" bodyfile="ecss/threads/PinCounters.h" bodystart="606" bodyend="606"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Threads_1_1PinCounters_1_1PinShard_1a1bfdaa06b357b0a991f345fcb793a99f" prot="public" virt="non-virtual"><scope>ecss::Threads::PinCounters::PinShard</scope><name>count</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>

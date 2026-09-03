@@ -1,0 +1,12 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="dir_f6db993c6f6d029eac2a6e626a01b73a" kind="dir">
+    <compoundname>memgrp</compoundname>
+    <innerdir refid="dir_c98cbca20bfce4c2fd5d7a8bd1b41a7e">html</innerdir>
+    <briefdescription>
+    </briefdescription>
+    <detaileddescription>
+    </detaileddescription>
+    <location file="doxygen-1.14.0/html/examples/memgrp/"/>
+  </compounddef>
+</doxygen>

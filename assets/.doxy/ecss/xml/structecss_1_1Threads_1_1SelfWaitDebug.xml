@@ -1,0 +1,208 @@
+<?xml version='1.0' encoding='UTF-8' standalone='no'?>
+<doxygen xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="compound.xsd" version="1.14.0" xml:lang="en-US">
+  <compounddef id="structecss_1_1Threads_1_1SelfWaitDebug" kind="struct" language="C++" prot="public">
+    <compoundname>ecss::Threads::SelfWaitDebug</compoundname>
+    <includes refid="PinCounters_8h" local="no">PinCounters.h</includes>
+    <sectiondef kind="public-attrib">
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1SelfWaitDebug_1affa83dd4e8baffe9a9f607dc5f11484d" prot="public" static="no" mutable="no">
+        <type>std::map&lt; const void *, size_t &gt;</type>
+        <definition>std::map&lt;const void*, size_t&gt; ecss::Threads::SelfWaitDebug::holds</definition>
+        <argsstring></argsstring>
+        <name>holds</name>
+        <qualifiedname>ecss::Threads::SelfWaitDebug::holds</qualifiedname>
+        <briefdescription>
+<para>array -&gt; holds taken here </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="39" column="32" bodyfile="ecss/threads/PinCounters.h" bodystart="39" bodyend="-1"/>
+      </memberdef>
+      <memberdef kind="variable" id="structecss_1_1Threads_1_1SelfWaitDebug_1a35d3adc39713bdf1b16035b527d53753" prot="public" static="no" mutable="no">
+        <type>std::map&lt; std::pair&lt; const void *, SectorId &gt;, size_t &gt;</type>
+        <definition>std::map&lt;std::pair&lt;const void*, SectorId&gt;, size_t&gt; ecss::Threads::SelfWaitDebug::pins</definition>
+        <argsstring></argsstring>
+        <name>pins</name>
+        <qualifiedname>ecss::Threads::SelfWaitDebug::pins</qualifiedname>
+        <briefdescription>
+<para>(array, sector) -&gt; pins </para>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="40" column="11" bodyfile="ecss/threads/PinCounters.h" bodystart="40" bodyend="-1"/>
+      </memberdef>
+    </sectiondef>
+    <sectiondef kind="public-static-func">
+      <memberdef kind="function" id="structecss_1_1Threads_1_1SelfWaitDebug_1a69aaefcd6e93a916da492920ef6a408d" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ecss::Threads::SelfWaitDebug::addHold</definition>
+        <argsstring>(const void *owner)</argsstring>
+        <name>addHold</name>
+        <qualifiedname>ecss::Threads::SelfWaitDebug::addHold</qualifiedname>
+        <param>
+          <type>const void *</type>
+          <declname>owner</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. Per-thread state: each thread sees only its own map, so there is nothing to share and nothing to lock. Debug builds only. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="49" column="13" bodyfile="ecss/threads/PinCounters.h" bodystart="49" bodyend="49"/>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1ac9730ca1314f0d4c7c9be089ea78b7e4" compoundref="PinCounters_8h" startline="341" endline="349">ecss::Threads::PinCounters::acquireHold</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1SelfWaitDebug_1a1b65dd26e0e5ec6b825af6410bd7054c" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ecss::Threads::SelfWaitDebug::addPin</definition>
+        <argsstring>(const void *owner, SectorId id)</argsstring>
+        <name>addPin</name>
+        <qualifiedname>ecss::Threads::SelfWaitDebug::addPin</qualifiedname>
+        <param>
+          <type>const void *</type>
+          <declname>owner</declname>
+        </param>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. Per-thread state: each thread sees only its own map, so there is nothing to share and nothing to lock. Debug builds only. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="59" column="13" bodyfile="ecss/threads/PinCounters.h" bodystart="59" bodyend="59"/>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1a208ebcdcd2ca03b8d8773e13a54f9145" compoundref="PinCounters_8h" startline="150" endline="177">ecss::Threads::PinCounters::pin</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1SelfWaitDebug_1a716a2b71b1d09565595284f0aa55cbb5" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type><ref refid="structecss_1_1Threads_1_1SelfWaitDebug" kindref="compound">SelfWaitDebug</ref> &amp;</type>
+        <definition>static SelfWaitDebug &amp; ecss::Threads::SelfWaitDebug::current</definition>
+        <argsstring>()</argsstring>
+        <name>current</name>
+        <qualifiedname>ecss::Threads::SelfWaitDebug::current</qualifiedname>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="42" column="22" bodyfile="ecss/threads/PinCounters.h" bodystart="42" bodyend="45"/>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1SelfWaitDebug_1a625d9837eaaba98b408f62a8fdd147bc" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ecss::Threads::SelfWaitDebug::dropHold</definition>
+        <argsstring>(const void *owner)</argsstring>
+        <name>dropHold</name>
+        <qualifiedname>ecss::Threads::SelfWaitDebug::dropHold</qualifiedname>
+        <param>
+          <type>const void *</type>
+          <declname>owner</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. Per-thread state: each thread sees only its own map, so there is nothing to share and nothing to lock. Debug builds only. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="52" column="13" bodyfile="ecss/threads/PinCounters.h" bodystart="52" bodyend="56"/>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1a581c57b29026f9ddf5f3add07e94c142" compoundref="PinCounters_8h" startline="356" endline="377">ecss::Threads::PinCounters::releaseHold</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1SelfWaitDebug_1a208b01e10723a0405aa09fefef9ab338" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>void</type>
+        <definition>static void ecss::Threads::SelfWaitDebug::dropPin</definition>
+        <argsstring>(const void *owner, SectorId id)</argsstring>
+        <name>dropPin</name>
+        <qualifiedname>ecss::Threads::SelfWaitDebug::dropPin</qualifiedname>
+        <param>
+          <type>const void *</type>
+          <declname>owner</declname>
+        </param>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. Per-thread state: each thread sees only its own map, so there is nothing to share and nothing to lock. Debug builds only. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="62" column="13" bodyfile="ecss/threads/PinCounters.h" bodystart="62" bodyend="66"/>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1a6620f6dcb62fee772a18bc142092cbf4" compoundref="PinCounters_8h" startline="187" endline="220">ecss::Threads::PinCounters::unpin</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1SelfWaitDebug_1aea118b54ffd84d49c8737ba26b12e8e9" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>static bool ecss::Threads::SelfWaitDebug::holdsAnythingOn</definition>
+        <argsstring>(const void *owner)</argsstring>
+        <name>holdsAnythingOn</name>
+        <qualifiedname>ecss::Threads::SelfWaitDebug::holdsAnythingOn</qualifiedname>
+        <param>
+          <type>const void *</type>
+          <declname>owner</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para><simplesect kind="return"><para>true if this thread holds anything at all on <computeroutput>owner</computeroutput>. @thread_safety Internally synchronized. Per-thread state: each thread sees only its own map, so there is nothing to share and nothing to lock. Debug builds only. </para>
+</simplesect>
+</para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="71" column="13" bodyfile="ecss/threads/PinCounters.h" bodystart="71" bodyend="76"/>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1a21287702ebeba0661295c0aa98fa1217" compoundref="PinCounters_8h" startline="290" endline="328">ecss::Threads::PinCounters::waitUntilQuiescent</referencedby>
+      </memberdef>
+      <memberdef kind="function" id="structecss_1_1Threads_1_1SelfWaitDebug_1a50722a158b5ac7938dbe7ecc114999a5" prot="public" static="yes" const="no" explicit="no" inline="yes" virt="non-virtual">
+        <type>bool</type>
+        <definition>static bool ecss::Threads::SelfWaitDebug::holdsPinOn</definition>
+        <argsstring>(const void *owner, SectorId id)</argsstring>
+        <name>holdsPinOn</name>
+        <qualifiedname>ecss::Threads::SelfWaitDebug::holdsPinOn</qualifiedname>
+        <param>
+          <type>const void *</type>
+          <declname>owner</declname>
+        </param>
+        <param>
+          <type>SectorId</type>
+          <declname>id</declname>
+        </param>
+        <briefdescription>
+        </briefdescription>
+        <detaileddescription>
+<para>@thread_safety Internally synchronized. Per-thread state: each thread sees only its own map, so there is nothing to share and nothing to lock. Debug builds only. </para>
+        </detaileddescription>
+        <inbodydescription>
+        </inbodydescription>
+        <location file="ecss/threads/PinCounters.h" line="80" column="13" bodyfile="ecss/threads/PinCounters.h" bodystart="80" bodyend="82"/>
+        <referencedby refid="structecss_1_1Threads_1_1PinCounters_1ac3ecfec4cb6a38ab34bad4fbf7fc2b29" compoundref="PinCounters_8h" startline="243" endline="281">ecss::Threads::PinCounters::waitUntilChangeable</referencedby>
+      </memberdef>
+    </sectiondef>
+    <briefdescription>
+<para>Debug-only record of what the calling thread is holding, per array. </para>
+    </briefdescription>
+    <detaileddescription>
+<para>Structural changes are not allowed while a view or pin on the same array is alive <ndash/> relocating sectors would invalidate the iterator that is reading them. Writers enforce that by waiting for the pins and holds to drain, which is correct against other threads and unsatisfiable against yourself: the thread blocks on a condition only it could clear, and hangs forever with no diagnosis.</para>
+<para>These maps let the wait primitives recognise that case and abort with the reason attached. They exist only in debug builds; release keeps the original code exactly, because maintaining them would tax the view hot path (hold acquire/release runs at ~199M pairs per second and is what makes iteration cheap). </para>
+    </detaileddescription>
+    <location file="ecss/threads/PinCounters.h" line="38" column="1" bodyfile="ecss/threads/PinCounters.h" bodystart="38" bodyend="83"/>
+    <listofallmembers>
+      <member refid="structecss_1_1Threads_1_1SelfWaitDebug_1a69aaefcd6e93a916da492920ef6a408d" prot="public" virt="non-virtual"><scope>ecss::Threads::SelfWaitDebug</scope><name>addHold</name></member>
+      <member refid="structecss_1_1Threads_1_1SelfWaitDebug_1a1b65dd26e0e5ec6b825af6410bd7054c" prot="public" virt="non-virtual"><scope>ecss::Threads::SelfWaitDebug</scope><name>addPin</name></member>
+      <member refid="structecss_1_1Threads_1_1SelfWaitDebug_1a716a2b71b1d09565595284f0aa55cbb5" prot="public" virt="non-virtual"><scope>ecss::Threads::SelfWaitDebug</scope><name>current</name></member>
+      <member refid="structecss_1_1Threads_1_1SelfWaitDebug_1a625d9837eaaba98b408f62a8fdd147bc" prot="public" virt="non-virtual"><scope>ecss::Threads::SelfWaitDebug</scope><name>dropHold</name></member>
+      <member refid="structecss_1_1Threads_1_1SelfWaitDebug_1a208b01e10723a0405aa09fefef9ab338" prot="public" virt="non-virtual"><scope>ecss::Threads::SelfWaitDebug</scope><name>dropPin</name></member>
+      <member refid="structecss_1_1Threads_1_1SelfWaitDebug_1affa83dd4e8baffe9a9f607dc5f11484d" prot="public" virt="non-virtual"><scope>ecss::Threads::SelfWaitDebug</scope><name>holds</name></member>
+      <member refid="structecss_1_1Threads_1_1SelfWaitDebug_1aea118b54ffd84d49c8737ba26b12e8e9" prot="public" virt="non-virtual"><scope>ecss::Threads::SelfWaitDebug</scope><name>holdsAnythingOn</name></member>
+      <member refid="structecss_1_1Threads_1_1SelfWaitDebug_1a50722a158b5ac7938dbe7ecc114999a5" prot="public" virt="non-virtual"><scope>ecss::Threads::SelfWaitDebug</scope><name>holdsPinOn</name></member>
+      <member refid="structecss_1_1Threads_1_1SelfWaitDebug_1a35d3adc39713bdf1b16035b527d53753" prot="public" virt="non-virtual"><scope>ecss::Threads::SelfWaitDebug</scope><name>pins</name></member>
+    </listofallmembers>
+  </compounddef>
+</doxygen>
