@@ -495,10 +495,25 @@ namespace ecss::Threads {
 		/// NOT come here -- the writer may be waiting for exactly that.
 		/// @thread_safety Internally synchronized; blocks until the writers pass.
 		void waitForWritersToPass() const noexcept {
+			// waitOrDeadline, not mWritersWaiting.wait(): this was the one wait in the file
+			// still parking on std::atomic::wait directly, and that is not the same latency
+			// everywhere. glibc backs it with a futex and the wake is immediate; libc++ on
+			// Apple falls back to polling with exponential backoff when no platform primitive
+			// is available, and the sleep grows into the hundreds of milliseconds. The notify
+			// arrives on time and the sleeper notices it a quarter of a second later.
+			//
+			// A reader stands here holding nothing, so nobody is blocked behind it -- but it
+			// is not making progress either, and a caller measuring throughput sees a stall
+			// it cannot explain. The polling helper bounds that at a millisecond on every
+			// platform, and brings the diagnostic every other wait here already had.
+			bool bounded = false;
+			const auto deadline = waitDeadline(bounded);
 			for (;;) {
 				const auto w = mWritersWaiting.load(std::memory_order_acquire);
 				if (w == 0) { return; }
-				mWritersWaiting.wait(w, std::memory_order_acquire);
+				if (!waitOrDeadline(mWritersWaiting, w, deadline, bounded)) {
+					reportStuckWait("a reader standing aside for structural writers");
+				}
 			}
 		}
 

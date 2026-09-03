@@ -10,6 +10,8 @@
 
 #include <algorithm>
 #include <atomic>
+#include <string>
+#include <array>
 #include <chrono>
 #include <map>
 #include <memory>
@@ -440,16 +442,26 @@ TEST(Regression_Concurrency, RegistryChurnStaysLiveAndConsistent) {
 	for (EntityId e = 0; e < 4000; ++e) { reg->takeEntity(); reg->addComponent<RPos>(e, RPos{ float(e), 0, 0 }); }
 
 	std::atomic<bool> stop{ false };
-	std::atomic<long long> ops{ 0 }, ordering{ 0 };
+	std::atomic<long long> ordering{ 0 };
 	std::atomic<int> alive{ 0 };
 	std::vector<std::thread> pool;
 
-	auto spawn = [&](auto body) {
-		pool.emplace_back([&, body] { alive.fetch_add(1); body(); alive.fetch_sub(1); });
+	// One counter per thread rather than one shared: a stall that names which threads
+	// stopped is a diagnosis, and a single number is not. Readers freezing while writers
+	// run is starvation; everyone freezing at once means somebody is holding the array's
+	// write lock and waiting, which the locking rules here forbid.
+	static constexpr int kThreads = 6;
+	static const char* const kRole[kThreads] = {
+		"reader0", "reader1", "reader2", "writer0", "writer1", "maintainer"
+	};
+	std::array<std::atomic<long long>, kThreads> did{};
+
+	auto spawn = [&](int slot, auto body) {
+		pool.emplace_back([&, slot, body] { alive.fetch_add(1); body(slot); alive.fetch_sub(1); });
 	};
 
 	for (int t = 0; t < 3; ++t) {
-		spawn([&, t] {
+		spawn(t, [&, t](int slot) {
 			std::mt19937 rng(unsigned(t) * 977u + 1u);
 			while (!stop.load(std::memory_order_relaxed)) {
 				auto v = reg->view<RPos>();
@@ -458,12 +470,12 @@ TEST(Regression_Concurrency, RegistryChurnStaysLiveAndConsistent) {
 				(void)reg->hasComponent<RVel>(EntityId(rng() % 4000));
 				auto nested = reg->view<RPos, RVel>();
 				for (auto tup : nested) { (void)tup; }
-				ops.fetch_add(1, std::memory_order_relaxed);
+				did[slot].fetch_add(1, std::memory_order_relaxed);
 			}
 		});
 	}
 	for (int t = 0; t < 2; ++t) {
-		spawn([&, t] {
+		spawn(3 + t, [&, t](int slot) {
 			std::mt19937 rng(unsigned(t) * 131u + 7u);
 			while (!stop.load(std::memory_order_relaxed)) {
 				const auto id = EntityId(rng() % 4000);
@@ -474,11 +486,11 @@ TEST(Regression_Concurrency, RegistryChurnStaysLiveAndConsistent) {
 					case 3: reg->destroyEntity(id); reg->takeEntity(); break;
 					default: reg->addComponent<RPos>(EntityId(4000 + rng() % 2000), RPos{}); break;
 				}
-				ops.fetch_add(1, std::memory_order_relaxed);
+				did[slot].fetch_add(1, std::memory_order_relaxed);
 			}
 		});
 	}
-	spawn([&] {
+	spawn(5, [&](int slot) {
 		while (!stop.load(std::memory_order_relaxed)) {
 			reg->update();
 			auto* c = reg->getComponentContainer<RPos>();
@@ -486,22 +498,55 @@ TEST(Regression_Concurrency, RegistryChurnStaysLiveAndConsistent) {
 			for (size_t i = 1; i < c->template size<false>(); ++i) {
 				if (c->getId(i - 1) >= c->getId(i)) { ordering.fetch_add(1, std::memory_order_relaxed); break; }
 			}
+			did[slot].fetch_add(1, std::memory_order_relaxed);
 		}
 	});
 
+	// A deadlock never moves again; a scheduling blip moves next window. Requiring two
+	// consecutive frozen windows keeps the first and rejects the second, and still
+	// catches a real one well inside the same budget.
+	const auto snapshot = [&] {
+		std::array<long long, kThreads> v{};
+		for (int i = 0; i < kThreads; ++i) { v[i] = did[i].load(std::memory_order_relaxed); }
+		return v;
+	};
+	const auto total = [](const std::array<long long, kThreads>& v) {
+		long long n = 0; for (auto x : v) { n += x; } return n;
+	};
+
 	bool stalled = false;
-	long long last = -1;
-	const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(3);
+	int frozenWindows = 0;
+	std::string report;
+	auto before = snapshot();
+	auto during = before;
+	const auto deadline = std::chrono::steady_clock::now() + std::chrono::seconds(4);
 	while (std::chrono::steady_clock::now() < deadline) {
 		std::this_thread::sleep_for(std::chrono::milliseconds(400));
-		const auto now = ops.load(std::memory_order_relaxed);
-		if (now == last) { stalled = true; break; }
-		last = now;
+		const auto now = snapshot();
+		if (total(now) == total(during)) {
+			if (++frozenWindows == 2) {
+				stalled = true;
+				// Which threads stopped is the whole diagnosis. Readers frozen while writers
+				// run is starvation; all six frozen means someone holds the array's write lock
+				// and is waiting inside it, which this library's locking rules forbid.
+				for (int i = 0; i < kThreads; ++i) {
+					report += "\n  ";
+					report += kRole[i];
+					report += ": " + std::to_string(before[i]) + " -> " + std::to_string(during[i])
+						+ " -> " + std::to_string(now[i]);
+				}
+				break;
+			}
+		}
+		else { frozenWindows = 0; }
+		before = during;
+		during = now;
 	}
 	stop.store(true, std::memory_order_release);
 
 	const bool joined = waitFor([&] { return alive.load() == 0; });
-	EXPECT_FALSE(stalled) << "registry churn stopped making progress (deadlock)";
+	EXPECT_FALSE(stalled) << "registry churn stopped making progress for two windows.\n"
+		"Operations per thread, across the three samples:" << report;
 	EXPECT_EQ(ordering.load(), 0) << "dense ids went unsorted under concurrent mutation";
 	EXPECT_TRUE(joined) << "threads never finished";
 	if (!joined) { for (auto& th : pool) { th.detach(); } return; }
