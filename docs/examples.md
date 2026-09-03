@@ -356,6 +356,8 @@ These patterns can be combined. Favor:
 - Batch structural changes: `takeEntities`, `insertBulk`, `destroyEntities`, or a
   `CommandBuffer` when the change is decided during iteration.
 - Never restructure an array you are iterating on the same thread — record it instead.
-- Call `update()` once per frame; placement is free, since nothing in it waits. Or set
-  `setAutoMaintenance(true)` once and drop the call.
+- Call `update()` once per frame. In `Registry<true>` placement is free, since nothing in it
+  waits; in the plain build it compacts outright, so call it between passes.
+- `setAutoMaintenance(true)` moves the erase and compaction pass onto view creation, but not
+  the freeing of retired memory — keep calling `update()`.
 - Study tests + StelForge for deeper, real integration scenarios.

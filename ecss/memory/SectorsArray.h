@@ -72,6 +72,38 @@ namespace detail {
 
 	using ecss::cpuRelax;
 
+	/// @brief Relaxed load of a word a lock-free reader may catch mid-write.
+	///
+	/// Compiles to a plain MOV on x86-64 and a plain LDR on ARM64 -- identical codegen to
+	/// a raw read. It exists to satisfy the memory model where the word is concurrently
+	/// written by Sector::markAlive<true>/markNotAlive<true>, and, in the single-threaded
+	/// build, to stop the vectoriser from reordering the surrounding scan.
+	///
+	/// Parameterised on ThreadSafe alone rather than living in SectorsArray, so that code
+	/// which needs the load without naming an allocator can share the one definition.
+	template<bool ThreadSafe, class T>
+	FORCE_INLINE T loadRelaxed(const T* p, size_t i) noexcept {
+		if constexpr (ThreadSafe) {
+			return std::atomic_ref<T>(const_cast<T&>(p[i])).load(std::memory_order_relaxed);
+		}
+		else {
+			return p[i];
+		}
+	}
+
+	/// @brief Acquire load of an alive-bit word, pairing with the release fetch_or in
+	/// Sector::markAlive<true>: a reader seeing a set bit is guaranteed the component
+	/// bytes written before it. x86-64: plain MOV. ARM64: LDAR instead of LDR.
+	template<bool ThreadSafe>
+	FORCE_INLINE uint32_t loadAliveAcquire(const uint32_t* p, size_t i) noexcept {
+		if constexpr (ThreadSafe) {
+			return std::atomic_ref<uint32_t>(const_cast<uint32_t&>(p[i])).load(std::memory_order_acquire);
+		}
+		else {
+			return p[i];
+		}
+	}
+
 	template<bool TS>
 	struct SparseMap;
 
@@ -335,9 +367,15 @@ namespace detail {
 			storeView(actualSize);
 		}
 
-		FORCE_INLINE void shrinkToFit() {
+		/// @brief Give back spare capacity, republishing because the buffers move.
+		///
+		/// The hazard reserve() documents, in the other direction: shrink_to_fit reallocates,
+		/// the old buffers go to the retire bin, and a view still naming them reads memory
+		/// that is correct only until the next write and freed once the grace period ends.
+		FORCE_INLINE void shrinkToFit(size_t actualSize) {
 			ids.shrink_to_fit();
 			isAlive.shrink_to_fit();
+			storeView(actualSize);
 		}
 
 		FORCE_INLINE SectorId& idAt(size_t idx) { return ids[idx]; }
@@ -419,7 +457,7 @@ namespace detail {
 			isAlive.clear();
 		}
 
-		FORCE_INLINE void shrinkToFit() {
+		FORCE_INLINE void shrinkToFit(size_t) {
 			ids.shrink_to_fit();
 			isAlive.shrink_to_fit();
 		}
@@ -449,6 +487,18 @@ namespace detail {
 
 /**
  * @brief RAII pin for a sector to prevent relocation / destruction while in use.
+ *
+ * @thread_safety Thread-confined -- the handle, not the array. One
+ *                of these belongs to one thread; its accessors are plain member reads. Any
+ *                number of threads may each hold their own pin, on the same sector or not.
+ *
+ *                What it buys: while it lives, that sector will not be moved, destroyed or
+ *                reused, so the pointer stays good. What it costs others: a thread destroying
+ *                or overwriting this sector waits until it is released. Never pin a sector and
+ *                then destroy it from the same thread -- that waits on yourself.
+ *
+ *                It says nothing about the component's *value*: another thread may be writing
+ *                it. @see Registry::access()
  */
 struct PinnedSector {
 	PinnedSector() = default;
@@ -504,6 +554,16 @@ private:
 /**
  * @brief RAII structural hold: while one is alive, no sector in the array may be relocated.
  *
+ * @thread_safety Thread-confined -- the handle, not the array. Holds
+ *                are counted per thread, so holders on different threads do not even share a
+ *                cache line; a hold may be released by a different thread than took it, which
+ *                is why the shard travels inside the object.
+ *
+ *                While one is outstanding, everything that relocates sectors waits: clear,
+ *                defragment, a middle insert, copy and move assignment. A view keeps one for
+ *                its whole life, so those calls cannot finish while a view is open -- from
+ *                another thread they block, from this one they deadlock.
+ *
  * Weaker and cheaper than a pin. A pin says "leave this sector alone" and is counted per
  * sector; a hold says "do not compact the array" and is counted per thread, so holders on
  * different threads do not share a cache line. Iteration needs the second, not the first --
@@ -556,7 +616,9 @@ private:
  *   - insert / emplace / push of an id that lands anywhere but past the end
  *   - insertBulk, and Registry::addComponents
  *   - defragment, clear, shrinkToFit, copy and move assignment
- *   - erase with defragmentation, and Registry::update() (which defragments)
+ *   - erase with defragmentation
+ * Registry::update() is deliberately not in that list: it attempts compaction rather than
+ * waiting for it, and leaves a busy array for the next call.
  * Also illegal: destroying or overwriting in place the one sector you are holding a pin to.
  *
  * Legal, because nothing moves:
@@ -566,6 +628,30 @@ private:
  *
  * A different thread doing any of this is fine and is what the waiting is for; it blocks
  * until your view ends.
+ *
+ * Every public member carries an @thread_safety line. It answers whether two threads may
+ * call it on the same object at once:
+ *   - "Internally synchronized."             yes.
+ *   - "Thread-confined."                     no, and do not try: the object belongs to one
+ *                                            thread and holds no lock, as a std::vector does.
+ *                                            Give each thread its own rather than a mutex.
+ *   - "Caller must ensure exclusive access." no; this one is shared, and you must supply the
+ *                                            ordering yourself.
+ *   - "Not applicable (single-threaded build)."
+ *
+ * and adds "; blocks" when the call waits for a pin or a hold to be released -- for one
+ * sector's pins, or for the whole array to carry neither; the method says which. Only that
+ * counts as blocking here: it is state a reader controls, so a caller can be the reader it
+ * waits for. Ordinary contention for the array's mutex is not marked, because nearly every
+ * synchronized call has some. The two axes are independent: a destructor waits for in-flight
+ * readers and still must not race with new ones.
+ *
+ * Many members take `template<bool TS = ThreadSafe>`. Leaving it defaulted is the safe
+ * choice and gives the behaviour documented on the method. Passing TS=false on a
+ * ThreadSafe array deliberately drops the lock, and then the guarantee is yours: it is
+ * only correct where exclusivity is already established -- inside a body handed to
+ * exclusiveWhenUnpinned/exclusiveWhenQuiescent, or under a lock you hold yourself.
+ * Passing TS=true on a non-thread-safe array is a compile error.
  *
  * @tparam ThreadSafe If true, operations are synchronized & relocation waits on pins.
  * @tparam Allocator  Allocation policy (e.g. ChunksAllocator).
@@ -594,45 +680,32 @@ public:
 
 	// ==================== Iterators ====================
 
-	/// @brief Relaxed atomic load of an alive-bit word. Compiles to a plain MOV on x86-64
-	/// and a plain LDR on ARM64 -- identical codegen to a raw read. Exists purely to
-	/// satisfy the C++ memory model when the word may be concurrently written by
-	/// Sector::markAlive<true>/markNotAlive<true>.
-	/// Declared static so nested iterator classes can call it without an enclosing instance.
 	/// @brief Relaxed load of a sector id. The id array is written by a writer holding only
 	/// the array's write lock, which excludes other writers but not the lock-free readers, so
-	/// both sides go through atomic_ref. Same codegen as a raw read on x86-64 and ARM64.
+	/// both sides go through atomic_ref.
+	/// Declared static so nested iterator classes can call it without an enclosing instance.
+	/// @thread_safety Internally synchronized. A single load with the ordering the thread-safe
+	///                build needs and none in the plain build. Given a pointer, not an index into
+	///                anything it validates -- the caller supplies both, and both come from a
+	///                snapshot it already holds.
 	static FORCE_INLINE SectorId loadId(const SectorId* p, size_t i) noexcept {
-		if constexpr (ThreadSafe) {
-			return std::atomic_ref<SectorId>(const_cast<SectorId&>(p[i]))
-				.load(std::memory_order_relaxed);
-		} else {
-			return p[i];
-		}
+		return detail::loadRelaxed<ThreadSafe>(p, i);
 	}
 
+	/// @thread_safety Internally synchronized. A single load with the ordering the thread-safe
+	///                build needs and none in the plain build. Given a pointer, not an index into
+	///                anything it validates -- the caller supplies both, and both come from a
+	///                snapshot it already holds.
 	static FORCE_INLINE uint32_t loadAliveRelaxed(const uint32_t* p, size_t i) noexcept {
-		if constexpr (ThreadSafe) {
-			return std::atomic_ref<uint32_t>(const_cast<uint32_t&>(p[i]))
-				.load(std::memory_order_relaxed);
-		} else {
-			// No concurrent writer can exist, and an atomic load -- even relaxed -- stops the
-			// vectoriser from touching the surrounding scan.
-			return p[i];
-		}
+		return detail::loadRelaxed<ThreadSafe>(p, i);
 	}
 
-	/// @brief Acquire load of an alive-bit word. Pairs with the release fetch_or in
-	/// Sector::markAlive<true>, so a reader observing a set bit is guaranteed to see
-	/// the fully-constructed component bytes written before the bit was set.
-	/// x86-64: plain MOV (all loads are acquire). ARM64: LDAR instead of LDR.
+	/// @thread_safety Internally synchronized. A single load with the ordering the thread-safe
+	///                build needs and none in the plain build. Given a pointer, not an index into
+	///                anything it validates -- the caller supplies both, and both come from a
+	///                snapshot it already holds.
 	static FORCE_INLINE uint32_t loadAliveAcquire(const uint32_t* p, size_t i) noexcept {
-		if constexpr (ThreadSafe) {
-			return std::atomic_ref<uint32_t>(const_cast<uint32_t&>(p[i]))
-				.load(std::memory_order_acquire);
-		} else {
-			return p[i];
-		}
+		return detail::loadAliveAcquire<ThreadSafe>(p, i);
 	}
 
 #define ITERATOR_COMMON_USING(IteratorName)                                         \
@@ -656,16 +729,20 @@ public:
 		ITERATOR_COMMON_USING(Iterator)
 
 		Iterator(const SectorsArray* array, size_t idx) {
-			// Both snapshots are lock-free; the chunk table is published by a seqlock so it
-			// can be read without the array shared lock (see ChunksAllocator::loadChunks).
+			// The dense view first and the chunk table second, and the order is the point:
+			// the table must be no older than the size it is indexed with. Taken the other
+			// way round, an append landing between the two leaves a size that counts a
+			// sector living in a chunk this table does not list, and the walk runs past its
+			// end. Both snapshots are lock-free -- the chunk table has a seqlock of its own,
+			// so neither needs the array's shared lock (see ChunksAllocator::loadChunks).
+			auto view = array->mDenseArrays.loadView();
+			mIds = view.ids;
+			mIsAlive = view.isAlive;
+
 			const auto chunks = array->mAllocator.loadChunks();
 			mChunks = chunks.chunks;
 			mChunksCount = chunks.count;
 			mStride = chunks.sectorSize;
-
-			auto view = array->mDenseArrays.loadView();
-			mIds = view.ids;
-			mIsAlive = view.isAlive;
 			mSize = view.size;
 			mIdx = std::min(idx, mSize);
 			initChunkState();
@@ -745,7 +822,15 @@ public:
 	// seqlock and the chunk table seqlock), and old buffers stay readable because both are
 	// retire-allocated. Taking the shared lock here only serialised readers against each
 	// other on one mutex word.
+	/// @thread_safety Internally synchronized. Building one takes no lock: an iterator is made
+	///                entirely from lock-free snapshots. The iterator itself belongs to one thread,
+	///                and it stays valid only while nothing compacts the array -- which is what the
+	///                view's structural hold is for. Do not carry one across a defragment.
 	template<bool TS = ThreadSafe> Iterator begin() const { enforceTSMode<TS>(); return Iterator(this, 0); }
+	/// @thread_safety Internally synchronized. Building one takes no lock: an iterator is made
+	///                entirely from lock-free snapshots. The iterator itself belongs to one thread,
+	///                and it stays valid only while nothing compacts the array -- which is what the
+	///                view's structural hold is for. Do not carry one across a defragment.
 	template<bool TS = ThreadSafe> Iterator end()   const { enforceTSMode<TS>(); return Iterator(this, sizeImpl()); }
 
 	/**
@@ -762,15 +847,24 @@ public:
 			: mIdx(idx)
 			, mAliveMask(aliveMask)
 			, mIsPacked(isPacked) {
+			// The dense view first and the chunk table second, and the order is the point:
+			// the table must be no older than the size it is indexed with. Taken the other
+			// way round, an append landing between the two leaves a size that counts a
+			// sector living in a chunk this table does not list, and the walk runs past its
+			// end. Both snapshots are lock-free -- the chunk table has a seqlock of its own,
+			// so neither needs the array's shared lock (see ChunksAllocator::loadChunks).
+			auto view = array->mDenseArrays.loadView();
+			mIds = view.ids;
+			mIsAlive = view.isAlive;
+
 			const auto chunks = array->mAllocator.loadChunks();
 			mChunks = chunks.chunks;
 			mChunksCount = chunks.count;
 			mStride = chunks.sectorSize;
-
-			auto view = array->mDenseArrays.loadView();
-			mIds = view.ids;
-			mIsAlive = view.isAlive;
 			mSize = std::min(sz, view.size);
+			// Clamped against the snapshot, as Iterator does: an index past it would read
+			// liveness words that are not in this view.
+			mIdx = std::min(mIdx, mSize);
 			if (mIsPacked) {
 				initChunkState();
 			} else {
@@ -791,11 +885,16 @@ public:
 
 		FORCE_INLINE IteratorAlive& operator++() noexcept {
 			++mIdx;
-			if (mIsPacked) [[likely]] {
-				// Fast path: no dead slots, just advance pointer
-				advanceDataPtr();
-			} else {
-				// Slow path: scan isAliveData for next alive, then sync pointer
+			// Step first, scan only across a gap. The scan is not cheap -- it reads four
+			// liveness words before it will even look at one, and then rebuilds the data
+			// pointer from the index through the chunk table -- and it used to run on every
+			// increment, including the overwhelmingly common one where the very next slot is
+			// alive and a pointer bump is the whole job. Over a million single-component
+			// sectors that was 1.77 ms against 1.06 for this, same elements and same result.
+			advanceDataPtr();
+			if (!mIsPacked
+				&& mIdx < mSize
+				&& !(loadAliveRelaxed(mIsAlive, mIdx) & mAliveMask)) [[unlikely]] {
 				skipDeadFast();
 			}
 			return *this;
@@ -905,9 +1004,15 @@ public:
 	};
 
 	/// @brief Check if array has no dead slots (defragmentSize == 0)
+	/// @thread_safety Internally synchronized. One relaxed load. True when no dead slot is
+	///                waiting to be compacted away.
 	template<bool TS = ThreadSafe>
 	bool isPacked() const { enforceTSMode<TS>(); return mDefragmentSize.load(std::memory_order_relaxed) == 0; }
 
+	/// @thread_safety Internally synchronized. Building one takes no lock: an iterator is made
+	///                entirely from lock-free snapshots. The iterator itself belongs to one thread,
+	///                and it stays valid only while nothing compacts the array -- which is what the
+	///                view's structural hold is for. Do not carry one across a defragment.
 	template<class T, bool TS = ThreadSafe>
 	IteratorAlive beginAlive() const {
 		// Note: isPacked=false because we're filtering by a specific component's alive mask,
@@ -916,6 +1021,10 @@ public:
 		enforceTSMode<TS>();
 		return IteratorAlive(this, 0, sizeImpl(), getLayoutData<T>().isAliveMask, false);
 	}
+	/// @thread_safety Internally synchronized. Building one takes no lock: an iterator is made
+	///                entirely from lock-free snapshots. The iterator itself belongs to one thread,
+	///                and it stays valid only while nothing compacts the array -- which is what the
+	///                view's structural hold is for. Do not carry one across a defragment.
 	template<bool TS = ThreadSafe>
 	IteratorAlive endAlive() const {
 		enforceTSMode<TS>();
@@ -933,14 +1042,20 @@ public:
 		ITERATOR_COMMON_USING(RangedIterator)
 
 		RangedIterator(const SectorsArray* array, const Ranges<SectorId>& ranges) {
+			// The dense view first and the chunk table second, and the order is the point:
+			// the table must be no older than the size it is indexed with. Taken the other
+			// way round, an append landing between the two leaves a size that counts a
+			// sector living in a chunk this table does not list, and the walk runs past its
+			// end. Both snapshots are lock-free -- the chunk table has a seqlock of its own,
+			// so neither needs the array's shared lock (see ChunksAllocator::loadChunks).
+			auto view = array->mDenseArrays.loadView();
+			mIds = view.ids;
+			mIsAlive = view.isAlive;
+
 			const auto chunks = array->mAllocator.loadChunks();
 			mChunks = chunks.chunks;
 			mChunksCount = chunks.count;
 			mStride = chunks.sectorSize;
-
-			auto view = array->mDenseArrays.loadView();
-			mIds = view.ids;
-			mIsAlive = view.isAlive;
 			mSize = view.size;
 			// Convert SectorId ranges to linear index ranges
 			for (const auto& [first, last] : ranges.ranges) {
@@ -1075,11 +1190,19 @@ public:
 		uint16_t mStride = 0;
 	};
 
+	/// @thread_safety Internally synchronized. Building one takes no lock: an iterator is made
+	///                entirely from lock-free snapshots. The iterator itself belongs to one thread,
+	///                and it stays valid only while nothing compacts the array -- which is what the
+	///                view's structural hold is for. Do not carry one across a defragment.
 	template<bool TS = ThreadSafe>
 	RangedIterator beginRanged(const Ranges<SectorId>& ranges) const {
 		enforceTSMode<TS>();
 		return RangedIterator(this, ranges);
 	}
+	/// @thread_safety Internally synchronized. Building one takes no lock: an iterator is made
+	///                entirely from lock-free snapshots. The iterator itself belongs to one thread,
+	///                and it stays valid only while nothing compacts the array -- which is what the
+	///                view's structural hold is for. Do not carry one across a defragment.
 	template<bool TS = ThreadSafe>
 	RangedIterator endRanged() const {
 		enforceTSMode<TS>();
@@ -1112,8 +1235,16 @@ private:
 	}
 
 public:
+	/// @thread_safety Internally synchronized; blocks. The destructor clears, and clearing waits
+	///                for every pin and hold to drain, so a view open on another thread stalls it
+	///                for as long as that view lives -- in-flight readers are waited for.
+	///
+	///                That is a synchronization guarantee, not a lifetime one: nothing may start
+	///                reading the array once destruction has begun.
 	~SectorsArray() { clear(); shrinkToFit(); }
 
+	/// @thread_safety Internally synchronized, vacuously: nothing can name the array until this
+	///                returns, so there is nothing to race with.
 	template <typename... Types>
 	static SectorsArray* create(Allocator&& allocator = {}) {
 		static_assert(types::areUnique<Types...>, "Duplicates detected in SectorsArray types!");
@@ -1125,9 +1256,12 @@ public:
 
 	// ==================== Layout helpers ====================
 
+	/// @thread_safety Internally synchronized. The layout is fixed when the array is created and
+	///                never changes, so this needs no lock and cannot go stale.
 	template<typename T>
 	FORCE_INLINE const LayoutData& getLayoutData() const { return getLayout()->template getLayoutData<T>(); }
 
+	/// @thread_safety Internally synchronized. The layout is fixed at creation and never changes.
 	FORCE_INLINE const SectorLayoutMeta* getLayout() const { return mAllocator.getSectorLayout(); }
 
 	// ==================== Pin API (ThreadSafe builds) ====================
@@ -1136,18 +1270,27 @@ public:
 	// The shared lock used to be what made "writer holds the unique lock => no new pins"
 	// true; the epoch handshake replaces it, and every reader stops serialising on one word.
 
+	/// @thread_safety Internally synchronized. Takes no lock. While the pin lives, that sector
+	///                will not be moved, destroyed or reused -- which is also what makes another
+	///                thread destroying this entity wait. Do not pin a sector and then destroy or
+	///                overwrite it from the same thread.
 	template<bool TS = true>
 	[[nodiscard]] PinnedSector pinSector(SectorId id) const requires(ThreadSafe) {
 		enforceTSMode<TS>();
 		return pinSectorImpl(id);
 	}
 
+	/// @thread_safety Internally synchronized. As pinSector(), addressed by dense index. The
+	///                index is only meaningful while the array is not being compacted, so this is
+	///                for callers already iterating.
 	template<bool TS = true>
 	[[nodiscard]] PinnedSector pinSectorAt(size_t idx) const requires(ThreadSafe) {
 		enforceTSMode<TS>();
 		return pinSectorAtImpl(idx);
 	}
 
+	/// @thread_safety Internally synchronized. As pinSector(), for whichever sector is last at
+	///                the moment of the call.
 	template<bool TS = true>
 	[[nodiscard]] PinnedSector pinBackSector() const requires(ThreadSafe) {
 		enforceTSMode<TS>();
@@ -1156,6 +1299,10 @@ public:
 
 	/// @brief Block compaction of this array for as long as the returned object lives.
 	/// Use this, not a pin, when the point is "do not move things", not "leave this sector".
+	/// @thread_safety Internally synchronized. Cheaper than a pin and per thread rather than per
+	///                sector. While one lives no sector in this array may be relocated -- so every
+	///                whole-array writer waits for it. This is what a view holds for its lifetime.
+	///                Hold it for as short a time as the reading takes.
 	[[nodiscard]] StructuralHold holdStructure() const requires(ThreadSafe) {
 		// Same courtesy the pin path pays: a few threads building views in a loop would
 		// otherwise keep the array permanently held and compaction would never run.
@@ -1165,6 +1312,11 @@ public:
 
 	// ==================== Erase & maintenance ====================
 
+	/// @thread_safety Internally synchronized; blocks on the whole array. Erasing by position
+	///                closes the gap, which moves sectors, so it waits until the array carries no
+	///                pins and no holds. Illegal from a thread holding a view on this array.
+	///
+	///                The deferred counterpart, safe from anywhere, is eraseAsync().
 	template<bool TS = ThreadSafe>
 	void erase(size_t beginIdx, size_t count = 1, bool defragment = false) {
 		if constexpr(TS && ThreadSafe) {
@@ -1178,6 +1330,11 @@ public:
 		}
 	}
 
+	/// @thread_safety Internally synchronized; blocks on the whole array. Same as erase(idx):
+	///                it moves sectors, so it waits for every pin and hold. Passing an iterator
+	///                obtained from a view that is still open is exactly the deadlock case.
+	///
+	///                The deferred counterpart, safe from anywhere, is eraseAsync().
 	template<bool TS = ThreadSafe>
 	Iterator erase(Iterator it, bool defragment = false) noexcept {
 		auto idx = it.linearIndex();
@@ -1194,6 +1351,55 @@ public:
 		}
 	}
 
+	/**
+	 * @brief Ask for the array to be cleared at the next safe point, instead of now.
+	 *
+	 * The deferred counterpart to clear(). Clearing destroys every sector and drops the
+	 * published size to zero, so a reader mid-iteration would be walking sectors that are
+	 * gone -- which is why clear() waits for the array to carry no pins and no holds, and why
+	 * calling it from a thread that is itself iterating deadlocks.
+	 *
+	 * This only records the wish and returns. processPendingErases() -- which Registry::update()
+	 * calls for every array -- performs it the first time it finds the array free. That makes it
+	 * safe to ask for from anywhere, including from inside a loop over a view.
+	 *
+	 * @note Asked for, not promised. An array that something is always iterating stays busy and
+	 *       the clear keeps waiting, quietly, for a frame where it can run. If you need it to
+	 *       have happened, call clear() at a point where nothing is reading.
+	 * @thread_safety Internally synchronized. One relaxed store; nothing is waited for.
+	 * @see clear(), eraseAsync(), Registry::update()
+	 */
+	void clearAsync() requires(ThreadSafe) {
+		mHasPendingClear.store(true, std::memory_order_release);
+	}
+
+	/// @brief Whether a clearAsync() is still waiting for a frame it can run in.
+	/// @thread_safety Internally synchronized. One atomic load.
+	bool hasPendingClear() const noexcept { return mHasPendingClear.load(std::memory_order_acquire); }
+
+	/// @brief Clear if the array is free right now; leave it for the next call if not.
+	/// @return true if the clear ran.
+	/// @thread_safety Internally synchronized. Gives up rather than waiting, so it is safe to
+	///                call from a thread holding a view -- it simply does nothing that time.
+	bool tryClearImpl() requires(ThreadSafe) {
+		// Announce, as tryDefragmentImpl() does: readers that hold nothing stand aside, so a
+		// busy array is usually free by the next call rather than perpetually skipped.
+		Threads::PinCounters::WriterIntent intent(mPinsCounter);
+		if (mPinsCounter.hasAnyPins()) { return false; }
+
+		auto lock = writeLock();
+		StructuralEdit edit(*this);
+		// Re-checked after the epoch is published, as everywhere else.
+		if (mPinsCounter.hasAnyPins()) { return false; }
+
+		clearImpl();
+		mHasPendingClear.store(false, std::memory_order_release);
+		return true;
+	}
+
+	/// @thread_safety Internally synchronized. Queues the ids and returns; nothing is moved and
+	///                nothing is waited for. The work happens in processPendingErases(), which
+	///                Registry::update() calls. This is the erase to use while others iterate.
 	void eraseAsync(SectorId id, size_t count = 1) requires(ThreadSafe) {
 		// Note: Uses shared_lock for initial lookup, unique_lock for actual modification.
 		// Early exit optimization if sector not found. Element deletion may be deferred.
@@ -1215,18 +1421,28 @@ public:
 	// the lock was released, so holding it never made the result more authoritative.
 	// Operations that must *keep* a result valid pin the sector instead (see pinSector).
 
+	/// @thread_safety Internally synchronized. Lock-free: reads a published snapshot, takes
+	///                no lock and waits for nothing. The index is a position, and a position is only
+	///                stable while nothing compacts the array -- hold a view or a pin if you mean
+	///                to use it afterwards.
 	template<bool TS = ThreadSafe>
 	size_t findLinearIdx(SectorId sectorId) const {
 		enforceTSMode<TS>();
 		return findLinearIdxImpl(sectorId);
 	}
 
+	/// @thread_safety Internally synchronized. Lock-free: reads a published snapshot, takes
+	///                no lock and waits for nothing. True when the call was made; another thread may
+	///                destroy the entity immediately after.
 	template<bool TS = ThreadSafe>
 	bool containsSector(SectorId id) const {
 		enforceTSMode<TS>();
 		return containsSectorImpl(id);
 	}
 
+	/// @thread_safety Internally synchronized. Lock-free: reads a published snapshot, takes
+	///                no lock and waits for nothing. The pointer is only good while the sector cannot
+	///                move: pin it, or hold the array, if the pointer outlives the call.
 	template<bool TS = ThreadSafe>
 	std::byte* findSectorData(SectorId id) const {
 		enforceTSMode<TS>();
@@ -1235,12 +1451,17 @@ public:
 
 	/// @brief Find slot info (data pointer + linearIdx) for fast sparse lookup
 	/// @return SlotInfo with data pointer and linear index, or INVALID_SLOT if not found
+	/// @thread_safety Internally synchronized. Lock-free: reads a published snapshot, takes
+	///                no lock and waits for nothing. Same caveat as findSectorData(): the slot is a
+	///                position, valid only while nothing compacts.
 	template<bool TS = ThreadSafe>
 	detail::SlotInfo findSlot(SectorId id) const {
 		enforceTSMode<TS>();
 		return findSlotImpl(id);
 	}
 
+	/// @thread_safety Internally synchronized. Lock-free: reads a published snapshot, takes
+	///                no lock and waits for nothing.
 	template<bool TS = ThreadSafe>
 	uint32_t getIsAlive(SectorId id) const {
 		enforceTSMode<TS>();
@@ -1250,6 +1471,10 @@ public:
 		return idx != INVALID_IDX ? loadAliveWord<ThreadSafe>(idx) : 0;
 	}
 
+	/// @thread_safety Caller must ensure exclusive access. Hands out a reference into the live
+	///                liveness array, so it is only sound where the array cannot be compacted and
+	///                nobody else writes that word -- inside a body given to exclusiveWhenUnpinned,
+	///                or under a lock you hold. Prefer loadAliveWord() to read one.
 	template<bool TS = ThreadSafe>
 	uint32_t& getIsAliveRef(size_t linearIdx) {
 		return mDenseArrays.isAliveAt(linearIdx);
@@ -1262,6 +1487,9 @@ public:
 	/// Old isAlive buffers remain valid because RetireAllocator defers their free.
 	/// Returns 0 if linearIdx is outside the snapshot (newly allocated slot not yet
 	/// published), which callers treat as "not alive".
+	/// @thread_safety Internally synchronized. Lock-free: reads a published snapshot, takes
+	///                no lock and waits for nothing. Bounds-checked: an index past the published
+	///                size reads as not alive rather than out of bounds.
 	template<bool TS = ThreadSafe>
 	FORCE_INLINE uint32_t loadAliveWord(size_t linearIdx) const noexcept {
 		if constexpr (TS) {
@@ -1273,6 +1501,8 @@ public:
 		}
 	}
 
+	/// @thread_safety Internally synchronized. Lock-free: reads a published snapshot, takes
+	///                no lock and waits for nothing.
 	template<bool TS = ThreadSafe>
 	SectorId getId(size_t linearIdx) const {
 		return mDenseArrays.idAt(linearIdx);
@@ -1283,43 +1513,80 @@ public:
 	// sparseCapacity/size/empty read a single atomic -- no lock needed (see Lookup note).
 	// capacity() keeps the shared lock: it reads the chunk vector, which a concurrent
 	// allocate() may be reallocating, and that vector is not published through a seqlock.
+	/// @thread_safety Internally synchronized. One atomic load.
 	template<bool TS = ThreadSafe> size_t sparseCapacity() const { enforceTSMode<TS>(); return mSparseMap.capacity(); }
+	/// @thread_safety Internally synchronized. Takes the shared lock, briefly: it reads the chunk
+	///                vector, which a concurrent growth may be reallocating, and that vector is not
+	///                published through a seqlock the way the dense arrays are.
 	template<bool TS = ThreadSafe> size_t capacity() const { TS_GUARD(TS && ThreadSafe, SHARED, return mAllocator.capacity()); }
+	/// @thread_safety Internally synchronized. One atomic load. A count, not a promise: another
+	///                thread may add or destroy before you act on it.
 	template<bool TS = ThreadSafe> size_t size() const { enforceTSMode<TS>(); return sizeImpl(); }
+	/// @thread_safety Internally synchronized. One atomic load. @see size()
 	template<bool TS = ThreadSafe> bool empty() const { enforceTSMode<TS>(); return sizeImpl() == 0; }
+	/// @thread_safety Internally synchronized. Takes the write lock and returns the chunks past
+	///                the end. It moves no sector, so it does not wait for pins or holds. The chunks
+	///                are retired rather than freed, so a reader still holding a pointer into one is
+	///                safe until the grace period expires.
 	template<bool TS = ThreadSafe> void shrinkToFit() { TS_GUARD(TS && ThreadSafe, UNIQUE, shrinkToFitImpl()); }
 
+	/// @thread_safety Internally synchronized. Takes the write lock and adds chunks. Nothing is
+	///                moved, so it does not wait for pins or holds -- growing is always legal, even
+	///                while others iterate. Doing it up front keeps it off the frame.
 	template<bool TS = ThreadSafe> void reserve(uint32_t newCapacity) { TS_GUARD(TS && ThreadSafe, UNIQUE, reserveImpl(newCapacity)); }
+	/// @thread_safety Internally synchronized; blocks on the whole array. Destroys every sector,
+	///                no pins and no holds. A view open on another thread holds it up; a view
+	///                open on this thread deadlocks.
+	///
+	///                The deferred way to ask for this from anywhere, including from inside a
+	///                loop over a view, is clearAsync().
 	template<bool TS = ThreadSafe> void clear() {
 		if constexpr (TS && ThreadSafe) { exclusiveWhenQuiescent([&] { clearImpl(); }); }
 		else { clearImpl(); }
+		// A clearAsync() still waiting for a free frame has just had its wish granted.
+		// Leaving the flag set sends the next maintenance pass through a write lock and a
+		// published structural epoch to clear an array that is already empty.
+		mHasPendingClear.store(false, std::memory_order_release);
 	}
 
 	// ==================== Defragmentation ====================
 
+	/// @thread_safety Internally synchronized; blocks on the whole array. Compaction moves
+	///                sectors, so it waits until the array carries no pins and no holds. For the
+	///                non-waiting version, which gives up if the array is busy, see
+	///                tryDefragment() -- or Registry::update(), which calls it for every array.
 	template<bool TS = ThreadSafe>
 	void defragment() {
 		if constexpr (TS && ThreadSafe) { exclusiveWhenQuiescent([&] { defragmentImpl(); }); }
 		else { defragmentImpl(); }
 	}
 
+	/// @thread_safety Internally synchronized. The non-blocking counterpart to defragment():
+	///                if anything is pinned or held it returns without compacting, and the work is
+	///                left for a later call. Safe to call on a schedule from a busy frame.
 	template<bool TS = ThreadSafe>
 	void tryDefragment() { TS_GUARD_S(TS && ThreadSafe, UNIQUE, if (mPinsCounter.hasAnyPins()) return;, defragmentImpl();); }
 
+	/// @thread_safety Internally synchronized. One relaxed increment of the dead-slot counter.
 	void incDefragmentSize(uint32_t count = 1) { mDefragmentSize.fetch_add(count, std::memory_order_relaxed); }
 
+	/// @thread_safety Internally synchronized. One relaxed load.
 	template<bool TS = ThreadSafe> auto getDefragmentationSize() const { enforceTSMode<TS>(); return mDefragmentSize.load(std::memory_order_relaxed); }
+	/// @thread_safety Internally synchronized. Two relaxed loads; the ratio may be a hair stale.
 	template<bool TS = ThreadSafe> auto getDefragmentationRatio() const {
 		enforceTSMode<TS>();
 		const auto sz = sizeImpl();
 		return sz ? (static_cast<float>(mDefragmentSize.load(std::memory_order_relaxed)) / static_cast<float>(sz)) : 0.f;
 	}
+	/// @thread_safety Internally synchronized. Relaxed loads against the threshold.
 	template<bool TS = ThreadSafe> bool needDefragment() const {
 		enforceTSMode<TS>();
-		return getDefragmentationRatio<false>() > mDefragThreshold;
+		return getDefragmentationRatio<false>() > loadDefragThreshold();
 	}
+	/// @thread_safety Internally synchronized. One relaxed store. Changes when compaction is
+	///                asked for, never compaction itself.
 	template<bool TS = ThreadSafe> void setDefragmentThreshold(float threshold) { 
-		TS_GUARD(TS && ThreadSafe, UNIQUE, mDefragThreshold = std::max(0.f, std::min(threshold, 1.f));); 
+		enforceTSMode<TS>(); storeDefragThreshold(std::max(0.f, std::min(threshold, 1.f))); 
 	}
 
 	// ==================== Retired Memory Management (ThreadSafe only) ====================
@@ -1338,10 +1605,20 @@ public:
 	 *       that a frame loop does not have to branch on the mode.
 	 * 
 	 * @return Number of memory blocks freed this tick
+	 * @thread_safety Internally synchronized. Advances the grace period and frees what has
+	 *                expired. Takes a bin's mutex only when that bin holds something.
 	 */
 	size_t tick() { return tickRetired(); }
 
 
+	/// @thread_safety Internally synchronized; blocks. An id above every id already stored is
+	///                appended, and that waits for nothing. An id landing anywhere else has to shift
+	///                the sectors after it, so it waits until the array carries no pins and no
+	///                holds -- from a thread holding a view on this array, a deadlock. Overwriting
+	///                an id that is already stored waits only on that one sector.
+	///
+	///                To add from inside a loop over a view, record into an ecss::CommandBuffer
+	///                and apply it once the loop is done.
 	template<typename T, bool TS = ThreadSafe>
 	std::remove_cvref_t<T>* insert(SectorId sectorId, T&& data) noexcept {
 		using U = std::remove_cvref_t<T>;
@@ -1354,6 +1631,14 @@ public:
 		}
 	}
 
+	/// @thread_safety Internally synchronized; blocks. An id above every id already stored is
+	///                appended, and that waits for nothing. An id landing anywhere else has to shift
+	///                the sectors after it, so it waits until the array carries no pins and no
+	///                holds -- from a thread holding a view on this array, a deadlock. Overwriting
+	///                an id that is already stored waits only on that one sector.
+	///
+	///                To add from inside a loop over a view, record into an ecss::CommandBuffer
+	///                and apply it once the loop is done.
 	template<typename T, bool TS = ThreadSafe, class... Args>
 	T* emplace(SectorId sectorId, Args&&... args) noexcept {
 		if constexpr (TS && ThreadSafe) {
@@ -1365,6 +1650,14 @@ public:
 		}
 	}
 
+	/// @thread_safety Internally synchronized; blocks. An id above every id already stored is
+	///                appended, and that waits for nothing. An id landing anywhere else has to shift
+	///                the sectors after it, so it waits until the array carries no pins and no
+	///                holds -- from a thread holding a view on this array, a deadlock. Overwriting
+	///                an id that is already stored waits only on that one sector.
+	///
+	///                To add from inside a loop over a view, record into an ecss::CommandBuffer
+	///                and apply it once the loop is done.
 	template<typename T, bool TS = ThreadSafe, class... Args>
 	T* push(SectorId sectorId, Args&&... args) noexcept {
 		if constexpr (sizeof...(Args) == 1 && (std::is_same_v<std::remove_cvref_t<Args>, T> && ...)) {
@@ -1386,19 +1679,39 @@ public:
 	/// components one at a time costs O(M*N): each middle insert shifts the tail and rewrites
 	/// the sparse entry of every sector it shifted past. This sorts the batch once and merges
 	/// it in a single pass, so each sector moves at most once.
+	/// @thread_safety Internally synchronized; blocks. A batch entirely above what is stored is
+	///                appended in one pass and waits for nothing. Otherwise the batch is merged into
+	///                place, which moves existing sectors, and that waits until the array carries no
+	///                pins and no holds. Merging is linear in the batch, so this is the cheap way to
+	///                add many ids at once -- one wait instead of one per id.
 	template<typename C, typename It, bool TS = ThreadSafe>
 	void insertBulk(It first, It last) noexcept {
 		if constexpr (TS && ThreadSafe) { exclusiveWhenQuiescent([&] { insertBulkImpl<C>(first, last); }); }
 		else { insertBulkImpl<C>(first, last); }
 	}
 
+	/// @thread_safety Internally synchronized. Nothing here waits. The queued erases destroy
+	///                sectors in place, and compaction is attempted rather than awaited: an array
+	///                something is iterating right now is left for the next call. This is what makes
+	///                Registry::update() safe to call from inside a loop over a view.
 	template<bool Lock = true>
 	void processPendingErases(bool withDefragment = true) requires(ThreadSafe) {
 		// Registry::update() calls this for every array every frame. Both conditions below
 		// are lock-free, so an array with nothing queued and nothing to compact costs a
 		// couple of atomic loads instead of a write-lock acquisition.
 		if constexpr (Lock) {
-			if (!mHasPendingErase.load(std::memory_order_acquire) && !needDefragment<false>()) [[likely]] {
+			if (!mHasPendingErase.load(std::memory_order_acquire)
+				&& !mHasPendingClear.load(std::memory_order_acquire)
+				&& !needDefragment<false>()) [[likely]] {
+				return;
+			}
+		}
+
+		// A pending clear supersedes everything else queued: it destroys the sectors the
+		// erase queue names and leaves nothing to compact. Attempted, not awaited, for the
+		// same reason compaction is -- see tryDefragmentImpl().
+		if constexpr (Lock) {
+			if (mHasPendingClear.load(std::memory_order_acquire) && tryClearImpl()) {
 				return;
 			}
 		}
@@ -1431,6 +1744,9 @@ public:
 
 	/// @brief Compact if the array is free right now; leave it for the next call if not.
 	/// @return true if compaction ran.
+	/// @thread_safety Internally synchronized. Gives up instead of waiting: if anything is
+	///                pinned or held it returns false and compacts nothing.
+	/// @return true if compaction ran.
 	bool tryDefragmentImpl() requires(ThreadSafe) {
 		// Announce the attempt even though we will not block on it: readers back off for a
 		// bounded spin when a writer is waiting (see yieldToWriters), so an array that is
@@ -1452,7 +1768,19 @@ public:
 	}
 
 	// ==================== Lock access (for Registry) ====================
+	/// @thread_safety Caller must ensure exclusive access -- to the decision, not the lock.
+	///                Hands out the raw shared lock, so it waits for the mutex like any lock
+	///                does; that is not the "blocks" above, which means waiting on a pin or a
+	///                hold. What you do under it is yours to get right. Note it
+	///                guards the chunk table and the sparse map, not the sectors: holding it does
+	///                not stop compaction, only a structural hold or a pin does.
 	auto readLock() const requires(ThreadSafe) { return std::shared_lock(mtx); }
+	/// @thread_safety Caller must ensure exclusive access -- to the decision, not the lock.
+	///                Hands out the raw unique lock, so it waits for the mutex and for readers
+	///                holding it shared; that is not the "blocks" above, which means waiting on
+	///                a pin or a hold. Taking it is not enough to relocate sectors: readers
+	///                pin and hold without any lock at all, so anything that moves a sector must
+	///                establish quiescence first. Use exclusiveWhenQuiescent() rather than this.
 	auto writeLock() const requires(ThreadSafe) { return std::unique_lock(mtx); }
 
 	/// @brief RAII publication of "sector storage is changing" around a writer body.
@@ -1487,6 +1815,10 @@ public:
 
 	/// @brief Run @p fn under the write lock once sector @p sectorId carries no pins.
 	///        For operations confined to that one sector (in-place destroy / overwrite).
+	/// @thread_safety Internally synchronized; blocks. Waits for one sector only. Runs fn under the
+	///                write lock once that sector carries no pins; pins on other sectors and holds
+	///                over the array do not delay it, because fn is expected to change that sector
+	///                in place and move nothing. Deadlocks if this thread pins that sector.
 	template<typename Fn>
 	auto exclusiveWhenUnpinned(SectorId sectorId, Fn&& fn) requires(ThreadSafe) {
 		for (;;) {
@@ -1501,10 +1833,63 @@ public:
 		}
 	}
 
+	/// @brief Same as exclusiveWhenUnpinned(id), for a batch of in-place destroys.
+	///
+	/// Does not wait for pins or holds on sectors outside @p [begin, end). A camera pin
+	/// on the same array must not stall destroying unrelated entities — that was
+	/// exclusiveWhenQuiescent, which is for relocation only.
+	/// @thread_safety Internally synchronized; blocks. Waits for the named sectors only, then runs fn
+	///                under the write lock. As the single-id form: fn must change those sectors in
+	///                place and move nothing.
+	template<typename Fn>
+	auto exclusiveWhenUnpinned(const EntityId* begin, const EntityId* end, Fn&& fn) requires(ThreadSafe) {
+		for (;;) {
+			// One aggregate load before the per-id walk: if nothing on the array is pinned at
+			// all, none of the named sectors can be either. Unloading a region names tens of
+			// thousands of ids and was paying for that walk twice over, once per array.
+			if (mPinsCounter.hasAnyPinnedSector()) {
+				for (auto p = begin; p != end; ++p) {
+					if (*p != INVALID_ID) {
+						mPinsCounter.waitUntilChangeable(*p);
+					}
+				}
+			}
+			auto lock = writeLock();
+			StructuralEdit edit(*this);
+			// Re-checked after the epoch is published, never before: a pin taken in between
+			// observes the odd epoch and retries. The aggregate is the stronger question, so
+			// answering it settles every id at once.
+			if (!mPinsCounter.hasAnyPinnedSector()) {
+				return std::forward<Fn>(fn)();
+			}
+			bool blocked = false;
+			for (auto p = begin; p != end; ++p) {
+				if (*p != INVALID_ID && !mPinsCounter.canMoveSector(*p)) {
+					blocked = true;
+					break;
+				}
+			}
+			if (!blocked) {
+				return std::forward<Fn>(fn)();
+			}
+		}
+	}
+
 	/// @brief Run @p fn under the write lock once no sector at all is pinned.
 	///        Required by anything that relocates sectors (shift, defragment, clear, copy).
+	/// @thread_safety Internally synchronized; blocks. Waits for the whole array: fn runs under the
+	///                write lock once nothing is pinned and nothing is held. This is the gate for
+	///                everything that relocates sectors, and the one to use when fn moves anything.
+	///                It re-checks after taking the lock and waits again if a reader slipped in, so
+	///                a thread that keeps opening views on this array can hold it off; from the
+	///                thread that holds the view itself, it never completes.
 	template<typename Fn>
 	auto exclusiveWhenQuiescent(Fn&& fn) requires(ThreadSafe) {
+		// Announced for the whole attempt, not just for the wait inside waitUntilQuiescent().
+		// The intent used to drop the moment that wait returned, so between there and taking
+		// the lock readers saw no writer and had no reason to yield: one of them took a hold,
+		// the check below failed, and the loop went round with the same gap open every time.
+		Threads::PinCounters::WriterIntent intent(mPinsCounter);
 		for (;;) {
 			mPinsCounter.waitUntilQuiescent();
 			auto lock = writeLock();
@@ -1521,6 +1906,10 @@ public:
 	/// shifts every following sector, so it additionally needs quiescence -- but that is
 	/// only discoverable under the lock, hence the two-tier retry: tryAcquireSlotImpl
 	/// declines with INVALID_IDX and the wait happens after the lock is released.
+	/// @thread_safety Internally synchronized; blocks. Two tiers, because how much it must wait for is
+	///                only knowable under the lock. An append or an overwrite of an existing id
+	///                proceeds immediately; an id landing in the middle needs the array quiescent,
+	///                and that wait happens after the lock is dropped.
 	template<typename Fn>
 	auto exclusiveForInsert(SectorId sectorId, Fn&& fn) requires(ThreadSafe) {
 		for (;;) {
@@ -1668,7 +2057,24 @@ private:
 	/// @brief Give a waiting writer a bounded window to acquire before pinning again.
 	/// Bounded on purpose: the caller may already hold a pin the writer is waiting for, so
 	/// blocking here would deadlock. See PinCounters::writersWaiting.
+	/// @brief Stand aside for a writer that is trying to reach quiescence.
+	///
+	/// A bounded yield was not enough. Readers that open views back to back keep at least one
+	/// hold outstanding at every instant, so a writer waiting for *all* of them to be gone
+	/// never got its moment: it spun, gave up, and went round the loop with the same odds.
+	/// Measured at 400k sectors, defragment() never completed with eight such readers.
+	///
+	/// So a reader that holds nothing waits properly instead of yielding -- it can afford to,
+	/// because it cannot be what the writer is waiting for. A reader that already holds a pin
+	/// or a hold keeps the old bounded spin: blocking there would be waiting for itself.
+	/// @thread_safety Internally synchronized; blocks, but only a thread that holds nothing.
 	FORCE_INLINE void yieldToWriters() const {
+		if (!mPinsCounter.writersWaiting()) [[likely]] { return; }
+
+		if (Threads::PinCounters::threadHoldsNothing()) {
+			mPinsCounter.waitForWritersToPass();
+			return;
+		}
 		for (int spins = 0; spins < kWriterYields && mPinsCounter.writersWaiting(); ++spins) {
 			std::this_thread::yield();
 		}
@@ -1723,8 +2129,9 @@ private:
 	}
 
 	void shrinkToFitImpl() {
-		mAllocator.deallocate(sizeImpl(), mAllocator.capacity());
-		mDenseArrays.shrinkToFit();
+		const auto sz = sizeImpl();
+		mAllocator.deallocate(sz, mAllocator.capacity());
+		mDenseArrays.shrinkToFit(sz);
 	}
 
 	void clearImpl() {
@@ -2160,11 +2567,12 @@ private:
 	}
 
 	void eraseAsyncImpl(SectorId id) requires(ThreadSafe) {
-		// Initial check with shared lock - early exit optimization
-		{
-			SHARED_LOCK();
-			if (findLinearIdxImpl(id) == INVALID_IDX) return;
-		}
+		// Early exit for an id this array does not hold. The lookup reads the sparse map's
+		// published snapshot and takes no lock -- the same read every other path here does
+		// lock-free -- so the shared lock this used to take bought nothing. The answer is a
+		// snapshot either way, which is why the real work below re-reads under the unique
+		// lock rather than trusting it.
+		if (findLinearIdxImpl(id) == INVALID_IDX) { return; }
 
 		if (!mPinsCounter.isPinned(id)) {
 			UNIQUE_LOCK();
@@ -2195,8 +2603,8 @@ private:
 			auto tmp = std::move(mPendingErase);
 			mPendingErase.clear(); // moved-from vectors are only "valid but unspecified"
 			mHasPendingErase.store(false, std::memory_order_release);
-			std::ranges::sort(tmp);
-			tmp.erase(std::ranges::unique(tmp).begin(), tmp.end());
+			std::sort(tmp.begin(), tmp.end());
+			tmp.erase(std::unique(tmp.begin(), tmp.end()), tmp.end());
 
 			for (auto id : tmp) {
 				auto idx = findLinearIdxImpl(id);
@@ -2326,7 +2734,6 @@ private:
 			mDenseArrays.setIdAt(i, other.mDenseArrays.idAt(i));
 			mDenseArrays.setAliveAt(i, other.mDenseArrays.isAliveAt(i));
 		}
-		mDenseArrays.storeView(otherSz);
 		
 		if (!getLayout()->isTrivial()) {
 			for (size_t i = 0; i < otherSz; ++i) {
@@ -2338,8 +2745,10 @@ private:
 					getLayout());
 				mDenseArrays.setAliveAt(i, dstIsAlive);
 			}
-			mDenseArrays.storeView(otherSz);
 		}
+		// Published once, and only here: a sector announced alive before its members are
+		// constructed is one a lock-free reader can pick up and read as raw zeroes.
+		mDenseArrays.storeView(otherSz);
 		
 		mSparseMap.resize(other.mSparseMap.capacity());
 		for (size_t i = 0; i < otherSz; ++i) {
@@ -2347,7 +2756,7 @@ private:
 		}
 
 		mDefragmentSize.store(other.mDefragmentSize.load(std::memory_order_relaxed), std::memory_order_relaxed);
-		mDefragThreshold = other.mDefragThreshold;
+		storeDefragThreshold(other.loadDefragThreshold());
 	}
 
 	template<bool T, typename Alloc>
@@ -2401,12 +2810,46 @@ private:
 
 		auto otherSz = other.sizeImpl();
 		mSize.store(otherSz, std::memory_order_relaxed);
-		mAllocator = std::move(other.mAllocator);
-		
-		mDenseArrays.resize(otherSz, otherSz);
-		for (size_t i = 0; i < otherSz; ++i) {
-			mDenseArrays.setIdAt(i, other.mDenseArrays.idAt(i));
-			mDenseArrays.setAliveAt(i, other.mDenseArrays.isAliveAt(i));
+		if constexpr (Allocator::mChunkCapacity == Alloc::mChunkCapacity) {
+			// Same chunk geometry, so the chunks simply change owner and no sector moves.
+			mAllocator = std::move(other.mAllocator);
+			
+			mDenseArrays.resize(otherSz, otherSz);
+			for (size_t i = 0; i < otherSz; ++i) {
+				mDenseArrays.setIdAt(i, other.mDenseArrays.idAt(i));
+				mDenseArrays.setAliveAt(i, other.mDenseArrays.isAliveAt(i));
+			}
+		}
+		else {
+			// Different capacities put every sector at a different address, so each one has
+			// to be relocated rather than adopted. The allocator's own cross-capacity path
+			// does that with memcpy, which is a lie for any member that owns a resource or
+			// points into itself -- and it cannot do better, because the liveness words that
+			// say which members exist are held here, not in there. So it happens at this
+			// level, where they are.
+			mAllocator.copyCommonData(other.mAllocator);
+			mAllocator.allocate(otherSz);
+			
+			mDenseArrays.resize(otherSz, otherSz);
+			const bool trivial = getLayout()->isTrivial();
+			for (size_t i = 0; i < otherSz; ++i) {
+				mDenseArrays.setIdAt(i, other.mDenseArrays.idAt(i));
+				if (trivial) {
+					std::memcpy(mAllocator.at(i), other.mAllocator.at(i), mAllocator.mSectorSize);
+					mDenseArrays.setAliveAt(i, other.mDenseArrays.isAliveAt(i));
+				}
+				else {
+					// Destination liveness starts at zero: moveSectorData destroys whatever the
+					// target claims to hold before moving into it, and the target holds nothing.
+					uint32_t toIsAlive = 0;
+					Sector::moveSectorData(
+						other.mAllocator.at(i), other.mDenseArrays.isAliveAt(i),
+						mAllocator.at(i), toIsAlive,
+						getLayout());
+					mDenseArrays.setAliveAt(i, toIsAlive);
+				}
+			}
+			other.mAllocator.deallocate(0, other.mAllocator.capacity());
 		}
 		mDenseArrays.storeView(otherSz);
 		
@@ -2416,7 +2859,7 @@ private:
 		}
 
 		mDefragmentSize.store(other.mDefragmentSize.load(std::memory_order_relaxed), std::memory_order_relaxed);
-		mDefragThreshold = other.mDefragThreshold;
+		storeDefragThreshold(other.loadDefragThreshold());
 		
 		// The source must stop advertising sectors it no longer owns: its sparse slots still
 		// point into the chunks this array just took over, so containsSector()/findSectorData()
@@ -2428,6 +2871,7 @@ private:
 		other.mDenseArrays.clear(0);
 		other.mPendingErase.clear();
 		other.mHasPendingErase.store(false, std::memory_order_release);
+		other.mHasPendingClear.store(false, std::memory_order_release);
 		other.mDefragmentSize.store(0, std::memory_order_relaxed);
 		other.shrinkToFitImpl();
 	}
@@ -2447,6 +2891,21 @@ private:
 
 	// Sparse map: [sectorId] -> linearIdx
 	detail::SparseMap<ThreadSafe> mSparseMap;
+
+	FORCE_INLINE float loadDefragThreshold() const noexcept {
+		if constexpr (ThreadSafe) {
+			return std::atomic_ref<float>(const_cast<float&>(mDefragThreshold))
+				.load(std::memory_order_relaxed);
+		}
+		else { return mDefragThreshold; }
+	}
+
+	FORCE_INLINE void storeDefragThreshold(float value) noexcept {
+		if constexpr (ThreadSafe) {
+			std::atomic_ref<float>(mDefragThreshold).store(value, std::memory_order_relaxed);
+		}
+		else { mDefragThreshold = value; }
+	}
 
 	static_assert(types::isLockFreeAtomic<size_t>,   "mSize must be lock-free");
 	static_assert(types::isLockFreeAtomic<uint32_t>, "mDefragmentSize must be lock-free");
@@ -2468,6 +2927,11 @@ private:
 	/// can skip the write lock for arrays with no deferred erases.
 	std::atomic<bool> mHasPendingErase{ false };
 
+	/// Set by clearAsync(), cleared once the clear actually runs. Separate from the erase
+	/// queue because clearing supersedes it: there is no point destroying named sectors in a
+	/// array that is about to lose all of them.
+	std::atomic<bool> mHasPendingClear{ false };
+
 	/// @brief Structural epoch: odd while sector storage is being relocated or destroyed.
 	/// Read on every pin, written only by structural mutations, so it gets its own line.
 	/// How many times a reader yields to a waiting writer before pinning anyway.
@@ -2478,6 +2942,10 @@ private:
 
 	alignas(kSizeAlign) std::atomic<size_t> mSize{0};
 	std::atomic<uint32_t> mDefragmentSize{0};
+	/// Plain storage read through atomic_ref in the thread-safe build: needDefragment()
+	/// reads it lock-free on the maintenance path while setDefragmentThreshold() writes
+	/// it, and two protocols on one word is a race however benign the value looks.
+	/// @see loadDefragThreshold(), storeDefragThreshold()
 	float mDefragThreshold = 0.2f;
 };
 

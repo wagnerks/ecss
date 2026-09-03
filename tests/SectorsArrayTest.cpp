@@ -1,6 +1,7 @@
 #include <random>
 #include <chrono>
 #include <iostream>
+#include <numeric>
 #include <thread>
 
 #include <ecss/memory/SectorsArray.h>

@@ -151,8 +151,7 @@ jobs:
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }} -- -k 0
 
-      - name: Run tests (Ubuntu only)
-        if: matrix.os == 'ubuntu-latest'
+      - name: Run tests
         env:
           ASAN_SYMBOLIZER_PATH: ${{ steps.sym.outputs.path }}
           CTEST_OUTPUT_ON_FAILURE: "1"
@@ -166,13 +165,17 @@ jobs:
           TEST_TIMEOUT: ${{ steps.flags.outputs.tsan == 'true' && '900' || '150' }}
         run: |
           mkdir -p asan tsan
-          ctest --test-dir build --output-on-failure --build-config ${{ matrix.build_type }} --timeout "${TEST_TIMEOUT}"
+          # PerfBench asserts nothing; it prints timings, and a debug or sanitizer build
+          # measures the instrumentation rather than the library. Minutes per lane for a
+          # number nobody reads.
+          EXCLUDE=$([ "${{ matrix.build_type }}" = "Debug" ] && echo '--exclude-regex PerfBench' || true)
+          ctest --test-dir build --output-on-failure --build-config ${{ matrix.build_type }} --timeout "${TEST_TIMEOUT}" $EXCLUDE
 
       - name: Show ccache stats (after)
         run: ccache -s || true
 
       - name: Upload test logs (on failure)
-        if: failure() && matrix.os == 'ubuntu-latest'
+        if: failure()
         uses: actions/upload-artifact@v4
         with:
           name: posix-ctest-logs-${{ matrix.os }}-${{ matrix.build_type }}-${{ matrix.profile }}
@@ -317,9 +320,19 @@ jobs:
       - name: Build
         run: cmake --build build --config ${{ matrix.build_type }}
 
-      # (No tests on Windows; compile-only validation.)
+      - name: Run tests
+        shell: pwsh
+        env:
+          CTEST_OUTPUT_ON_FAILURE: "1"
+          GTEST_COLOR: "1"
+        run: >
+          ctest --test-dir build
+          --output-on-failure
+          --build-config ${{ matrix.build_type }}
+          --timeout 150
+          ${{ matrix.build_type == 'Debug' && '--exclude-regex PerfBench' || '' }}
 
-      - name: Upload logs on failure (build only)
+      - name: Upload logs on failure
         if: failure()
         uses: actions/upload-artifact@v4
         with:

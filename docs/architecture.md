@@ -129,8 +129,9 @@ built by one registry be handed to another.
 Multiple worlds work and never collide, since an id names a type rather than a slot. What they
 share is the id *space*: a registry's per-type table is sized by the highest global id it uses,
 not by how many types it holds, so a world using ten types in a process that defines four
-hundred still indexes a four-hundred-entry table. Two bytes per unused entry, and only in the
-tables the registry actually keeps.
+hundred still indexes a four-hundred-entry table. An unused entry costs 32 bytes: a null
+pointer in the live map, and three more in the published snapshot readers walk -- the array,
+its layout record, and the layout that record was resolved against.
 
 Making the index per registry was measured and rejected: it costs an extra dependent load on
 every lookup that names a component type, about 0.3 ns, which is roughly 6% of `hasComponent`
@@ -187,6 +188,7 @@ The system automatically detects component triviality at compile time via `Secto
 
 ### Implementation Details
 - `SectorLayoutMeta` stores a `trivial` flag computed from `std::is_trivially_copyable` for all grouped types.
+- Computing that flag also names any component that turned out non‑trivial, since the cost is otherwise invisible: a compiler warning, plus one runtime report through `ecss::setTrivialityReporter` for the projects where the compile‑time half is swallowed (a PCH is a system header). Silence per type with `ecss::AllowNonTrivial<T>`, or entirely with `ECSS_NO_TRIVIALITY_WARNINGS`. See the [FAQ](faq.md#q-what-if-a-component-is-nontrivial).
 - When `isTrivial() == true`: `ChunksAllocator::moveSectorsDataTrivial()` uses raw `memmove`.
 - When `isTrivial() == false`: `Sector::moveSectorData()` invokes move constructors, properly destructs source, and placement‑news into destination.
 - Shift operations iterate in correct order (backwards for right‑shift) to avoid overwriting source before move.
@@ -205,11 +207,16 @@ The system automatically detects component triviality at compile time via `Secto
 - `ThreadSafe` template parameter on `Registry`.
 - Per grouped set defrag threshold setter.
 - Optional explicit grouping via `registerArray<A,B,...>()`.
-- `update()` cadence (e.g. once per frame) to amortize maintenance. Placement is free: nothing
-  in it waits, so it may be called from anywhere and more than once.
-- `setAutoMaintenance(bool)` to let view creation do that work instead, removing the call.
-- Retire grace period per array (`setGracePeriod`), fixed at zero in the non-thread-safe build
-  where there are no lock-free readers to outlive.
+- `update()` cadence (e.g. once per frame) to amortize maintenance. In the thread-safe build
+  placement is free: nothing in it waits, so it may be called from anywhere, including from
+  inside iteration, and more than once. In the plain build it compacts outright, with no
+  holds to tell it a view is open -- there, call it between passes.
+- `setAutoMaintenance(bool)` to move the erase and compaction pass onto view creation. It does
+  not replace `update()`: freeing retired memory is still done there, because a grace period
+  counts how long a reader might still hold a buffer, not how many views have opened since.
+- `Registry::setRetireGracePeriod(ticks)` sets that period for every array it owns, including
+  ones registered later. Fixed at zero in the non-thread-safe build, where there are no
+  lock-free readers to outlive.
 
 ---
 

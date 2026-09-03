@@ -1158,6 +1158,15 @@ namespace RegistryTests {
 		}
 	}
 
+	// A view's structural hold keeps the array's *shape* still: nothing it walks is
+	// relocated while it lives. It says nothing about a component's *value* -- another
+	// thread may overwrite one in place, and adding a component to a recycled id does
+	// exactly that. Reading t->m.a while a writer reconstructs that sector is a race the
+	// container never promised to prevent.
+	//
+	// access<Read<T>> / access<Write<T>> is what promises it, claimed once per pass
+	// rather than per element. Without it TSAN reports a data race on essentially every
+	// run of this test; with it, on none out of forty.
 	TEST(ChunksManager, ConcurrentAccessBugRepro) {
 		using namespace ecss;
 		struct matrix {
@@ -1179,7 +1188,10 @@ namespace RegistryTests {
 				Transform t{ 1.f,1.f,1.f,1.f,1.f,1.f,1.f,1.f };
 				t.m.h = static_cast<float>(i); 
 
+				{
+				auto claim = reg.access<ecss::Write<Transform>>();
 				reg.addComponent<Transform>(ent, t);
+			}
 
 				if (i % 500 == 0)
 					std::this_thread::sleep_for(std::chrono::milliseconds(1));
@@ -1190,7 +1202,8 @@ namespace RegistryTests {
 		
 		std::thread reader([&] {
 			while (running && !foundNaN) {
-				for (auto [e, t] : reg.view<Transform>()) {
+				auto claim = reg.access<ecss::Read<Transform>>();
+			for (auto [e, t] : reg.view<Transform>()) {
 					if (!t) continue;
 
 					
@@ -1209,7 +1222,11 @@ namespace RegistryTests {
 				auto ents = reg.getAllEntities();
 				std::shuffle(ents.begin(), ents.end(), std::mt19937{ std::random_device{}() });
 				ents.resize(ents.size() / 2);
+				{
+				// Destroying runs the components' destructors, so it writes them too.
+				auto claim = reg.access<ecss::Write<Transform>>();
 				reg.destroyEntities(ents);
+			}
 				std::this_thread::sleep_for(std::chrono::milliseconds(1));
 			}
 		});
@@ -1414,13 +1431,20 @@ namespace RegistryTests {
 		{
 			for (auto i = 0; i < 60000; i++) {
 				auto ent = reg.takeEntity();
-				reg.addComponent<A>(ent);
-				reg.addComponent<B>(ent);
-				reg.addComponent<C>(ent);
-				reg.addComponent<D>(ent);
-				reg.addComponent<E>(ent);
-				reg.addComponent<F>(ent);
-				reg.addComponent<G>(ent);
+				// The reader threads below guard component *values* with these per-type mutexes.
+				// A mutex only orders the threads that take it, and this one -- the writer --
+				// did not: adding a component to a recycled id overwrites a sector a reader may
+				// be holding a pointer into. The view's structural hold does not stop that; it
+				// keeps the array's shape still, not its contents. Either both sides take the
+				// lock, or both claim the type with access<> -- see ConcurrentAccessBugRepro,
+				// which takes the other route.
+				{ auto lock = std::lock_guard(am); reg.addComponent<A>(ent); }
+				{ auto lock = std::lock_guard(bm); reg.addComponent<B>(ent); }
+				{ auto lock = std::lock_guard(cm); reg.addComponent<C>(ent); }
+				{ auto lock = std::lock_guard(dm); reg.addComponent<D>(ent); }
+				{ auto lock = std::lock_guard(em); reg.addComponent<E>(ent); }
+				{ auto lock = std::lock_guard(fm); reg.addComponent<F>(ent); }
+				{ auto lock = std::lock_guard(gm); reg.addComponent<G>(ent); }
 			}
 			creating = false;
 		});
@@ -1534,7 +1558,13 @@ namespace RegistryTests {
 				auto N = componentsToDelete.size() / 3;
 				componentsToDelete.resize(componentsToDelete.size() - N);
 
-				reg.destroyEntities(componentsToDelete);
+				{
+					// Destroying runs every component's destructor, so it writes all seven types.
+					// scoped_lock takes them together, so it cannot deadlock against a reader that
+					// holds two of them in a different order.
+					auto lock = std::scoped_lock(am, bm, cm, dm, em, fm, gm);
+					reg.destroyEntities(componentsToDelete);
+				}
 				std::this_thread::sleep_for(std::chrono::milliseconds(100));
 			}
 

@@ -47,11 +47,17 @@ else()
     endif()
 endif()
 
-include(CTest) # adds option BUILD_TESTING (ON by default)
-option(ECSS_BUILD_TESTS "Build unit tests" ${BUILD_TESTING})
+# The suite is for developing ecss, not for the projects that embed it. Defaulting to
+# BUILD_TESTING made a consumer that merely add_subdirectory()s us fetch googletest and
+# compile twelve more translation units -- each one instantiating the whole Registry --
+# as part of its own build, which is minutes it never asked for. include(CTest) is inside
+# the branch for the same reason: it defines BUILD_TESTING as a cache variable and adds
+# Nightly/Continuous/Experimental targets to whichever project pulled us in.
+option(ECSS_BUILD_TESTS "Build unit tests" ${PROJECT_IS_TOP_LEVEL})
 
 if(ECSS_BUILD_TESTS)
     message(STATUS "ecss: with unit tests")
+    include(CTest)
     include(FetchContent)
     set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
     set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
@@ -78,19 +84,49 @@ if(ECSS_BUILD_TESTS)
         endif()
     endforeach()
 
-    file(GLOB TEST_SOURCES "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
+    # CONFIGURE_DEPENDS so a new test file is picked up by the next build rather than
+    # needing a manual reconfigure. The glob still takes whatever is in tests/, so do not
+    # leave scratch .cpp files there -- they become part of the suite.
+    file(GLOB TEST_SOURCES CONFIGURE_DEPENDS "${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp")
     add_executable(ecss_tests ${TEST_SOURCES})
     target_link_libraries(ecss_tests PRIVATE ecss gtest gtest_main)
+
+    # The suite stores std::string and move-only components on purpose -- exercising those
+    # paths is its job -- so the warning about them has nothing to say here. Silencing it per
+    # type is not an option either: several of those components are declared inside a TestBody,
+    # and a local class cannot be named in an explicit specialization of ecss::AllowNonTrivial.
+    target_compile_definitions(ecss_tests PRIVATE ECSS_NO_TRIVIALITY_WARNINGS)
 
     include(GoogleTest)
     gtest_discover_tests(ecss_tests
         WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
         DISCOVERY_MODE PRE_TEST
         DISCOVERY_TIMEOUT 60
-        TIMEOUT 150
+        # Per-test wall clock. It has to travel as a test property: gtest_discover_tests
+        # has no TIMEOUT keyword of its own, so a bare one is swallowed as an unparsed
+        # argument and every test runs under ctest's default instead.
+        PROPERTIES TIMEOUT 150
     )
 
     if (CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
         target_link_libraries(ecss_tests PRIVATE atomic)
     endif()
 endif()
+
+# ---------------------------------------------------------------------------
+# Standalone benchmarks. Off by default and deliberately not part of ecss_tests:
+# they would otherwise run in every CI lane, sanitizers included, where a timing
+# number is meaningless and the minutes are not.
+#
+#   cmake -S . -B build-bench -DECSS_BUILD_BENCHMARKS=ON
+#   cmake --build build-bench --config Release --target ecss_mtbench
+# ---------------------------------------------------------------------------
+option(ECSS_BUILD_BENCHMARKS "Build the standalone benchmarks" OFF)
+if (ECSS_BUILD_BENCHMARKS)
+    add_executable(ecss_mtbench "${CMAKE_CURRENT_SOURCE_DIR}/bench/MTBench.cpp")
+    target_link_libraries(ecss_mtbench PRIVATE ecss)
+    target_compile_features(ecss_mtbench PRIVATE cxx_std_20)
+    find_package(Threads REQUIRED)
+    target_link_libraries(ecss_mtbench PRIVATE Threads::Threads)
+endif()
+

@@ -1,4 +1,5 @@
 #pragma once
+#include <limits>
 
 #include <cassert>
 #include <cstdint>
@@ -50,6 +51,11 @@ namespace ecss::Memory {
 	 * live at fixed addresses. Everything that reads a layout therefore holds it by
 	 * const pointer -- the only mutation in the type is create() initialising what it just
 	 * allocated, which is why initData/initLayoutData are private.
+	 * @thread_safety Internally synchronized, because it never changes -- and that applies to
+	 *                every member below. The layout is built once, by create(), and is const from
+	 *                then on, so any number of threads may read it without a lock and none of it
+	 *                can go stale. Only create() and the init* helpers it calls are exclusive,
+	 *                and they run before anything can name the object.
 	 */
 	struct SectorLayoutMeta {
 		// Non-copyable / non-movable: exactly one instance per type pack, shared by every
@@ -88,6 +94,7 @@ namespace ecss::Memory {
 			data.isAliveMask = static_cast<uint32_t>(1u << data.index);
 			data.isNotAliveMask = ~(data.isAliveMask);
 			data.isTrivial = std::is_trivially_copyable_v<U>;
+			ecss::detail::checkTriviality<U>();
 
 			data.functionTable.move = [](void* dest, void* src) { new(dest) U(std::move(*static_cast<U*>(src))); };
 
@@ -151,7 +158,9 @@ namespace ecss::Memory {
 		};
 
 		/// @brief Begin/end iterators over layout records.
+		/// @thread_safety Internally synchronized. Walks layout records that are immutable once built.
 		Iterator begin() const { return { this, 0 }; }
+		/// @thread_safety Internally synchronized. Walks layout records that are immutable once built.
 		Iterator end() const { return { this, getTypesCount() }; }
 
 	public:
@@ -160,6 +169,8 @@ namespace ecss::Memory {
 		 *
 		 * @tparam Types ... Component types stored in a sector.
 		 * @return Newly allocated SectorLayoutMeta*; caller owns and must delete.
+		 * @thread_safety Caller must ensure exclusive access. Builds the layout. Nothing may read it until this
+		 *                returns; afterwards it never changes again.
 		 */
 		template<typename... Types>
 		static inline SectorLayoutMeta* create()
@@ -182,6 +193,30 @@ namespace ecss::Memory {
 		*/
 		template<typename... Types>
 		void initData()	{
+			// T, T*, T& and const T all resolve to the same type id (DenseTypeIdGenerator::
+			// getTypeId strips all three), and one id means one layout record. For const that
+			// is exactly right -- view<const T> asks for read-only access to the same object,
+			// same size, same offsets. A pointer or a reference is a different size, so it
+			// would file sizeof(void*) under the record of the type it names and overwrite it.
+			static_assert((!std::is_pointer_v<std::remove_cv_t<Types>> && ...)
+				&& (!std::is_reference_v<Types> && ...),
+				"a component is stored by value: name A or const A, not A* or A& -- a pointer "
+				"shares the type id of what it points to but not its size, and would overwrite "
+				"that type's layout record");
+			
+			// Chunks come from calloc, which promises alignof(std::max_align_t) and no more,
+			// and sectors are placed at a stride inside them. An alignas(32) or alignas(64)
+			// member would be handed an address that merely looks right in testing.
+			static_assert(((alignof(Types) <= alignof(std::max_align_t)) && ...),
+				"over-aligned component types are not supported: chunk memory comes from "
+				"calloc, which guarantees only max_align_t");
+			
+			// Offsets and the stride are stored as uint16_t. Past 64 KB the cast below wraps
+			// and every sector address after the first is wrong, with nothing to say so.
+			static_assert(types::OffsetArray<types::EmptyBase, Types...>::totalSize
+				<= std::numeric_limits<uint16_t>::max(),
+				"sector larger than 64 KB: component offsets and the stride are uint16_t");
+			
 			count = types::OffsetArray<types::EmptyBase, Types...>::count;
 			totalSize = static_cast<uint16_t>(types::OffsetArray<types::EmptyBase, Types...>::totalSize);
 			size_t idx = 0;
@@ -277,7 +312,11 @@ namespace ecss::Memory {
 			return count;
 		}
 
+	public:
+		// Iteration needs to know whether a sector holds exactly one component, which is
+		// what makes a chunk a plain array of it. Reads data fixed at construction.
 		uint8_t getTypesCount() const { return count; }
+	private:
 
 	private:
 		inline static constexpr size_t maxComponentsPerSector = 32; // Arbitrary limit for sanity checks.

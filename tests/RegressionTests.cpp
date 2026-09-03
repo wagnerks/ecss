@@ -16,6 +16,10 @@
 #include <random>
 #include <thread>
 #include <unordered_set>
+#include <set>
+#include <cstdlib>
+#include <stdexcept>
+#include <type_traits>
 #include <vector>
 
 #include <ecss/CommandBuffer.h>
@@ -390,6 +394,36 @@ TEST(Regression_Deadlock, TwoLiveViewsWhileAnotherThreadDestroysEntity) {
 	EXPECT_TRUE(ok) << "destroyEntity deadlocked against two live views";
 	if (!ok) { reader.detach(); writer.detach(); return; }
 	reader.join(); writer.join();
+	delete reg;
+}
+
+TEST(Regression_Concurrency, DestroyEntitiesDoesNotWaitForPinOnOtherSector) {
+	auto* reg = new Registry<true>();
+	reg->reserve<RPos>(16);
+	for (EntityId e = 0; e < 8; ++e) {
+		reg->takeEntity();
+		reg->addComponent<RPos>(e, RPos{ float(e), 0, 0 });
+	}
+
+	std::atomic<bool> done{ false };
+	std::thread writer;
+	{
+		auto pin = reg->pinComponent<RPos>(EntityId{ 0 });
+		ASSERT_TRUE(static_cast<bool>(pin));
+
+		writer = std::thread([&] {
+			std::vector<EntityId> doomed{ 3, 4, 5 };
+			reg->destroyEntities(doomed);
+			done.store(true, std::memory_order_release);
+		});
+
+		const bool ok = waitFor([&] { return done.load(std::memory_order_acquire); });
+		EXPECT_TRUE(ok) << "destroyEntities waited for a pin on a sector it was not destroying";
+		if (!ok) { writer.detach(); return; }
+	}
+	writer.join();
+	EXPECT_TRUE(reg->contains(EntityId{ 0 }));
+	EXPECT_FALSE(reg->contains(EntityId{ 3 }));
 	delete reg;
 }
 
@@ -845,6 +879,13 @@ TEST(Regression_BulkInsert, ArbitraryOrderMatchesOneAtATime) {
 }
 
 TEST(Regression_BulkInsert, StaysLinearInBatchSize) {
+	// A wall-clock assertion, so it only means anything in an optimized build. In Debug
+	// -- and far worse under a sanitizer -- it measures the compiler's bookkeeping
+	// rather than the merge, takes minutes rather than seconds, and was the one test
+	// that timed out once the ctest limit started being applied.
+	#ifndef NDEBUG
+	GTEST_SKIP() << "timing assertion; meaningless in a debug build";
+	#endif
 	// Per-element cost must not grow with the array size. The batch has to land *inside*
 	// what is already stored, or the merge degenerates to "sort, then append" and the path
 	// that used to be quadratic -- relocating the tail and rewriting its sparse entries --
@@ -1657,3 +1698,456 @@ TEST(Regression_Access, NestingOnOneThreadIsAllowed) {
 	EXPECT_TRUE(reg.hasComponent<AccA>(99));
 	EXPECT_TRUE(reg.hasComponent<AccA>(98));
 }
+
+// ===========================================================================
+// eachSingle() takes a typed fast path when a sector holds one component, no
+// padding, and nothing in the array is dead -- the chunk is then a plain T[].
+// The guard is what makes it safe, so these check the cases that must NOT take
+// it as much as the one that must.
+// ===========================================================================
+
+struct FpA { int v{}; };
+struct FpB { int v{}; };
+
+TEST(Regression_Iteration, TypedFastPathHonoursHolesAndGroups) {
+	// holes: the array has dead sectors, so every slot must still be checked
+	{
+		Registry<false> reg;
+		std::set<int> want;
+		for (EntityId e = 0; e < 500; ++e) {
+			reg.takeEntity();
+			reg.addComponent<FpA>(e, FpA{ int(e) });
+			want.insert(int(e));
+		}
+		for (EntityId e = 0; e < 500; e += 3) {
+			reg.destroyComponent<FpA>(e);
+			want.erase(int(e));
+		}
+		std::set<int> got;
+		reg.view<FpA>().each([&](FpA& a) { got.insert(a.v); });
+		EXPECT_EQ(got, want) << "iteration visited dead single-type sectors";
+
+		// compacting removes the holes, so the fast path becomes legal again
+		reg.getComponentContainer<FpA>()->defragment();
+		std::set<int> after;
+		reg.view<FpA>().each([&](FpA& a) { after.insert(a.v); });
+		EXPECT_EQ(after, want) << "the fast path changed what iteration yields";
+	}
+
+	// grouped: a sector stays alive through its other component, so a cleared
+	// FpA bit must still be respected even with no dead sectors at all
+	{
+		Registry<false> reg;
+		reg.registerArray<FpA, FpB>();
+		std::set<int> want;
+		for (EntityId e = 0; e < 300; ++e) {
+			reg.takeEntity();
+			reg.addComponent<FpA>(e, FpA{ int(e) });
+			reg.addComponent<FpB>(e, FpB{ int(e) });
+			want.insert(int(e));
+		}
+		for (EntityId e = 0; e < 300; e += 10) {
+			reg.destroyComponent<FpA>(e);
+			want.erase(int(e));
+		}
+		std::set<int> got;
+		reg.view<FpA>().each([&](FpA& a) { got.insert(a.v); });
+		EXPECT_EQ(got, want) << "a grouped array took the single-type fast path";
+	}
+
+	// the case the fast path is for: many chunks, nothing dead
+	{
+		Registry<false> reg;
+		size_t sum = 0, expected = 0;
+		for (EntityId e = 0; e < 20000; ++e) {
+			reg.takeEntity();
+			reg.addComponent<FpA>(e, FpA{ int(e) });
+			expected += e;
+		}
+		reg.view<FpA>().each([&](FpA& a) { sum += size_t(a.v); });
+		EXPECT_EQ(sum, expected);
+	}
+}
+
+namespace {
+
+struct GrpA { int v{}; };
+struct GrpB { int v{}; };
+
+/// registerArray() returned without a word when every type it named already had an array.
+/// That is right when they are already in one together -- the call is idempotent -- but not
+/// when they are in separate arrays: a component's layout is fixed when its array is created,
+/// so the grouping asked for can never happen. A registerArray() written one line too late,
+/// after the addComponent() that registered the type implicitly, looked exactly like one that
+/// worked. The README's own Quick Start had it in that order.
+TEST(Regression_Grouping, LateRegisterArraySaysSoInsteadOfReturningQuietly) {
+	{
+		// Asking twice for the same group is idempotent and must stay silent.
+		Registry<false> reg;
+		reg.registerArray<GrpA, GrpB>();
+		testing::internal::CaptureStderr();
+		reg.registerArray<GrpA, GrpB>();
+		EXPECT_EQ(testing::internal::GetCapturedStderr(), "")
+			<< "re-registering the same group is not a mistake and must not warn";
+		EXPECT_EQ(reg.getComponentContainer<GrpA>(), reg.getComponentContainer<GrpB>());
+	}
+	{
+		// Both types already registered implicitly, each into its own array.
+		Registry<false> reg;
+		const auto e = reg.takeEntity();
+		reg.addComponent<GrpA>(e, GrpA{ 1 });
+		reg.addComponent<GrpB>(e, GrpB{ 2 });
+
+		testing::internal::CaptureStderr();
+		reg.registerArray<GrpA, GrpB>();
+		const std::string err = testing::internal::GetCapturedStderr();
+
+		EXPECT_NE(err.find("was ignored"), std::string::npos)
+			<< "the grouping could not be honoured and the call said nothing";
+		EXPECT_NE(reg.getComponentContainer<GrpA>(), reg.getComponentContainer<GrpB>())
+			<< "the arrays are still separate -- which is the point of the warning";
+	}
+}
+
+/// Every ranged-iterator test walked a handful of sectors inside one 8192-sector chunk, so
+/// the branch that carries RangedIterator across a chunk boundary -- recomputing the chunk
+/// base and the data pointer -- had never run in the suite. Counting is not enough to catch a
+/// wrong base either, so this reads the values back.
+TEST(Regression_RangedIterator, CrossesChunkBoundaries) {
+	using Small = SectorsArray<false, ChunksAllocator<16>>;
+	std::unique_ptr<Small> arr(Small::create<RInt>());
+
+	constexpr SectorId kCount = 100;   // seven chunks of sixteen
+	for (SectorId i = 0; i < kCount; ++i) { arr->emplace<RInt>(i, RInt{ int(i) * 3 }); }
+
+	// Starts mid-chunk and ends mid-chunk, five boundaries apart.
+	Ranges<SectorId> r(std::pair<SectorId, SectorId>{ 5, 90 });
+
+	std::vector<int> seen;
+	for (auto it = arr->beginRanged(r), en = arr->endRanged(); it != en; ++it) {
+		const auto slot = *it;
+		auto* c = Sector::getComponent<RInt>(slot.data, arr->getIsAlive(slot.id), arr->getLayout());
+		ASSERT_NE(c, nullptr);
+		seen.push_back(c->v);
+	}
+
+	ASSERT_EQ(seen.size(), 85u);
+	for (size_t k = 0; k < seen.size(); ++k) {
+		ASSERT_EQ(seen[k], int(5 + k) * 3) << "wrong sector at offset " << k
+			<< " -- a chunk boundary was crossed with a stale base";
+	}
+}
+
+/// takeEntities was only ever tested on Registry<true>; the plain build takes a different
+/// path through IdSet, which had no direct test of its own either.
+TEST(Regression_BatchIds, PlainBuildTakesEntitiesInBulk) {
+	Registry<false> reg;
+	std::vector<EntityId> ids;
+	reg.takeEntities(5000, ids);
+	ASSERT_EQ(ids.size(), 5000u);
+
+	std::set<EntityId> distinct(ids.begin(), ids.end());
+	EXPECT_EQ(distinct.size(), ids.size()) << "the same id was handed out twice";
+	for (auto e : ids) { EXPECT_TRUE(reg.contains(e)); }
+
+	// Freed ids come back, lowest first, and the batch form has to see them.
+	std::vector<EntityId> half(ids.begin(), ids.begin() + 2000);
+	reg.destroyEntities(half);
+
+	std::vector<EntityId> again;
+	reg.takeEntities(2000, again);
+	EXPECT_EQ(again.size(), 2000u);
+	std::set<EntityId> reused(again.begin(), again.end());
+	EXPECT_EQ(reused.size(), again.size());
+	for (auto e : again) { EXPECT_TRUE(reg.contains(e)); }
+}
+
+struct GrpC { int v{}; };
+
+/// hasComponent<T>() went through getComponentAccess, which registers T on first use. So
+/// asking whether an entity has a component nothing had ever added created an array to answer
+/// "no" -- and left T registered on its own. The second half is the one that bites: a
+/// registerArray<T, U>() afterwards can no longer group them, because T's layout is already
+/// fixed. A question turned into a decision.
+TEST(Regression_Queries, HasComponentDoesNotRegisterTheTypeItAsksAbout) {
+	Registry<false> reg;
+	const auto e = reg.takeEntity();
+
+	EXPECT_FALSE(reg.hasComponent<GrpC>(e));
+
+	// If the query registered GrpC, this grouping is no longer possible and warns about it.
+	testing::internal::CaptureStderr();
+	reg.registerArray<GrpC, GrpB>();
+	EXPECT_EQ(testing::internal::GetCapturedStderr(), "")
+		<< "the query registered the type, putting the grouping out of reach";
+	EXPECT_EQ(reg.getComponentContainer<GrpC>(), reg.getComponentContainer<GrpB>());
+}
+
+/// addComponents(generator) was declared requires(ThreadSafe) although nothing in it needs
+/// threads: it drains the generator into a vector and hands the result to insertBulk, which
+/// the plain build has had all along. The documentation presented it as the general batch API.
+///
+/// It matters more than a missing overload usually would. A loop of addComponent() over ids
+/// that land in the middle of a compacted array pays a full shift each time -- measured at
+/// 39 ms for 200 inserts into 133k live sectors, against 0.5 ms for the same 200 handed over
+/// as one batch.
+TEST(Regression_BulkInsert, GeneratorFormWorksInThePlainBuild) {
+	Registry<false> reg;
+	// Deliberately out of order: this is the case the batch form exists for.
+	const std::vector<EntityId> ids{ 7, 1, 4, 9, 2 };
+	size_t next = 0;
+	reg.addComponents<RInt>([&]() -> std::pair<EntityId, RInt> {
+		if (next == ids.size()) { return { INVALID_ID, RInt{} }; }
+		const auto id = ids[next++];
+		return { id, RInt{ int(id) * 10 } };
+	});
+
+	EXPECT_EQ(reg.getComponentContainer<RInt>()->size(), ids.size());
+	std::map<EntityId, int> got;
+	for (auto [e, v] : reg.view<RInt>()) { if (v) { got[e] = v->v; } }
+	EXPECT_EQ(got.size(), ids.size());
+	for (auto id : ids) {
+		ASSERT_TRUE(got.count(id)) << "id " << id << " did not survive the batch";
+		EXPECT_EQ(got[id], int(id) * 10);
+	}
+}
+
+/// mergeIntersections only ever compares neighbours, so it is right only on a sorted list --
+/// and the constructor hands it whatever the caller passed. An unsorted list came back
+/// unmerged and every later lookup trusted it. Folding also erased from the middle, shifting
+/// the tail once per merge, so a contiguous block of ids cost O(n^2) to collapse.
+/// mergeIntersections folds by comparing one range's end against the next one's start, which
+/// a reversed pair does not merely fail to match -- it corrupts the running end. Empty and
+/// reversed ranges are dropped before the fold rather than trusted to fall out of it.
+TEST(Regression_Ranges, DegenerateRangesAreDroppedBeforeFolding) {
+	{
+		Ranges<EntityId> r(std::vector<std::pair<EntityId, EntityId>>{ {0, 5}, {9, 3}, {10, 15} });
+		ASSERT_EQ(r.ranges.size(), 2u) << "a reversed range survived the fold";
+		EXPECT_EQ(r.ranges[0].first, 0u);
+		EXPECT_EQ(r.ranges[0].second, 5u);
+		EXPECT_EQ(r.ranges[1].first, 10u);
+		EXPECT_EQ(r.ranges[1].second, 15u);
+	}
+	{
+		// Empty ranges say nothing and must not split the run they sit inside.
+		Ranges<EntityId> r(std::vector<std::pair<EntityId, EntityId>>{ {0, 5}, {5, 5}, {5, 10} });
+		ASSERT_EQ(r.ranges.size(), 1u);
+		EXPECT_EQ(r.ranges[0].first, 0u);
+		EXPECT_EQ(r.ranges[0].second, 10u);
+	}
+	{
+		// Nothing but degenerate input leaves nothing behind.
+		Ranges<EntityId> r(std::vector<std::pair<EntityId, EntityId>>{ {7, 7}, {9, 2} });
+		EXPECT_TRUE(r.ranges.empty());
+	}
+}
+
+/// take() returned takeBlock(1).first without looking at the count, so an exhausted id space
+/// handed back whatever .first happened to hold as though it were a fresh id. And takeBlock
+/// clamped a request for zero up to one, which is not what asking for none means.
+TEST(Regression_Ranges, ExhaustionAndZeroRequestsAreReported) {
+	{
+		Ranges<uint8_t> r;
+		// 255 is reserved: ranges carry an exclusive end, so it can never be handed out.
+		size_t taken = 0;
+		try {
+			for (int i = 0; i < 300; ++i) { r.take(); ++taken; }
+			FAIL() << "took " << taken << " ids from an 8-bit space without ever running out";
+		}
+		catch (const std::overflow_error&) {
+			EXPECT_EQ(taken, 255u) << "stopped at the wrong point";
+		}
+	}
+	{
+		Ranges<EntityId> r;
+		const auto [first, count] = r.takeBlock(0);
+		EXPECT_EQ(count, 0u) << "asking for no ids handed out one";
+		(void)first;
+	}
+}
+
+TEST(Regression_Ranges, MergeSortsFirstAndFoldsInOnePass) {
+	{
+		// Same three ranges, out of order. They describe one contiguous span either way.
+		Ranges<EntityId> r(std::vector<std::pair<EntityId, EntityId>>{ {20, 30}, {0, 10}, {10, 20} });
+		ASSERT_EQ(r.ranges.size(), 1u) << "unsorted input was left unmerged";
+		EXPECT_EQ(r.ranges[0].first, 0u);
+		EXPECT_EQ(r.ranges[0].second, 30u);
+	}
+	{
+		// Already sorted and disjoint: nothing may be merged away.
+		Ranges<EntityId> r(std::vector<std::pair<EntityId, EntityId>>{ {0, 5}, {10, 15}, {20, 25} });
+		ASSERT_EQ(r.ranges.size(), 3u);
+		EXPECT_EQ(r.ranges[2].second, 25u);
+	}
+	{
+		// The quadratic case: many ranges that fold into one. Correctness here, not timing --
+		// the single pass is what makes it affordable, and the result must be identical.
+		std::vector<std::pair<EntityId, EntityId>> many;
+		for (EntityId i = 0; i < 20000; ++i) { many.emplace_back(i, i + 1); }
+		Ranges<EntityId> r(many);
+		ASSERT_EQ(r.ranges.size(), 1u);
+		EXPECT_EQ(r.ranges[0].first, 0u);
+		EXPECT_EQ(r.ranges[0].second, 20000u);
+	}
+}
+
+/// Counts what actually happened to it. A byte-wise relocation runs no constructor and no
+/// destructor and leaves any self-reference pointing at the old address, so all three of
+/// these say plainly whether the sector was moved or just copied.
+struct RTracked {
+	static inline int moves = 0;
+	static inline int dtors = 0;
+	static void reset() { moves = 0; dtors = 0; }
+
+	std::string s;
+	const RTracked* self = this;
+
+	RTracked() = default;
+	explicit RTracked(std::string v) : s(std::move(v)) {}
+	RTracked(const RTracked& o) : s(o.s) {}
+	RTracked(RTracked&& o) noexcept : s(std::move(o.s)) { ++moves; }
+	RTracked& operator=(const RTracked& o) { s = o.s; return *this; }
+	RTracked& operator=(RTracked&& o) noexcept { s = std::move(o.s); ++moves; return *this; }
+	~RTracked() { ++dtors; }
+};
+
+/// A move between arrays of different chunk capacity cannot adopt the chunks -- every sector
+/// lands at a new address -- so it relocates them. That relocation used to be a memcpy of the
+/// sector bytes followed by freeing the source chunks, which runs no constructor on the
+/// destination and no destructor on the source: anything owning a resource ends up with two
+/// owners, and anything pointing into itself keeps pointing at the address it left. The
+/// liveness words saying which members are actually constructed live in the array, not the
+/// allocator, so the relocation belongs at the level that has them.
+TEST(Regression_Move, CrossCapacityMoveRelocatesNonTrivialComponents) {
+	using Small = SectorsArray<false, ChunksAllocator<16>>;
+	using Large = SectorsArray<false, ChunksAllocator<64>>;
+
+	constexpr SectorId kCount = 40;
+	const auto nameOf = [](SectorId i) {
+		// Comfortably past any small-string buffer, so the string really owns a heap block.
+		return "component-number-" + std::to_string(i) + "-with-enough-text";
+	};
+
+	std::unique_ptr<Small> src(Small::create<RTracked>());
+	for (SectorId i = 0; i < kCount; ++i) { src->emplace<RTracked>(i, RTracked{ nameOf(i) }); }
+
+	std::unique_ptr<Large> dst(Large::create<RTracked>());
+	RTracked::reset();
+	*dst = std::move(*src);
+
+	EXPECT_EQ(RTracked::moves, int(kCount)) << "sectors were relocated without being moved";
+	EXPECT_EQ(RTracked::dtors, int(kCount)) << "the source sectors were freed undestroyed";
+
+	ASSERT_EQ(dst->size(), size_t(kCount));
+	for (SectorId i = 0; i < kCount; ++i) {
+		const auto slot = dst->findSlot(i);
+		ASSERT_TRUE(slot) << "sector " << i << " was lost in the move";
+		auto* n = Sector::getComponent<RTracked>(slot.data, dst->getIsAlive(i), dst->getLayout());
+		ASSERT_NE(n, nullptr);
+		EXPECT_EQ(n->s, nameOf(i)) << "sector " << i << " did not survive relocation intact";
+		EXPECT_EQ(n->self, n) << "sector " << i << " still points at the address it left";
+	}
+	EXPECT_EQ(src->size(), 0u) << "the source still claims sectors it handed over";
+}
+
+/// clearAsync() used to release every entity id on the spot, while the arrays kept their
+/// sectors until a later update(). takeEntity() then handed a live id straight back and the
+/// new entity read the old one's components as its own.
+TEST(Regression_EntityIds, ClearAsyncHoldsIdsUntilTheComponentsAreGone) {
+	Registry<true> reg;
+	reg.setAutoMaintenance(false);
+
+	const auto a = reg.takeEntity();
+	reg.addComponent<RPos>(a, RPos{ 1.f, 2.f, 3.f });
+	reg.addComponent<RVel>(a, RVel{ 4.f, 5.f, 6.f });
+
+	reg.clearAsync();
+
+	// Nothing has actually been cleared yet -- no update() has run.
+	const auto b = reg.takeEntity();
+	EXPECT_FALSE(reg.hasComponent<RPos>(b))
+		<< "a recycled id named a sector whose components were still there";
+	EXPECT_FALSE(reg.hasComponent<RVel>(b));
+
+	reg.update();
+	EXPECT_FALSE(reg.hasComponent<RPos>(a)) << "the deferred clear never ran";
+}
+
+/// The other half of what reserve() documents: shrink_to_fit reallocates too, and the old
+/// buffers go to the retire bin while the published view still names them. Only reserve()
+/// republished, so a view opened after shrinkToFit() read memory that was correct until the
+/// next write and freed once the grace period ran out.
+TEST(Regression_Reclamation, ShrinkToFitRepublishesTheDenseView) {
+	Registry<true> reg;
+	auto* arr = reg.getComponentContainer<RInt>();
+	arr->reserve(100000);
+	for (EntityId e = 0; e < 4; ++e) { reg.addComponent<RInt>(e, RInt{ int(e) }); }
+
+	arr->shrinkToFit();   // hands back the spare capacity, moving the buffers again
+
+	reg.destroyComponent<RInt>(2);
+
+	EXPECT_FALSE(reg.hasComponent<RInt>(2))
+		<< "a destroyed component still reads as present -- the published dense view still "
+		   "names the buffers shrinkToFit() moved away from";
+	size_t seen = 0;
+	for (auto it : reg.view<RInt>()) { (void)it; ++seen; }
+	EXPECT_EQ(seen, 3u) << "iteration walked a stale dense view";
+}
+
+/// tick() bails out on mPending alone, so a move that carried the queued blocks without the
+/// counter produced a bin that reported nothing to do while still holding them: they lived
+/// until the destructor, whatever the grace period said.
+TEST(Regression_Reclamation, RetireBinMoveCarriesThePendingCount) {
+	{
+		RetireBin src(1);
+		src.retire(std::malloc(64));
+		src.retire(std::malloc(64));
+
+		RetireBin dst(std::move(src));
+		EXPECT_EQ(dst.tick(), 2u) << "the moved-to bin never freed what it inherited";
+		EXPECT_EQ(src.tick(), 0u) << "the moved-from bin kept blocks it no longer owns";
+	}
+	{
+		// Move-assignment has the destination's own queue to deal with first: the assignment
+		// overwrites the vector that owns those blocks, and nothing else names them.
+		RetireBin src(1), dst(1);
+		src.retire(std::malloc(32));
+		dst.retire(std::malloc(32));
+
+		dst = std::move(src);
+		EXPECT_EQ(dst.tick(), 1u);
+	}
+}
+
+/// A view's cached begin iterator points into the view's own mRanges, and its structural
+/// holds are released against per-thread bookkeeping. Copying or moving one left the
+/// iterator addressing the original and a second owner releasing holds it never took.
+TEST(Regression_Iteration, ViewIsNeitherCopiedNorMoved) {
+	using View = decltype(std::declval<Registry<true>&>().view<RPos>());
+	static_assert(!std::is_copy_constructible_v<View>);
+	static_assert(!std::is_move_constructible_v<View>);
+	static_assert(!std::is_copy_assignable_v<View>);
+	static_assert(!std::is_move_assignable_v<View>);
+	SUCCEED();
+}
+
+/// There is no lock upgrade. Asking for Write while this thread holds Read used to assert
+/// and then carry on, so a release build handed out a Write claim backed by nothing but a
+/// shared lock. It now fails the same way in every configuration -- and before any lock is
+/// taken, so the half-built guard leaves nothing held.
+TEST(Regression_Access, WriteWhileHoldingReadFailsInEveryBuild) {
+	Registry<true> reg;
+	const auto e = reg.takeEntity();
+	reg.addComponent<RPos>(e, RPos{});
+	reg.addComponent<RVel>(e, RVel{});
+
+	auto readGuard = reg.access<Read<RPos>>();
+	EXPECT_THROW(reg.access<Write<RPos>>(), std::logic_error);
+
+	// The failed attempt took nothing, so an unrelated type is still free to claim.
+	EXPECT_NO_THROW(reg.access<Write<RVel>>());
+}
+
+} // namespace

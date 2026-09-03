@@ -53,15 +53,27 @@ namespace ecss {
 		using Reg = Registry<ThreadSafe, Allocator>;
 
 	public:
+		/// @thread_safety Thread-confined. One buffer belongs to one thread; nothing in it
+		///                takes a lock. Give each recording thread its own.
 		CommandBuffer() = default;
+		/// @brief Copying is forbidden; recorded operations have one owning buffer.
 		CommandBuffer(const CommandBuffer&) = delete;
+		/// @brief Copy assignment is forbidden; recorded operations have one owning buffer.
 		CommandBuffer& operator=(const CommandBuffer&) = delete;
+		/// @brief Transfer all recorded operations to another buffer.
+		/// @post The destination has the source's former observable state.
+		/// @note The moved-from buffer remains valid but its state is unspecified.
 		CommandBuffer(CommandBuffer&&) noexcept = default;
+		/// @brief Replace this buffer with the recorded operations owned by @p other.
+		/// @post The destination has @p other's former observable state.
+		/// @note The moved-from buffer remains valid but its state is unspecified.
 		CommandBuffer& operator=(CommandBuffer&&) noexcept = default;
 
 		/// @brief Record "give @p entity a T", to be applied by apply().
 		/// Recording the same entity twice for one type keeps the later value, matching what a
 		/// pair of immediate addComponent calls would have left behind.
+		/// @thread_safety Thread-confined. One buffer belongs to one thread; nothing in it
+		///                takes a lock. Give each recording thread its own.
 		template<typename T, typename... Args>
 		void addComponent(EntityId entity, Args&&... args) {
 			auto& st = store<T>();
@@ -70,6 +82,8 @@ namespace ecss {
 		}
 
 		/// @brief Record "take T away from @p entity".
+		/// @thread_safety Thread-confined. One buffer belongs to one thread; nothing in it
+		///                takes a lock. Give each recording thread its own.
 		template<typename T>
 		void destroyComponent(EntityId entity) {
 			auto& st = store<T>();
@@ -78,6 +92,8 @@ namespace ecss {
 		}
 
 		/// @brief Record "destroy @p entity", across every component type it has.
+		/// @thread_safety Thread-confined. One buffer belongs to one thread; nothing in it
+		///                takes a lock. Give each recording thread its own.
 		void destroyEntity(EntityId entity) { mDestroyed.push_back(entity); }
 
 		/// @brief Apply everything recorded, then empty the buffer.
@@ -92,6 +108,10 @@ namespace ecss {
 		/// written to and destroyed in the same frame ends up destroyed regardless of the order
 		/// the two were recorded in. Recording anything against an entity already destroyed in
 		/// this buffer is a caller error -- its id may already belong to something else.
+		/// @thread_safety Thread-confined; blocks. This is the call that
+		///                touches the registry: it inserts and destroys, so it takes on the contract of
+		///                those operations. Apply at a point where nothing is iterating the arrays it
+		///                writes to -- that is the whole reason to record into a buffer first.
 		void apply(Reg& registry) {
 			for (auto& slot : mStores) {
 				if (slot) { slot->apply(registry); }
@@ -104,6 +124,8 @@ namespace ecss {
 		}
 
 		/// @brief Drop everything recorded without applying it.
+		/// @thread_safety Thread-confined. One buffer belongs to one thread; nothing in it
+		///                takes a lock. Give each recording thread its own.
 		void clear() {
 			for (auto& slot : mStores) {
 				if (slot) { slot->clear(); }
@@ -112,6 +134,8 @@ namespace ecss {
 		}
 
 		/// @return True when nothing is waiting to be applied.
+		/// @thread_safety Thread-confined. One buffer belongs to one thread; nothing in it
+		///                takes a lock. Give each recording thread its own.
 		[[nodiscard]] bool empty() const {
 			if (!mDestroyed.empty()) { return false; }
 			for (const auto& slot : mStores) {
@@ -121,6 +145,8 @@ namespace ecss {
 		}
 
 		/// @return How many changes are recorded, for sizing a flush or for diagnostics.
+		/// @thread_safety Thread-confined. One buffer belongs to one thread; nothing in it
+		///                takes a lock. Give each recording thread its own.
 		[[nodiscard]] size_t size() const {
 			size_t n = mDestroyed.size();
 			for (const auto& slot : mStores) {
