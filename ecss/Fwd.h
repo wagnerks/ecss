@@ -32,6 +32,13 @@
 #  endif
 #endif
 
+// MSVC accepts [[no_unique_address]] but ignores it; only its own spelling saves the bytes.
+#if defined(_MSC_VER)
+#  define ECSS_NO_UNIQUE_ADDRESS [[msvc::no_unique_address]]
+#else
+#  define ECSS_NO_UNIQUE_ADDRESS [[no_unique_address]]
+#endif
+
 namespace ecss {
 	using SectorId = uint32_t;
 	using EntityId = SectorId;

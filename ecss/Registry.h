@@ -40,6 +40,7 @@
 #include <ecss/AccessTracker.h>
 #include <ecss/IdSet.h>
 #include <ecss/Ranges.h>
+#include <ecss/Relations.h>
 #include <ecss/memory/Reflection.h>
 #include <ecss/memory/SectorsArray.h>
 #include <ecss/memory/Sector.h>
@@ -348,6 +349,7 @@ namespace ecss {
 				if (!stillPending) {
 					std::unique_lock lock(mEntitiesMutex);
 					mEntities.clear();
+					clearRelations();
 					mPendingEntityClear.store(false, std::memory_order_release);
 				}
 			}
@@ -878,6 +880,137 @@ namespace ecss {
 		}
 
 	public:
+		// ===== Relations =====================================================
+		//
+		// Typed directed edges between entities. Each relation type gets its own storage,
+		// separate from components. A pair (source, target) holds at most one edge per type.
+		//
+		// The one rule callers must keep: a view of R holds R's lock, so do not change R
+		// (relate, unrelate, destroy an entity, clear) on the same thread while a view of R
+		// is alive. That deadlocks. Collect what you need first, then mutate.
+
+		/// @brief Add (source -> target) for a tag relation, or do nothing if it already exists.
+		/// @note The first relate<R>() creates R's storage. Nothing else does.
+		/// @thread_safety Internally synchronized. Takes R's lock exclusively, so calling it
+		///                while holding a view of R deadlocks.
+		template<RelationTag R>
+		void relate(EntityId source, EntityId target) noexcept {
+			relationStorage<R>(true)->relate(source, target, R{});
+		}
+
+		/// @brief Add (source -> target) with a payload, or overwrite the existing edge's payload.
+		/// @note Relating the same pair again replaces the payload and keeps one edge, same as
+		///       adding a component twice.
+		template<RelationPayload R>
+		void relate(EntityId source, EntityId target, R payload) noexcept {
+			relationStorage<R>(true)->relate(source, target, std::move(payload));
+		}
+
+		/// @brief Remove (source -> target) if present. A no-op when R has no storage.
+		template<RelationPayload R>
+		void unrelate(EntityId source, EntityId target) noexcept {
+			if (auto* s = relationStorage<R>(false)) { s->unrelate(source, target); }
+		}
+
+		/// @brief Whether (source -> target) exists.
+		/// @complexity O(min(outDegree(source), inDegree(target))) -- the shorter adjacency list.
+		/// @note Not O(1) on purpose. A hash of pairs would be a second structure to keep in
+		///       sync, and entities in a game rarely have enough edges for it to pay off.
+		/// @thread_safety Internally synchronized. Takes R's shared lock for the call, so it is
+		///                not free in a hot loop.
+		template<RelationPayload R>
+		[[nodiscard]] bool hasRelation(EntityId source, EntityId target) const noexcept {
+			const auto* s = relationStorage<R>(false);
+			return s && s->hasRelation(source, target);
+		}
+
+		/// @brief Iterable range over the targets of @p source. Yields EntityId.
+		/// @thread_safety Internally synchronized. The view holds R's shared lock until it is
+		///                destroyed, so nobody can remove an edge of R under it. The flip side:
+		///                changing R on this thread while the view lives deadlocks. Keep views
+		///                short.
+		template<RelationPayload R>
+		[[nodiscard]] auto targets(EntityId source) const {
+			return makeRelationView<R, true, false, const R>(relationStorage<R>(false), source);
+		}
+
+		/// @brief Iterable range over the sources pointing at @p target. Yields EntityId.
+		template<RelationPayload R>
+		[[nodiscard]] auto sources(EntityId target) const {
+			return makeRelationView<R, false, false, const R>(relationStorage<R>(false), target);
+		}
+
+		/// @brief Outgoing edges of @p source, with payload access.
+		/// @note Non-const registry gives R&, const registry gives const R&. That is why there
+		///       are two overloads instead of one const member.
+		template<RelationPayload R>
+		[[nodiscard]] auto relationsFrom(EntityId source) { return makeRelationView<R, true, true, R>(relationStorage<R>(false), source); }
+
+		/// @overload Yields const R&.
+		template<RelationPayload R>
+		[[nodiscard]] auto relationsFrom(EntityId source) const { return makeRelationView<R, true, true, const R>(relationStorage<R>(false), source); }
+
+		/// @brief Incoming edges of @p target, with payload access.
+		template<RelationPayload R>
+		[[nodiscard]] auto relationsTo(EntityId target) { return makeRelationView<R, false, true, R>(relationStorage<R>(false), target); }
+
+		/// @overload Yields const R&.
+		template<RelationPayload R>
+		[[nodiscard]] auto relationsTo(EntityId target) const { return makeRelationView<R, false, true, const R>(relationStorage<R>(false), target); }
+
+		/// @brief Remove every outgoing edge of @p source in relation R.
+		template<RelationPayload R>
+		void removeRelationsFrom(EntityId source) noexcept {
+			if (auto* s = relationStorage<R>(false)) { s->removeOutgoing(source); }
+		}
+
+		/// @brief Remove every incoming edge of @p target in relation R.
+		template<RelationPayload R>
+		void removeRelationsTo(EntityId target) noexcept {
+			if (auto* s = relationStorage<R>(false)) { s->removeIncoming(target); }
+		}
+
+		/// @brief Remove every edge touching @p entity, across every registered relation type.
+		/// @complexity O(types + edges touching the entity). We don't track which types an
+		///             entity uses, so every storage is visited.
+		/// @warning Types are swept one by one, not atomically. Another thread can add an edge
+		///          for @p entity to a type that was already swept. If you need the entity to end
+		///          up with no edges, don't relate it from elsewhere at the same time.
+		void removeAllRelations(EntityId entity) noexcept {
+			const EntityId one[1] = { entity };
+			sweepRelations(one, one + 1);
+		}
+
+		/// @brief Number of relation types that have a storage in this registry.
+		/// @note Mostly for tests: lets them check that a read like hasRelation() did not
+		///       create a storage as a side effect.
+		[[nodiscard]] size_t relationTypeCount() const noexcept {
+			if constexpr (ThreadSafe) {
+				auto lock = std::shared_lock(mRelationsMutex);
+				return mRelationList.size();
+			}
+			else { return mRelationList.size(); }
+		}
+
+		/// @brief Live edge count for relation R, or 0 when it has no storage.
+		template<RelationPayload R>
+		[[nodiscard]] size_t relationEdgeCount() const noexcept {
+			const auto* s = relationStorage<R>(false);
+			return s ? s->edgeCount() : 0u;
+		}
+
+		/// @brief Walk every relation storage and check its linked lists are consistent.
+		///
+		/// Bugs in linked-list code usually hide until a slot is freed and reused, so call this
+		/// after a long random sequence of operations, not just after one.
+		[[nodiscard]] bool validateRelationStructure() const noexcept {
+			for (auto* storage : relationSnapshot()) {
+				if (!storage->validate()) { return false; }
+			}
+			return true;
+		}
+
+	public:
 		// ===== Container management ==========================================
 
 		/**
@@ -912,6 +1045,7 @@ namespace ecss {
 
 				std::unique_lock lock(mEntitiesMutex);
 				mEntities.clear();
+				clearRelations();
 				mPendingEntityClear.store(false, std::memory_order_release);
 			}
 			else {
@@ -920,6 +1054,7 @@ namespace ecss {
 				}
 
 				mEntities.clear();
+				clearRelations();
 			}
 		}
 
@@ -1207,6 +1342,10 @@ namespace ecss {
 			// Destroy components FIRST, under each array's write lock. If a concurrent
 			// destroyEntity(same id) races us, per-array destroy is idempotent and safe.
 			destroySector(entityId);
+			// Same for relations. If an edge outlived the id, the next entity that gets this id
+			// would silently inherit the edge.
+			const EntityId oneId[1] = { entityId };
+			sweepRelations(oneId, oneId + 1);
 			// Release the id only AFTER the components are gone. This ordering is what
 			// closes the window where a concurrent takeEntity() could recycle the id while
 			// destroySector was still walking the component arrays and would then destroy
@@ -1283,6 +1422,10 @@ namespace ecss {
 					destroyInArray(array, entities.data(), entities.data() + entities.size());
 				}
 			}
+
+			// Drop relations before the ids go back to the pool, same as destroyEntity(). One
+			// lock per relation storage for the whole batch, not one per entity.
+			sweepRelations(entities.data(), entities.data() + entities.size());
 
 			// One operation per word rather than per id: the list is sorted by now, so runs of
 			// ids share a word and clear together.
@@ -1595,6 +1738,104 @@ namespace ecss {
 			}
 		}
 
+	private:
+		// ===== Relations: storage lookup, views, sweep =======================
+
+		template<class R>
+		using RelationStorageT = Relations::RelationStorage<R, ThreadSafe>;
+
+		/// @brief Resolve R's storage, creating it only when asked.
+		///
+		/// Reads pass create=false. That way hasRelation() on a type nobody has used just
+		/// returns false, without allocating a storage or taking the registration lock. Same
+		/// idea as hasComponent().
+		template<class R>
+		RelationStorageT<R>* relationStorage(bool create) {
+			const uint32_t id = Relations::RelationTypeIdGenerator::getId<R>();
+			if constexpr (ThreadSafe) {
+				{
+					auto lock = std::shared_lock(mRelationsMutex);
+					if (id < mRelationStorages.size() && mRelationStorages[id]) {
+						return static_cast<RelationStorageT<R>*>(mRelationStorages[id].get());
+					}
+				}
+				if (!create) { return nullptr; }
+				auto lock = std::unique_lock(mRelationsMutex);
+				// Check again under the unique lock, or two threads using R for the first time
+				// would each create a storage.
+				if (id >= mRelationStorages.size()) { mRelationStorages.resize(id + 1); }
+				if (!mRelationStorages[id]) {
+					mRelationStorages[id] = std::make_unique<RelationStorageT<R>>();
+					mRelationList.push_back(mRelationStorages[id].get());
+				}
+				return static_cast<RelationStorageT<R>*>(mRelationStorages[id].get());
+			}
+			else {
+				if (id < mRelationStorages.size() && mRelationStorages[id]) {
+					return static_cast<RelationStorageT<R>*>(mRelationStorages[id].get());
+				}
+				if (!create) { return nullptr; }
+				if (id >= mRelationStorages.size()) { mRelationStorages.resize(id + 1); }
+				mRelationStorages[id] = std::make_unique<RelationStorageT<R>>();
+				mRelationList.push_back(mRelationStorages[id].get());
+				return static_cast<RelationStorageT<R>*>(mRelationStorages[id].get());
+			}
+		}
+
+		/// @overload Never creates: a const registry does not change its own structure.
+		template<class R>
+		const RelationStorageT<R>* relationStorage(bool create) const {
+			assert(!create && "a const Registry cannot create a relation storage");
+			(void)create;
+			const uint32_t id = Relations::RelationTypeIdGenerator::getId<R>();
+			if constexpr (ThreadSafe) {
+				auto lock = std::shared_lock(mRelationsMutex);
+				return id < mRelationStorages.size() && mRelationStorages[id]
+					? static_cast<const RelationStorageT<R>*>(mRelationStorages[id].get()) : nullptr;
+			}
+			else {
+				return id < mRelationStorages.size() && mRelationStorages[id]
+					? static_cast<const RelationStorageT<R>*>(mRelationStorages[id].get()) : nullptr;
+			}
+		}
+
+		/// @brief Build a view over one adjacency list, taking the storage's shared guard first.
+		///
+		/// The lock is taken before reading the list head and then moved into the view, so the
+		/// list can't change between reading the head and iterating.
+		template<class R, bool Outgoing, bool WithPayload, class Payload, class StoragePtr>
+		static auto makeRelationView(StoragePtr storage, EntityId id) {
+			using View = Relations::RelationView<RelationStorageT<R>, Outgoing, WithPayload, Payload>;
+			if (!storage) { return View{}; }
+			auto guard = storage->lockShared();
+			const auto head = Outgoing ? storage->outHead(id) : storage->inHead(id);
+			return View{ storage, head, std::move(guard) };
+		}
+
+		/// @brief Snapshot of the registered relation storages.
+		[[nodiscard]] std::vector<Relations::IRelationStorage*> relationSnapshot() const {
+			if constexpr (ThreadSafe) {
+				auto lock = std::shared_lock(mRelationsMutex);
+				return mRelationList;
+			}
+			else { return mRelationList; }
+		}
+
+		/// @brief Remove every edge incident to any id in [first, last), across every relation.
+		///
+		/// Destruction calls this before the ids go back to the pool. Otherwise an edge could
+		/// end up attached to the next entity that reuses the id. One lock per storage for the
+		/// whole batch.
+		void sweepRelations(const EntityId* first, const EntityId* last) noexcept {
+			if (first == last) { return; }
+			for (auto* storage : relationSnapshot()) { storage->removeIncident(first, last); }
+		}
+
+		void clearRelations() noexcept {
+			for (auto* storage : relationSnapshot()) { storage->clearAll(); }
+		}
+
+	private:
 		/// The grace period asked for by setRetireGracePeriod(), so that an array registered
 		/// after the call gets it too. Atomic because registration happens on any thread.
 		std::atomic<uint32_t> mRetireGracePeriod{ Memory::RetireBin::DEFAULT_GRACE_PERIOD };
@@ -1630,6 +1871,11 @@ namespace ecss {
 		/// @brief Flat list of all unique sectors arrays for iteration/maintenance.
 		std::vector<Memory::SectorsArray<ThreadSafe, Allocator>*> mComponentsArrays;
 
+		/// @brief relation type id -> storage. Sparse: sized by the highest id this registry uses.
+		std::vector<std::unique_ptr<Relations::IRelationStorage>> mRelationStorages;
+		/// @brief Flat list of the storages that exist, for sweeps and validation.
+		std::vector<Relations::IRelationStorage*> mRelationList;
+
 		struct Dummy{};
 		/// Raised by clearAsync(), lowered by the update() that finds every array's own
 		/// deferred clear finished. One atomic read per update(), not per element, so it is
@@ -1637,6 +1883,7 @@ namespace ecss {
 		std::atomic<bool> mPendingEntityClear{ false };
 		mutable std::conditional_t<ThreadSafe, std::shared_mutex, Dummy> mEntitiesMutex;          ///< Protects entities container (ThreadSafe build).
 		mutable std::conditional_t<ThreadSafe, std::shared_mutex, Dummy> componentsArrayMapMutex; ///< Protects component arrays map/list (ThreadSafe build).
+		mutable std::conditional_t<ThreadSafe, std::shared_mutex, Dummy> mRelationsMutex;          ///< Protects the relation storage list (ThreadSafe build).
 	};
 
 	/**
