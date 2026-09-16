@@ -3,6 +3,7 @@
 
 #include <algorithm>
 #include <atomic>
+#include <chrono>
 #include <concepts>
 #include <random>
 #include <thread>
@@ -415,6 +416,21 @@ namespace RelationTests {
 		EXPECT_TRUE(reg.validateRelationStructure());
 	}
 
+	TEST(Relations_BulkRemoval, RelateOnlyReplacesEveryOutgoingEdge) {
+		Registry<false> reg;
+		auto e = Take(reg, 4);
+
+		reg.relate<Holds>(e[0], e[1]);
+		reg.relate<Holds>(e[0], e[2]);
+		reg.relate<Holds>(e[3], e[0]);      // incoming, must survive
+
+		reg.relateOnly<Holds>(e[0], e[3]);
+
+		EXPECT_EQ((CollectTargets<Registry<false>, Holds>(reg, e[0])), (std::vector<EntityId>{ e[3] }));
+		EXPECT_TRUE(reg.hasRelation<Holds>(e[3], e[0]));
+		EXPECT_TRUE(reg.validateRelationStructure());
+	}
+
 	// ================================================================ destruction
 
 	TEST(Relations_Destruction, DestroyingTheSourceRemovesTheEdge) {
@@ -693,6 +709,43 @@ namespace RelationTests {
 		for (auto& th : threads) { th.join(); }
 
 		EXPECT_TRUE(reg.validateRelationStructure());
+	}
+
+	TEST(Relations_Threading, ConcurrentRelateOnlyLeavesOneTarget) {
+		Registry<true> reg;
+		auto e = Take(reg, 8);
+
+		std::vector<std::thread> threads;
+		for (int t = 0; t < 4; ++t) {
+			threads.emplace_back([&, t] {
+				for (int i = 0; i < 3000; ++i) { reg.relateOnly<Holds>(e[0], e[1 + (t + i) % 7]); }
+			});
+		}
+		for (auto& th : threads) { th.join(); }
+
+		EXPECT_EQ(reg.relationEdgeCount<Holds>(), 1u);
+		EXPECT_TRUE(reg.validateRelationStructure());
+	}
+
+	// A view on one thread, clear() on another, and the view's thread then asks for the entity
+	// list. clear() used to take the relation lock while holding the entities lock, so this hung.
+	TEST(Relations_Threading, ClearDoesNotDeadlockAgainstAViewReader) {
+		Registry<true> reg;
+		auto e = Take(reg, 2);
+		reg.relate<Holds>(e[0], e[1]);
+
+		std::atomic<bool> viewOpen{ false };
+		std::thread reader([&] {
+			auto view = reg.targets<Holds>(e[0]);
+			viewOpen = true;
+			std::this_thread::sleep_for(std::chrono::milliseconds(50));   // let clear() start
+			(void)reg.getAllEntities();
+		});
+		while (!viewOpen) { std::this_thread::yield(); }
+		reg.clear();
+		reader.join();
+
+		EXPECT_EQ(reg.relationEdgeCount<Holds>(), 0u);
 	}
 
 	TEST(Relations_Threading, FirstUseFromSeveralThreadsProducesOneStorage) {

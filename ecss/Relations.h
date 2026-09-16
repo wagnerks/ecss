@@ -207,6 +207,14 @@ namespace ecss {
 				insertLocked(source, target, std::forward<V>(payload));
 			}
 
+			/// @brief Drop every outgoing edge of @p source, then insert (source -> target), under one lock.
+			template<class V>
+			void relateOnly(EntityId source, EntityId target, V&& payload) noexcept {
+				[[maybe_unused]] auto guard = mMutex.unique();
+				drainLocked(mOut.find(source));
+				insertLocked(source, target, std::forward<V>(payload));
+			}
+
 			void unrelate(EntityId source, EntityId target) noexcept {
 				[[maybe_unused]] auto guard = mMutex.unique();
 				const EdgeIndex e = findEdgeLocked(source, target);

@@ -347,9 +347,9 @@ namespace ecss {
 					if ((*it)->hasPendingClear()) { stillPending = true; break; }
 				}
 				if (!stillPending) {
+					clearRelations();   // outside the entities lock, see clear()
 					std::unique_lock lock(mEntitiesMutex);
 					mEntities.clear();
-					clearRelations();
 					mPendingEntityClear.store(false, std::memory_order_release);
 				}
 			}
@@ -906,6 +906,15 @@ namespace ecss {
 			relationStorage<R>(true)->relate(source, target, std::move(payload));
 		}
 
+		/// @brief Make @p target the only target of @p source in relation R.
+		/// @note Removes the old edges and adds the new one under one lock. Calling
+		///       removeRelationsFrom() and relate() separately is not the same: two threads doing
+		///       it for one source can leave it with two targets.
+		template<RelationTag R>
+		void relateOnly(EntityId source, EntityId target) noexcept {
+			relationStorage<R>(true)->relateOnly(source, target, R{});
+		}
+
 		/// @brief Remove (source -> target) if present. A no-op when R has no storage.
 		template<RelationPayload R>
 		void unrelate(EntityId source, EntityId target) noexcept {
@@ -1043,9 +1052,11 @@ namespace ecss {
 					}
 				}
 
+				// Before the entities lock, not under it. A thread holding a relation view may be
+				// waiting for that lock (getAllEntities), and then neither side could move.
+				clearRelations();
 				std::unique_lock lock(mEntitiesMutex);
 				mEntities.clear();
-				clearRelations();
 				mPendingEntityClear.store(false, std::memory_order_release);
 			}
 			else {
