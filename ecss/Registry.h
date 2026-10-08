@@ -1312,6 +1312,19 @@ namespace ecss {
 		/// @thread_safety Internally synchronized. Lock-free claim out of the id set.
 		FORCE_INLINE EntityId takeEntity() noexcept { return mEntities.take(); }
 
+		/// @brief Called with every id destroyEntity() or destroyEntities() is about to destroy,
+		///        while its components are still there. For whoever keeps state per entity outside
+		///        the registry: no destroy path can skip it.
+		using DestroyListener = void (*)(EntityId entityId, void* context);
+
+		/// @brief Set (or with nullptr clear) the destroy listener.
+		/// @thread_safety Not synchronized: set it before any thread destroys entities. The
+		///                listener runs on the destroying thread.
+		void setDestroyListener(DestroyListener listener, void* context = nullptr) noexcept {
+			mDestroyListener = listener;
+			mDestroyContext = context;
+		}
+
 		/// @brief Allocate @p count entity ids in one pass, appending them to @p out.
 		///
 		/// Prefer this to a loop of takeEntity() when streaming a region in: the bitmap is
@@ -1350,6 +1363,9 @@ namespace ecss {
 		void destroyEntity(EntityId entityId) noexcept {
 			// Presence check: cheap lock-free early-out.
 			if (!mEntities.contains(entityId)) return;
+			if (mDestroyListener) {
+				mDestroyListener(entityId, mDestroyContext);
+			}
 			// Destroy components FIRST, under each array's write lock. If a concurrent
 			// destroyEntity(same id) races us, per-array destroy is idempotent and safe.
 			destroySector(entityId);
@@ -1381,6 +1397,13 @@ namespace ecss {
 		void destroyEntities(std::vector<EntityId>& entities) noexcept {
 			if (entities.empty()) {
 				return;
+			}
+			if (mDestroyListener) {
+				for (const auto entityId : entities) {
+					if (mEntities.contains(entityId)) {
+						mDestroyListener(entityId, mDestroyContext);
+					}
+				}
 			}
 
 			// Checking costs 0.18 ns per entity, sorting 3.4 on an already-ordered list and 47
@@ -1875,6 +1898,9 @@ namespace ecss {
 		/// Ranges is still the right shape for the view range filters; it was the wrong one
 		/// for a set that fragments by design.
 		IdSet<EntityId, ThreadSafe> mEntities;
+
+		DestroyListener mDestroyListener = nullptr; ///< @see setDestroyListener
+		void* mDestroyContext = nullptr;
 
 		/// @brief Mapping: component type id -> sectors array (may group several component types).
 		std::vector<Memory::SectorsArray<ThreadSafe, Allocator>*> mComponentsArraysMap;
