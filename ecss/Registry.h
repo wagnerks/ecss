@@ -524,11 +524,21 @@ namespace ecss {
 		 *
 		 *                To add from inside a loop over a view, record into an ecss::CommandBuffer
 		 *                and apply it once the loop is done.
+		 *
+		 *                T's add listener, if it has one, is called on this thread once the
+		 *                component is stored. @see setAddListener
 		 */
 		template <class T, class ...Args>
 		FORCE_INLINE T* addComponent(EntityId entity, Args&&... args) noexcept {
-			const auto guard = detail::writeScope<T>(componentTypeId<T>());
-			return getComponentContainer<T>()->template push<T>(entity, std::forward<Args>(args)...);
+			T* component;
+			{
+				const auto guard = detail::writeScope<T>(componentTypeId<T>());
+				component = getComponentContainer<T>()->template push<T>(entity, std::forward<Args>(args)...);
+			}
+			if (const auto* hook = addHook<T>(); hook && component) {
+				hook->listener(entity, hook->context);
+			}
+			return component;
 		}
 
 		/**
@@ -542,6 +552,9 @@ namespace ecss {
 		 *                as addComponent(): an ascending run appends, anything landing in the middle
 		 *                waits for the array to carry no pins and no open views.
 		 *                Not applicable in the plain build, which has neither.
+		 *
+		 *                T's add listener, if it has one, is called with every id of the batch
+		 *                once the whole batch is stored. @see setAddListener
 		 */
 		template <class T, typename Func>
 		void addComponents(Func&& func) {
@@ -561,8 +574,11 @@ namespace ecss {
 				batch.emplace_back(res.first, std::move(res.second));
 			}
 			if (batch.empty()) { return; }
-			const auto guard = detail::writeScope<T>(componentTypeId<T>());
-			getComponentContainer<T>()->template insertBulk<T>(batch.begin(), batch.end());
+			{
+				const auto guard = detail::writeScope<T>(componentTypeId<T>());
+				getComponentContainer<T>()->template insertBulk<T>(batch.begin(), batch.end());
+			}
+			tellAdded<T>(batch.begin(), batch.end());
 		}
 
 		/**
@@ -582,11 +598,17 @@ namespace ecss {
 		 *
 		 *                To add from inside a loop over a view, record into an ecss::CommandBuffer
 		 *                and apply it once the loop is done.
+		 *
+		 *                T's add listener, if it has one, is called with every id of the range
+		 *                once the whole batch is stored. @see setAddListener
 		 */
 		template <class T, class It>
 		void insertBulk(It first, It last) {
-			const auto guard = detail::writeScope<T>(componentTypeId<T>());
-			getComponentContainer<T>()->template insertBulk<T>(first, last);
+			{
+				const auto guard = detail::writeScope<T>(componentTypeId<T>());
+				getComponentContainer<T>()->template insertBulk<T>(first, last);
+			}
+			tellAdded<T>(first, last);
 		}
 
 		/**
@@ -1325,6 +1347,29 @@ namespace ecss {
 			mDestroyContext = context;
 		}
 
+		/// @brief Called with every id addComponent(), addComponents() or insertBulk() -- and so
+		///        a CommandBuffer -- stored a T for, new or overwritten, once it is stored: a pin
+		///        or a view taken from the listener, on any thread, finds the component whole.
+		///        For whoever acts on new components of a type outside the registry. A
+		///        component's constructor is no place to tell them: it runs before the
+		///        component is stored, and a thread that acts on what it tells at once finds
+		///        nothing there yet.
+		/// @note An id a batch names twice is told twice.
+		using AddListener = void (*)(EntityId entityId, void* context);
+
+		/// @brief Set (or with nullptr clear) the add listener of component type T.
+		/// @thread_safety Not synchronized: set it before any thread adds components. The
+		///                listener runs on the adding thread, once the add has let go of the
+		///                array, so it may pin, view or even add to T's array itself.
+		template <class T>
+		void setAddListener(AddListener listener, void* context = nullptr) noexcept {
+			const auto type = componentTypeId<T>();
+			if (type >= mAddHooks.size()) {
+				mAddHooks.resize(static_cast<size_t>(type) + 1);
+			}
+			mAddHooks[type] = { listener, context };
+		}
+
 		/// @brief Allocate @p count entity ids in one pass, appending them to @p out.
 		///
 		/// Prefer this to a loop of takeEntity() when streaming a region in: the bitmap is
@@ -1901,6 +1946,30 @@ namespace ecss {
 
 		DestroyListener mDestroyListener = nullptr; ///< @see setDestroyListener
 		void* mDestroyContext = nullptr;
+
+		struct AddHook {
+			AddListener listener = nullptr;
+			void* context = nullptr;
+		};
+		/// @brief Component type id -> its add listener. Sized by the highest id given one.
+		/// @see setAddListener
+		std::vector<AddHook> mAddHooks;
+
+		template <class T>
+		FORCE_INLINE const AddHook* addHook() const noexcept {
+			const auto type = componentTypeId<T>();
+			return type < mAddHooks.size() && mAddHooks[type].listener ? &mAddHooks[type] : nullptr;
+		}
+
+		/// @brief Tell T's add listener of every id of a stored batch of {id, value} pairs.
+		template <class T, class It>
+		void tellAdded(It first, It last) {
+			if (const auto* hook = addHook<T>()) {
+				for (auto it = first; it != last; ++it) {
+					hook->listener(it->first, hook->context);
+				}
+			}
+		}
 
 		/// @brief Mapping: component type id -> sectors array (may group several component types).
 		std::vector<Memory::SectorsArray<ThreadSafe, Allocator>*> mComponentsArraysMap;
